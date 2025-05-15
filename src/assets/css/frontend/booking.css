@@ -1,0 +1,1642 @@
+body {
+    background: #F3F3F9;
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    src: url('../../font-fmly/gilroy-bold/Gilroy-Bold.ttf');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    src: url('../../font-fmly/gilroy-bold/Gilroy-Heavy.ttf');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    src: url('../../font-fmly/gilroy-bold/Gilroy-Medium.ttf');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gilroy';
+    src: url('../../font-fmly/gilroy-bold/Gilroy-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+h2 {
+    font-family: 'Gilroy';
+    font-size: 32px;
+    line-height: 2;
+    font-weight: 500;
+}
+
+h3 {
+    font-size: 21px;
+    font-family: 'Gilroy';
+    line-height: 2;
+    letter-spacing: 0.6px;
+    font-weight: 500;
+}
+
+p,
+label {
+    font-size: 15px;
+    font-family: 'Gilroy';
+    color: #000000c4;
+    font-weight: 500;
+}
+
+.header-top,
+.border,
+.booking_data {
+    width: 62%;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 25px 0px;
+}
+
+.tab_box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.scrool-box {
+    GAP: 30px;
+    justify-content: space-evenly;
+}
+
+.book_data {
+    width: 40%;
+}
+
+.booking_data {
+    overflow: scroll;
+    height: 80vh;
+    padding-right: 20px;
+}
+
+.book_data {
+    width: calc(50% - 10px);
+
+}
+
+.book_data_label {
+    background: #ffffff;
+    padding: 30px 15px;
+    /* margin-bottom: 16px; */
+    height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    position: relative;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.3s all ease-in-out 0s;
+}
+
+.book_data_label h3,
+.book_data_label p {
+    margin: 0;
+}
+
+.book_data_label:hover,
+.active_book_data_label,
+.location_data:hover {
+    border-color: #03a9f4;
+    transition: 0.3s all ease-in-out 0s;
+}
+
+.location_data:hover {
+    border-radius: 20px;
+}
+
+.book_data h3 {
+    cursor: pointer;
+}
+
+.loc_data {
+    width: calc(50% - 14px);
+    position: relative;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: 0.3s all ease-in-out 0s;
+}
+
+.loc_data img {
+    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.3s all ease-in-out 0s;
+}
+
+.location_data {
+    overflow: hidden;
+    transition: 0.3s all ease-in-out 0s;
+    border-radius: 20px;
+}
+
+.location_data:hover img {
+    transform: scale(1.1);
+    transition: 0.3s all ease-in-out 0s;
+}
+
+.active-loc {
+    border-color: #03a9f4;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.active-loc img {
+    object-fit: cover !important;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 !important;
+}
+
+.loc_data h3 {
+    position: absolute;
+    bottom: 10px;
+    left: 70px;
+    background: #fff;
+    padding: 2px 15px;
+    font-size: 18px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin: auto;
+    display: flex;
+    right: 70px;
+    justify-content: center;
+    z-index: 9;
+}
+
+.final_pax-label-wrap svg,
+.form-presnger svg {
+    width: 20px;
+    height: 20px;
+}
+
+.Buy_Gift {
+    margin: 0px;
+}
+
+.accordion {
+    background-color: #03A9F4;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 20px;
+    width: 100%;
+    border: none;
+    text-align: center;
+    outline: none;
+    font-size: 15px;
+    transition: 0.4s;
+    margin-bottom: 10px;
+    position: relative;
+    font-family: 'Gilroy';
+    font-size: 20px;
+    border-radius: 20px;
+    font-weight: 400;
+}
+
+.accodien {
+    margin-top: 40px;
+}
+
+.active {
+    background-color: #fff;
+    color: black;
+    font-weight: 500;
+}
+
+.panel {
+    padding: 10px 5px 20px 5px;
+    display: none;
+    background-color: #ffffff00;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.acood_head h3 {
+    margin-bottom: 20px;
+}
+
+.accordion:after {
+    content: "+";
+    position: absolute;
+    z-index: 1;
+    right: 11px;
+}
+
+.accordion.active:after {
+    content: "-";
+    position: absolute;
+    z-index: 1;
+    right: 11px;
+}
+
+.main-content {
+    padding: 0 15px;
+}
+
+.main_booking {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 20px;
+    gap: 50px;
+}
+
+.header-top {
+    margin-bottom: 15px;
+}
+
+.booking_info {
+    width: 35%;
+    height: fit-content;
+}
+
+.book_active {
+    border-radius: 40px;
+    background: #fff;
+    padding: 30px;
+}
+
+.active-book-cont p {
+    margin: 0;
+}
+
+.active-book-card {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #bbb4b4;
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.active-card-val .active-book-card {
+    background: #74da78;
+    border-color: #74da78;
+}
+
+.active-card-val .active-book-card:after {
+    content: '✔';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.book_data_active .row-1 {
+    align-items: start;
+    margin-bottom: 20px;
+}
+
+.book_data_active .row-1 h3 {
+    line-height: 100%;
+}
+
+.active-book-cont p {
+    padding-top: 10px;
+}
+
+.row-1 {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.bottom_main {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0px;
+    align-items: center;
+}
+
+.book_selevt_btn {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.book_selevt_btn button {
+    background: #03a9f4;
+}
+
+.booking_btn,
+.book_select_btn a {
+    background: #03a9f4;
+    padding: 8px 20px;
+    color: #fff;
+    font-family: 'Gilroy';
+    border: none;
+    font-size: 15px;
+    width: fit-content;
+    border-radius: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.final_pax-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.book_select_btn {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.popup-text h3 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.booking_data::-webkit-scrollbar,
+.presger-scroll::-webkit-scrollbar,
+.Profered-scroll::-webkit-scrollbar,
+.last_add::-webkit-scrollbar {
+    width: 5px;
+    background-color: #F5F5F5;
+}
+
+.booking_data::-webkit-scrollbar-thumb,
+.presger-scroll::-webkit-scrollbar-thumb,
+.Profered-scroll::-webkit-scrollbar-thumb,
+.last_add::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: #dfdfdf;
+}
+
+.booking_data,
+.presger-scroll,
+.Profered-scroll,
+.accordion:after {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.flii-scroll {
+    overflow: visible;
+    height: auto;
+    padding: 0px 5px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.bottom_main h3 {
+    color: #000000;
+}
+
+.flight-head-bin {
+    color: #000000;
+}
+
+.flight-head-bin h3 {
+    margin-bottom: 5px;
+}
+
+.full-flight {
+    margin: 6px auto;
+}
+
+.shared-row ul {
+    padding: 0;
+    margin: 0;
+}
+
+.shared-row ul li {
+    list-style: inside;
+    padding: 0px 4px 1px 0px;
+    font-family: 'Gilroy';
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.shared-row {
+    margin: 6px auto;
+}
+
+.content-flight hr {
+    width: 50%;
+    margin: 5px auto 5px 0;
+}
+
+.presger_count {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.num_count input {
+    width: 60%;
+    height: 25px;
+    border: 2px solid black;
+}
+
+.num_count {
+    width: 35%;
+}
+
+.pera p {
+    margin: 0 0 3px 0;
+}
+
+.pera p:nth-child(2) {
+    font-size: 12px !important;
+    color: #585858;
+}
+
+.flight-data {
+    margin-bottom: 20px;
+    width: 48%;
+    padding: 15px;
+    border: 1.5px solid #00000080;
+    border-radius: 20px;
+    flex: 0 0 48%;
+    box-sizing: border-box;
+}
+
+.vaouch .loc_data {
+    width: 33%;
+}
+
+.vouch-text {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.presnger_one {
+    align-items: center;
+}
+
+.presnger_one,
+.presnger-tag {
+    display: flex;
+    justify-content: space-between;
+}
+
+.presger_rate {
+    gap: 25px;
+}
+
+.presnger-tag h3 {
+    margin: 0;
+}
+
+.presger_rate,
+.passenger_weather-refund {
+    display: flex;
+    align-items: center;
+}
+
+.passenger_weather-refund {
+    gap: 15px;
+}
+
+.presnger-tag input {
+    width: 30px;
+    height: 30px;
+}
+
+.presger_rate span {
+    background: #61D836;
+    padding: 10px 25px;
+    border-radius: 20px;
+    color: #fff;
+    font-family: 'Gilroy';
+    font-size: 16px;
+}
+
+.form-presnger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 18px;
+    gap: 20px;
+}
+
+.form-presnger input {
+    height: 35px;
+    padding: 0px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-presnger input:focus {
+    outline: none;
+}
+
+.all-pressenger {
+    margin-top: 10px;
+}
+
+.presger-scroll {
+    height: 31vh;
+    overflow: scroll;
+    padding: 25px;
+    background: #fff;
+    border-radius: 40px;
+    margin: 20px auto;
+}
+
+.add-info {
+    background: #fff;
+    border-radius: 40px;
+    padding: 30px;
+}
+
+.Profered-scroll {
+    background: #fff;
+    border-radius: 40px;
+    padding: 10px;
+}
+
+.Proferences_data h3 {
+    font-size: 18px;
+    line-height: 35px;
+}
+
+.Recipient {
+    background: #fff;
+    border-radius: 40px;
+    padding: 30px;
+    margin: 20px auto;
+}
+
+.pro_head {
+    margin-bottom: 3px;
+    margin-top: 19px;
+}
+
+.pro_head h3 {
+    margin: 0;
+}
+
+.pro_head .info-icon-container {
+    cursor: pointer;
+    margin-right: 5px;
+    position: relative;
+    z-index: 10;
+}
+
+.bod-area {
+    border: 1px solid #00000066;
+    padding: 0px 4px;
+    border-radius: 10px;
+}
+
+.Proferences_data {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+/* .Profered-scroll {
+    overflow: scroll;
+    height: 46vh;
+} */
+
+.Recipient input {
+    height: 40px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 0px 10px;
+    box-sizing: border-box;
+}
+
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #f1f1f1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 30px;
+    z-index: 1000;
+    width: 800px;
+}
+
+.popup ul li {
+    font-size: 18px;
+    font-family: 'Gilroy';
+    line-height: 1.2em;
+    color: #000000b5;
+}
+
+.popup h1 {
+    margin: 0 0 10px;
+    font-size: 24px;
+}
+
+.popup p {
+    font-size: 16px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.popup .close-icon {
+    position: absolute;
+    top: 10px;
+    right: 22px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: #555;
+}
+
+.popup .close-icon:hover {
+    color: red;
+}
+
+.popup-text {
+    text-align: center;
+    padding: 0px;
+    color: #000000;
+}
+
+.pop-btn {
+    text-align: center;
+    padding-bottom: 30px;
+    padding-top: 0;
+    width: fit-content;
+    margin: auto;
+}
+
+.pop-btn button {
+    background: #8BC34A;
+    color: #fff;
+}
+
+.row-1 h3 {
+    margin: 0;
+}
+
+.row-1 input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    background: #bbb4b4;
+    position: relative;
+}
+
+.row-1 input[type="checkbox"]:checked,
+.final-prefer-check input:checked {
+    background-color: #74da78;
+    border-color: #74da78;
+    /* Checked state ka color */
+}
+
+.active-card-val .active-book-card:before,
+.passenger_weather-refund input[type="checkbox"]:checked:before,
+.add-on-input.active-add-on:before {
+    content: '✓';
+    position: absolute;
+    top: 58%;
+    left: 77%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+}
+
+.final-active-book-cont {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    flex: 1;
+}
+
+.Proferences_data .final-prefer-check {
+    margin: 0;
+}
+
+.add_check label {
+    align-items: center;
+    cursor: pointer;
+}
+
+.final-prefer-check input {
+    appearance: none;
+    border: 2px solid gray;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.Recipient_check input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    background: #bbb4b4;
+    position: relative;
+}
+
+.Recipient_check input[type="checkbox"]:checked {
+    background-color: #74da78;
+    /* Checked state ka color */
+}
+
+.Recipient_check input[type="checkbox"]:checked::before,
+.final-prefer-check input:checked:before {
+    content: '✔';
+    position: absolute;
+    top: 45%;
+    left: 48%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.Recipient_check {
+    display: flex;
+    gap: 10px;
+    align-items: start;
+    margin-top: 15px;
+}
+
+.Recipient_check h3 {
+    font-size: 18px;
+    line-height: 25px;
+}
+
+.Recipient_check.trans input {
+    margin-top: 5px;
+    height: 24px !important;
+}
+
+.book_data input,
+.Buy_Gift input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    background: #bbb4b4;
+    position: absolute;
+    top: 20px;
+    right: 30px;
+}
+
+.book_data input:checked {
+    background-color: #74da78;
+    /* Checked state ka color */
+}
+
+.book_data input[type="checkbox"]:checked::before {
+    content: '✔';
+    position: absolute;
+    top: 60%;
+    left: 75%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+}
+
+.passenger_weather-refund input[type="checkbox"],
+.bod-area input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid grey;
+    position: relative;
+}
+
+.bod-area input[type="checkbox"] {
+    position: relative;
+    top: 20px;
+    right: 30px;
+}
+
+.trans input[type="checkbox"] {
+    cursor: pointer;
+    background: transparent;
+    top: 0px;
+    right: 0px;
+    border: 2px solid grey;
+}
+
+.bod-area input[type="checkbox"] {
+    top: 0;
+    right: 6px;
+}
+
+.passenger_weather-refund input[type="checkbox"]:checked {
+    background-color: #74da78;
+    border-color: #74da78;
+    /* Checked state ka color */
+}
+
+.presnger-tag input[type="checkbox"]:checked::before,
+.book_data input:checked:before {
+    content: '✔';
+    position: absolute;
+    top: 60%;
+    left: 75%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+}
+
+.addition-info-notes {
+    display: flex;
+    flex-direction: column;
+}
+
+.addition-info-notes label {
+    font-size: 21px;
+}
+
+.add_note form label {
+    font-size: 21px;
+}
+
+.addition-info-notes textarea {
+    margin: 15px auto;
+    padding: 10px;
+    height: 100px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.add_check {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.Proferences_box-wrap {
+    padding: 30px;
+}
+
+.chaque {
+    display: flex;
+    gap: 10px;
+    border: 1px solid #0000008c;
+    padding: 6px 6px;
+    margin: 15px 0px;
+    border-radius: 10px;
+}
+
+.final-prefer-check {
+    gap: 2px;
+}
+
+.final-prefer-check span {
+    margin-left: 2px;
+}
+
+.prefer {
+    margin: 15px 0;
+}
+
+.add-info label,
+.add-info p {
+    font-size: 16px;
+    line-height: 24px;
+    margin: 0;
+}
+
+.add-info select {
+    padding: 10px 10px;
+    background: transparent;
+    font-size: 16px;
+    width: 100%;
+    border-radius: 10px;
+    margin: 10px auto;
+}
+
+.selector {
+    margin-top: 22px;
+}
+
+.last_book_data {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.last_book {
+    border: 1px solid #00000052;
+    border-radius: 25px;
+    padding: 30px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: stretch;
+    gap: 3px;
+}
+
+.last_add {
+    background: #fff;
+    border-radius: 25px;
+    padding: 20px;
+    overflow: scroll;
+    height: 47vh;
+}
+
+.last_comtent h3 {
+    line-height: 1.5;
+    font-size: 18px;
+}
+
+.last_book_data input {
+    position: absolute !important;
+    top: 20px;
+    right: 20px;
+}
+
+.last_book_data input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    background: #bbb4b4;
+    position: relative;
+}
+
+.last_book_data input[type="checkbox"] {
+    background-color: transparent;
+    border: 1px solid #00000087;
+}
+
+.last_add.row-1 {
+    display: unset;
+}
+
+.shred {
+    padding: 30px;
+}
+
+/* Start AddOn  */
+
+.add-on-card {
+    flex-direction: column;
+}
+
+.add-on-card .loc_data {
+    align-items: center;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    box-sizing: border-box;
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+}
+
+.add-on-card .vouch-text {
+    text-align: left;
+}
+
+.add-on-input {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #bbb4b4;
+    border-radius: 50%;
+    right: 20px;
+    top: 20px;
+}
+
+.add-on-input.active-add-on {
+    background: #74da78;
+    border-color: #74da78;
+}
+
+.final_add-on-wrap {
+    width: 100%;
+}
+
+.loc_data.active-add-on-wrap, .add-on-card .loc_data:hover {
+    border-color: #03a9f4;
+}
+/* End Add On */
+
+/* Start Tooltip Css */
+
+.react-tooltip {
+    max-width: 250px !important;
+    /* Adjust if needed */
+    white-space: normal !important;
+}
+
+/* End Tooltip Css */
+
+/* Start Location  */
+
+.location-radio {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 15px;
+    right: 15px;
+    border: 2px solid gray;
+    border-radius: 50%;
+}
+
+.active-loc-radio {
+    background: #74da78;
+    border-color: #74da78;
+}
+
+.active-loc-radio:before {
+    border-radius: 50%;
+    color: #fff;
+    content: "✓";
+    font-size: 12px;
+    font-weight: 700;
+    height: 20px;
+    left: 77%;
+    position: absolute;
+    top: 58%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+}
+
+.num_count select {
+    width: 85px;
+    height: 38px;
+    font-size: 14px;
+}
+
+/* End Location */
+
+/* Modal Css */
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.cancel-btn,
+.confirm-btn {
+    padding: 15px 30px;
+    color: #fff;
+    font-family: 'Gilroy';
+    border: none;
+    font-size: 18px;
+    width: fit-content;
+    border-radius: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.cancel-btn:hover,
+.confirm-btn:hover {
+    opacity: 1;
+}
+
+.confirm-btn {
+    background: #8BC34A;
+}
+
+.cancel-btn {
+    background: red;
+}
+
+.select-btn.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.modal-content {
+    padding: 30px;
+}
+
+/* End Modal css */
+
+/* Start Accordian */
+
+.disable-acc {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+/* End Accordian */
+
+/* Start Common Modal */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999; /* Ensures it's above other elements */
+}
+
+.common-modal {
+    max-width: 800px;
+    width: 90%;
+    background: #fff;
+    z-index: 1000;
+    transform: translate(0, 0);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* End Common Modal */
+
+/* Start Media Query */
+@media only screen and (min-width: 769px) and (max-width: 1024px) {
+    .form-presnger form {
+        gap: 60px;
+    }
+
+    .scrool-box {
+        GAP: 10px
+    }
+
+    .loc_data h3 {
+        position: absolute;
+        bottom: -100px;
+    }
+
+    .flight-data {
+        margin-bottom: 20px;
+        width: 48%;
+        flex: 0 0 48%;
+        padding: 15px;
+        border: 1.5px solid #00000080;
+    }
+
+    .flii-scroll {
+        overflow: visible;
+        height: auto;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 8px;
+        justify-content: center;
+        padding: 0px 5px;
+    }
+
+    .main_booking {
+        gap: 10px;
+        justify-content: space-around;
+    }
+
+    .header-top,
+    .border,
+    .booking_data {
+        width: 60%;
+    }
+
+    .booking_info {
+        width: 40%;
+    }
+
+    .presger-scroll {
+        height: 32vh;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .scrool-box {
+        GAP: 40;
+        margin: 20px auto;
+    }
+
+    .main_booking {
+        display: unset;
+    }
+
+    .header-top,
+    .border,
+    .booking_data {
+        width: 100%;
+    }
+
+    .booking_info {
+        width: 100%;
+    }
+
+    .booking_data {
+        margin: 20px auto;
+    }
+
+    .flii-scroll {
+        overflow: visible;
+        height: auto;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 15px;
+        padding: 0 10px;
+    }
+
+    .flight-data {
+        width: 95%;
+        margin: 0 auto 15px;
+        padding: 12px;
+    }
+
+    .accordion {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .loc_data {
+        width: 45%;
+        margin-bottom: 4em;
+    }
+
+    .loc_data h3 {
+        position: absolute;
+        bottom: -54px;
+    }
+
+    .panel.Recipient form input {
+        width: 94%;
+    }
+
+    h3 {
+        font-size: 16px;
+    }
+
+    .presnger_one {
+        display: unset;
+    }
+
+    .presnger-tag {
+        width: 100%;
+    }
+
+    .presger_rate {
+        width: 100%;
+    }
+
+    .form-presnger form {
+        display: unset;
+    }
+
+    .form-presnger form input {
+        width: 90% !important;
+    }
+
+    .all-pressenger {
+        margin-top: 20px;
+    }
+
+    .vaouch .loc_data {
+        width: 32%;
+    }
+
+    .presger-scroll {
+        height: 37vh;
+    }
+
+    .last_add {
+        height: 50vh;
+    }
+
+    .loc_data {
+        height: 150px;
+    }
+
+    h2 {
+        font-size: 25px;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .booking_data {
+        padding-right: 10px;
+    }
+
+    .last_book {
+        padding: 18px;
+    }
+
+    .add_note form label {
+        font-size: 15px;
+    }
+
+    .add_note form select#select {
+        font-size: 16px;
+    }
+
+    .add_note form textarea#w3review {
+        height: 50px;
+    }
+
+    .add_check {
+        display: unset;
+    }
+
+    .add-info {
+        padding: 20px;
+    }
+
+    .Proferences_data {
+        display: unset;
+    }
+
+    .flight-data {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    .flii-scroll {
+        padding: 0px 5px;
+    }
+
+    .shred {
+        padding: 0;
+        overflow: visible;
+        height: auto;
+    }
+
+    .scrool-box {
+        GAP: 30px;
+    }
+
+    .loc_data {
+        height: 50px;
+    }
+
+    h3 {
+        font-size: 15px;
+    }
+
+    p,
+    label {
+        font-size: 13px;
+    }
+
+    .popup {
+        width: 340px;
+    }
+
+    .loc_data h3 {
+        position: absolute;
+        bottom: -41px;
+        left: 15px;
+        padding: 0px 8px;
+        font-size: 14px;
+        right: 15px;
+        text-align: center;
+    }
+
+    .pera p {
+        font-size: 13px;
+    }
+
+    .num_count select {
+        width: 75px;
+        height: 35px;
+    }
+    
+    .shared-row ul li {
+        font-size: 13px;
+    }
+}
+
+/* Weather Refundable Info Icon Hover Styles */
+.info-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.info-icon-container svg {
+    color: #0070f3;
+    transition: color 0.2s ease;
+}
+
+.info-icon-container:hover svg {
+    color: #0056b3;
+}
+
+.info-icon-container:hover {
+    transform: scale(1.1);
+}
+
+.info-icon-container:hover .hover-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-125%) scale(1);
+}
+
+/* Add styles for accordion info icon */
+.accordion .info-icon-container {
+    z-index: 10;
+    color: white;
+}
+
+.accordion.active .info-icon-container {
+    color: black;
+}
+
+.hover-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    left: 50%;
+    width: auto;
+    min-width: 320px;
+    max-width: 350px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 8px;
+    padding: 12px 15px;
+    z-index: 100000;
+    pointer-events: none; /* Mouse over efekti hover text üzerinde kararlı kalması için */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-left: 4px solid #0070f3;
+    transform: translateX(-50%) translateY(-100%) scale(0.95);
+}
+
+.hover-text p {
+    margin: 0 0 8px 0;
+}
+
+.hover-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* Add arrow to hover text */
+.hover-text::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+@media (max-width: 768px) {
+    .info-icon-container:hover .hover-text {
+        transform: translateX(-50%) translateY(-110%) scale(1);
+        min-width: 250px;
+        max-width: 280px;
+    }
+    
+    .hover-text {
+        min-width: 250px;
+        max-width: 280px;
+        font-size: 12px;
+        padding: 10px 12px;
+        transform: translateX(-50%) translateY(-100%) scale(0.95);
+    }
+    
+    .hover-text::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 480px) {
+    .info-icon-container:hover .hover-text {
+        min-width: 200px;
+        max-width: 250px;
+        font-size: 11px;
+        padding: 8px 10px;
+        transform: translateX(-50%) translateY(-105%) scale(1);
+    }
+    
+    .hover-text {
+        transform: translateX(-50%) translateY(-100%) scale(0.95);
+        min-width: 200px;
+        max-width: 250px;
+    }
+}
+/* End Weather Refundable Info Icon Hover Styles */
+
+.final_booking-button.disabled {
+    background: #bdbdbd !important;
+    color: #fff !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    opacity: 1 !important;
+}
+
+.final_booking-button {
+    margin-bottom: 0 !important;
+}
+
+.flight-data .info-icon-container .hover-text {
+    min-width: 180px;
+    max-width: 220px;
+    left: 0px;
+    transform: translateX(-50%) translateY(-100%) scale(0.95);
+    font-size: 12px;
+    padding: 8px 10px;
+    text-align: left;
+}

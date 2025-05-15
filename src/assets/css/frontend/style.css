@@ -1,0 +1,200 @@
+/* Frontend Css */
+.front-book-wrap {
+    background-color: #fff;
+    border-bottom: 1px solid #017bf82b;
+    border-left: 1px solid #017bf82b;
+    border-right: 1px solid #017bf82b;
+    margin: 0 auto 50px;
+    max-width: 950px;
+    box-shadow: 0 0 20px 10px rgb(0 0 0 / 8%);
+}
+
+.activity-card-wrap {
+    width: calc(33% - 10px);
+}
+
+.category-wrap-card {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: 20px;
+}
+
+.activity-card-wrap img {
+    width: 100%;
+}
+
+.card-final-wrap {
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+}
+
+.card-final-wrap:after {
+    background-image: linear-gradient(180deg, transparent 55%, #000);
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 0;
+}
+
+.card-cont-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-cont-final-wrap {
+    color: #fff;
+    z-index: 9;
+    padding: 10px;
+}
+
+.card-cont-final-wrap h2 {
+    font-size: 18px;
+    margin: 0;
+    line-height: 22px;
+}
+
+.card-cont-final-wrap p {
+    font-size: 12px;
+    margin: 0;
+    line-height: 20px;
+}
+
+.card-cont-btn-wrap {
+    z-index: 9;
+    padding: 10px;
+}
+
+.back-icon-wrap svg {
+    color: #737373;
+    font-size: 18px;
+}
+
+.single-activity-wrap h1,
+.single-activity-wrap h2 {
+    margin: 0;
+    color: #737373;
+    font-size: 22px;
+    font-weight: 400;
+}
+
+.single-activity-wrap h3 {
+    color: #737373;
+    font-weight: 400;
+    margin: 0;
+    line-height: 20px;
+    font-size: 10px;
+    margin-bottom: 10px;
+}
+
+.activity-single-wrap {
+    display: flex;
+}
+
+.single-right-activity {
+    flex: 0 0 30%;
+    padding-left: 20px;
+}
+
+.single-right-activity .MuiTabs-flexContainer button {
+    font-size: 12px;
+    text-transform: none;
+}
+
+.single-right-activity .MuiPickersCalendarHeader-labelContainer {
+    font-size: 12px;
+}
+
+.quantityt-amt-wrap {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.time-slot-wrap {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    margin-top: 30px;
+}
+
+.time-slot-wrap button {
+    width: 100%;
+    margin: 0;
+}
+
+/* Custom Calender */
+
+.days {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 3px;
+    column-gap: 4px;
+}
+
+.day {
+    padding: 10px;
+    background: #fff;
+    border-radius: 5px;
+    position: relative;
+    transition: 0.2s ease;
+    width: calc(14% - 6px);
+    text-align: center;
+}
+
+.day:hover {
+    background: #eaeaea;
+}
+
+.day.inactive {
+    opacity: 0.5;
+}
+
+.day.disabled {
+    background: #ddd;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.day.selected {
+    background: #eaeaea;
+}
+
+.activity {
+    margin-top: 5px;
+    font-size: 10px;
+    color: #555;
+    cursor: pointer;
+    background: #e0e0e0;
+    padding: 2px;
+    border-radius: 5px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.calendar .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.calender-arrow svg {
+    height: 100%;
+}
+.calender-arrow {
+    height: 20px;
+}
