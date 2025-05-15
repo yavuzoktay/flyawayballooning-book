@@ -27,14 +27,9 @@ jobs:
       - name: Archive build folder
         run: tar -czvf build.tar.gz build
 
-      - name: Upload build.tar.gz to S3
-        uses: jakejarvis/s3-sync-action@master
-        with:
-          args: --acl private --delete
+      - name: Upload ONLY build.tar.gz to S3
+        run: aws s3 cp build.tar.gz s3://flyawayballooning-book/build.tar.gz
         env:
-          AWS_S3_BUCKET: flyawayballooning-book
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-          SOURCE_DIR: .
-          DEST_DIR: /
+          AWS_DEFAULT_REGION: us-east-1
