@@ -1,4 +1,4 @@
-name: Build and Deploy build.tar.gz to S3 
+name: Build and Deploy build.tar.gz to S3
 
 on:
   push:
