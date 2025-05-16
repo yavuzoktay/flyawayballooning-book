@@ -96,19 +96,22 @@ const BookingHeader = ({ location, selectedDate }) => {
   const locationName = location?.name || (typeof location === 'string' ? location : 'Selected Location');
 
   return (
-    <div className="booking-header-container">
-      <div className="booking-header-content">
-        <div className="booking-header-location-display">
-          <div className="booking-header-location">{locationName}</div>
-        </div>
-        <div className="booking-header-center">
-          <div className="booking-header-date">{formatDate(selectedDate)}</div>
-        </div>
-        <div className="booking-header-timer">
-          <span className="timer-label">Time Remaining:</span>
-          <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
+    <div className="booking-header-outer-center">
+      <div className="booking-header-center-flex">
+        <div className="booking-header-content">
+          <div className="booking-header-location-display">
+            <div className="booking-header-location">{locationName}</div>
+          </div>
+          <div className="booking-header-center">
+            <div className="booking-header-date">{formatDate(selectedDate)}</div>
+          </div>
+          <div className="booking-header-timer">
+            <span className="timer-label">Time Remaining:</span>
+            <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
+          </div>
         </div>
       </div>
+      <div className="header-fake-logo-empty" />
     </div>
   );
 };
