@@ -4,10 +4,10 @@ import LOGO from '../../../assets/images/FAB_Logo_DarkBlue.png';
 
 /**
  * BookingHeader component to display selected location, date, and countdown timer
- * Timer starts from 10 minutes when both location and date are selected
+ * Timer starts from 5 minutes when both location and date are selected
  */
 const BookingHeader = ({ location, selectedDate }) => {
-  const [minutes, setMinutes] = useState(10);
+  const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
 
@@ -55,8 +55,7 @@ const BookingHeader = ({ location, selectedDate }) => {
   // Get the class name for the timer based on the time left
   const getTimerClass = () => {
     if (minutes < 2) return "timer-value critical";
-    if (minutes < 5) return "timer-value warning";
-    return "timer-value";
+    return "timer-value normal";
   };
 
   // Set up the countdown timer
@@ -64,7 +63,7 @@ const BookingHeader = ({ location, selectedDate }) => {
     // Only start timer when both location and date are selected
     if (location && selectedDate && !timerActive) {
       setTimerActive(true);
-      setMinutes(10);
+      setMinutes(5);
       setSeconds(0);
     }
 

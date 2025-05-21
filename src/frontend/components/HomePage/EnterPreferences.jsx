@@ -100,14 +100,14 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                     <div className="Proferences_data">
                         <div className="add_check">
                             {preferredLocation.map((input, index) => (
-                                <label className="row-1 bod-area chaque final-prefer-check" key={index}>
+                                <label className="chaque final-prefer-check" key={index}>
                                     <input
                                         type="checkbox"
                                         value={input}
                                         checked={preference.location[input] || false}
-                                        onChange={(e) => handlePreferChange(e, "location")} // Pass category
+                                        onChange={(e) => handlePreferChange(e, "location")}
                                     />
-                                    {input}
+                                    <span>{input}</span>
                                 </label>
                             ))}
                         </div>
@@ -118,14 +118,14 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                     </div>
                     <div className="Proferences_data">
                         {preferedTime.map((input, index) => (
-                            <label className="row-1 bod-area chaque final-prefer-check" key={index}>
+                            <label className="chaque final-prefer-check" key={index}>
                                 <input
                                     type="checkbox"
                                     value={input}
                                     checked={preference.time[input] || false}
-                                    onChange={(e) => handlePreferChange(e, "time")} // Pass category
+                                    onChange={(e) => handlePreferChange(e, "time")}
                                 />
-                                {input}
+                                <span>{input}</span>
                             </label>
                         ))}
                     </div>
@@ -135,34 +135,16 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                     </div>
                     <div className="Proferences_data">
                         {preferedDay.map((input, index) => (
-                            <label className="row-1 bod-area chaque final-prefer-check" key={index}>
+                            <label className="chaque final-prefer-check" key={index}>
                                 <input
                                     type="checkbox"
                                     value={input}
                                     checked={preference.day[input] || false}
-                                    onChange={(e) => handlePreferChange(e, "day")} // Pass category
+                                    onChange={(e) => handlePreferChange(e, "day")}
                                 />
-                                {input}
+                                <span>{input}</span>
                             </label>
                         ))}
-                    </div>
-                    
-                    <div className="Proferences_data" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                        <label className="row-1 bod-area chaque final-prefer-check">
-                            <input
-                                type="checkbox"
-                                value="Don't enter preferences"
-                                checked={preference.noPreferences || false}
-                                onChange={(e) => {
-                                    const { checked } = e.target;
-                                    setPreference((prev) => ({
-                                        ...prev,
-                                        noPreferences: checked
-                                    }));
-                                }}
-                            />
-                            Don't enter preferences
-                        </label>
                     </div>
                 </div>
             </div>

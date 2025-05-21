@@ -122,8 +122,8 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    Weight (Kg) 
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
+                    Weight (Kg)
                     <span style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                       <InfoOutlinedIcon 
                         data-tooltip-id={`weight-tooltip-${index}`} 

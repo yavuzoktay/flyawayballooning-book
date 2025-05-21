@@ -959,11 +959,16 @@ label {
 }
 
 .final-prefer-check {
-    gap: 2px;
+    flex-direction: row;
+    font-size: 15px;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .final-prefer-check span {
-    margin-left: 2px;
+    margin-left: 4px;
 }
 
 .prefer {

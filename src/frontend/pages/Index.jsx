@@ -103,10 +103,6 @@ const Index = () => {
                     <div className="main_booking">
                         <div className="booking_data">
                             <div className="accodien">
-                                <div className="acood_head">
-                                    <h3>Choose Your Adventure</h3>
-                                </div>
-                                
                                 {/* What would you like to do? Accordion */}
                                 <Accordion 
                                     title="What would you like to do?" 

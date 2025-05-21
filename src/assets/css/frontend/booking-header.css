@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   position: relative;
-  padding: 15px 20px;
+  padding: 15px 0;
   background-color: #fff;
   margin-bottom: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -24,6 +24,7 @@
   display: flex;
   align-items: center;
   margin-right: 30px;
+  margin-left: 19%;
 }
 
 .header-layout .logo img {
@@ -45,7 +46,7 @@
 
 .booking-header-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 8px 15px;
   background-color: #f5f7fa;
@@ -54,6 +55,7 @@
   flex-wrap: nowrap;
   width: auto;
   max-width: 650px;
+  gap: 20px;
 }
 
 .booking-header-logo {
@@ -64,9 +66,11 @@
 .booking-header-location-display {
   display: flex;
   align-items: center;
+  justify-content: center;
   padding-right: 15px;
   border-right: 1px solid #e1e1e1;
   white-space: nowrap;
+  min-width: 200px;
 }
 
 .booking-header-center {
@@ -74,6 +78,7 @@
   padding: 0 15px;
   border-right: 1px solid #e1e1e1;
   white-space: nowrap;
+  min-width: 200px;
 }
 
 .booking-header-location {
@@ -81,6 +86,8 @@
   font-weight: 500;
   color: #444;
   font-family: 'Gilroy', sans-serif;
+  text-align: center;
+  width: 100%;
 }
 
 .booking-header-date {
@@ -93,8 +100,10 @@
 .booking-header-timer {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   padding-left: 15px;
+  min-width: 200px;
 }
 
 .timer-label {
@@ -103,19 +112,22 @@
   margin-bottom: 2px;
   font-family: 'Gilroy', sans-serif;
   white-space: nowrap;
+  text-align: center;
+  width: 100%;
 }
 
 .timer-value {
   font-size: 18px;
   font-weight: 600;
-  color: #d9534f;
   font-family: 'Gilroy', sans-serif;
   transition: color 0.3s ease;
+  text-align: center;
+  width: 100%;
 }
 
 /* Timer color changes based on time left */
-.timer-value.warning {
-  color: #f0ad4e;
+.timer-value.normal {
+  color: #4CAF50;
 }
 
 .timer-value.critical {

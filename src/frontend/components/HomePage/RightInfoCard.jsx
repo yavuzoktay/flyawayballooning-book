@@ -155,7 +155,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                                     "Passenger " + `${index + 1}` + ": " + 
                                                     data.firstName + " " + data.lastName + " " + 
                                                     data.weight + "kg" + 
-                                                    (data.weatherRefund ? " WX Refundable" : "") 
+                                                    (data.weatherRefund ? " - Refundable" : "") 
                                                     : ""}
                                                 </p>
                                             </>
