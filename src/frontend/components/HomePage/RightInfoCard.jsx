@@ -37,7 +37,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         }
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0);
-    const totalPrice = parseInt(flightTypePrice) + parseInt(addOnPrice);
+    const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice);
 
 
     // Send Data To Cart
@@ -171,7 +171,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
             <div className="bottom_main">
                 <h3>Total</h3>
-                <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice : "0"}</p>
+                <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}</p>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0px', marginBottom: '0px' }}>

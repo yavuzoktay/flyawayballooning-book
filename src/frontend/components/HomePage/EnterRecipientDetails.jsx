@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 
-const EnterRecipientDetails = ({ isRedeemVoucher, isFlightVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion }) => {
+const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion }) => {
     const handleChange = (e) => {
         setRecipientDetails({ ...recipientDetails, [e.target.name]: e.target.value });
     };
@@ -21,7 +21,8 @@ const EnterRecipientDetails = ({ isRedeemVoucher, isFlightVoucher, recipientDeta
             id="recipent-details" 
             activeAccordion={activeAccordion} 
             setActiveAccordion={setActiveAccordion} 
-            className={`${isFlightVoucher || isRedeemVoucher ? 'disable-acc' : ""}`} 
+            className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`} 
+            disabled={isBookFlight}
         >
             <div className="Recipient">
                 <form action="/submit" method="post">

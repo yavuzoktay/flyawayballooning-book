@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LOGO from '../../assets/images/FAB_Logo_DarkBlue.png';
 import { Container } from "@mui/material";
 import ChooseActivityCard from "../components/HomePage/ChooseActivityCard";
@@ -38,6 +38,7 @@ const Index = () => {
     const isFlightVoucher = activitySelect === "Flight Voucher";
     const isRedeemVoucher = activitySelect === "Redeem Voucher";
     const isGiftVoucher = activitySelect === "Buy Gift";
+    const isBookFlight = activitySelect === "Book Flight";
     console.log('chooseFlightType', chooseFlightType);
 
     // Lokasyon ve tarih seçilip seçilmediğini kontrol et
@@ -84,6 +85,12 @@ const Index = () => {
             });
         */
     };
+
+    useEffect(() => {
+        if (activitySelect === "Buy Gift") {
+            setActiveAccordion("additional-info");
+        }
+    }, [activitySelect]);
 
     return (
         <div className="final-booking-wrap">
@@ -186,16 +193,17 @@ const Index = () => {
                                         setAdditionalInfo={setAdditionalInfo} 
                                         activeAccordion={activeAccordion} 
                                         setActiveAccordion={handleSetActiveAccordion}
+                                        flightType={chooseFlightType.type}
                                     />
                                     <EnterPreferences 
                                         isGiftVoucher={isGiftVoucher} 
-                                        isRedeemVoucher={isRedeemVoucher} 
                                         preference={preference} 
                                         setPreference={setPreference} 
                                         activeAccordion={activeAccordion} 
                                         setActiveAccordion={handleSetActiveAccordion}
                                     />
                                     <EnterRecipientDetails 
+                                        isBookFlight={isBookFlight}
                                         isRedeemVoucher={isRedeemVoucher} 
                                         isFlightVoucher={isFlightVoucher} 
                                         recipientDetails={recipientDetails} 

@@ -32,6 +32,13 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         ];
     }
 
+    // Buy Gift seçiliyse postal voucher ekle
+    if (activitySelect === "Buy Gift") {
+        addOns = [
+            ...addOns,
+            { name: "Postal vouchers", price: "7.50", image: AddOn1, isPostal: true }
+        ];
+    }
 
     // Handle checkbox toggle when div is clicked
     function handleAddOnChange(name, price) {
@@ -45,7 +52,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
 
 
     return (
-        <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ''}`} >
+        <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isRedeemVoucher ? 'disable-acc' : ''}`} >
             <div className="tab_box add-on-card scroll-box vouch">
                 {addOns.map((item, index) => {
                     const isSelected = Array.isArray(chooseAddOn) && chooseAddOn.some(addOn => addOn.name === item.name);
@@ -55,8 +62,8 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 <img src={item.image} alt={item.name} width="100%" />
                             </div>
                             <div className="vouch-text">
-                                <p>{item.name}</p>
-                                <p>{item.name != 'Weather Refundable' ? "£" : ""}{item.price}{item.name == 'Weather Refundable' ? "%" : ""}</p>
+                                <p>{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 600 }}>+£7.50</span>}</p>
+                                <p>{item.name !== 'Weather Refundable' ? "£" : ""}{item.price}{item.name === 'Weather Refundable' ? "%" : ""}</p>
                             </div>
                             <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`}></span>
                         </div>
