@@ -94,6 +94,27 @@ const Index = () => {
         }
     }, [activitySelect]);
 
+    // Reset all booking selections
+    const resetBooking = () => {
+        setActiveAccordion("activity");
+        setActivitySelect(null);
+        setChooseLocation(null);
+        setChooseFlightType({ type: "", passengerCount: "", price: "" });
+        setAddPassenger("");
+        setChooseAddOn([]);
+        setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+        setWeatherRefund(false);
+        setPreference({ location: {}, time: {}, day: {} });
+        setRecipientDetails({ name: "", email: "", phone: "", date: "" });
+        setAdditionalInfo({ notes: "", hearAboutUs: "", reason: "", prefer: {} });
+        setSelectedDate(null);
+        setActivityId(null);
+        setSelectedActivity([]);
+        setAvailableSeats([]);
+        setVoucherCode("");
+        setVoucherStatus(null);
+    };
+
     return (
         <div className="final-booking-wrap">
             <div className="header-bg">
@@ -249,6 +270,7 @@ const Index = () => {
                                 isRedeemVoucher={isRedeemVoucher}
                                 isGiftVoucher={isGiftVoucher}
                                 voucherCode={voucherCode}
+                                resetBooking={resetBooking}
                             />
                         </div>
                     </div>

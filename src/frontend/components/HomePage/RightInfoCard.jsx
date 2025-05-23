@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -174,7 +174,25 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}</p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0px', marginBottom: '0px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
+                <button
+                    className="booking_btn clear_booking-button"
+                    style={{
+                        background: '#fff',
+                        color: '#444',
+                        border: '1.5px solid #bbb',
+                        boxShadow: 'none',
+                        fontWeight: 500,
+                        borderRadius: '8px',
+                        padding: '8px 22px',
+                        cursor: 'pointer',
+                        opacity: 1
+                    }}
+                    onClick={resetBooking}
+                    type="button"
+                >
+                    Clear
+                </button>
                 <div
                     className={`booking_btn final_booking-button${!(activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) ? ' disabled' : ''}`}
                     onClick={
