@@ -836,11 +836,8 @@ label {
 .Buy_Gift input[type="checkbox"] {
     width: 20px;
     height: 20px;
-    border-radius: 50%;
     appearance: none;
     cursor: pointer;
-    background: #bbb4b4;
-    position: absolute;
     top: 20px;
     right: 30px;
 }

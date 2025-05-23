@@ -58,7 +58,7 @@ const RedeemVoucherCard = ({ onSubmit }) => {
 
   return (
     <div className="voucher-card-container">
-      <div className="voucher-label" style={{ color: "#0d47a1", fontSize: "18px", fontWeight: "500", marginBottom: "20px", textAlign: "center", width: '100%' }}>
+      <div className="voucher-label" style={{ color: "#0d47a1", fontSize: "18px", fontWeight: "500", marginBottom: "10px", textAlign: "center", width: '100%' }}>
         Enter Voucher Code
       </div>
       <input
@@ -68,13 +68,15 @@ const RedeemVoucherCard = ({ onSubmit }) => {
         onChange={(e) => setVoucherCode(e.target.value)}
         onKeyDown={handleKeyDown}
         className="voucher-input-field"
-        style={{ width: '100%', marginBottom: '25px' }}
+        style={{ width: '90%', margin: '16px auto 24px auto', display: 'block' }}
+        onClick={e => e.stopPropagation()}
+        onFocus={e => e.stopPropagation()}
       />
       <button
         onClick={handleSubmit}
         style={{
           backgroundColor: "#2196f3",
-          color: "white",
+          color: "white", 
           border: "none",
           borderRadius: "4px",
           padding: "10px 30px",
@@ -87,22 +89,6 @@ const RedeemVoucherCard = ({ onSubmit }) => {
         }}
       >
         Redeem
-      </button>
-      <button
-        onClick={handleBackToCard}
-        style={{
-          backgroundColor: "transparent",
-          color: "#0d47a1",
-          border: "1px solid #0d47a1",
-          borderRadius: "4px",
-          padding: "8px 20px",
-          fontSize: "14px",
-          fontWeight: "500",
-          cursor: "pointer",
-          lineHeight: "1.5"
-        }}
-      >
-        Back to Card
       </button>
     </div>
   );

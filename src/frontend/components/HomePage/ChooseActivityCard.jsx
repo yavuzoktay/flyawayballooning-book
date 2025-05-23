@@ -105,8 +105,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             <div className="card-flipper" style={{ height: "100%", width: '100%' }}>
                                 <div 
                                     className="card-front"
-                                    onClick={() => handleActivitySelect(item.label)}
-                                    style={{ height: '100%', width: '100%', position: 'relative' }}
+                                    onClick={() => {
+                                        setActivitySelect('Redeem Voucher');
+                                        setIsFlipped(true);
+                                    }}
+                                    style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
                                 >
                                     <label 
                                         htmlFor={`activity-${item.label}`} 
@@ -157,7 +160,15 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 <div 
                                     className="card-back"
                                     ref={cardBackRef}
-                                    onClick={handleCardBackClick}
+                                    onClick={e => {
+                                        // Sadece input veya button dışında bir yere tıklanırsa flip
+                                        if (
+                                            e.target === cardBackRef.current ||
+                                            (!e.target.closest('input') && !e.target.closest('button'))
+                                        ) {
+                                            setIsFlipped(false);
+                                        }
+                                    }}
                                     style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
                                 >
                                     <RedeemVoucherCard onSubmit={handleVoucherSubmit} />
@@ -166,23 +177,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                             Invalid voucher code. Please try again.
                                         </div>
                                     )}
-                                    <div 
-                                        className="back-to-front" 
-                                        style={{ 
-                                            textAlign: 'center', 
-                                            position: 'absolute',
-                                            bottom: '15px',
-                                            left: '50%',
-                                            transform: 'translateX(-50%)',
-                                            cursor: 'pointer',
-                                            color: 'white',
-                                            fontSize: '14px',
-                                            display: 'none' /* Hide this as we now have a button in RedeemVoucherCard */
-                                        }}
-                                        onClick={() => setIsFlipped(false)}
-                                    >
-                                        Back to Card
-                                    </div>
                                 </div>
                             </div>
                         </div>

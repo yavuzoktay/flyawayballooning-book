@@ -94,16 +94,20 @@ const Index = () => {
 
     return (
         <div className="final-booking-wrap">
-            <div className="header-layout">
-                <div className="logo">
-                    <img src={LOGO} alt="Fly Away Ballooning Logo" />
+            <div className="header-bg">
+                <div className="header-layout">
+                    <Container>
+                        <div className="logo">
+                            <img src={LOGO} alt="Fly Away Ballooning Logo" />
+                        </div>
+                        {showBookingHeader && (
+                            <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
+                        )}
+                    </Container>
                 </div>
-                {showBookingHeader && (
-                    <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
-                )}
             </div>
-            <div className="main-content">
-                <Container>
+            <Container>
+                <div className="main-content">
                     <div className="header-top">
                         
                     </div>
@@ -233,8 +237,8 @@ const Index = () => {
                             />
                         </div>
                     </div>
-                </Container>
-            </div>
+                </div>
+            </Container>
         </div>
     )
 }
