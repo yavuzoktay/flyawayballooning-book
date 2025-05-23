@@ -94,7 +94,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
 
     return (
         <>
-            <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
+            <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`}>
                 <div className="tab_box scroll-box">
                     {locations.map((loc, index) => (
                         <div className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""}`} key={index} onClick={() => handleLocationSelect(loc.name)}>

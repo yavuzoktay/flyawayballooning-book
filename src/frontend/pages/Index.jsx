@@ -87,8 +87,10 @@ const Index = () => {
     };
 
     useEffect(() => {
-        if (activitySelect === "Buy Gift") {
-            setActiveAccordion("additional-info");
+        if (activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") {
+            setActiveAccordion("location");
+        } else if (activitySelect === "Flight Voucher") {
+            setActiveAccordion("experience");
         }
     }, [activitySelect]);
 
@@ -128,93 +130,106 @@ const Index = () => {
                                         voucherStatus={voucherStatus}
                                     />
                                 </Accordion>
-                                
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
                                 <div style={{ opacity: activitySelect === null ? '0.5' : '1', pointerEvents: activitySelect === null ? 'none' : 'auto' }}>
-                                    <LocationSection 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        chooseLocation={chooseLocation} 
-                                        setChooseLocation={setChooseLocation} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion} 
-                                        setActivityId={setActivityId} 
-                                        setSelectedActivity={setSelectedActivity}
-                                    />
-                                    
-                                    {/* Pass voucherCode to components that need it */}
-                                    <ExperienceSection 
-                                        isRedeemVoucher={isRedeemVoucher} 
-                                        setChooseFlightType={setChooseFlightType} 
-                                        addPassenger={addPassenger} 
-                                        setAddPassenger={setAddPassenger} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion} 
-                                        activityId={activityId} 
-                                        setAvailableSeats={setAvailableSeats}
-                                        voucherCode={voucherCode}
-                                    />
-                                    <LiveAvailabilitySection 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        selectedDate={selectedDate} 
-                                        setSelectedDate={setSelectedDate} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion} 
-                                        selectedActivity={selectedActivity} 
-                                        availableSeats={availableSeats} 
-                                        chooseLocation={chooseLocation}
-                                    />
-                                    <AddOnsSection 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        isRedeemVoucher={isRedeemVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        chooseAddOn={chooseAddOn} 
-                                        setChooseAddOn={setChooseAddOn} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion} 
-                                        chooseLocation={chooseLocation} 
-                                        chooseFlightType={chooseFlightType} 
-                                        activitySelect={activitySelect}
-                                    />
-                                    <PassengerInfo 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        addPassenger={addPassenger} 
-                                        passengerData={passengerData} 
-                                        setPassengerData={setPassengerData} 
-                                        weatherRefund={weatherRefund} 
-                                        setWeatherRefund={setWeatherRefund} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion} 
-                                        chooseFlightType={chooseFlightType}
-                                    />
-                                    <AdditionalInfo 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        isRedeemVoucher={isRedeemVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        additionalInfo={additionalInfo} 
-                                        setAdditionalInfo={setAdditionalInfo} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion}
-                                        flightType={chooseFlightType.type}
-                                    />
-                                    <EnterPreferences 
-                                        isGiftVoucher={isGiftVoucher} 
-                                        preference={preference} 
-                                        setPreference={setPreference} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion}
-                                    />
-                                    <EnterRecipientDetails 
-                                        isBookFlight={isBookFlight}
-                                        isRedeemVoucher={isRedeemVoucher} 
-                                        isFlightVoucher={isFlightVoucher} 
-                                        recipientDetails={recipientDetails} 
-                                        setRecipientDetails={setRecipientDetails} 
-                                        activeAccordion={activeAccordion} 
-                                        setActiveAccordion={handleSetActiveAccordion}
-                                    />
+                                    {!(activitySelect === "Flight Voucher") && (
+                                        <LocationSection 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            chooseLocation={chooseLocation} 
+                                            setChooseLocation={setChooseLocation} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion} 
+                                            setActivityId={setActivityId} 
+                                            setSelectedActivity={setSelectedActivity}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Redeem Voucher") && (
+                                        <ExperienceSection 
+                                            isRedeemVoucher={isRedeemVoucher} 
+                                            setChooseFlightType={setChooseFlightType} 
+                                            addPassenger={addPassenger} 
+                                            setAddPassenger={setAddPassenger} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion} 
+                                            activityId={activityId} 
+                                            setAvailableSeats={setAvailableSeats}
+                                            voucherCode={voucherCode}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
+                                        <LiveAvailabilitySection 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            selectedDate={selectedDate} 
+                                            setSelectedDate={setSelectedDate} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion} 
+                                            selectedActivity={selectedActivity} 
+                                            availableSeats={availableSeats} 
+                                            chooseLocation={chooseLocation}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Flight Voucher") && (
+                                        <AddOnsSection 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            isRedeemVoucher={isRedeemVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            chooseAddOn={chooseAddOn} 
+                                            setChooseAddOn={setChooseAddOn} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion} 
+                                            chooseLocation={chooseLocation} 
+                                            chooseFlightType={chooseFlightType} 
+                                            activitySelect={activitySelect}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") && (
+                                        <PassengerInfo 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            addPassenger={addPassenger} 
+                                            passengerData={passengerData} 
+                                            setPassengerData={setPassengerData} 
+                                            weatherRefund={weatherRefund} 
+                                            setWeatherRefund={setWeatherRefund} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion} 
+                                            chooseFlightType={chooseFlightType}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
+                                        <AdditionalInfo 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            isRedeemVoucher={isRedeemVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            additionalInfo={additionalInfo} 
+                                            setAdditionalInfo={setAdditionalInfo} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion}
+                                            flightType={chooseFlightType.type}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Buy Gift") && (
+                                        <EnterPreferences 
+                                            isGiftVoucher={isGiftVoucher} 
+                                            preference={preference} 
+                                            setPreference={setPreference} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion}
+                                        />
+                                    )}
+                                    {!(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
+                                        <EnterRecipientDetails 
+                                            isBookFlight={isBookFlight}
+                                            isRedeemVoucher={isRedeemVoucher} 
+                                            isFlightVoucher={isFlightVoucher} 
+                                            recipientDetails={recipientDetails} 
+                                            setRecipientDetails={setRecipientDetails} 
+                                            activeAccordion={activeAccordion} 
+                                            setActiveAccordion={handleSetActiveAccordion}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </div>

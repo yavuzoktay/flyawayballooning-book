@@ -136,19 +136,19 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <div className="shared-row">
                                     <ul>
                                         {exp.details.map((detail, i) => (
-                                            <li key={i}>
+                                            <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
                                                 {typeof detail === 'string' ? (
                                                     detail
                                                 ) : (
-                                                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap' }}>
-                                                        <span style={{ display: 'inline-block' }}>{detail.text}</span>
+                                                    <span style={{ gap: '6px' }}>
+                                                        {detail.text}
                                                         <div className="info-icon-container">
                                                             <BsInfoCircle size={14} />
                                                             <div className="hover-text">
                                                                 {detail.info}
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </span>
                                                 )}
                                             </li>
                                         ))}

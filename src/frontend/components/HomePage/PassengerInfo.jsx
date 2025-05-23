@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { BsInfoCircle } from 'react-icons/bs';
 
 const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType }) => {
   // Parse passengerCount from chooseFlightType and ensure it's at least 1
@@ -83,8 +84,12 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     onChange={() => handleWeatherRefundChange(index)}
                     style={{ cursor: "pointer" }}
                   />
-                  <p style={{ margin: 0 }}>Weather Refundable</p>
-                  <InfoOutlinedIcon data-tooltip-id={`refund-tooltip-${index}`} data-tooltip-content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months." />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <p style={{ margin: 0 }}>Weather Refundable</p>
+                    <div className="info-icon-container">
+                      <BsInfoCircle size={14} style={{ width: 14, height: 14 }} data-tooltip-id={`refund-tooltip-${index}`} data-tooltip-content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months." />
+                    </div>
+                  </span>
                 </label>
                 <ReactTooltip id={`refund-tooltip-${index}`} place="top" type="dark" effect="solid" />
                 <div className="presger_rate">
@@ -125,9 +130,11 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                   <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
                     Weight (Kg)
                     <span style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
-                      <InfoOutlinedIcon 
+                      <BsInfoCircle 
+                        size={14} 
+                        style={{ width: 14, height: 14 }} 
+                        color="#0070f3"
                         data-tooltip-id={`weight-tooltip-${index}`} 
-                        style={{ fontSize: '18px' }} 
                       />
                     </span>
                   </label>
