@@ -44,54 +44,18 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
         >
             <div className="tab_box Profered-scroll Proferences_box-wrap">
                 <div className="pro_head" style={{ position: 'relative', marginBottom: '4px', width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div className="preferences-info-wrapper" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <label>Preferred Location</label>
-                        <div 
+                        <div
                             className="info-icon-container"
-                            style={{ position: 'relative', zIndex: 1000, marginLeft: 'auto' }}
-                            onMouseOver={(e) => {
-                                const tooltip = e.currentTarget.querySelector('.preferences-info-tooltip');
-                                if (tooltip) tooltip.style.visibility = 'visible';
-                                if (tooltip) tooltip.style.opacity = '1';
-                            }}
-                            onMouseOut={(e) => {
-                                const tooltip = e.currentTarget.querySelector('.preferences-info-tooltip');
-                                if (tooltip) tooltip.style.visibility = 'hidden';
-                                if (tooltip) tooltip.style.opacity = '0';
-                            }}
+                            style={{ marginLeft: 'auto' }}
                         >
-                            <BsInfoCircle size={20} color="#000000" />
-                            <div 
-                                className="preferences-info-tooltip" 
-                                style={{ 
-                                    position: 'absolute',
-                                    visibility: 'hidden',
-                                    opacity: 0,
-                                    width: '320px',
-                                    background: '#333',
-                                    color: '#fff',
-                                    textAlign: 'center',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    zIndex: 1001,
-                                    top: '30px',
-                                    right: '-20px',
-                                    transition: 'opacity 0.3s, visibility 0.3s',
-                                    fontSize: '14px',
-                                    lineHeight: '1.5',
-                                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)'
-                                }}
+                            <BsInfoCircle size={14} />
+                            <div
+                                className="hover-text"
                             >
-                                Receive short notice flight notifications - This does not commit you to any day, time or location and does not necessarily mean that we will be in touch with you.
-                                <div style={{
-                                    content: '',
-                                    position: 'absolute',
-                                    top: '-10px',
-                                    right: '25px',
-                                    borderWidth: '5px',
-                                    borderStyle: 'solid',
-                                    borderColor: 'transparent transparent #333 transparent'
-                                }}></div>
+                                <p>Receive short notice flight notifications - This does not commit you to any day, time or location and does not necessarily mean that we will be in touch with you.</p>
+                                <div></div>
                             </div>
                         </div>
                     </div>

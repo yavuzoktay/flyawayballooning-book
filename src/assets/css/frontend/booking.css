@@ -1104,6 +1104,8 @@ label {
     max-width: 250px !important;
     /* Adjust if needed */
     white-space: normal !important;
+    font-size: 14px !important;
+    font-family: 'Gilroy' !important;
 }
 
 /* End Tooltip Css */
@@ -1553,8 +1555,8 @@ label {
     text-align: left;
     border-radius: 8px;
     padding: 12px 15px;
-    z-index: 100000;
-    pointer-events: none; /* Mouse over efekti hover text üzerinde kararlı kalması için */
+    z-index: 999;
+    pointer-events: none;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-size: 14px;
     line-height: 1.5;
@@ -1565,6 +1567,8 @@ label {
 
 .hover-text p {
     margin: 0 0 8px 0;
+    color: #fff !important;
+    font-family: 'Gilroy' !important;
 }
 
 .hover-text p:last-child {
@@ -1633,12 +1637,48 @@ label {
     margin-bottom: 0 !important;
 }
 
-.flight-data .info-icon-container .hover-text {
-    min-width: 180px;
-    max-width: 220px;
-    left: 0px;
-    transform: translateX(-50%) translateY(-100%) scale(0.95);
-    font-size: 12px;
+.flight-data .info-icon-container:hover .hover-text {
+    min-width: 320px;
+    max-width: 320px;
+    left: 50%;
+    right: auto;
+    margin-right: 0;
+    top: calc(100% + 5px);
+    transform: translateX(-50%);
+    font-size: 14px;
     padding: 8px 10px;
     text-align: left;
+    font-family: 'Gilroy' !important;
 }
+
+.flight-data .info-icon-container .hover-text::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent;
+}
+
+/* Preferences Info Icon Hover Styles */
+.preferences-info-wrapper .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    right: 100%;
+    left: auto;
+    margin-right: 10px;
+    top: calc(100% + 5px);
+    transform: none;
+    min-width: 320px;
+    max-width: 320px;
+    text-align: left;
+    font-size: 12px;
+    padding: 8px 10px;
+}
+
+.preferences-info-wrapper .info-icon-container .hover-text::after {
+    content: none;
+}
+/* End Preferences Info Icon Hover Styles */
