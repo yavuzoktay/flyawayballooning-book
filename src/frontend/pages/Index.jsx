@@ -87,9 +87,9 @@ const Index = () => {
     };
 
     useEffect(() => {
-        if (activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") {
+        if (activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") {
             setActiveAccordion("location");
-        } else if (activitySelect === "Flight Voucher") {
+        } else if (activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") {
             setActiveAccordion("experience");
         }
     }, [activitySelect]);
@@ -153,7 +153,7 @@ const Index = () => {
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
                                 <div style={{ opacity: activitySelect === null ? '0.5' : '1', pointerEvents: activitySelect === null ? 'none' : 'auto' }}>
-                                    {!(activitySelect === "Flight Voucher") && (
+                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") && (
                                         <LocationSection 
                                             isGiftVoucher={isGiftVoucher} 
                                             isFlightVoucher={isFlightVoucher} 

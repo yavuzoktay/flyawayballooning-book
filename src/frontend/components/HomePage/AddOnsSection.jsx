@@ -32,10 +32,9 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         ];
     }
 
-    // Buy Gift seçiliyse postal voucher ekle
+    // Buy Gift seçiliyse sadece postal voucher göster
     if (activitySelect === "Buy Gift") {
         addOns = [
-            ...addOns,
             { name: "Postal vouchers", price: "7.50", image: AddOn1, isPostal: true }
         ];
     }
