@@ -159,16 +159,13 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                     <div className="pera">
                                         <p>
                                             {index === 0 
-                                                ? `Passengers: £${exp.price}pp` 
+                                                ? addPassenger[index] 
+                                                    ? `${addPassenger[index]} Passenger${addPassenger[index] > 1 ? 's' : ''}: £${addPassenger[index] * exp.price}`
+                                                    : `Passengers: £${exp.price}pp`
                                                 : index === 1 
                                                 ? addPassenger[index] 
                                                     ? `${addPassenger[index]} Passengers: £${exp.totalPrices[addPassenger[index]]}` 
-                                                    : <span>
-                                                        2 Passengers: £900<br/>
-                                                        3 Passengers: £1050<br/>
-                                                        4 Passengers: £1200<br/>
-                                                        8 Passengers: £1800
-                                                      </span>
+                                                    : <span>2 Passengers: £900</span>
                                                 : `Passengers: £${exp.price}pp`
                                             }
                                         </p>

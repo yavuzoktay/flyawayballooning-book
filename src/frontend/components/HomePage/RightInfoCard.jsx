@@ -111,28 +111,25 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             <div className={`book_data_active ${isFlightVoucher || isRedeemVoucher || isGiftVoucher ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("add-on")}>
                 <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}>
                     <span className="active-book-card"></span>
-                    <div className="final_add-on-wrap">
-                        <h3>Add To Booking</h3>
-                        {
-                            chooseAddOn?.length > 0 ?
-                                (
-                                    chooseAddOn?.map((data, index) => {
-                                        return (
-                                            <div className="active-book-cont final-active-book-cont" key={index}>
-                                                <div className="active-book-left" >
-                                                    <p>{data.name}</p>
-                                                </div>
-                                                <div className="active-book-right">
-                                                    <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
-                                                </div>
+                    <div className="active-book-cont final-active-book-cont">
+                        <div className="active-book-left">
+                            <h3>Add To Booking</h3>
+                            {
+                                chooseAddOn?.length > 0 ?
+                                    chooseAddOn?.map((data, index) => (
+                                        <div className="active-book-cont final-active-book-cont" key={index}>
+                                            <div className="active-book-left" >
+                                                <p>{data.name}</p>
                                             </div>
-                                        )
-                                    })
-
-                                )
-                                :
-                                <p style={{paddingTop: "10px"}}>None Selected</p>
-                        }
+                                            <div className="active-book-right">
+                                                <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                    :
+                                    <p style={{paddingTop: "10px"}}>None Selected</p>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
@@ -171,7 +168,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
             <div className="bottom_main">
                 <h3>Total</h3>
-                <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}</p>
+                <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}</p>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>

@@ -21,7 +21,7 @@ const Index = () => {
     const [activitySelect, setActivitySelect] = useState(null);
     const [chooseLocation, setChooseLocation] = useState(null);
     const [chooseFlightType, setChooseFlightType] = useState({ type: "", passengerCount: "", price: "" });
-    const [addPassenger, setAddPassenger] = useState('');
+    const [addPassenger, setAddPassenger] = useState([1, 2]);
     const [chooseAddOn, setChooseAddOn] = useState([]);
     const [passengerData, setPassengerData] = useState([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
     const [weatherRefund, setWeatherRefund] = useState(false);
@@ -100,7 +100,7 @@ const Index = () => {
         setActivitySelect(null);
         setChooseLocation(null);
         setChooseFlightType({ type: "", passengerCount: "", price: "" });
-        setAddPassenger("");
+        setAddPassenger([1, 2]);
         setChooseAddOn([]);
         setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
         setWeatherRefund(false);
@@ -120,12 +120,16 @@ const Index = () => {
             <div className="header-bg">
                 <div className="header-layout">
                     <Container>
-                        <div className="logo">
-                            <img src={LOGO} alt="Fly Away Ballooning Logo" />
+                        <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center' }}>
+                            <div className="logo" style={{ marginRight: '32px' }}>
+                                <a href="/" onClick={e => { e.preventDefault(); window.location.reload(); }} style={{ display: 'inline-block' }}>
+                                    <img src={LOGO} alt="Fly Away Ballooning Logo" />
+                                </a>
+                            </div>
+                            {showBookingHeader && (
+                                <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
+                            )}
                         </div>
-                        {showBookingHeader && (
-                            <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
-                        )}
                     </Container>
                 </div>
             </div>
@@ -138,19 +142,15 @@ const Index = () => {
                         <div className="booking_data">
                             <div className="accodien">
                                 {/* What would you like to do? Accordion */}
-                                <Accordion 
-                                    title="What would you like to do?" 
-                                    id="activity" 
-                                    activeAccordion={activeAccordion} 
-                                    setActiveAccordion={setActiveAccordion}
-                                >
+                                <div style={{ marginBottom: '30px' }}>
+                                    <h3 style={{ fontSize: '22px', textAlign: 'center', marginBottom: '20px' }}>What would you like to do?</h3>
                                     <ChooseActivityCard 
                                         activitySelect={activitySelect} 
                                         setActivitySelect={setActivitySelect} 
                                         onVoucherSubmit={handleVoucherSubmit}
                                         voucherStatus={voucherStatus}
                                     />
-                                </Accordion>
+                                </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
                                 <div style={{ opacity: activitySelect === null ? '0.5' : '1', pointerEvents: activitySelect === null ? 'none' : 'auto' }}>
                                     {!(activitySelect === "Flight Voucher") && (
