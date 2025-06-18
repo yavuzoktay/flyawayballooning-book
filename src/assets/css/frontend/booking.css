@@ -375,6 +375,7 @@ label {
     display: flex;
     align-items: center;
     gap: 10px;
+    overflow: visible;
 }
 
 .book_select_btn {
@@ -511,6 +512,7 @@ label {
 
 .presnger_one {
     align-items: center;
+    overflow: visible;
 }
 
 .presnger_one,
@@ -572,6 +574,7 @@ label {
 
 .all-pressenger {
     margin-top: 10px;
+    overflow: visible;
 }
 
 .presger-scroll {
@@ -742,7 +745,6 @@ label {
 }
 
 .active-card-val .active-book-card:before,
-.passenger_weather-refund input[type="checkbox"]:checked:before,
 .add-on-input.active-add-on:before {
     content: '✓';
     position: absolute;
@@ -1106,6 +1108,7 @@ label {
     white-space: normal !important;
     font-size: 14px !important;
     font-family: 'Gilroy' !important;
+    border-left: 4px solid #0070f3 !important;
 }
 
 /* End Tooltip Css */
@@ -1513,33 +1516,10 @@ label {
     transition: transform 0.2s ease;
 }
 
-.info-icon-container svg {
-    color: #0070f3;
-    transition: color 0.2s ease;
-}
-
-.info-icon-container:hover svg {
-    color: #0056b3;
-}
-
-.info-icon-container:hover {
-    transform: scale(1.1);
-}
-
 .info-icon-container:hover .hover-text {
     visibility: visible;
     opacity: 1;
     transform: translateX(-50%) translateY(-125%) scale(1);
-}
-
-/* Add styles for accordion info icon */
-.accordion .info-icon-container {
-    z-index: 10;
-    color: white;
-}
-
-.accordion.active .info-icon-container {
-    color: black;
 }
 
 .hover-text {
@@ -1555,8 +1535,8 @@ label {
     text-align: left;
     border-radius: 8px;
     padding: 12px 15px;
-    z-index: 999;
-    pointer-events: none;
+    z-index: 9999;
+    pointer-events: auto;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-size: 14px;
     line-height: 1.5;
@@ -1576,7 +1556,7 @@ label {
 }
 
 /* Add arrow to hover text */
-.hover-text::after {
+/* .hover-text::after {
     content: "";
     position: absolute;
     bottom: -10px;
@@ -1585,7 +1565,7 @@ label {
     border-width: 5px;
     border-style: solid;
     border-color: #333 transparent transparent transparent;
-}
+} */
 
 @media (max-width: 768px) {
     .info-icon-container:hover .hover-text {
@@ -1652,14 +1632,7 @@ label {
 }
 
 .flight-data .info-icon-container .hover-text::after {
-    content: "";
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent #333 transparent;
+    content: none;
 }
 
 /* Preferences Info Icon Hover Styles */
@@ -1682,3 +1655,91 @@ label {
     content: none;
 }
 /* End Preferences Info Icon Hover Styles */
+
+.weight-info-wrapper .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: auto;
+    right: 100%;
+    margin-left: 0;
+    top: calc(100% + 5px);
+    transform: none !important;
+    min-width: 320px;
+    max-width: 320px;
+    text-align: left;
+    font-size: 12px;
+    padding: 8px 10px;
+    z-index: 10001;
+}
+
+.weight-info-wrapper .info-icon-container .hover-text::after {
+    content: none;
+}
+
+.final_pax-label-wrap .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: unset;
+    right: 0;
+    margin-left: 0;
+    top: calc(100% + 5px);
+    transform: none !important;
+    min-width: 320px;
+    max-width: 320px;
+    text-align: left;
+    font-size: 12px;
+    padding: 8px 10px;
+    z-index: 10001;
+}
+
+.final_pax-label-wrap .info-icon-container .hover-text::after {
+    content: none;
+}
+
+.content-flight .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: unset;
+    right: 0;
+    margin-left: 0;
+    top: calc(100% + 5px);
+    transform: none !important;
+    min-width: 320px;
+    max-width: 320px;
+    text-align: left;
+    font-size: 14px;
+    padding: 8px 10px;
+    z-index: 10001;
+}
+
+.shared-flight-tooltip .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: 0 !important;
+    right: unset !important;
+    margin-left: 0;
+    top: calc(100% + 5px);
+    transform: none !important;
+    min-width: 220px;
+    max-width: 260px;
+    text-align: left;
+    font-size: 14px;
+    padding: 8px 10px;
+    z-index: 10001;
+}
+
+.private-flight-tooltip .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: unset;
+    right: 0;
+    margin-left: 0;
+    top: calc(100% + 5px);
+    transform: none !important;
+    min-width: 320px;
+    max-width: 320px;
+    text-align: left;
+    font-size: 14px;
+    padding: 8px 10px;
+    z-index: 10001;
+}

@@ -36,3 +36,50 @@
     transform: rotate(360deg);
   }
 }
+
+/* Tooltip styles for info icon hover */
+.info-icon-container {
+  display: inline-block;
+  position: relative;
+  z-index: 20;
+}
+
+.info-icon-container .hover-text {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #222;
+  border-left: 4px solid #0070f3;
+  font-family: 'Gilroy', Arial, sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  min-width: 220px;
+  max-width: 90vw;
+  width: max-content;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 100;
+  border-radius: 6px;
+  white-space: normal;
+  pointer-events: auto;
+}
+
+/* Tooltip arrow */
+.info-icon-container .hover-text::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
+  filter: drop-shadow(0 -2px 2px rgba(0,0,0,0.04));
+}
+
+.info-icon-container:hover .hover-text,
+.info-icon-container .hover-text:hover {
+  display: block;
+}

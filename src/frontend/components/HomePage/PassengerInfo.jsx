@@ -86,12 +86,14 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                   />
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <p style={{ margin: 0 }}>Weather Refundable</p>
-                    <div className="info-icon-container">
-                      <BsInfoCircle size={14} style={{ width: 14, height: 14 }} data-tooltip-id={`refund-tooltip-${index}`} data-tooltip-content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months." />
+                    <div className="info-icon-container" style={{ position: 'relative' }}>
+                      <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                      <div className="hover-text">
+                        <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
+                      </div>
                     </div>
                   </span>
                 </label>
-                <ReactTooltip id={`refund-tooltip-${index}`} place="top" type="dark" effect="solid" />
                 <div className="presger_rate">
                   <span style={{
                     background: "#61D836",
@@ -129,13 +131,13 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
                     Weight (Kg)
-                    <span style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
-                      <BsInfoCircle 
-                        size={14} 
-                        style={{ width: 14, height: 14 }} 
-                        color="#0070f3"
-                        data-tooltip-id={`weight-tooltip-${index}`} 
-                      />
+                    <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
+                      <div className="info-icon-container" style={{ position: 'relative' }}>
+                        <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                        <div className="hover-text">
+                          <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight.</p>
+                        </div>
+                      </div>
                     </span>
                   </label>
                   <input
@@ -145,8 +147,6 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     onChange={(e) => handlePassengerInputChange(index, e)}
                     placeholder="Kg"
                   />
-                  <ReactTooltip id={`weight-tooltip-${index}`} place="top" type="dark" effect="solid" 
-                    content="Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight." />
                 </div>
               </div>
             </div>
