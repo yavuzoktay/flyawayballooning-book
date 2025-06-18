@@ -1620,7 +1620,7 @@ label {
 }
 
 .flight-data .info-icon-container:hover .hover-text {
-    min-width: 320px;
+    min-width: 220px;
     max-width: 320px;
     left: 50%;
     right: auto;
@@ -1719,20 +1719,27 @@ label {
     z-index: 10001;
 }
 
-.private-flight-tooltip .info-icon-container:hover .hover-text {
+.private-flight-tooltip .info-icon-container:hover {
     visibility: visible !important;
     opacity: 1 !important;
-    left: unset;
-    right: 0;
+    left: 0 !important;
+    right: unset !important;
     margin-left: 0;
     top: calc(100% + 5px);
     transform: none !important;
-    min-width: 320px;
+    min-width: 220px;
     max-width: 320px;
     text-align: left;
-    font-size: 14px;
+    font-size: 14px !important;
+    font-family: 'Gilroy', Arial, sans-serif !important;
     padding: 8px 10px;
     z-index: 10001;
+    background-color: #333;
+    color: #fff;
+    border-radius: 8px;
+    line-height: 1.5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-left: 4px solid #0070f3;
 }
 
 .info-icon-container svg {
