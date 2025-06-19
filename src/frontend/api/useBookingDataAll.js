@@ -4,11 +4,12 @@ import axios from "axios";
 const useBooking = () => {
     const [booking, setBooking] = useState([]);
     const [loading, setLoading] = useState(true);
+    const apiUrl = process.env.REACT_APP_API_URL || "";
 
     useEffect(() => {
         const fetchFlights = async () => {
             try {
-                const response = await axios.get("/api/getAllBookingData");
+                const response = await axios.get(`${apiUrl}/api/getAllBookingData`);
                 setBooking(response.data.data);
             } catch (error) {
                 // console.error("Error fetching flights:", error);
@@ -18,7 +19,7 @@ const useBooking = () => {
         };
 
         fetchFlights();
-    }, []);
+    }, [apiUrl]);
 
     return { booking, loading };
 };
