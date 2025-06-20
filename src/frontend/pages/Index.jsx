@@ -217,6 +217,7 @@ const Index = () => {
                                             activeAccordion={activeAccordion} 
                                             setActiveAccordion={handleSetActiveAccordion} 
                                             chooseFlightType={chooseFlightType}
+                                            activitySelect={activitySelect}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
