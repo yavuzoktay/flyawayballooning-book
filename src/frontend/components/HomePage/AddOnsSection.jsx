@@ -61,7 +61,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 <img src={item.image} alt={item.name} width="100%" />
                             </div>
                             <div className="vouch-text">
-                                <p>{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 600 }}>+£7.50</span>}</p>
+                                <p>{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 500 }}>+£7.50</span>}</p>
                                 <p>{item.name !== 'Weather Refundable' ? "£" : ""}{item.price}{item.name === 'Weather Refundable' ? "%" : ""}</p>
                             </div>
                             <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`}></span>
