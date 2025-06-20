@@ -224,7 +224,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <li>If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.</li>
                                 <li>Within 48 hours of your flight, no changes or cancellations can be made.</li>
                                 <li>Your flight will never expire so long as you meet the terms & conditions.</li>
-                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#4CAF50', fontWeight: 600 }}>See Full Terms & Conditions</a></li>
+                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: 'rgb(3, 169, 244)', fontWeight: 600, fontSize: '18px' }}>See Full Terms & Conditions</a></li>
                             </ul>
                             <div className="modal-buttons">
                                 <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>
