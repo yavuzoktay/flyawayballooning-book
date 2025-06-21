@@ -40,15 +40,32 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice);
 
 
-    // Send Data To Cart
-    function handleBookData() {
-        if (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) {
-            document.getElementById("cartForm").submit();
-            setTimeout(() => {
-                window.location.href = "https://mani-testing-store.myshopify.com/checkout";
-            }, 1000);
-        } else {
-            alert("Please fill all fields!");
+    // Send Data To Backend
+    const handleBookData = async () => {
+        const bookingData = {
+            activitySelect,
+            chooseLocation,
+            chooseFlightType,
+            chooseAddOn,
+            passengerData,
+            additionalInfo,
+            recipientDetails,
+            selectedDate,
+            totalPrice
+        };
+
+        try {
+            const response = await axios.post('http://13.221.13.241:3002/api/createBooking', bookingData);
+            if (response.data.success) {
+                alert('Booking successful! Booking ID: ' + response.data.bookingId);
+                // Optionally, reset the form or redirect
+                resetBooking(); 
+            } else {
+                alert('Booking failed: ' + response.data.message);
+            }
+        } catch (error) {
+            console.error('Error during booking:', error);
+            alert('An error occurred while trying to book. Please try again.');
         }
     }
 
@@ -201,21 +218,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     Book
                 </div>
             </div>
-            <form id="cartForm" action="https://mani-testing-store.myshopify.com/cart/add" method="POST">
-                <input type="hidden" name="id" value="44455341195461" />
-                <input type="hidden" name="quantity" value="1" />
-                <input type="hidden" name="properties[_activitySelect]" value={activitySelect} />
-                <input type="hidden" name="properties[_chooseLocation]" value={chooseLocation} />
-                <input type="hidden" name="properties[_chooseFlightType]" value={JSON.stringify(chooseFlightType)} />
-                <input type="hidden" name="properties[_chooseAddOn]" value={JSON.stringify(chooseAddOn)} />
-                <input type="hidden" name="properties[_passengerData]" value={JSON.stringify(passengerData)} />
-                <input type="hidden" name="properties[_additionalInfo]" value={JSON.stringify(additionalInfo)} />
-                <input type="hidden" name="properties[_recipientDetails]" value={JSON.stringify(recipientDetails)} />
-                <input type="hidden" name="properties[_selectedDate]" value={selectedDate} />
-                {isRedeemVoucher && voucherCode && (
-                    <input type="hidden" name="properties[_voucherCode]" value={voucherCode} />
-                )}
-            </form>
         </div>
     )
 }
