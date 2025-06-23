@@ -15,6 +15,7 @@ import BookingHeader from "../components/Common/BookingHeader";
 import Accordion from "../components/Common/Accordion";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
+import { BsInfoCircle } from "react-icons/bs";
 
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState("activity"); // Start with activity section open
@@ -176,6 +177,7 @@ const Index = () => {
                                             activityId={activityId} 
                                             setAvailableSeats={setAvailableSeats}
                                             voucherCode={voucherCode}
+                                            chooseLocation={chooseLocation}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (

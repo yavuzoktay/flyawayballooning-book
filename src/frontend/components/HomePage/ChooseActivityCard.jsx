@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
+import { BsInfoCircle } from 'react-icons/bs';
 
 const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus }) => {
     const [isFlipped, setIsFlipped] = useState(false);
@@ -220,7 +221,16 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 </div>
                             </div>
                             <h3>{item.label}</h3>
-                            {item.subText && <p>{item.subText}</p>}
+                            {(item.label === 'Flight Voucher' || item.label === 'Buy Gift') ? (
+                                <div className="info-icon-container" style={{ position: 'relative', display: 'inline-block', marginTop: '10px' }}>
+                                    <BsInfoCircle size={24} color={'#03a9f4'} />
+                                    <div className="hover-text">
+                                        {item.subText}
+                                    </div>
+                                </div>
+                            ) : (
+                                item.subText && <p>{item.subText}</p>
+                            )}
                         </label>
                     )}
                 </div>

@@ -268,30 +268,29 @@
 .back-button {
   background-color: transparent;
   color: white;
-  border: 1px solid white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 120px;
-  transition: all 0.3s ease;
+  border: 1.5px solid white;
+  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 5px;
 }
 
 /* Special styling for Redeem Voucher card to match others */
 .activity-panel .book_data:nth-child(3) {
-  height: 200px !important;
+  height: auto !important;
 }
 
 .activity-panel .book_data:nth-child(3) .card-front,
-.activity-panel .book_data:nth-child(3) .card-back,
-.activity-panel .book_data:nth-child(3) .book_data_label {
+.activity-panel .book_data:nth-child(3) .card-flipper,
+.activity-panel .book_data:nth-child(3) .card-flip-container {
   height: 100% !important;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .voucher-card-container {
-    padding: 15px;
+    padding: 10px !important;
     min-height: 180px;
   }
 
@@ -320,4 +319,26 @@
   background-color: #f5f9fc;
   box-shadow: none;
   transform: none;
+}
+
+.info-icon-container .hover-text {
+    visibility: hidden;
+    width: 220px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    top: 80px;
+    left: 50%;
+    margin-left: 0px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.info-icon-container:hover .hover-text {
+    visibility: visible;
+    opacity: 1;
 } 
