@@ -113,7 +113,7 @@ const getExperiences = (chooseLocation) => {
     ];
 };
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isBookFlight }) => {
     const [showTerms, setShowTerms] = useState(false); // Controls modal visibility
     const [selectedFlight, setSelectedFlight] = useState(null);
     console.log('showTerms', showTerms);
@@ -189,23 +189,27 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <div className="content-flight">
                                 <div className="shared-row">
                                     <ul>
-                                        {exp.details.map((detail, i) => (
-                                            <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
-                                                {typeof detail === 'string' ? (
-                                                    detail
-                                                ) : (
-                                                    <span style={{ gap: '6px' }}>
-                                                        {detail.text}
-                                                        <div className="info-icon-container">
-                                                            <BsInfoCircle size={14} />
-                                                            <div className="hover-text">
-                                                                {detail.info}
+                                        {exp.details
+                                            .filter(detail =>
+                                                !((isFlightVoucher || isBookFlight) && typeof detail === "object" && detail.text === "Weather Refundable Option")
+                                            )
+                                            .map((detail, i) => (
+                                                <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
+                                                    {typeof detail === 'string' ? (
+                                                        detail
+                                                    ) : (
+                                                        <span style={{ gap: '6px' }}>
+                                                            {detail.text}
+                                                            <div className="info-icon-container">
+                                                                <BsInfoCircle size={14} />
+                                                                <div className="hover-text">
+                                                                    {detail.info}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </span>
-                                                )}
-                                            </li>
-                                        ))}
+                                                        </span>
+                                                    )}
+                                                </li>
+                                            ))}
                                     </ul>
                                 </div>
                                 <hr />

@@ -178,6 +178,8 @@ const Index = () => {
                                             setAvailableSeats={setAvailableSeats}
                                             voucherCode={voucherCode}
                                             chooseLocation={chooseLocation}
+                                            isFlightVoucher={isFlightVoucher}
+                                            isBookFlight={isBookFlight}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
