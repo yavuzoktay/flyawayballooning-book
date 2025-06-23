@@ -223,7 +223,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             <h3>{item.label}</h3>
                             {(item.label === 'Flight Voucher' || item.label === 'Buy Gift') ? (
                                 <div className="info-icon-container" style={{ position: 'relative', display: 'inline-block', marginTop: '10px' }}>
-                                    <BsInfoCircle size={24} color={'#03a9f4'} />
+                                    <BsInfoCircle size={14} color="#0070f3" />
                                     <div className="hover-text">
                                         {item.subText}
                                     </div>

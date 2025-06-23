@@ -9,116 +9,62 @@ const weatherRefundableHoverTexts = {
     privateFlight: "You can make your experience weather refundable for an additional 10% of your experience cost. This option can be selected during the booking process."
 };
 
-const getExperiences = (chooseLocation) => {
-    if (chooseLocation === "Bristol Fiesta") {
-        return [
+const experiences = [
+    {
+        title: "Shared Flight",
+        price: "205",
+        desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
+        details: [
+            "Around 1 Hour of Air Time", 
+            "Complimentary Drink", 
+            "Free Inflight Photo's and 3D Flight Track", 
+            "24 Month Validity", 
             {
-                title: "Shared Flight",
-                price: "305",
-                desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
-                details: [
-                    "Around 1 Hour of Air Time", 
-                    "Complimentary Drink", 
-                    "Free Inflight Photo's and 3D Flight Track", 
-                    "24 Month Validity", 
-                    {
-                        text: "Weather Refundable Option",
-                        info: weatherRefundableHoverTexts.sharedFlight
-                    }
-                ],
-                maxFlight: "Max 8 per flight",
-                passengerOptions: Array.from({ length: 8 }, (_, i) => i + 1),
-            },
-            {
-                title: "Private Flight",
-                price: "600", // not used directly, but kept for consistency
-                desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
-                details: [
-                    "A Private Charter Balloon Flight", 
-                    "Around 1 Hour of Air Time", 
-                    "Choice of Champagne or Prosecco", 
-                    "Free Inflight Photo's and 3D Flight Track", 
-                    "24 Month Validity", 
-                    {
-                        text: "Weather Refundable Option",
-                        info: weatherRefundableHoverTexts.privateFlight
-                    }
-                ],
-                maxFlight: "",
-                passengerOptions: [2, 3, 4, 8],
-                specialPrices: {
-                    2: 600,  // Price per person for 2 passengers
-                    3: 500,  // Price per person for 3 passengers
-                    4: 450,  // Price per person for 4 passengers
-                    8: 400   // Price per person for 8 passengers
-                },
-                totalPrices: {
-                    2: 1200,  // Total price for 2 passengers
-                    3: 1500, // Total price for 3 passengers
-                    4: 1800, // Total price for 4 passengers
-                    8: 3200  // Total price for 8 passengers
-                }
-            },
-        ];
-    }
-    // Default prices
-    return [
-        {
-            title: "Shared Flight",
-            price: "205",
-            desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
-            details: [
-                "Around 1 Hour of Air Time", 
-                "Complimentary Drink", 
-                "Free Inflight Photo's and 3D Flight Track", 
-                "24 Month Validity", 
-                {
-                    text: "Weather Refundable Option",
-                    info: weatherRefundableHoverTexts.sharedFlight
-                }
-            ],
-            maxFlight: "Max 8 per flight",
-            passengerOptions: Array.from({ length: 8 }, (_, i) => i + 1), // Options 1 to 8
-        },
-        {
-            title: "Private Flight",
-            price: "205",
-            desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
-            details: [
-                "A Private Charter Balloon Flight", 
-                "Around 1 Hour of Air Time", 
-                "Choice of Champagne or Prosecco", 
-                "Free Inflight Photo's and 3D Flight Track", 
-                "24 Month Validity", 
-                {
-                    text: "Weather Refundable Option",
-                    info: weatherRefundableHoverTexts.privateFlight
-                }
-            ],
-            maxFlight: "",
-            passengerOptions: [2, 3, 4, 8],
-            specialPrices: {
-                2: 205,  // Price per person for 2 passengers
-                3: 195,  // Price per person for 3 passengers
-                4: 185,  // Price per person for 4 passengers
-                8: 175   // Price per person for 8 passengers
-            },
-            totalPrices: {
-                2: 900,  // Total price for 2 passengers
-                3: 1050, // Total price for 3 passengers
-                4: 1200, // Total price for 4 passengers
-                8: 1800  // Total price for 8 passengers
+                text: "Weather Refundable Option",
+                info: weatherRefundableHoverTexts.sharedFlight
             }
+        ],
+        maxFlight: "Max 8 per flight",
+        passengerOptions: Array.from({ length: 8 }, (_, i) => i + 1), // Options 1 to 8
+    },
+    {
+        title: "Private Flight",
+        price: "205",
+        desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
+        details: [
+            "A Private Charter Balloon Flight", 
+            "Around 1 Hour of Air Time", 
+            "Choice of Champagne or Prosecco", 
+            "Free Inflight Photo's and 3D Flight Track", 
+            "24 Month Validity", 
+            {
+                text: "Weather Refundable Option",
+                info: weatherRefundableHoverTexts.privateFlight
+            }
+        ],
+        maxFlight: "",
+        passengerOptions: [2, 3, 4, 8],
+        specialPrices: {
+            2: 205,  // Price per person for 2 passengers
+            3: 195,  // Price per person for 3 passengers
+            4: 185,  // Price per person for 4 passengers
+            8: 175   // Price per person for 8 passengers
         },
-    ];
-};
+        totalPrices: {
+            2: 900,  // Total price for 2 passengers
+            3: 1050, // Total price for 3 passengers
+            4: 1200, // Total price for 4 passengers
+            8: 1800  // Total price for 8 passengers
+        }
+    },
+];
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isBookFlight }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats }) => {
     const [showTerms, setShowTerms] = useState(false); // Controls modal visibility
     const [selectedFlight, setSelectedFlight] = useState(null);
     console.log('showTerms', showTerms);
     
-    const experiences = getExperiences(chooseLocation);
+
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
             const updatedPassengers = Array(experiences.length).fill(null); // Reset all selections
@@ -189,27 +135,23 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <div className="content-flight">
                                 <div className="shared-row">
                                     <ul>
-                                        {exp.details
-                                            .filter(detail =>
-                                                !((isFlightVoucher || isBookFlight) && typeof detail === "object" && detail.text === "Weather Refundable Option")
-                                            )
-                                            .map((detail, i) => (
-                                                <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
-                                                    {typeof detail === 'string' ? (
-                                                        detail
-                                                    ) : (
-                                                        <span style={{ gap: '6px' }}>
-                                                            {detail.text}
-                                                            <div className="info-icon-container">
-                                                                <BsInfoCircle size={14} />
-                                                                <div className="hover-text">
-                                                                    {detail.info}
-                                                                </div>
+                                        {exp.details.map((detail, i) => (
+                                            <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
+                                                {typeof detail === 'string' ? (
+                                                    detail
+                                                ) : (
+                                                    <span style={{ gap: '6px' }}>
+                                                        {detail.text}
+                                                        <div className="info-icon-container">
+                                                            <BsInfoCircle size={14} />
+                                                            <div className="hover-text">
+                                                                {detail.info}
                                                             </div>
-                                                        </span>
-                                                    )}
-                                                </li>
-                                            ))}
+                                                        </div>
+                                                    </span>
+                                                )}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                                 <hr />

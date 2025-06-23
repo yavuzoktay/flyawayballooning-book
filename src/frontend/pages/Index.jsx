@@ -180,6 +180,7 @@ const Index = () => {
                                             chooseLocation={chooseLocation}
                                             isFlightVoucher={isFlightVoucher}
                                             isBookFlight={isBookFlight}
+                                            isGiftVoucher={isGiftVoucher}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
