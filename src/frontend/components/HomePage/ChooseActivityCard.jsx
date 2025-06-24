@@ -149,7 +149,15 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                                 )}
                                             </div>
                                         </div>
-                                        <h3>{localVoucherCode ? getVoucherDisplayText() : item.label}</h3>
+                                        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                            {item.label}
+                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                                <BsInfoCircle size={14} color="#0070f3" />
+                                                <div className="hover-text">
+                                                    Redeem Flight or Gift Voucher
+                                                </div>
+                                            </span>
+                                        </h3>
                                         {item.subText && <p>{item.subText}</p>}
                                         {localVoucherCode && (
                                             <p style={{ fontSize: '12px', marginTop: '5px', color: activitySelect === item.label ? 'white' : '#666' }}>
@@ -220,17 +228,36 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     )}
                                 </div>
                             </div>
-                            <h3>{item.label}</h3>
-                            {(item.label === 'Flight Voucher' || item.label === 'Buy Gift') ? (
-                                <div className="info-icon-container" style={{ position: 'relative', display: 'inline-block', marginTop: '10px' }}>
-                                    <BsInfoCircle size={14} color="#0070f3" />
-                                    <div className="hover-text">
-                                        {item.subText}
-                                    </div>
-                                </div>
-                            ) : (
+                            <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                {item.label}
+                                {(['Flight Voucher', 'Buy Gift'].includes(item.label)) && (
+                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                        <BsInfoCircle size={14} color="#0070f3" />
+                                        <div className="hover-text">
+                                            {item.subText}
+                                        </div>
+                                    </span>
+                                )}
+                                {item.label === 'Book Flight' && (
+                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                        <BsInfoCircle size={14} color="#0070f3" />
+                                        <div className="hover-text">
+                                            Book a Balloon Flight
+                                        </div>
+                                    </span>
+                                )}
+                                {item.label === 'Redeem Voucher' && (
+                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                        <BsInfoCircle size={14} color="#0070f3" />
+                                        <div className="hover-text">
+                                            Redeem Flight or Gift Voucher
+                                        </div>
+                                    </span>
+                                )}
+                            </h3>
+                            {(item.label === 'Flight Voucher' || item.label === 'Buy Gift' || item.label === 'Book Flight' || item.label === 'Redeem Voucher') ? null :
                                 item.subText && <p>{item.subText}</p>
-                            )}
+                            }
                         </label>
                     )}
                 </div>

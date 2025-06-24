@@ -51,11 +51,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             additionalInfo,
             recipientDetails,
             selectedDate,
-            totalPrice
+            totalPrice,
+            voucher_code: voucherCode
         };
 
         try {
-            const response = await axios.post('http://13.221.13.241:3002/api/createBooking', bookingData);
+            const response = await axios.post('http://localhost:3000/api/createBooking', bookingData);
             if (response.data.success) {
                 alert('Booking successful! Booking ID: ' + response.data.bookingId);
                 // Optionally, reset the form or redirect

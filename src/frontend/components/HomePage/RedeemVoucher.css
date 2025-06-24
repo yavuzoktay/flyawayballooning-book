@@ -336,6 +336,10 @@
     margin-left: 0px;
     opacity: 0;
     transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .info-icon-container:hover .hover-text {
