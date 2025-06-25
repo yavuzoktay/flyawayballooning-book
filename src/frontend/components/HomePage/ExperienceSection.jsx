@@ -59,11 +59,22 @@ const experiences = [
     },
 ];
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
     const [showTerms, setShowTerms] = useState(false); // Controls modal visibility
     const [selectedFlight, setSelectedFlight] = useState(null);
-    console.log('showTerms', showTerms);
-    
+
+    // Determine if Bristol pricing should be used
+    const isBristol = chooseLocation === 'Bristol Fiesta';
+
+    // Bristol-specific prices
+    const bristolSharedPrice = 305;
+    const bristolPrivatePrices = { 2: 1200, 3: 1500 };
+
+    // For Private Flight, adjust passenger options and description for Bristol
+    const privatePassengerOptions = isBristol ? [2, 3] : [2, 3, 4, 8];
+    const privateDesc = isBristol
+        ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
+        : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.";
 
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
@@ -78,8 +89,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
         // Calculate the correct price
         let finalPrice, totalPrice;
-        
-        if (index === 1 && experiences[1].totalPrices && experiences[1].totalPrices[passengerCount]) {
+        if (isBristol && index === 0) {
+            // Shared Flight, Bristol pricing
+            finalPrice = bristolSharedPrice;
+            totalPrice = bristolSharedPrice * passengerCount;
+        } else if (isBristol && index === 1 && (passengerCount === 2 || passengerCount === 3)) {
+            // Private Flight, Bristol pricing for 2 or 3
+            finalPrice = bristolPrivatePrices[passengerCount];
+            totalPrice = bristolPrivatePrices[passengerCount];
+        } else if (index === 1 && experiences[1].totalPrices && experiences[1].totalPrices[passengerCount]) {
             // For Private Flight, use the total price directly
             totalPrice = experiences[1].totalPrices[passengerCount];
             finalPrice = experiences[1].specialPrices[passengerCount]; // Still store the per person price
@@ -95,7 +113,6 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             price: finalPrice,
             totalPrice: totalPrice
         });
-        
         setShowTerms(true); // Show modal
     };
 
@@ -131,26 +148,29 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <hr />
                         </div>
                         <div className="full-flight">
-                            <p>{exp.desc}</p>
+                            <p>{index === 1 ? privateDesc : exp.desc}</p>
                             <div className="content-flight">
                                 <div className="shared-row">
                                     <ul>
                                         {exp.details.map((detail, i) => (
-                                            <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
-                                                {typeof detail === 'string' ? (
-                                                    detail
-                                                ) : (
-                                                    <span style={{ gap: '6px' }}>
-                                                        {detail.text}
-                                                        <div className="info-icon-container">
-                                                            <BsInfoCircle size={14} />
-                                                            <div className="hover-text">
-                                                                {detail.info}
+                                            (typeof detail === 'string' || (!((isFlightVoucher || isGiftVoucher) && detail.text === 'Weather Refundable Option')))
+                                            ? (
+                                                <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
+                                                    {typeof detail === 'string' ? (
+                                                        detail
+                                                    ) : (
+                                                        <span style={{ gap: '6px' }}>
+                                                            {detail.text}
+                                                            <div className="info-icon-container">
+                                                                <BsInfoCircle size={14} />
+                                                                <div className="hover-text">
+                                                                    {detail.info}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </span>
-                                                )}
-                                            </li>
+                                                        </span>
+                                                    )}
+                                                </li>
+                                            ) : null
                                         ))}
                                     </ul>
                                 </div>
@@ -160,12 +180,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                         <p>
                                             {index === 0 
                                                 ? addPassenger[index] 
-                                                    ? `${addPassenger[index]} Passenger${addPassenger[index] > 1 ? 's' : ''}: £${addPassenger[index] * exp.price}`
-                                                    : `Passengers: £${exp.price}pp`
+                                                    ? `${addPassenger[index]} Passenger${addPassenger[index] > 1 ? 's' : ''}: £${isBristol ? bristolSharedPrice * addPassenger[index] : addPassenger[index] * exp.price}`
+                                                    : `Passengers: £${isBristol ? bristolSharedPrice : exp.price}pp`
                                                 : index === 1 
                                                 ? addPassenger[index] 
-                                                    ? `${addPassenger[index]} Passengers: £${exp.totalPrices[addPassenger[index]]}` 
-                                                    : <span>2 Passengers: £900</span>
+                                                    ? (isBristol && (addPassenger[index] === 2 || addPassenger[index] === 3)
+                                                        ? `Private for ${addPassenger[index]} - £${bristolPrivatePrices[addPassenger[index]]} per flight`
+                                                        : `${addPassenger[index]} Passengers: £${exp.totalPrices[addPassenger[index]]}`)
+                                                    : (isBristol
+                                                        ? <span>Private for 2 - £1200 per flight<br/>Private for 3 - £1500 per flight</span>
+                                                        : <span>2 Passengers: £900<br/>3 Passengers: £1050<br/>4 Passengers: £1200<br/>8 Passengers: £1800</span>)
                                                 : `Passengers: £${exp.price}pp`
                                             }
                                         </p>
@@ -179,7 +203,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                             className="border p-2 rounded"
                                         >
                                             <option value="">Select</option> {/* Placeholder option */}
-                                            {exp.passengerOptions.map((option) => (
+                                            {(index === 1 ? privatePassengerOptions : exp.passengerOptions).map((option) => (
                                                 <option key={option} value={option}>{option}</option>
                                             ))}
                                         </select>
@@ -224,7 +248,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <li>If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.</li>
                                 <li>Within 48 hours of your flight, no changes or cancellations can be made.</li>
                                 <li>Your flight will never expire so long as you meet the terms & conditions.</li>
-                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: 'rgb(3, 169, 244)', fontWeight: 600, fontSize: '18px' }}>See Full Terms & Conditions</a></li>
+                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See Full Terms & Conditions</a></li>
                             </ul>
                             <div className="modal-buttons">
                                 <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>

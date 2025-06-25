@@ -65,13 +65,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
     }
 
     const handleLocationSelect = (locName) => {
-        if (locName === "Bristol Fiesta") {
-            setPendingLocation(locName);
-            setIsModalOpen(true);
-        } else {
-            // Diğer lokasyonlar için doğrudan seçim yap
-            confirmLocation(locName);
-        }
+        // Remove modal for Bristol Fiesta, select directly
+        confirmLocation(locName);
     };
 
     const confirmLocation = (locName) => {
@@ -107,14 +102,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
             </Accordion>
 
             {/* Modal for Bristol Fiesta */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={handleModalClose}
-                onConfirm={handleModalConfirm}
-                title="Bristol Balloon Fiesta - Terms & Conditions"
-                bulletPoints={bristolFiestaTerms}
-                extraContent={termsLink}
-            />
+            {/* Modal removed as per new requirements */}
         </>
     );
 };

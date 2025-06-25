@@ -37,7 +37,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         }
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0);
-    const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice);
+    // Add Weather Refundable for Shared Flight
+    let weatherRefundTotal = 0;
+    if (chooseFlightType?.type === 'Shared Flight' && Array.isArray(passengerData)) {
+        weatherRefundTotal = passengerData.filter(p => p.weatherRefund).length * 47.5;
+    }
+    const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice) + weatherRefundTotal;
 
 
     // Send Data To Backend
@@ -133,17 +138,29 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         <div className="active-book-left">
                             <h3>Add To Booking</h3>
                             {
-                                chooseAddOn?.length > 0 ?
-                                    chooseAddOn?.map((data, index) => (
-                                        <div className="active-book-cont final-active-book-cont" key={index}>
-                                            <div className="active-book-left" >
-                                                <p>{data.name}</p>
+                                chooseAddOn?.length > 0 || weatherRefundTotal > 0 ?
+                                    <>
+                                        {chooseAddOn?.map((data, index) => (
+                                            <div className="active-book-cont final-active-book-cont" key={index}>
+                                                <div className="active-book-left" >
+                                                    <p>{data.name}</p>
+                                                </div>
+                                                <div className="active-book-right">
+                                                    <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
+                                                </div>
                                             </div>
-                                            <div className="active-book-right">
-                                                <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
+                                        ))}
+                                        {weatherRefundTotal > 0 && (
+                                            <div className="active-book-cont final-active-book-cont">
+                                                <div className="active-book-left" >
+                                                    <p>Weather Refundable</p>
+                                                </div>
+                                                <div className="active-book-right">
+                                                    <p>£{weatherRefundTotal.toFixed(2)}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        )}
+                                    </>
                                     :
                                     <p style={{paddingTop: "10px"}}>None Selected</p>
                             }

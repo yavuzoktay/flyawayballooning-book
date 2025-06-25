@@ -49,6 +49,33 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
     });
   };
 
+  // Styles for custom ticked circle
+  const checkStyle = {
+    position: 'relative',
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    border: '2px solid gray',
+    background: '#fff',
+    cursor: 'pointer',
+    display: 'inline-block',
+  };
+  const activeCheckStyle = {
+    ...checkStyle,
+    backgroundColor: '#74da78',
+    borderColor: '#74da78',
+  };
+  const checkIconStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    color: 'white',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    pointerEvents: 'none',
+  };
+
   return (
     <Accordion 
       title="Enter Passenger Information" 
@@ -74,17 +101,20 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>Passenger {index + 1}</h3>
                 </div>
-                {activitySelect !== "Redeem Voucher" && (
+                {activitySelect !== "Redeem Voucher" && chooseFlightType?.type !== "Private Flight" && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
-                  <input
-                    type="checkbox"
-                    id={`weatherRefund-${index}`}
-                    name="weatherRefund"
-                    checked={passenger.weatherRefund}
-                    onChange={() => handleWeatherRefundChange(index)}
-                    style={{ cursor: "pointer" }}
-                  />
+                  <span
+                    style={passenger.weatherRefund ? activeCheckStyle : checkStyle}
+                    onClick={() => handleWeatherRefundChange(index)}
+                    tabIndex={0}
+                    role="checkbox"
+                    aria-checked={passenger.weatherRefund}
+                  >
+                    {passenger.weatherRefund && (
+                      <span style={checkIconStyle}>✓</span>
+                    )}
+                  </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <p style={{ margin: 0 }}>Weather Refundable</p>
                     <div className="info-icon-container" style={{ position: 'relative' }}>

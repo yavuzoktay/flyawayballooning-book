@@ -42,7 +42,7 @@ const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher,
                                 if (tooltip) tooltip.style.opacity = '0';
                             }}
                         >
-                            <BsInfoCircle size={20} color="#000000" />
+                            <BsInfoCircle size={14} color="#0070f3" />
                             <div 
                                 className="recipient-info-tooltip" 
                                 style={{ 
