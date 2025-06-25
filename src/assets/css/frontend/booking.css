@@ -527,7 +527,7 @@ label {
     margin: 0;
 }
 
-.presger_rate,
+.presnger_rate,
 .passenger_weather-refund {
     display: flex;
     align-items: center;
@@ -1517,7 +1517,7 @@ label {
 .info-icon-container:hover .hover-text {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(-125%) scale(1);
+    transform: translateX(-50%) scale(1);
 }
 
 .hover-text {
@@ -1525,23 +1525,24 @@ label {
     opacity: 0;
     position: absolute;
     left: 50%;
+    top: calc(100% + 5px); /* Position below the icon */
+    transform: translateX(-50%) scale(0.95); /* Center horizontally */
     width: auto;
-    min-width: 320px;
-    max-width: 350px;
+    min-width: 220px;
+    max-width: 320px;
     background-color: #333;
     color: #fff;
-    text-align: left;
+    text-align: center; /* Center text inside */
     border-radius: 8px;
     padding: 12px 15px;
     z-index: 9999;
     pointer-events: auto;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-size: 14px !important;
     font-family: 'Gilroy', Arial, sans-serif !important;
     line-height: 1.5;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     border-left: 4px solid #0070f3;
-    transform: translateX(-50%) translateY(-100%) scale(0.95);
 }
 
 .hover-text p {
@@ -1549,6 +1550,7 @@ label {
     color: #fff !important;
     font-family: 'Gilroy', Arial, sans-serif !important;
     font-size: 14px !important;
+    text-align: left; /* Keep p tags left-aligned if needed */
 }
 
 .hover-text p:last-child {
@@ -1556,51 +1558,36 @@ label {
 }
 
 /* Add arrow to hover text */
-/* .hover-text::after {
+.hover-text::after {
     content: "";
     position: absolute;
-    bottom: -10px;
+    bottom: 100%; /* Arrow at the top of the tooltip */
     left: 50%;
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #333 transparent transparent transparent;
-} */
+    border-color: transparent transparent #333 transparent;
+}
+
+.info-icon-container svg {
+    color: #0070f3;
+}
 
 @media (max-width: 768px) {
-    .info-icon-container:hover .hover-text {
-        transform: translateX(-50%) translateY(-110%) scale(1);
-        min-width: 250px;
-        max-width: 280px;
-    }
-    
     .hover-text {
         min-width: 250px;
         max-width: 280px;
         font-size: 12px;
         padding: 10px 12px;
-        transform: translateX(-50%) translateY(-100%) scale(0.95);
-    }
-    
-    .hover-text::after {
-        left: 50%;
-        transform: translateX(-50%);
     }
 }
 
 @media (max-width: 480px) {
-    .info-icon-container:hover .hover-text {
+    .hover-text {
         min-width: 200px;
         max-width: 250px;
         font-size: 11px;
         padding: 8px 10px;
-        transform: translateX(-50%) translateY(-105%) scale(1);
-    }
-    
-    .hover-text {
-        transform: translateX(-50%) translateY(-100%) scale(0.95);
-        min-width: 200px;
-        max-width: 250px;
     }
 }
 /* End Weather Refundable Info Icon Hover Styles */
@@ -1636,23 +1623,68 @@ label {
 }
 
 /* Preferences Info Icon Hover Styles */
+.preferences-info-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+.preferences-info-wrapper .info-icon-container {
+    margin-left: auto !important;
+    position: relative !important;
+}
+
 .preferences-info-wrapper .info-icon-container:hover .hover-text {
     visibility: visible !important;
     opacity: 1 !important;
-    right: 100%;
-    left: auto;
-    margin-right: 10px;
-    top: calc(100% + 5px);
-    transform: none;
-    min-width: 320px;
-    max-width: 320px;
-    text-align: left;
-    font-size: 12px;
-    padding: 8px 10px;
+    left: 50% !important;
+    right: auto !important;
+    top: calc(100% + 5px) !important;
+    transform: translateX(-50%) scale(1) !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    text-align: left !important;
+    font-size: 12px !important;
+    padding: 8px 10px !important;
 }
 
 .preferences-info-wrapper .info-icon-container .hover-text::after {
-    content: none;
+    content: "" !important;
+    position: absolute !important;
+    bottom: 100% !important;
+    left: 50% !important;
+    margin-left: -5px !important;
+    border-width: 5px !important;
+    border-style: solid !important;
+    border-color: transparent transparent #333 transparent !important;
+}
+
+/* Recipient Details Info Icon Hover Styles */
+.Recipient .info-icon-container:hover .hover-text {
+    visibility: visible !important;
+    opacity: 1 !important;
+    left: 50% !important;
+    right: auto !important;
+    top: calc(100% + 5px) !important;
+    transform: translateX(-50%) scale(1) !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    text-align: left !important;
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+    z-index: 10001 !important;
+}
+
+.Recipient .info-icon-container .hover-text::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: 100% !important;
+    left: 50% !important;
+    margin-left: -5px !important;
+    border-width: 5px !important;
+    border-style: solid !important;
+    border-color: transparent transparent #333 transparent !important;
 }
 /* End Preferences Info Icon Hover Styles */
 

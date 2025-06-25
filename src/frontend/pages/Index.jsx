@@ -225,11 +225,12 @@ const Index = () => {
                                             activitySelect={activitySelect}
                                         />
                                     )}
-                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
+                                    {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher") && (
                                         <AdditionalInfo 
                                             isGiftVoucher={isGiftVoucher} 
                                             isRedeemVoucher={isRedeemVoucher} 
                                             isFlightVoucher={isFlightVoucher} 
+                                            isBookFlight={isBookFlight}
                                             additionalInfo={additionalInfo} 
                                             setAdditionalInfo={setAdditionalInfo} 
                                             activeAccordion={activeAccordion} 
@@ -237,9 +238,10 @@ const Index = () => {
                                             flightType={chooseFlightType.type}
                                         />
                                     )}
-                                    {!(activitySelect === "Buy Gift") && (
+                                    {!(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher") && (
                                         <EnterPreferences 
                                             isGiftVoucher={isGiftVoucher} 
+                                            isRedeemVoucher={isRedeemVoucher} 
                                             preference={preference} 
                                             setPreference={setPreference} 
                                             activeAccordion={activeAccordion} 

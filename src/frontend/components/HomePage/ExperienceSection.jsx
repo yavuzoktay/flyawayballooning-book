@@ -76,6 +76,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
         : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.";
 
+    // Bristol-specific terms
+    const bristolTerms = [
+        'Balloon flights are highly dependent on weather conditions and will only proceed if deemed safe by the flight director on the day of the event.',
+        'Fiesta Flights are strictly non-refundable under any circumstances and cannot be deferred to the following year\'s Bristol Balloon Fiesta.',
+        'If your 2025 Bristol Balloon Fiesta Flight is cancelled, your voucher will remain valid for 24 months and can be redeemed against the equivalent flight i.e a private or shared flight (excluding fiesta flights).',
+        'Due to high demand and very limited availability, we are unable to accommodate rescheduling requests during the Fiesta.',
+        'Flight premiums are strictly non-refundable under any circumstances due to the additional costs associated with attending the event.',
+        'If you are not happy with these terms and conditions please do not book this flight.'
+    ];
+
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
             const updatedPassengers = Array(experiences.length).fill(null); // Reset all selections
@@ -242,12 +252,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 )}
                             </div>
                             <ul>
-                                <li>Ballooning is a weather-dependent activity.</li>
-                                <li>Your voucher is valid for 24 months.</li>
-                                <li>Without the weather refundable option, your voucher is non-refundable under any circumstances. However, re-bookable as needed within the voucher validity period.</li>
-                                <li>If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.</li>
-                                <li>Within 48 hours of your flight, no changes or cancellations can be made.</li>
-                                <li>Your flight will never expire so long as you meet the terms & conditions.</li>
+                                {(chooseLocation === 'Bristol Fiesta' ? bristolTerms : [
+                                    'Ballooning is a weather-dependent activity.',
+                                    'Your voucher is valid for 24 months.',
+                                    'Without the weather refundable option, your voucher is non-refundable under any circumstances. However, re-bookable as needed within the voucher validity period.',
+                                    'If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.',
+                                    'Within 48 hours of your flight, no changes or cancellations can be made.',
+                                    'Your flight will never expire so long as you meet the terms & conditions.'
+                                ]).map((item, idx) => (
+                                    <li key={idx}>{item}</li>
+                                ))}
                                 <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See Full Terms & Conditions</a></li>
                             </ul>
                             <div className="modal-buttons">

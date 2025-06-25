@@ -53,7 +53,7 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
 
 
     return (
-        <Accordion title="Additional Information" id="additional-info" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isRedeemVoucher || isGiftVoucher ? 'disable-acc' : ""}`} >
+        <Accordion title="Additional Information" id="additional-info" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
             <div className="add-info p-4">
                 <div className="addition-info-notes">
                     <label className="block mb-2 text-base font-semibold">Additional Notes:</label>

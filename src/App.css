@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -37,7 +37,7 @@
   }
 }
 
-/* Tooltip styles for info icon hover */
+/* Tooltip styles for info icon hover - DISABLED TO PREVENT CONFLICTS
 .info-icon-container {
   display: inline-block;
   position: relative;
@@ -66,7 +66,7 @@
   pointer-events: auto;
 }
 
-/* Tooltip arrow */
+/* Tooltip arrow 
 .info-icon-container .hover-text::before {
   content: '';
   position: absolute;
@@ -83,3 +83,4 @@
 .info-icon-container .hover-text:hover {
   display: block;
 }
+*/

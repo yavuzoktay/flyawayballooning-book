@@ -46,16 +46,10 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                 <div className="pro_head" style={{ position: 'relative', marginBottom: '4px', width: '100%' }}>
                     <div className="preferences-info-wrapper" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <label>Preferred Location</label>
-                        <div
-                            className="info-icon-container"
-                            style={{ marginLeft: 'auto' }}
-                        >
+                        <div className="info-icon-container">
                             <BsInfoCircle size={14} />
-                            <div
-                                className="hover-text"
-                            >
+                            <div className="hover-text">
                                 <p>Receive short notice flight notifications - This does not commit you to any day, time or location and does not necessarily mean that we will be in touch with you.</p>
-                                <div></div>
                             </div>
                         </div>
                     </div>

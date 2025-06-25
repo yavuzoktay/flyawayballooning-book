@@ -28,54 +28,12 @@ const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher,
                 <form action="/submit" method="post">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <label>Recipient Name</label>
-                        <div 
-                            className="info-icon-container"
-                            style={{ position: 'relative', zIndex: 1000 }}
-                            onMouseOver={(e) => {
-                                const tooltip = e.currentTarget.querySelector('.recipient-info-tooltip');
-                                if (tooltip) tooltip.style.visibility = 'visible';
-                                if (tooltip) tooltip.style.opacity = '1';
-                            }}
-                            onMouseOut={(e) => {
-                                const tooltip = e.currentTarget.querySelector('.recipient-info-tooltip');
-                                if (tooltip) tooltip.style.visibility = 'hidden';
-                                if (tooltip) tooltip.style.opacity = '0';
-                            }}
-                        >
+                        <div className="info-icon-container">
                             <BsInfoCircle size={14} color="#0070f3" />
-                            <div 
-                                className="recipient-info-tooltip" 
-                                style={{ 
-                                    position: 'absolute',
-                                    visibility: 'hidden',
-                                    opacity: 0,
-                                    width: '320px',
-                                    background: '#333',
-                                    color: '#fff',
-                                    textAlign: 'center',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    zIndex: 1001,
-                                    top: '30px',
-                                    right: '-20px',
-                                    transition: 'opacity 0.3s, visibility 0.3s',
-                                    fontSize: '14px',
-                                    lineHeight: '1.5',
-                                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)'
-                                }}
-                            >
+                            <div className="hover-text">
                                 Share the recipient's details so we can get in touch with them to arrange their flight. 
                                 Rest assured, we won't contact them until after the gifted date has passed. 
                                 Vouchers will be sent to the purchaser.
-                                <div style={{
-                                    content: '',
-                                    position: 'absolute',
-                                    top: '-10px',
-                                    right: '25px',
-                                    borderWidth: '5px',
-                                    borderStyle: 'solid',
-                                    borderColor: 'transparent transparent #333 transparent'
-                                }}></div>
                             </div>
                         </div>
                     </div>
