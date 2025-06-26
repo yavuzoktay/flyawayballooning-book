@@ -223,9 +223,10 @@ const Index = () => {
                                             setActiveAccordion={handleSetActiveAccordion} 
                                             chooseFlightType={chooseFlightType}
                                             activitySelect={activitySelect}
+                                            chooseLocation={chooseLocation}
                                         />
                                     )}
-                                    {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher" || activitySelect === "Book Flight") && (
+                                    {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher") && (
                                         <AdditionalInfo 
                                             isGiftVoucher={isGiftVoucher} 
                                             isRedeemVoucher={isRedeemVoucher} 
@@ -238,7 +239,7 @@ const Index = () => {
                                             flightType={chooseFlightType.type}
                                         />
                                     )}
-                                    {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
+                                    {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
                                         <EnterPreferences 
                                             isGiftVoucher={isGiftVoucher} 
                                             isRedeemVoucher={isRedeemVoucher} 

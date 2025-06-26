@@ -4,7 +4,7 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect }) => {
+const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation }) => {
   // Parse passengerCount from chooseFlightType and ensure it's at least 1
   const passengerCount = Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
   
@@ -101,7 +101,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>Passenger {index + 1}</h3>
                 </div>
-                {activitySelect !== "Redeem Voucher" && chooseFlightType?.type !== "Private Flight" && (
+                {activitySelect !== "Redeem Voucher" && chooseFlightType?.type !== "Private Flight" && chooseLocation !== "Bristol Fiesta" && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span

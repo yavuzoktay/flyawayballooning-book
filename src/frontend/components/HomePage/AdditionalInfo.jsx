@@ -38,7 +38,7 @@ const prefer = [
     "We'll bring our own"
 ]
 
-const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, isBookFlight, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType }) => {
+const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -65,7 +65,7 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, isBoo
                         onChange={handleChange}
                     ></textarea>
                 </div>
-                {isBookFlight && flightType !== "Shared Flight" && (
+                {flightType !== "Shared Flight" && (
                 <div className="mt-4 prefer">
                     <label className="block text-base font-semibold">Which would you prefer?</label>
                     <div className="add_check">

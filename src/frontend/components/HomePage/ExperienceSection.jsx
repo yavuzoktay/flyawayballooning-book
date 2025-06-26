@@ -195,10 +195,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                                 : index === 1 
                                                 ? addPassenger[index] 
                                                     ? (isBristol && (addPassenger[index] === 2 || addPassenger[index] === 3)
-                                                        ? `${addPassenger[index]} passengers - £${bristolPrivatePrices[addPassenger[index]]} per flight`
+                                                        ? `Private for ${addPassenger[index]} - £${bristolPrivatePrices[addPassenger[index]]} per flight`
                                                         : `${addPassenger[index]} Passengers: £${exp.totalPrices[addPassenger[index]]}`)
                                                     : (isBristol
-                                                        ? <span>2 passengers - £1200 per flight<br/>3 passengers - £1500 per flight</span>
+                                                        ? <span>Private for 2 - £1200 per flight<br/>Private for 3 - £1500 per flight</span>
                                                         : <span>2 Passengers: £900<br/>3 Passengers: £1050<br/>4 Passengers: £1200<br/>8 Passengers: £1800</span>)
                                                 : `Passengers: £${exp.price}pp`
                                             }

@@ -40,7 +40,7 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
             id="preference" 
             activeAccordion={activeAccordion} 
             setActiveAccordion={setActiveAccordion} 
-            className={`${isGiftVoucher ? 'disable-acc' : ""}`}
+            className={`${isRedeemVoucher || isGiftVoucher ? 'disable-acc' : ""}`}
         >
             <div className="tab_box Profered-scroll Proferences_box-wrap">
                 <div className="pro_head" style={{ position: 'relative', marginBottom: '4px', width: '100%' }}>
