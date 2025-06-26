@@ -103,39 +103,39 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 </div>
                 {activitySelect !== "Redeem Voucher" && chooseFlightType?.type !== "Private Flight" && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
-                  <span
-                    style={passenger.weatherRefund ? activeCheckStyle : checkStyle}
-                    onClick={() => handleWeatherRefundChange(index)}
-                    tabIndex={0}
-                    role="checkbox"
-                    aria-checked={passenger.weatherRefund}
-                  >
-                    {passenger.weatherRefund && (
-                      <span style={checkIconStyle}>✓</span>
-                    )}
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <p style={{ margin: 0 }}>Weather Refundable</p>
-                    <div className="info-icon-container" style={{ position: 'relative' }}>
-                      <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
-                      <div className="hover-text">
-                        <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
+                  <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
+                    <span
+                      style={passenger.weatherRefund ? activeCheckStyle : checkStyle}
+                      onClick={() => handleWeatherRefundChange(index)}
+                      tabIndex={0}
+                      role="checkbox"
+                      aria-checked={passenger.weatherRefund}
+                    >
+                      {passenger.weatherRefund && (
+                        <span style={checkIconStyle}>✓</span>
+                      )}
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <p style={{ margin: 0 }}>Weather Refundable</p>
+                      {passenger.weatherRefund && (
+                        <span style={{
+                          background: "#61D836",
+                          padding: "6px 12px",
+                          borderRadius: "15px",
+                          color: "#fff",
+                          fontFamily: 'Gilroy',
+                          fontSize: "14px",
+                          fontWeight: "500"
+                        }}>+£47.50</span>
+                      )}
+                      <div className="info-icon-container" style={{ position: 'relative' }}>
+                        <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                        <div className="hover-text">
+                          <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
+                        </div>
                       </div>
-                    </div>
-                  </span>
-                </label>
-                <div className="presger_rate">
-                  <span style={{
-                    background: "#61D836",
-                    padding: "6px 12px",
-                    borderRadius: "15px",
-                    color: "#fff",
-                    fontFamily: 'Gilroy',
-                    fontSize: "14px",
-                    fontWeight: "500"
-                  }}>+£47.50</span>
-                </div>
+                    </span>
+                  </label>
                 </div>
                 )}
               </div>

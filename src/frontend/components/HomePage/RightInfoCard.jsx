@@ -61,7 +61,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         };
 
         try {
-            const response = await axios.post('http://localhost:3000/api/createBooking', bookingData);
+            const response = await axios.post('http://13.221.13.241:3002/api/createBooking', bookingData);
             if (response.data.success) {
                 alert('Booking successful! Booking ID: ' + response.data.bookingId);
                 // Optionally, reset the form or redirect
@@ -162,7 +162,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         )}
                                     </>
                                     :
-                                    <p style={{paddingTop: "10px"}}>None Selected</p>
+                                    <p style={{paddingTop: "10px"}}>Not Selected</p>
                             }
                         </div>
                     </div>
