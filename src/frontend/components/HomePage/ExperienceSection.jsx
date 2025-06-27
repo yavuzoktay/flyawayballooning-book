@@ -162,26 +162,36 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <div className="content-flight">
                                 <div className="shared-row">
                                     <ul>
-                                        {exp.details.map((detail, i) => (
-                                            (typeof detail === 'string' || (!((isFlightVoucher || isGiftVoucher) && detail.text === 'Weather Refundable Option')))
-                                            ? (
-                                                <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
-                                                    {typeof detail === 'string' ? (
-                                                        detail
-                                                    ) : (
-                                                        <span style={{ gap: '6px' }}>
-                                                            {detail.text}
-                                                            <div className="info-icon-container">
-                                                                <BsInfoCircle size={14} />
-                                                                <div className="hover-text">
-                                                                    {detail.info}
+                                        {exp.details.map((detail, i) => {
+                                            // Hide Weather Refundable Option if Book Flight and Bristol Fiesta selected
+                                            if (
+                                                chooseLocation === 'Bristol Fiesta' &&
+                                                !isFlightVoucher && !isGiftVoucher && !isRedeemVoucher &&
+                                                detail.text === 'Weather Refundable Option'
+                                            ) {
+                                                return null;
+                                            }
+                                            return (
+                                                (typeof detail === 'string' || (!((isFlightVoucher || isGiftVoucher) && detail.text === 'Weather Refundable Option')))
+                                                ? (
+                                                    <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
+                                                        {typeof detail === 'string' ? (
+                                                            detail
+                                                        ) : (
+                                                            <span style={{ gap: '6px' }}>
+                                                                {detail.text}
+                                                                <div className="info-icon-container">
+                                                                    <BsInfoCircle size={14} />
+                                                                    <div className="hover-text">
+                                                                        {detail.info}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </span>
-                                                    )}
-                                                </li>
-                                            ) : null
-                                        ))}
+                                                            </span>
+                                                        )}
+                                                    </li>
+                                                ) : null
+                                            );
+                                        })}
                                     </ul>
                                 </div>
                                 <hr />

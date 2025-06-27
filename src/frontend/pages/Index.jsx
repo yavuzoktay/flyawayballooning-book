@@ -226,7 +226,7 @@ const Index = () => {
                                             chooseLocation={chooseLocation}
                                         />
                                     )}
-                                    {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher") && (
+                                    {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher" || activitySelect === "Book Flight") && (
                                         <AdditionalInfo 
                                             isGiftVoucher={isGiftVoucher} 
                                             isRedeemVoucher={isRedeemVoucher} 
