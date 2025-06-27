@@ -136,7 +136,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // Get Booking Dates
     async function getBookingDates(type) {
-        const response = await axios.post("/api/getAvailableSeats", {
+        const response = await axios.post("http://localhost:3000/api/getAvailableSeats", {
             flight_type: type,
             activity_id: activityId
         });

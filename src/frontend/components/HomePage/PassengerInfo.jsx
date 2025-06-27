@@ -81,8 +81,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
       title="Enter Passenger Information" 
       id="passenger-info" 
       activeAccordion={activeAccordion} 
-      setActiveAccordion={setActiveAccordion} 
-      className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}
+      setActiveAccordion={setActiveAccordion}
     >
       <div className="tab_box presger-scroll" style={{ padding: '10px 20px' }}>
         {/* Display a message if no passengers are selected */}

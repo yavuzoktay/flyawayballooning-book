@@ -95,6 +95,17 @@ const Index = () => {
         }
     }, [activitySelect]);
 
+    // Eğer Flight Voucher ise, passengerData'dan name'i otomatik doldur
+    useEffect(() => {
+        if (activitySelect === "Flight Voucher" && passengerData.length > 0) {
+            const firstPassenger = passengerData[0];
+            const fullName = `${firstPassenger.firstName} ${firstPassenger.lastName}`.trim();
+            if (fullName && fullName !== recipientDetails.name) {
+                setRecipientDetails((prev) => ({ ...prev, name: fullName }));
+            }
+        }
+    }, [activitySelect, passengerData]);
+
     // Reset all booking selections
     const resetBooking = () => {
         setActiveAccordion("activity");
@@ -210,22 +221,18 @@ const Index = () => {
                                             activitySelect={activitySelect}
                                         />
                                     )}
-                                    {!(activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") && (
-                                        <PassengerInfo 
-                                            isGiftVoucher={isGiftVoucher} 
-                                            isFlightVoucher={isFlightVoucher} 
-                                            addPassenger={addPassenger} 
-                                            passengerData={passengerData} 
-                                            setPassengerData={setPassengerData} 
-                                            weatherRefund={weatherRefund} 
-                                            setWeatherRefund={setWeatherRefund} 
-                                            activeAccordion={activeAccordion} 
-                                            setActiveAccordion={handleSetActiveAccordion} 
-                                            chooseFlightType={chooseFlightType}
-                                            activitySelect={activitySelect}
-                                            chooseLocation={chooseLocation}
-                                        />
-                                    )}
+                                    <PassengerInfo
+                                        isGiftVoucher={isGiftVoucher}
+                                        isFlightVoucher={isFlightVoucher}
+                                        passengerData={passengerData}
+                                        setPassengerData={setPassengerData}
+                                        activeAccordion={activeAccordion}
+                                        setActiveAccordion={handleSetActiveAccordion}
+                                        chooseFlightType={chooseFlightType}
+                                        addPassenger={addPassenger}
+                                        setAddPassenger={setAddPassenger}
+                                        chooseLocation={chooseLocation}
+                                    />
                                     {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher" || activitySelect === "Book Flight") && (
                                         <AdditionalInfo 
                                             isGiftVoucher={isGiftVoucher} 
@@ -280,6 +287,7 @@ const Index = () => {
                                 isGiftVoucher={isGiftVoucher}
                                 voucherCode={voucherCode}
                                 resetBooking={resetBooking}
+                                preference={preference}
                             />
                         </div>
                     </div>

@@ -38,7 +38,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
     // Get Activity Id
     async function getActivityId(location) {
         try {
-            const response = await axios.post("/api/getActivityId", {
+            const response = await axios.post("http://localhost:3000/api/getActivityId", {
                 location: location
             });
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -42,6 +42,33 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     // Send Data To Backend
     const handleBookData = async () => {
+        if (isFlightVoucher || isRedeemVoucher) {
+            // VOUCHER POST
+            const voucherData = {
+                name: recipientDetails?.name || "",
+                flight_type: chooseFlightType?.type || "",
+                voucher_type: isFlightVoucher ? "Flight Voucher" : "Redeem Voucher",
+                email: recipientDetails?.email || "",
+                phone: recipientDetails?.phone || "",
+                expires: "",
+                redeemed: "No",
+                paid: totalPrice,
+                offer_code: "",
+                voucher_ref: voucherCode || ""
+            };
+            try {
+                const response = await axios.post('/api/createVoucher', voucherData); // localhost:3000/api/createVoucher
+                if (response.data.success) {
+                    alert('Voucher created successfully!');
+                    resetBooking();
+                } else {
+                    alert('Voucher creation failed: ' + response.data.message);
+                }
+            } catch (error) {
+                alert('An error occurred while creating voucher.');
+            }
+            return;
+        }
         const bookingData = {
             activitySelect,
             chooseLocation,
@@ -208,16 +235,39 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 >
                     Clear
                 </button>
-                <div
-                    className={`booking_btn final_booking-button${!(activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) ? ' disabled' : ''}`}
-                    onClick={
-                        activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate
-                            ? handleBookData
-                            : undefined
+                <button
+                    className="booking_btn final_booking-button"
+                    style={{
+                        background: (
+                            (isFlightVoucher || isRedeemVoucher)
+                                ? '#bbb'
+                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) ? '#bbb' : '#eee'
+                        ),
+                        color: '#fff',
+                        fontWeight: 500,
+                        borderRadius: '8px',
+                        padding: '8px 22px',
+                        cursor: (
+                            (isFlightVoucher || isRedeemVoucher)
+                                ? true
+                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
+                        ) ? 'pointer' : 'not-allowed',
+                        opacity: (
+                            (isFlightVoucher || isRedeemVoucher)
+                                ? 1
+                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
+                        ) ? 1 : 0.5
+                    }}
+                    disabled={
+                        (isFlightVoucher || isRedeemVoucher)
+                            ? false
+                            : !(activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
                     }
+                    onClick={handleBookData}
+                    type="button"
                 >
                     Book
-                </div>
+                </button>
             </div>
         </div>
     )
