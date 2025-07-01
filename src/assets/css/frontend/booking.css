@@ -1669,8 +1669,7 @@ label {
 .Recipient .info-icon-container:hover .hover-text {
     visibility: visible !important;
     opacity: 1 !important;
-    left: 50% !important;
-    right: auto !important;
+
     top: calc(100% + 5px) !important;
     transform: translateX(-50%) scale(1) !important;
     min-width: 320px !important;
@@ -1681,16 +1680,7 @@ label {
     z-index: 10001 !important;
 }
 
-.Recipient .info-icon-container .hover-text::after {
-    content: "" !important;
-    position: absolute !important;
-    bottom: 100% !important;
-    left: 50% !important;
-    margin-left: -5px !important;
-    border-width: 5px !important;
-    border-style: solid !important;
-    border-color: transparent transparent #333 transparent !important;
-}
+
 /* End Preferences Info Icon Hover Styles */
 
 .weight-info-wrapper .info-icon-container:hover .hover-text {
@@ -1866,3 +1856,30 @@ label {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
     border-left: 4px solid #0070f3 !important;
 }
+
+.recipient-tooltip {
+    position: relative;
+}
+
+.recipient-tooltip .recipient-hover-text {
+    position: absolute;
+    left: auto !important;
+    top: 0 !important;
+    min-width: 180px !important;
+    max-width: 320px !important;
+    width: max-content !important;
+    text-align: left !important;
+    font-size: 15px !important;
+    padding: 18px 22px !important;
+    z-index: 10001 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    white-space: normal !important;
+    background: #333;
+    color: #fff;
+    border-radius: 8px;
+    border-left: 4px solid #0070f3;
+    line-height: 1.7 !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+}
+

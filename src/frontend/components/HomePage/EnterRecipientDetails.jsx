@@ -28,12 +28,10 @@ const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher,
                 <form action="/submit" method="post">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <label>Recipient Name</label>
-                        <div className="info-icon-container">
-                            <BsInfoCircle size={14} color="#0070f3" />
-                            <div className="hover-text">
-                                Share the recipient's details so we can get in touch with them to arrange their flight. 
-                                Rest assured, we won't contact them until after the gifted date has passed. 
-                                Vouchers will be sent to the purchaser.
+                        <div className="info-icon-container recipient-tooltip">
+                            <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                            <div className="hover-text recipient-hover-text">
+                                <p>Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser.</p>
                             </div>
                         </div>
                     </div>
