@@ -232,6 +232,7 @@ const Index = () => {
                                         addPassenger={addPassenger}
                                         setAddPassenger={setAddPassenger}
                                         chooseLocation={chooseLocation}
+                                        activitySelect={activitySelect}
                                     />
                                     {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher" || activitySelect === "Book Flight") && (
                                         <AdditionalInfo 

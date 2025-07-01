@@ -100,7 +100,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>Passenger {index + 1}</h3>
                 </div>
-                {activitySelect !== "Redeem Voucher" && chooseFlightType?.type !== "Private Flight" && chooseLocation !== "Bristol Fiesta" && (
+                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta")) && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span
