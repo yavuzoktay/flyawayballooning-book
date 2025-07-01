@@ -83,6 +83,8 @@ label {
 
 .book_data {
     width: 40%;
+    position: relative;
+    z-index: 1;
 }
 
 .booking_data {
@@ -111,6 +113,8 @@ label {
     cursor: pointer;
     border: 2px solid transparent;
     transition: 0.3s all ease-in-out 0s;
+    overflow: visible;
+    z-index: 1;
 }
 
 .book_data_label h3,
@@ -1524,18 +1528,18 @@ label {
     visibility: hidden;
     opacity: 0;
     position: absolute;
+    text-align: center;
+    min-width: 180px;
+    max-width: 90vw;
+    margin: 0 auto;
+    padding: 12px 10px;
     left: 50%;
-    top: calc(100% + 5px); /* Position below the icon */
-    transform: translateX(-50%) scale(0.95); /* Center horizontally */
-    width: auto;
-    min-width: 220px;
-    max-width: 320px;
+    transform: translateX(-50%) scale(0.95);
+    top: calc(100% + 5px);
+    border-radius: 8px;
     background-color: #333;
     color: #fff;
-    text-align: center; /* Center text inside */
-    border-radius: 8px;
-    padding: 12px 15px;
-    z-index: 9999;
+    z-index: 99999 !important;
     pointer-events: auto;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-size: 14px !important;
@@ -1550,18 +1554,17 @@ label {
     color: #fff !important;
     font-family: 'Gilroy', Arial, sans-serif !important;
     font-size: 14px !important;
-    text-align: left; /* Keep p tags left-aligned if needed */
+    text-align: center;
 }
 
 .hover-text p:last-child {
     margin-bottom: 0;
 }
 
-/* Add arrow to hover text */
 .hover-text::after {
     content: "";
     position: absolute;
-    bottom: 100%; /* Arrow at the top of the tooltip */
+    bottom: 100%;
     left: 50%;
     margin-left: -5px;
     border-width: 5px;
@@ -1636,17 +1639,19 @@ label {
 }
 
 .preferences-info-wrapper .info-icon-container:hover .hover-text {
+    right: 0 !important;
+    left: unset !important;
+    transform: none !important;
+    min-width: 380px !important;
+    max-width: 480px !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 14px !important;
+    padding: 12px 18px !important;
+    z-index: 10001 !important;
     visibility: visible !important;
     opacity: 1 !important;
-    left: 50% !important;
-    right: auto !important;
-    top: calc(100% + 5px) !important;
-    transform: translateX(-50%) scale(1) !important;
-    min-width: 320px !important;
-    max-width: 320px !important;
-    text-align: left !important;
-    font-size: 12px !important;
-    padding: 8px 10px !important;
+    white-space: normal !important;
 }
 
 .preferences-info-wrapper .info-icon-container .hover-text::after {
@@ -1750,26 +1755,29 @@ label {
 }
 
 .private-flight-tooltip .info-icon-container:hover {
+    /* Tooltip ile ilgili stiller kaldırıldı */
+}
+
+.private-flight-tooltip .info-icon-container:hover .hover-text {
+    right: -24px !important;
+    left: unset !important;
+    transform: none !important;
+    min-width: 120px !important;
+    max-width: 360px !important;
+    width: max-content !important;
+    text-align: left !important;
+    font-size: 14px !important;
+    padding: 12px 18px !important;
+    z-index: 10001 !important;
     visibility: visible !important;
     opacity: 1 !important;
-    left: 0 !important;
-    right: unset !important;
-    margin-left: 0;
-    top: calc(100% + 5px);
-    transform: none !important;
-    min-width: 220px;
-    max-width: 320px;
-    text-align: left;
-    font-size: 14px !important;
-    font-family: 'Gilroy', Arial, sans-serif !important;
-    padding: 8px 10px;
-    z-index: 10001;
-    background-color: #333;
-    color: #fff;
-    border-radius: 8px;
-    line-height: 1.5;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border-left: 4px solid #0070f3;
+    white-space: normal !important;
+    background: #333 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-left: 4px solid #0070f3 !important;
 }
 
 .info-icon-container svg {
@@ -1777,7 +1785,84 @@ label {
 }
 
 .shared-flight-tooltip .info-icon-container:hover .hover-text,
-.private-flight-tooltip .info-icon-container:hover .hover-text,
 .content-flight .info-icon-container:hover .hover-text {
     font-size: 14px;
+}
+
+.book_data_label h3 {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.book_data_label {
+    position: relative;
+    overflow: visible;
+    z-index: 1;
+}
+
+.info-icon-container .hover-text {
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    max-width: 90%;
+    box-sizing: border-box;
+    text-align: center;
+    z-index: 99999 !important;
+}
+
+@media (min-width: 600px) {
+    .info-icon-container .hover-text {
+        max-width: 260px;
+    }
+}
+
+.book_data_label .info-icon-container:hover .hover-text {
+    min-width: 120px !important;
+    max-width: calc(100% - 32px) !important;
+    width: max-content !important;
+    left: 50% !important;
+    transform: translateX(-50%) scale(1) !important;
+    top: calc(100% + 5px) !important;
+    text-align: left !important;
+    font-size: 14px !important;
+    padding: 8px 10px !important;
+    z-index: 10001 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.book_data_label .info-icon-container .hover-text::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: 100% !important;
+    left: 50% !important;
+    margin-left: -5px !important;
+    border-width: 5px !important;
+    border-style: solid !important;
+    border-color: transparent transparent #333 transparent !important;
+}
+
+.private-flight-tooltip .info-icon-container:hover .hover-text {
+    right: -24px !important;
+    left: unset !important;
+    transform: none !important;
+    min-width: 120px !important;
+    max-width: 360px !important;
+    width: max-content !important;
+    text-align: left !important;
+    font-size: 14px !important;
+    padding: 12px 18px !important;
+    z-index: 10001 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    white-space: normal !important;
+    background: #333 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    border-left: 4px solid #0070f3 !important;
 }
