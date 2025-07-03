@@ -1,7 +1,17 @@
 import axios from "axios";
-import React from "react";
+import React, { useRef, useState } from "react";
+import { validatePassengers } from "./PassengerInfo";
+import { validateAdditionalInfo } from "./AdditionalInfo";
+import { validatePreferences } from "./EnterPreferences";
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
+
+    const passengerInfoRef = useRef(null);
+    const [passengerErrors, setPassengerErrors] = useState([]);
+    const [additionalErrors, setAdditionalErrors] = useState({});
+    const [preferenceErrors, setPreferenceErrors] = useState({});
+    const additionalInfoRef = useRef(null);
+    const preferenceRef = useRef(null);
 
     // Function to format date
     const formatDate = (date) => {
@@ -47,6 +57,58 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     // Send Data To Backend
     const handleBookData = async () => {
+        console.log("Book button clicked");
+        console.log("additionalInfo state before validation:", additionalInfo);
+        console.log("preference state before validation:", preference);
+        // Validate passengers
+        const errors = validatePassengers(passengerData);
+        setPassengerErrors(errors);
+        const hasPassengerError = errors.some(e => Object.values(e).some(Boolean));
+        if (hasPassengerError) {
+            console.log("Passenger validation failed", errors);
+        }
+        // Validate additional info
+        const addErrors = validateAdditionalInfo(additionalInfo, chooseFlightType?.type);
+        setAdditionalErrors(addErrors);
+        const hasAdditionalError = Object.values(addErrors).some(Boolean);
+        if (hasAdditionalError) {
+            console.log("Additional info validation failed", addErrors);
+        }
+        // Validate preferences
+        const prefErrors = validatePreferences(preference);
+        setPreferenceErrors(prefErrors);
+        const hasPreferenceError = Object.values(prefErrors).some(Boolean);
+        if (hasPreferenceError) {
+            console.log("Preference validation failed", prefErrors);
+        }
+        // Scroll and open relevant section if error
+        if (hasPassengerError) {
+            setActiveAccordion && setActiveAccordion("passenger-info");
+            setTimeout(() => {
+                if (passengerInfoRef.current) {
+                    passengerInfoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 100);
+            return;
+        }
+        if (hasAdditionalError) {
+            setActiveAccordion && setActiveAccordion("additional-info");
+            setTimeout(() => {
+                if (additionalInfoRef.current) {
+                    additionalInfoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 100);
+            return;
+        }
+        if (hasPreferenceError) {
+            setActiveAccordion && setActiveAccordion("preference");
+            setTimeout(() => {
+                if (preferenceRef.current) {
+                    preferenceRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 100);
+            return;
+        }
         if (isFlightVoucher || isRedeemVoucher) {
             // Only send to /api/createVoucher and then fetch vouchers
             const voucherData = {
@@ -63,12 +125,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             };
             try {
                 // Always POST, do not block for empty fields
-                const voucherResp = await axios.post('http://localhost:3000/api/createVoucher', voucherData);
+                const voucherResp = await axios.post('http://3.92.209.28/api/createVoucher', voucherData);
                 if (!voucherResp.data.success) {
                     alert('Voucher creation failed: ' + (voucherResp.data.message || voucherResp.data.error || 'Unknown error'));
                     return;
                 }
-                await axios.get('http://localhost:3000/api/getAllVoucherData');
+                await axios.get('http://3.92.209.28/api/getAllVoucherData');
                 alert('Voucher created successfully!');
                 resetBooking();
             } catch (error) {
@@ -76,7 +138,32 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
             return;
         }
-        // ... existing code for other booking types ...
+        try {
+            const response = await axios.post('http://3.92.209.28/api/createBooking', {
+                activitySelect,
+                chooseLocation,
+                chooseFlightType,
+                chooseAddOn,
+                passengerData,
+                additionalInfo,
+                recipientDetails,
+                selectedDate,
+                totalPrice,
+                voucher_code: voucherCode,
+                flight_attempts: chooseFlightType?.flight_attempts || 0,
+                preference
+            });
+            console.log("Booking response:", response);
+            if (response.data.success) {
+                alert('Booking successful! Booking ID: ' + response.data.bookingId);
+                resetBooking(); 
+            } else {
+                alert('Booking failed: ' + response.data.message);
+            }
+        } catch (error) {
+            console.error('Error during booking:', error);
+            alert('An error occurred while trying to book. Please try again.');
+        }
     }
 
     return (
@@ -173,7 +260,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 </div>
             </div>
 
-            <div className={`book_data_active`} onClick={() => setActiveAccordion("passenger-info")}>
+            <div className={`book_data_active`} onClick={() => setActiveAccordion("passenger-info")} ref={passengerInfoRef}>
                 <div className={`row-1 ${passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}>
                     <span className="active-book-card"></span>
                     <div className="active-book-cont final-active-book-cont">
@@ -202,6 +289,53 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                     </div>
                 </div>
+                {passengerErrors.some(e => Object.values(e).some(Boolean)) && (
+                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please fill in all required passenger fields.</div>
+                )}
+            </div>
+
+            <div className={`book_data_active`} onClick={() => setActiveAccordion("additional-info")} ref={additionalInfoRef}>
+                <div className={`row-1 ${Object.values(additionalErrors).some(Boolean) ? 'active-card-val' : ''}`}>
+                    <span className="active-book-card"></span>
+                    <div className="active-book-cont final-active-book-cont">
+                        <div className="active-book-left">
+                            <h3>Additional Information</h3>
+                            {
+                                Object.values(additionalErrors).some(Boolean) ?
+                                    Object.entries(additionalErrors).map(([key, error]) => (
+                                        <p key={key}>{error}</p>
+                                    ))
+                                    :
+                                    "Not Provided"
+                            }
+                        </div>
+                    </div>
+                </div>
+                {Object.values(additionalErrors).some(Boolean) && (
+                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please fill in all required additional information fields.</div>
+                )}
+            </div>
+
+            <div className={`book_data_active`} onClick={() => setActiveAccordion("preference")} ref={preferenceRef}>
+                <div className={`row-1 ${Object.values(preferenceErrors).some(Boolean) ? 'active-card-val' : ''}`}>
+                    <span className="active-book-card"></span>
+                    <div className="active-book-cont final-active-book-cont">
+                        <div className="active-book-left">
+                            <h3>Enter Preferences</h3>
+                            {
+                                Object.values(preferenceErrors).some(Boolean) ?
+                                    Object.entries(preferenceErrors).map(([key, error]) => (
+                                        <p key={key}>{error}</p>
+                                    ))
+                                    :
+                                    "Not Provided"
+                            }
+                        </div>
+                    </div>
+                </div>
+                {Object.values(preferenceErrors).some(Boolean) && (
+                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please select at least one option in each preferences group.</div>
+                )}
             </div>
 
             <div className="bottom_main">

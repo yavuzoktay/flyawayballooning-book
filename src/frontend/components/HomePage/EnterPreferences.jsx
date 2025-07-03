@@ -19,7 +19,15 @@ const preferedDay = [
     "Weekday & Weekend"
 ];
 
-const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPreference, activeAccordion, setActiveAccordion, showEdit, setShowEdit }) => {
+export function validatePreferences(preference) {
+    return {
+        location: !Object.values(preference.location || {}).some(Boolean),
+        time: !Object.values(preference.time || {}).some(Boolean),
+        day: !Object.values(preference.day || {}).some(Boolean),
+    };
+}
+
+const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPreference, activeAccordion, setActiveAccordion, showEdit, setShowEdit, errors = {} }) => {
     const handlePreferChange = (e, category) => {
         const { value, checked } = e.target;
 
@@ -55,7 +63,7 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                     </div>
                 </div>
                 <div className="Proferences_box">
-                    <div className="Proferences_data">
+                    <div className="Proferences_data" style={errors.location ? { border: '1.5px solid red', borderRadius: 6, padding: 4 } : {}}>
                         <div className="add_check">
                             {preferredLocation.map((input, index) => (
                                 <label className="chaque final-prefer-check" key={index}>
@@ -69,12 +77,13 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                                 </label>
                             ))}
                         </div>
+                        {errors.location && <span style={{ color: 'red', fontSize: 12 }}>Select at least one location</span>}
                     </div>
 
                     <div className="pro_head" style={{ marginBottom: '16px' }}>
                         <label>Preferred Time</label>
                     </div>
-                    <div className="Proferences_data">
+                    <div className="Proferences_data" style={errors.time ? { border: '1.5px solid red', borderRadius: 6, padding: 4 } : {}}>
                         {preferedTime.map((input, index) => (
                             <label className="chaque final-prefer-check" key={index}>
                                 <input
@@ -86,12 +95,13 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                                 <span>{input}</span>
                             </label>
                         ))}
+                        {errors.time && <span style={{ color: 'red', fontSize: 12 }}>Select at least one time</span>}
                     </div>
 
                     <div className="pro_head" style={{ marginBottom: '16px' }}>
                         <label>Preferred Day</label>
                     </div>
-                    <div className="Proferences_data">
+                    <div className="Proferences_data" style={errors.day ? { border: '1.5px solid red', borderRadius: 6, padding: 4 } : {}}>
                         {preferedDay.map((input, index) => (
                             <label className="chaque final-prefer-check" key={index}>
                                 <input
@@ -103,6 +113,7 @@ const EnterPreferences = ({ isGiftVoucher, isRedeemVoucher, preference, setPrefe
                                 <span>{input}</span>
                             </label>
                         ))}
+                        {errors.day && <span style={{ color: 'red', fontSize: 12 }}>Select at least one day</span>}
                     </div>
                 </div>
             </div>

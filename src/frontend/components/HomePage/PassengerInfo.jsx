@@ -93,7 +93,8 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
         
         {/* Generate passenger forms based on passenger count */}
         {[...Array(passengerCount)].map((_, index) => {
-          const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "" }; // Ensure safe access
+          const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
+          const error = (typeof passengerData[index]?.errors === 'object') ? passengerData[index].errors : {};
           return (
             <div className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px' }}>
               <div className="presnger_one" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -147,7 +148,9 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     value={passenger.firstName}
                     onChange={(e) => handlePassengerInputChange(index, e)}
                     required
+                    style={error?.firstName ? { border: '1.5px solid red' } : {}}
                   />
+                  {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
                 <div>
                   <label>Last Name*</label>
@@ -157,7 +160,9 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     value={passenger.lastName}
                     onChange={(e) => handlePassengerInputChange(index, e)}
                     required
+                    style={error?.lastName ? { border: '1.5px solid red' } : {}}
                   />
+                  {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
@@ -177,7 +182,33 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     value={passenger.weight}
                     onChange={(e) => handlePassengerInputChange(index, e)}
                     placeholder="Kg"
+                    style={error?.weight ? { border: '1.5px solid red' } : {}}
                   />
+                  {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                </div>
+                <div>
+                  <label>Mobile Number</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={passenger.phone || ''}
+                    onChange={(e) => handlePassengerInputChange(index, e)}
+                    placeholder="Mobile Number"
+                    style={error?.phone ? { border: '1.5px solid red' } : {}}
+                  />
+                  {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                </div>
+                <div>
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={passenger.email || ''}
+                    onChange={(e) => handlePassengerInputChange(index, e)}
+                    placeholder="Email"
+                    style={error?.email ? { border: '1.5px solid red' } : {}}
+                  />
+                  {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
               </div>
             </div>
@@ -187,5 +218,17 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
     </Accordion>
   );
 };
+
+export function validatePassengers(passengerData) {
+  return passengerData.map((p) => {
+    return {
+      firstName: !p.firstName,
+      lastName: !p.lastName,
+      weight: !p.weight,
+      phone: !p.phone,
+      email: !p.email,
+    };
+  });
+}
 
 export default PassengerInfo;

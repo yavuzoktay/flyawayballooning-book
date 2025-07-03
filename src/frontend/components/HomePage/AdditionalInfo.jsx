@@ -38,7 +38,16 @@ const prefer = [
     "We'll bring our own"
 ]
 
-const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType }) => {
+export function validateAdditionalInfo(additionalInfo, flightType) {
+    return {
+        notes: !additionalInfo.notes,
+        hearAboutUs: !additionalInfo.hearAboutUs,
+        reason: !additionalInfo.reason,
+        prefer: flightType !== "Shared Flight" ? !additionalInfo.prefer : false,
+    };
+}
+
+const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -63,7 +72,10 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                         cols="50"
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
+                        value={additionalInfo.notes || ""}
+                        style={errors.notes ? { border: '1.5px solid red' } : {}}
                     ></textarea>
+                    {errors.notes && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
                 {flightType !== "Shared Flight" && (
                 <div className="mt-4 prefer">
@@ -82,12 +94,13 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                             </label>
                         ))}
                     </div>
+                    {errors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
                 )}
 
                 <div className="selector mt-4">
                     <p className="block text-base font-semibold">How did you hear about us?</p>
-                    <select name="hearAboutUs" className="w-full border p-2 rounded mt-2" onChange={handleChange}>
+                    <select name="hearAboutUs" className="w-full border p-2 rounded mt-2" onChange={handleChange} value={additionalInfo.hearAboutUs || ""} style={errors.hearAboutUs ? { border: '1.5px solid red' } : {}}>
                         <option value="">Please select</option>
                         {
                             hearUs?.map((opt) => {
@@ -97,11 +110,12 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                             })
                         }
                     </select>
+                    {errors.hearAboutUs && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
 
                 <div className="selector  mt-4">
                     <label className="block text-base font-semibold">Why Hot Air Ballooning?</label>
-                    <select name="reason" className="w-full border p-2 rounded mt-2" onChange={handleChange}>
+                    <select name="reason" className="w-full border p-2 rounded mt-2" onChange={handleChange} value={additionalInfo.reason || ""} style={errors.reason ? { border: '1.5px solid red' } : {}}>
                         <option value="">Please select</option>
                         {
                             ballooningReason?.map((opt) => {
@@ -111,6 +125,7 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                             })
                         }
                     </select>
+                    {errors.reason && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
             </div>
         </Accordion>

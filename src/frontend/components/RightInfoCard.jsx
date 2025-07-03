@@ -1,6 +1,8 @@
 import axios from "axios";
 import React from "react";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
     // Function to format date
@@ -39,9 +41,28 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     }, 0);
     const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice);
 
+    // Helper to check if an object is non-empty
+    const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
+    // Helper to check if an array is non-empty
+    const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
+
+    const isBookDisabled = !(
+        activitySelect &&
+        chooseLocation &&
+        chooseFlightType &&
+        isNonEmptyArray(chooseAddOn) &&
+        isNonEmptyArray(passengerData) &&
+        isNonEmptyObject(additionalInfo) &&
+        isNonEmptyObject(recipientDetails) &&
+        selectedDate
+    );
+
+    const [showWarning, setShowWarning] = React.useState(false);
 
     // Send Data To Backend
     const handleBookData = async () => {
+        console.log("Book button clicked");
+        console.log("API_BASE_URL:", API_BASE_URL);
         if (isFlightVoucher || isRedeemVoucher) {
             // VOUCHER POST
             const voucherData = {
@@ -57,7 +78,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 voucher_ref: voucherCode || ""
             };
             try {
-                const response = await axios.post('/api/createVoucher', voucherData); // localhost:3000/api/createVoucher
+                const response = await axios.post('/api/createVoucher', voucherData);
+                console.log("Voucher response:", response);
                 if (response.data.success) {
                     alert('Voucher created successfully!');
                     resetBooking();
@@ -65,10 +87,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     alert('Voucher creation failed: ' + response.data.message);
                 }
             } catch (error) {
+                console.error('Error during voucher creation:', error);
                 alert('An error occurred while creating voucher.');
             }
             return;
         }
+        // BOOK FLIGHT FLOW
         const bookingData = {
             activitySelect,
             chooseLocation,
@@ -79,14 +103,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             recipientDetails,
             selectedDate,
             totalPrice,
-            voucher_code: voucherCode
+            voucher_code: voucherCode,
+            flight_attempts: chooseFlightType?.flight_attempts || 0,
+            preference
         };
-
+        console.log("Booking data to send:", bookingData);
         try {
-            const response = await axios.post('http://54.152.36.179:3002/api/createBooking', bookingData);
+            const response = await axios.post('/api/createBooking', bookingData);
+            console.log("Booking response:", response);
             if (response.data.success) {
                 alert('Booking successful! Booking ID: ' + response.data.bookingId);
-                // Optionally, reset the form or redirect
                 resetBooking(); 
             } else {
                 alert('Booking failed: ' + response.data.message);
@@ -238,37 +264,33 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 <button
                     className="booking_btn final_booking-button"
                     style={{
-                        background: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? '#bbb'
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) ? '#bbb' : '#eee'
-                        ),
+                        background: isBookDisabled ? '#eee' : '#2d4263',
                         color: '#fff',
                         fontWeight: 500,
                         borderRadius: '8px',
                         padding: '8px 22px',
-                        cursor: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? true
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                        ) ? 'pointer' : 'not-allowed',
-                        opacity: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? 1
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                        ) ? 1 : 0.5
+                        cursor: isBookDisabled ? 'not-allowed' : 'pointer',
+                        opacity: isBookDisabled ? 0.5 : 1
                     }}
-                    disabled={
-                        (isFlightVoucher || isRedeemVoucher)
-                            ? false
-                            : !(activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                    }
-                    onClick={handleBookData}
+                    disabled={isBookDisabled}
+                    onClick={() => {
+                        if (isBookDisabled) {
+                            setShowWarning(true);
+                        } else {
+                            setShowWarning(false);
+                            handleBookData();
+                        }
+                    }}
                     type="button"
                 >
                     Book
                 </button>
             </div>
+            {showWarning && (
+                <div style={{ color: 'red', marginTop: 10 }}>
+                    Please fill in all required steps before booking.
+                </div>
+            )}
         </div>
     )
 }
