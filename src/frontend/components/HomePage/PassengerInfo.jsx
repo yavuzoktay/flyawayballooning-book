@@ -101,7 +101,8 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>Passenger {index + 1}</h3>
                 </div>
-                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta")) && (
+                {/* Weather Refundable alanı sadece Flight Voucher seçili DEĞİLSE gösterilecek */}
+                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta") || activitySelect === "Flight Voucher") && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span
@@ -139,77 +140,84 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 </div>
                 )}
               </div>
-              <div className="form-presnger" style={{ gap: '15px', display: 'flex' }}>
-                <div>
-                  <label>First Name*</label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={passenger.firstName}
-                    onChange={(e) => handlePassengerInputChange(index, e)}
-                    required
-                    style={error?.firstName ? { border: '1.5px solid red' } : {}}
-                  />
-                  {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                </div>
-                <div>
-                  <label>Last Name*</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={passenger.lastName}
-                    onChange={(e) => handlePassengerInputChange(index, e)}
-                    required
-                    style={error?.lastName ? { border: '1.5px solid red' } : {}}
-                  />
-                  {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                </div>
-                <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
-                    Weight (Kg)
-                    <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
-                      <div className="info-icon-container" style={{ position: 'relative' }}>
-                        <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
-                        <div className="hover-text">
-                          <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight.</p>
+              <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                  <div style={{ flex: 1 }}>
+                    <label>First Name*</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={passenger.firstName}
+                      onChange={(e) => handlePassengerInputChange(index, e)}
+                      required
+                      style={error?.firstName ? { border: '1.5px solid red' } : {}}
+                    />
+                    {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Last Name*</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={passenger.lastName}
+                      onChange={(e) => handlePassengerInputChange(index, e)}
+                      required
+                      style={error?.lastName ? { border: '1.5px solid red' } : {}}
+                    />
+                    {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
+                      Weight (Kg)
+                      <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
+                        <div className="info-icon-container" style={{ position: 'relative' }}>
+                          <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                          <div className="hover-text">
+                            <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight.</p>
+                          </div>
                         </div>
-                      </div>
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    name="weight"
-                    value={passenger.weight}
-                    onChange={(e) => handlePassengerInputChange(index, e)}
-                    placeholder="Kg"
-                    style={error?.weight ? { border: '1.5px solid red' } : {}}
-                  />
-                  {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      name="weight"
+                      value={passenger.weight}
+                      onChange={(e) => handlePassengerInputChange(index, e)}
+                      placeholder="Kg"
+                      style={error?.weight ? { border: '1.5px solid red' } : {}}
+                    />
+                    {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                  </div>
                 </div>
-                <div>
-                  <label>Mobile Number</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={passenger.phone || ''}
-                    onChange={(e) => handlePassengerInputChange(index, e)}
-                    placeholder="Mobile Number"
-                    style={error?.phone ? { border: '1.5px solid red' } : {}}
-                  />
-                  {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                </div>
-                <div>
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={passenger.email || ''}
-                    onChange={(e) => handlePassengerInputChange(index, e)}
-                    placeholder="Email"
-                    style={error?.email ? { border: '1.5px solid red' } : {}}
-                  />
-                  {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                </div>
+                {/* Mobile Number ve Email sadece ilk yolcu için, üstteki satırın ALTINDA yan yana gösterilecek */}
+                {index === 0 && (
+                  <div style={{ width: '100%', display: 'flex', gap: '15px', marginTop: '10px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label>Mobile Number</label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={passenger.phone || ''}
+                        onChange={(e) => handlePassengerInputChange(index, e)}
+                        placeholder="Mobile Number"
+                        style={error?.phone ? { border: '1.5px solid red' } : {}}
+                      />
+                      {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={passenger.email || ''}
+                        onChange={(e) => handlePassengerInputChange(index, e)}
+                        placeholder="Email"
+                        style={error?.email ? { border: '1.5px solid red' } : {}}
+                      />
+                      {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

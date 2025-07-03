@@ -26,7 +26,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
 
     const selectActivityData = [
         { value: 0, label: "Book Flight", subText: "" },
-        { value: 1, label: "Flight Voucher", subText: "Choose Date & Location Later, valid 24 months" },
+        { value: 1, label: "Flight Voucher", subText: "Choose Date & Location Later, Valid 24 months" },
         { value: 2, label: "Redeem Voucher", subText: "" },
         { value: 3, label: "Buy Gift", subText: "Any Location, Valid 24 Months" }
     ];
