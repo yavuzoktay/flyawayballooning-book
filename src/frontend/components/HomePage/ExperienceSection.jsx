@@ -86,6 +86,23 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         'If you are not happy with these terms and conditions please do not book this flight.'
     ];
 
+    // Flight Voucher için özel terms
+    const flightVoucherTerms = [
+        'Ballooning is a weather dependent activity.',
+        'Flight Vouchers are valid for a strict 24 months.',
+        'If 10 attempts to fly are made within 24 months which are cancelled by us, we will extend the voucher for a further 12 months free of charge.',
+        'The date of your booked flight must be in the validity of your flight voucher.',
+        'Non-refundable under any circumstances.',
+        'Your flight voucher will never expire so long as you meet the terms & conditions.'
+    ];
+
+    // Buy Gift için özel terms
+    const buyGiftTerms = [
+        "Remember, vouchers are valid for a strict period of 24 months from the original purchase date. For your voucher to be extended for a further 12 months free of charge, you must have made at least 10 attempts to fly within the voucher's validity period.",
+        "You can purchase a 12 month voucher extension for £30pp whilst redeeming, instead of £60pp if needed later.",
+        "All voucher extension fees must be paid within the validity of your current voucher."
+    ];
+
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
             const updatedPassengers = Array(experiences.length).fill(null); // Reset all selections
@@ -262,14 +279,19 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 )}
                             </div>
                             <ul>
-                                {(chooseLocation === 'Bristol Fiesta' ? bristolTerms : [
-                                    'Ballooning is a weather-dependent activity.',
-                                    'Your voucher is valid for 24 months.',
-                                    'Without the weather refundable option, your voucher is non-refundable under any circumstances. However, re-bookable as needed within the voucher validity period.',
-                                    'If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.',
-                                    'Within 48 hours of your flight, no changes or cancellations can be made.',
-                                    'Your flight will never expire so long as you meet the terms & conditions.'
-                                ]).map((item, idx) => (
+                                {(isGiftVoucher
+                                    ? buyGiftTerms
+                                    : isFlightVoucher
+                                        ? flightVoucherTerms
+                                        : (chooseLocation === 'Bristol Fiesta' ? bristolTerms : [
+                                            'Ballooning is a weather-dependent activity.',
+                                            'Your voucher is valid for 24 months.',
+                                            'Without the weather refundable option, your voucher is non-refundable under any circumstances. However, re-bookable as needed within the voucher validity period.',
+                                            'If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.',
+                                            'Within 48 hours of your flight, no changes or cancellations can be made.',
+                                            'Your flight will never expire so long as you meet the terms & conditions.'
+                                        ])
+                                ).map((item, idx) => (
                                     <li key={idx}>{item}</li>
                                 ))}
                                 <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See Full Terms & Conditions</a></li>
