@@ -149,12 +149,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             };
             try {
                 // Always POST, do not block for empty fields
-                const voucherResp = await axios.post('http://localhost:3002/api/createVoucher', voucherData);
+                const voucherResp = await axios.post('http://localhost:3000/api/createVoucher', voucherData);
                 if (!voucherResp.data.success) {
                     alert('Voucher creation failed: ' + (voucherResp.data.message || voucherResp.data.error || 'Unknown error'));
                     return;
                 }
-                await axios.get('http://localhost:3002/api/getAllVoucherData');
+                await axios.get('http://localhost:3000/api/getAllVoucherData');
                 alert('Voucher created successfully!');
                 resetBooking();
             } catch (error) {
@@ -163,7 +163,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             return;
         }
         try {
-            const response = await axios.post('http://localhost:3002/api/createBooking', {
+            const response = await axios.post('http://localhost:3000/api/createBooking', {
                 activitySelect,
                 chooseLocation,
                 chooseFlightType,
