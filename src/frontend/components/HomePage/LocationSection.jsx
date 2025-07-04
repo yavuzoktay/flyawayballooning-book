@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import Image1 from '../../../assets/images/category1.jpeg';
 import Image2 from '../../../assets/images/category2.jpeg';
@@ -7,16 +7,29 @@ import Image4 from '../../../assets/images/category1.jpeg';
 import axios from "axios";
 import Modal from "../Common/Modal";
 
-const locations = [
-    { name: "Bath", image: Image1, value: 0 },
-    { name: "Devon", image: Image2, value: 1 },
-    { name: "Somerset", image: Image3, value: 2 },
-    { name: "Bristol Fiesta", image: Image4, value: 3 },
-];
+const imageMap = {
+    "Bath": Image1,
+    "Devon": Image2,
+    "Somerset": Image3,
+    "Bristol Fiesta": Image4,
+};
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity }) => {
+const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
+    const [locations, setLocations] = useState([]);
+
+    useEffect(() => {
+        axios.get("http://localhost:3003/api/activeLocations")
+            .then(res => {
+                if (res.data.success) {
+                    setLocations(res.data.data.map(l => ({
+                        name: l.location,
+                        image: l.image ? l.image : imageMap[l.location]
+                    })));
+                }
+            });
+    }, []);
 
     // Terms for Bristol Fiesta
     const bristolFiestaTerms = [
@@ -39,29 +52,26 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
 
     async function getActivityId(location) {
         try {
-            const response = await axios.post("http://localhost:3002/api/getActivityId", {
+            const response = await axios.post("http://localhost:3000/api/getActivityId", {
                 location: location
             });
 
-            if (response.status === 200) {
-                var data = response?.data?.result || [];
-                console.log('activity id', response.data);
-                
-                if (data.length > 0) {
-                    var activity_id = data[0]?.activity_sku || '';
-                    setActivityId(activity_id);
-                    setSelectedActivity(data);
-                } else {
-                    console.log('No activities found for this location');
-                    setActivityId('');
-                    setSelectedActivity([]);
-                }
+            if (response.status === 200 && response.data.success) {
+                const activity = response.data.activity;
+                const avails = response.data.availabilities || [];
+                setActivityId(activity?.id || '');
+                setSelectedActivity(activity ? [activity] : []);
+                setAvailabilities(avails);
+            } else {
+                setActivityId('');
+                setSelectedActivity([]);
+                setAvailabilities([]);
             }
         } catch (error) {
             console.error("Error fetching activity ID:", error);
-            // Kullanıcıya daha dostane bir hata mesajı göstermek için bir state eklenebilir
             setActivityId('');
             setSelectedActivity([]);
+            setAvailabilities([]);
         }
     }
 
@@ -92,11 +102,15 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
         <>
             <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`}>
                 <div className="tab_box scroll-box">
-                    {locations.map((loc, index) => (
-                        <div className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""}`} key={index} onClick={() => handleLocationSelect(loc.name)}>
-                            <img src={loc.image} alt={loc.name} width="100%" />
-                            <h3>{loc.name}</h3>
-                            <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
+                    {Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
+                        <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
+                            {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => (
+                                <div className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""}`} key={loc.name} onClick={() => handleLocationSelect(loc.name)}>
+                                    <img src={loc.image} alt={loc.name} width="100%" />
+                                    <h3>{loc.name}</h3>
+                                    <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
+                                </div>
+                            ))}
                         </div>
                     ))}
                 </div>

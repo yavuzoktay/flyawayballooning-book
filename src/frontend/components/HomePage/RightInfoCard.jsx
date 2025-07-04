@@ -4,7 +4,7 @@ import { validatePassengers } from "./PassengerInfo";
 import { validateAdditionalInfo } from "./AdditionalInfo";
 import { validatePreferences } from "./EnterPreferences";
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
     const passengerInfoRef = useRef(null);
     const [passengerErrors, setPassengerErrors] = useState([]);
@@ -37,6 +37,30 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
         // Replace the day with the formatted day with suffix
         return formattedDate.replace(day, formattedDay);
+    };
+
+    // Function to format date and time
+    const formatDateTime = (date, time) => {
+        if (!date) return 'Not Selected';
+        const d = new Date(date);
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let dateStr = d.toLocaleDateString('en-US', options);
+        // Saat varsa ekle
+        if (time) {
+            let [h, m] = time.split(':');
+            let hour = Number(h);
+            let ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            dateStr += `, ${hour}:${m} ${ampm}`;
+        } else if (d.getHours() || d.getMinutes()) {
+            // Tarih objesinde saat atanmışsa onu da göster
+            let hour = d.getHours();
+            let min = d.getMinutes();
+            let ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            dateStr += `, ${hour}:${min.toString().padStart(2, '0')} ${ampm}`;
+        }
+        return dateStr;
     };
 
     // Calculate total price
@@ -143,7 +167,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 activitySelect,
                 chooseLocation,
                 chooseFlightType,
-                chooseAddOn,
+                chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
                 passengerData,
                 additionalInfo,
                 recipientDetails,
@@ -216,7 +240,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     <div className="active-book-cont final-active-book-cont">
                         <div className="active-book-left">
                             <h3>Flight Date & Meeting Time</h3>
-                            <p>{selectedDate ? formatDate(selectedDate) : "Not Selected"}</p>
+                            <p>{formatDateTime(selectedDate, selectedTime)}</p>
                         </div>
                     </div>
                 </div>

@@ -76,6 +76,14 @@ label {
     gap: 15px;
 }
 
+.tab_box.scroll-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
 .scrool-box {
     GAP: 30px;
     justify-content: space-evenly;
@@ -1881,5 +1889,26 @@ label {
     line-height: 1.7 !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em !important;
+}
+
+.loc_data.location_data {
+    flex: 0 1 320px;
+    max-width: 340px;
+    min-width: 220px;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+    .loc_data.location_data {
+        flex: 0 1 48%;
+        max-width: 100%;
+    }
+}
+@media (max-width: 600px) {
+    .loc_data.location_data {
+        flex: 0 1 100%;
+        max-width: 100%;
+    }
 }
 

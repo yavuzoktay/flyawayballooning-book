@@ -97,7 +97,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             activitySelect,
             chooseLocation,
             chooseFlightType,
-            chooseAddOn,
+            chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
             passengerData,
             additionalInfo,
             recipientDetails,

@@ -35,6 +35,8 @@ const Index = () => {
     const [availableSeats, setAvailableSeats] = useState([]);
     const [voucherCode, setVoucherCode] = useState("");
     const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
+    const [selectedTime, setSelectedTime] = useState(null);
+    const [availabilities, setAvailabilities] = useState([]);
     
     const isFlightVoucher = activitySelect === "Flight Voucher";
     const isRedeemVoucher = activitySelect === "Redeem Voucher";
@@ -127,6 +129,28 @@ const Index = () => {
         setVoucherStatus(null);
     };
 
+    useEffect(() => {
+        // Live Availability accordion'u açıldığında ve lokasyon seçildiğinde güncel availabilities çek
+        const fetchAvailabilities = async () => {
+            if (chooseLocation && activeAccordion === "live-availability") {
+                try {
+                    const response = await axios.post("http://localhost:3000/api/getActivityId", {
+                        location: chooseLocation
+                    });
+                    if (response.status === 200 && response.data.success) {
+                        const avails = response.data.availabilities || [];
+                        setAvailabilities(avails);
+                    } else {
+                        setAvailabilities([]);
+                    }
+                } catch (error) {
+                    setAvailabilities([]);
+                }
+            }
+        };
+        fetchAvailabilities();
+    }, [chooseLocation, activeAccordion]);
+
     return (
         <div className="final-booking-wrap">
             <div className="header-bg">
@@ -175,6 +199,7 @@ const Index = () => {
                                             setActiveAccordion={handleSetActiveAccordion} 
                                             setActivityId={setActivityId} 
                                             setSelectedActivity={setSelectedActivity}
+                                            setAvailabilities={setAvailabilities}
                                         />
                                     )}
                                     {!(activitySelect === "Redeem Voucher") && (
@@ -205,6 +230,9 @@ const Index = () => {
                                             selectedActivity={selectedActivity} 
                                             availableSeats={availableSeats} 
                                             chooseLocation={chooseLocation}
+                                            selectedTime={selectedTime}
+                                            setSelectedTime={setSelectedTime}
+                                            availabilities={availabilities}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher") && (
@@ -281,6 +309,7 @@ const Index = () => {
                                 additionalInfo={additionalInfo}
                                 recipientDetails={recipientDetails}
                                 selectedDate={selectedDate}
+                                selectedTime={selectedTime}
                                 activeAccordion={activeAccordion}
                                 setActiveAccordion={setActiveAccordion}
                                 isFlightVoucher={isFlightVoucher}
