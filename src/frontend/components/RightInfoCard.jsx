@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
@@ -78,7 +78,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 voucher_ref: voucherCode || ""
             };
             try {
-                const response = await axios.post('/api/createVoucher', voucherData);
+                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
                 console.log("Voucher response:", response);
                 if (response.data.success) {
                     alert('Voucher created successfully!');
@@ -109,7 +109,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         };
         console.log("Booking data to send:", bookingData);
         try {
-            const response = await axios.post('/api/createBooking', bookingData);
+            const response = await axios.post(`${API_BASE_URL}/api/createBooking`, bookingData);
             console.log("Booking response:", response);
             if (response.data.success) {
                 alert('Booking successful! Booking ID: ' + response.data.bookingId);

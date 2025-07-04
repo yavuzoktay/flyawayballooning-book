@@ -17,6 +17,8 @@ import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState("activity"); // Start with activity section open
     const [activitySelect, setActivitySelect] = useState(null);
@@ -134,7 +136,7 @@ const Index = () => {
         const fetchAvailabilities = async () => {
             if (chooseLocation && activeAccordion === "live-availability") {
                 try {
-                    const response = await axios.post("http://localhost:3000/api/getActivityId", {
+                    const response = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
                         location: chooseLocation
                     });
                     if (response.status === 200 && response.data.success) {

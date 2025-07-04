@@ -59,6 +59,8 @@ const experiences = [
     },
 ];
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
     const [showTerms, setShowTerms] = useState(false); // Controls modal visibility
     const [selectedFlight, setSelectedFlight] = useState(null);
@@ -153,7 +155,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // Get Booking Dates
     async function getBookingDates(type) {
-        const response = await axios.post("http://localhost:3000/api/getAvailableSeats", {
+        const response = await axios.post(`${API_BASE_URL}/api/getAvailableSeats`, {
             flight_type: type,
             activity_id: activityId
         });

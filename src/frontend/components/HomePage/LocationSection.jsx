@@ -14,13 +14,15 @@ const imageMap = {
     "Bristol Fiesta": Image4,
 };
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
 
     useEffect(() => {
-        axios.get("http://localhost:3003/api/activeLocations")
+        axios.get(`${API_BASE_URL}/api/activeLocations`)
             .then(res => {
                 if (res.data.success) {
                     setLocations(res.data.data.map(l => ({
@@ -52,7 +54,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
 
     async function getActivityId(location) {
         try {
-            const response = await axios.post("http://localhost:3000/api/getActivityId", {
+            const response = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
                 location: location
             });
 
