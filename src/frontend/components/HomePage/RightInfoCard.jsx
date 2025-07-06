@@ -1,17 +1,9 @@
 import axios from "axios";
-import React, { useRef, useState } from "react";
-import { validatePassengers } from "./PassengerInfo";
-import { validateAdditionalInfo } from "./AdditionalInfo";
-import { validatePreferences } from "./EnterPreferences";
+import React from "react";
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
-    const passengerInfoRef = useRef(null);
-    const [passengerErrors, setPassengerErrors] = useState([]);
-    const [additionalErrors, setAdditionalErrors] = useState({});
-    const [preferenceErrors, setPreferenceErrors] = useState({});
-    const additionalInfoRef = useRef(null);
-    const preferenceRef = useRef(null);
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -39,30 +31,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         return formattedDate.replace(day, formattedDay);
     };
 
-    // Function to format date and time
-    const formatDateTime = (date, time) => {
-        if (!date) return 'Not Selected';
-        const d = new Date(date);
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        let dateStr = d.toLocaleDateString('en-US', options);
-        // Saat varsa ekle
-        if (time) {
-            let [h, m] = time.split(':');
-            let hour = Number(h);
-            let ampm = hour >= 12 ? 'PM' : 'AM';
-            hour = hour % 12 || 12;
-            dateStr += `, ${hour}:${m} ${ampm}`;
-        } else if (d.getHours() || d.getMinutes()) {
-            // Tarih objesinde saat atanmışsa onu da göster
-            let hour = d.getHours();
-            let min = d.getMinutes();
-            let ampm = hour >= 12 ? 'PM' : 'AM';
-            hour = hour % 12 || 12;
-            dateStr += `, ${hour}:${min.toString().padStart(2, '0')} ${ampm}`;
-        }
-        return dateStr;
-    };
-
     // Calculate total price
     const flightTypePrice = chooseFlightType?.totalPrice || 0;
     const addOnPrice = chooseAddOn.reduce((total, addOn) => {
@@ -71,70 +39,32 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         }
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0);
-    // Add Weather Refundable for Shared Flight
-    let weatherRefundTotal = 0;
-    if (chooseFlightType?.type === 'Shared Flight' && Array.isArray(passengerData)) {
-        weatherRefundTotal = passengerData.filter(p => p.weatherRefund).length * 47.5;
-    }
-    const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice) + weatherRefundTotal;
+    const totalPrice = parseFloat(flightTypePrice) + parseFloat(addOnPrice);
 
+    // Helper to check if an object is non-empty
+    const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
+    // Helper to check if an array is non-empty
+    const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
+
+    const isBookDisabled = !(
+        activitySelect &&
+        chooseLocation &&
+        chooseFlightType &&
+        isNonEmptyArray(chooseAddOn) &&
+        isNonEmptyArray(passengerData) &&
+        isNonEmptyObject(additionalInfo) &&
+        isNonEmptyObject(recipientDetails) &&
+        selectedDate
+    );
+
+    const [showWarning, setShowWarning] = React.useState(false);
 
     // Send Data To Backend
     const handleBookData = async () => {
         console.log("Book button clicked");
-        console.log("additionalInfo state before validation:", additionalInfo);
-        console.log("preference state before validation:", preference);
-        // Validate passengers
-        const errors = validatePassengers(passengerData);
-        setPassengerErrors(errors);
-        const hasPassengerError = errors.some(e => Object.values(e).some(Boolean));
-        if (hasPassengerError) {
-            console.log("Passenger validation failed", errors);
-        }
-        // Validate additional info
-        const addErrors = validateAdditionalInfo(additionalInfo, chooseFlightType?.type);
-        setAdditionalErrors(addErrors);
-        const hasAdditionalError = Object.values(addErrors).some(Boolean);
-        if (hasAdditionalError) {
-            console.log("Additional info validation failed", addErrors);
-        }
-        // Validate preferences
-        const prefErrors = validatePreferences(preference);
-        setPreferenceErrors(prefErrors);
-        const hasPreferenceError = Object.values(prefErrors).some(Boolean);
-        if (hasPreferenceError) {
-            console.log("Preference validation failed", prefErrors);
-        }
-        // Scroll and open relevant section if error
-        if (hasPassengerError) {
-            setActiveAccordion && setActiveAccordion("passenger-info");
-            setTimeout(() => {
-                if (passengerInfoRef.current) {
-                    passengerInfoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-            }, 100);
-            return;
-        }
-        if (hasAdditionalError) {
-            setActiveAccordion && setActiveAccordion("additional-info");
-            setTimeout(() => {
-                if (additionalInfoRef.current) {
-                    additionalInfoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-            }, 100);
-            return;
-        }
-        if (hasPreferenceError) {
-            setActiveAccordion && setActiveAccordion("preference");
-            setTimeout(() => {
-                if (preferenceRef.current) {
-                    preferenceRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-            }, 100);
-            return;
-        }
+        console.log("API_BASE_URL:", API_BASE_URL);
         if (isFlightVoucher || isRedeemVoucher) {
-            // Only send to /api/createVoucher and then fetch vouchers
+            // VOUCHER POST
             const voucherData = {
                 name: recipientDetails?.name || "",
                 flight_type: chooseFlightType?.type || "",
@@ -148,35 +78,38 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 voucher_ref: voucherCode || ""
             };
             try {
-                // Always POST, do not block for empty fields
-                const voucherResp = await axios.post('http://localhost:3000/api/createVoucher', voucherData);
-                if (!voucherResp.data.success) {
-                    alert('Voucher creation failed: ' + (voucherResp.data.message || voucherResp.data.error || 'Unknown error'));
-                    return;
+                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
+                console.log("Voucher response:", response);
+                if (response.data.success) {
+                    alert('Voucher created successfully!');
+                    resetBooking();
+                } else {
+                    alert('Voucher creation failed: ' + response.data.message);
                 }
-                await axios.get('http://localhost:3000/api/getAllVoucherData');
-                alert('Voucher created successfully!');
-                resetBooking();
             } catch (error) {
+                console.error('Error during voucher creation:', error);
                 alert('An error occurred while creating voucher.');
             }
             return;
         }
+        // BOOK FLIGHT FLOW
+        const bookingData = {
+            activitySelect,
+            chooseLocation,
+            chooseFlightType,
+            chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
+            passengerData,
+            additionalInfo,
+            recipientDetails,
+            selectedDate,
+            totalPrice,
+            voucher_code: voucherCode,
+            flight_attempts: chooseFlightType?.flight_attempts || 0,
+            preference
+        };
+        console.log("Booking data to send:", bookingData);
         try {
-            const response = await axios.post('http://localhost:3000/api/createBooking', {
-                activitySelect,
-                chooseLocation,
-                chooseFlightType,
-                chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
-                passengerData,
-                additionalInfo,
-                recipientDetails,
-                selectedDate,
-                totalPrice,
-                voucher_code: voucherCode,
-                flight_attempts: chooseFlightType?.flight_attempts || 0,
-                preference
-            });
+            const response = await axios.post(`${API_BASE_URL}/api/createBooking`, bookingData);
             console.log("Booking response:", response);
             if (response.data.success) {
                 alert('Booking successful! Booking ID: ' + response.data.bookingId);
@@ -240,7 +173,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     <div className="active-book-cont final-active-book-cont">
                         <div className="active-book-left">
                             <h3>Flight Date & Meeting Time</h3>
-                            <p>{formatDateTime(selectedDate, selectedTime)}</p>
+                            <p>{selectedDate ? formatDate(selectedDate) : "Not Selected"}</p>
                         </div>
                     </div>
                 </div>
@@ -253,29 +186,17 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         <div className="active-book-left">
                             <h3>Add To Booking</h3>
                             {
-                                chooseAddOn?.length > 0 || weatherRefundTotal > 0 ?
-                                    <>
-                                        {chooseAddOn?.map((data, index) => (
-                                            <div className="active-book-cont final-active-book-cont" key={index}>
-                                                <div className="active-book-left" >
-                                                    <p>{data.name}</p>
-                                                </div>
-                                                <div className="active-book-right">
-                                                    <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
-                                                </div>
+                                chooseAddOn?.length > 0 ?
+                                    chooseAddOn?.map((data, index) => (
+                                        <div className="active-book-cont final-active-book-cont" key={index}>
+                                            <div className="active-book-left" >
+                                                <p>{data.name}</p>
                                             </div>
-                                        ))}
-                                        {weatherRefundTotal > 0 && (
-                                            <div className="active-book-cont final-active-book-cont">
-                                                <div className="active-book-left" >
-                                                    <p>Weather Refundable</p>
-                                                </div>
-                                                <div className="active-book-right">
-                                                    <p>£{weatherRefundTotal.toFixed(2)}</p>
-                                                </div>
+                                            <div className="active-book-right">
+                                                <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
                                             </div>
-                                        )}
-                                    </>
+                                        </div>
+                                    ))
                                     :
                                     <p style={{paddingTop: "10px"}}>Not Selected</p>
                             }
@@ -284,7 +205,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 </div>
             </div>
 
-            <div className={`book_data_active`} onClick={() => setActiveAccordion("passenger-info")} ref={passengerInfoRef}>
+            <div className={`book_data_active ${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("passenger-info")}>
                 <div className={`row-1 ${passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}>
                     <span className="active-book-card"></span>
                     <div className="active-book-cont final-active-book-cont">
@@ -295,6 +216,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     passengerData?.map((data, index) => {
                                         // Weather Refundable bilgisi weatherRefund özelliğinde saklanıyor
                                         console.log(`Passenger ${index+1} data:`, data); // Debug için
+                                        
                                         return (
                                             <>
                                                 <p key={index} >{data.firstName != '' ? 
@@ -313,53 +235,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                     </div>
                 </div>
-                {passengerErrors.some(e => Object.values(e).some(Boolean)) && (
-                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please fill in all required passenger fields.</div>
-                )}
-            </div>
-
-            <div className={`book_data_active`} onClick={() => setActiveAccordion("additional-info")} ref={additionalInfoRef}>
-                <div className={`row-1 ${Object.values(additionalErrors).some(Boolean) ? 'active-card-val' : ''}`}>
-                    <span className="active-book-card"></span>
-                    <div className="active-book-cont final-active-book-cont">
-                        <div className="active-book-left">
-                            <h3>Additional Information</h3>
-                            {
-                                Object.values(additionalErrors).some(Boolean) ?
-                                    Object.entries(additionalErrors).map(([key, error]) => (
-                                        <p key={key}>{error}</p>
-                                    ))
-                                    :
-                                    "Not Provided"
-                            }
-                        </div>
-                    </div>
-                </div>
-                {Object.values(additionalErrors).some(Boolean) && (
-                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please fill in all required additional information fields.</div>
-                )}
-            </div>
-
-            <div className={`book_data_active`} onClick={() => setActiveAccordion("preference")} ref={preferenceRef}>
-                <div className={`row-1 ${Object.values(preferenceErrors).some(Boolean) ? 'active-card-val' : ''}`}>
-                    <span className="active-book-card"></span>
-                    <div className="active-book-cont final-active-book-cont">
-                        <div className="active-book-left">
-                            <h3>Enter Preferences</h3>
-                            {
-                                Object.values(preferenceErrors).some(Boolean) ?
-                                    Object.entries(preferenceErrors).map(([key, error]) => (
-                                        <p key={key}>{error}</p>
-                                    ))
-                                    :
-                                    "Not Provided"
-                            }
-                        </div>
-                    </div>
-                </div>
-                {Object.values(preferenceErrors).some(Boolean) && (
-                    <div style={{ color: 'red', fontWeight: 600, marginTop: 8 }}>Please select at least one option in each preferences group.</div>
-                )}
             </div>
 
             <div className="bottom_main">
@@ -389,37 +264,33 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 <button
                     className="booking_btn final_booking-button"
                     style={{
-                        background: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? '#3274b4'
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate) ? '#3274b4' : '#eee'
-                        ),
+                        background: isBookDisabled ? '#eee' : '#2d4263',
                         color: '#fff',
                         fontWeight: 500,
                         borderRadius: '8px',
                         padding: '8px 22px',
-                        cursor: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? 'pointer'
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                        ) ? 'pointer' : 'not-allowed',
-                        opacity: (
-                            (isFlightVoucher || isRedeemVoucher)
-                                ? 1
-                                : (activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                        ) ? 1 : 0.5
+                        cursor: isBookDisabled ? 'not-allowed' : 'pointer',
+                        opacity: isBookDisabled ? 0.5 : 1
                     }}
-                    disabled={
-                        (isFlightVoucher || isRedeemVoucher)
-                            ? false
-                            : !(activitySelect && chooseLocation && chooseFlightType && chooseAddOn && passengerData && additionalInfo && recipientDetails && selectedDate)
-                    }
-                    onClick={handleBookData}
+                    disabled={isBookDisabled}
+                    onClick={() => {
+                        if (isBookDisabled) {
+                            setShowWarning(true);
+                        } else {
+                            setShowWarning(false);
+                            handleBookData();
+                        }
+                    }}
                     type="button"
                 >
                     Book
                 </button>
             </div>
+            {showWarning && (
+                <div style={{ color: 'red', marginTop: 10 }}>
+                    Please fill in all required steps before booking.
+                </div>
+            )}
         </div>
     )
 }
