@@ -9,7 +9,7 @@ const useBooking = () => {
     useEffect(() => {
         const fetchFlights = async () => {
             try {
-                const response = await axios.get(`http:/3.92.209.28:3002/api/getAllBookingData`);
+                const response = await axios.get(`http://44.203.65.48/:3000/api/getAllBookingData`);
                 setBooking(response.data.data);
             } catch (error) {
                 // console.error("Error fetching flights:", error);
