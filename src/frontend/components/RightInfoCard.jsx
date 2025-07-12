@@ -46,16 +46,26 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
 
-    const isBookDisabled = !(
-        activitySelect &&
-        chooseLocation &&
-        chooseFlightType &&
-        isNonEmptyArray(chooseAddOn) &&
-        isNonEmptyArray(passengerData) &&
-        isNonEmptyObject(additionalInfo) &&
-        isNonEmptyObject(recipientDetails) &&
-        selectedDate
-    );
+    // Book button enable logic: For Redeem Voucher, don't require chooseAddOn or passengerData
+    const isBookDisabled = isRedeemVoucher
+        ? !(
+            activitySelect &&
+            chooseLocation &&
+            chooseFlightType &&
+            isNonEmptyObject(additionalInfo) &&
+            isNonEmptyObject(recipientDetails) &&
+            selectedDate
+        )
+        : !(
+            activitySelect &&
+            chooseLocation &&
+            chooseFlightType &&
+            isNonEmptyArray(chooseAddOn) &&
+            isNonEmptyArray(passengerData) &&
+            isNonEmptyObject(additionalInfo) &&
+            isNonEmptyObject(recipientDetails) &&
+            selectedDate
+        );
 
     const [showWarning, setShowWarning] = React.useState(false);
 
