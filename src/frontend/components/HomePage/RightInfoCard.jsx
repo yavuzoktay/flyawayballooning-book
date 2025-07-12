@@ -45,6 +45,23 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
+    console.log("additionalInfo:", additionalInfo);
+    // Helper to check if additionalInfo has at least one filled value
+    const isAdditionalInfoFilled = (info) => {
+      if (!info || typeof info !== 'object') return false;
+      return Object.values(info).some(val => {
+        if (typeof val === 'string') {
+          return val.trim() !== '';
+        }
+        if (typeof val === 'object' && val !== null) {
+          // Eğer obje ise ve en az bir anahtarı varsa ve o anahtarın değeri doluysa true
+          return Object.values(val).some(
+            v => typeof v === 'string' ? v.trim() !== '' : !!v
+          );
+        }
+        return !!val;
+      });
+    };
 
     // Book button enable logic:
     // - Redeem Voucher: only require main fields (already handled)
@@ -171,8 +188,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 </div>
             </div>
 
-            {/* Show Flight Type for both Book Flight and Flight Voucher */}
-            {(activitySelect || isFlightVoucher) && (
+            {/* Show Flight Type for both Book Flight and Flight Voucher, but hide for Redeem Voucher */}
+            {((activitySelect || isFlightVoucher) && !isRedeemVoucher) && (
                 <div className={`book_data_active`} onClick={() => setActiveAccordion("experience")}> 
                     <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> 
                         <span className="active-book-card"></span>
@@ -191,60 +208,35 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 </div>
             )}
 
-            {/* Hide Location for Buy Gift, Flight Voucher, Redeem Voucher */}
-            {isBookFlight && (
-                <div className={`book_data_active ${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("location")}> 
+            {/* Location for Book Flight and Redeem Voucher: Show for Book Flight and Redeem Voucher */}
+            {(activitySelect === 'Book Flight' || isRedeemVoucher) && (
+                <div className="book_data_active" onClick={() => setActiveAccordion("location")}> 
                     <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> 
                         <span className="active-book-card"></span>
                         <div className="active-book-cont">
                             <h3>Location</h3>
-                            <p>{chooseLocation ? chooseLocation : "Not Selected"}</p>
+                            <p>{chooseLocation ? chooseLocation : 'Not Selected'}</p>
                         </div>
                     </div>
                 </div>
             )}
-            {/* Hide Flight Date & Meeting Time for Buy Gift, Flight Voucher, Redeem Voucher */}
-            {isBookFlight && (
-                <div className={`book_data_active ${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("live-availability")}> 
-                    <div className={`row-1 ${selectedDate ? 'active-card-val' : ''}`}> 
+
+            {/* Additional Information for Book Flight and Buy Gift: Show for Book Flight and Buy Gift */}
+            {(activitySelect === 'Book Flight' || isGiftVoucher) && (
+                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> 
+                    <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> 
                         <span className="active-book-card"></span>
-                        <div className="active-book-cont final-active-book-cont">
+                        <div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div className="active-book-left">
-                                <h3>Flight Date & Meeting Time</h3>
-                                <p>{selectedDate ? formatDate(selectedDate) : "Not Selected"}</p>
+                                <h3>Additional Information</h3>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
-            {/* Add To Booking summary row: active for Buy Gift if filled */}
-            <div className={`book_data_active ${((isFlightVoucher || isRedeemVoucher) && !isGiftVoucher) ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("add-on")}> 
-                <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> 
-                    <span className="active-book-card"></span>
-                    <div className="active-book-cont final-active-book-cont">
-                        <div className="active-book-left">
-                            <h3>Add To Booking</h3>
-                            {
-                                chooseAddOn?.length > 0 ?
-                                    chooseAddOn?.map((data, index) => (
-                                        <div className="active-book-cont final-active-book-cont" key={index}>
-                                            <div className="active-book-left" >
-                                                <p>{data.name}</p>
-                                            </div>
-                                            <div className="active-book-right">
-                                                <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                    :
-                                    <p style={{paddingTop: "10px"}}>Not Selected</p>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {/* Passenger Information summary row: active for Buy Gift if filled */}
-            <div className={`book_data_active ${(isFlightVoucher || isGiftVoucher) ? '' : (isGiftVoucher ? '' : 'disable-acc')}`} onClick={() => setActiveAccordion("passenger-info")}> 
+
+            {/* Passenger Information summary row: always active for Redeem Voucher */}
+            <div className={`book_data_active`} onClick={() => setActiveAccordion("passenger-info")}> 
                 <div className={`row-1 ${passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> 
                     <span className="active-book-card"></span>
                     <div className="active-book-cont final-active-book-cont">
@@ -273,6 +265,67 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     </div>
                 </div>
             </div>
+
+            {/* Add To Booking summary row: always active for Redeem Voucher */}
+            <div className={`book_data_active`} onClick={() => setActiveAccordion("add-on")}> 
+                <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> 
+                    <span className="active-book-card"></span>
+                    <div className="active-book-cont final-active-book-cont">
+                        <div className="active-book-left">
+                            <h3>Add To Booking</h3>
+                            {
+                                chooseAddOn?.length > 0 ?
+                                    chooseAddOn?.map((data, index) => (
+                                        <div className="active-book-cont final-active-book-cont" key={index}>
+                                            <div className="active-book-left" >
+                                                <p>{data.name}</p>
+                                            </div>
+                                            <div className="active-book-right">
+                                                <p>£{data.name == 'Weather Refundable' ? flightTypePrice * 0.1 : data.price}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                    :
+                                    <p style={{paddingTop: "10px"}}>Not Selected</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Select Preferences for Flight Voucher and Redeem Voucher: Show at the very bottom if selected */}
+            {(isFlightVoucher || isRedeemVoucher) && (
+                <div className="book_data_active" onClick={() => setActiveAccordion("preference")}> 
+                    <div className={`row-1 ${(
+                        (preference && (
+                            (preference.location && Object.values(preference.location).some(Boolean)) ||
+                            (preference.time && Object.values(preference.time).some(Boolean)) ||
+                            (preference.day && Object.values(preference.day).some(Boolean))
+                        )) ? 'active-card-val' : ''
+                    )}`}> 
+                        <span className="active-book-card"></span>
+                        <div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div className="active-book-left">
+                                <h3>Select Preferences</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Hide Flight Date & Meeting Time for Buy Gift, Flight Voucher, Redeem Voucher */}
+            {isBookFlight && (
+                <div className={`book_data_active ${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ''}`} onClick={() => setActiveAccordion("live-availability")}> 
+                    <div className={`row-1 ${selectedDate ? 'active-card-val' : ''}`}> 
+                        <span className="active-book-card"></span>
+                        <div className="active-book-cont final-active-book-cont">
+                            <div className="active-book-left">
+                                <h3>Flight Date & Meeting Time</h3>
+                                <p>{selectedDate ? formatDate(selectedDate) : "Not Selected"}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="bottom_main">
                 <h3>Total</h3>

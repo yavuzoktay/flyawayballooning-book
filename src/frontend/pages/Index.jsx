@@ -153,6 +153,27 @@ const Index = () => {
         fetchAvailabilities();
     }, [chooseLocation, activeAccordion]);
 
+    // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
+    React.useEffect(() => {
+        if (activitySelect !== null) {
+            setChooseLocation(null);
+            setChooseFlightType({ type: '', passengerCount: '', price: '' });
+            setAddPassenger([1, 2]);
+            setChooseAddOn([]);
+            setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+            setWeatherRefund(false);
+            setPreference({ location: {}, time: {}, day: {} });
+            setRecipientDetails({ name: '', email: '', phone: '', date: '' });
+            setAdditionalInfo({ notes: '', hearAboutUs: '', reason: '', prefer: {} });
+            setSelectedDate(null);
+            setActivityId(null);
+            setSelectedActivity([]);
+            setAvailableSeats([]);
+            setVoucherCode('');
+            setVoucherStatus(null);
+        }
+    }, [activitySelect]);
+
     return (
         <div className="final-booking-wrap">
             <div className="header-bg">

@@ -57,15 +57,15 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate
         )
         : !(
-            activitySelect &&
-            chooseLocation &&
-            chooseFlightType &&
-            isNonEmptyArray(chooseAddOn) &&
-            isNonEmptyArray(passengerData) &&
-            isNonEmptyObject(additionalInfo) &&
-            isNonEmptyObject(recipientDetails) &&
-            selectedDate
-        );
+        activitySelect &&
+        chooseLocation &&
+        chooseFlightType &&
+        isNonEmptyArray(chooseAddOn) &&
+        isNonEmptyArray(passengerData) &&
+        isNonEmptyObject(additionalInfo) &&
+        isNonEmptyObject(recipientDetails) &&
+        selectedDate
+    );
 
     const [showWarning, setShowWarning] = React.useState(false);
 
