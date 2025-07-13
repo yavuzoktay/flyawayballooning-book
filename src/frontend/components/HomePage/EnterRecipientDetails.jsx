@@ -4,8 +4,14 @@ import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 
 const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion }) => {
+    const [emailError, setEmailError] = useState(false);
+
     const handleChange = (e) => {
         setRecipientDetails({ ...recipientDetails, [e.target.name]: e.target.value });
+        if (e.target.name === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            setEmailError(e.target.value && !emailRegex.test(e.target.value));
+        }
     };
 
     const handleCheckboxChange = () => {
@@ -38,10 +44,12 @@ const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher,
                     <br />
                     <input
                         type="text"
+                        onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                         name="name"
                         required
                         value={recipientDetails.name}
                         onChange={handleChange}
+                        placeholder="Recipient Name"
                     /><br /><br />
 
                     <label>Recipient Email</label><br />
@@ -51,15 +59,23 @@ const EnterRecipientDetails = ({ isBookFlight, isRedeemVoucher, isFlightVoucher,
                         required
                         value={recipientDetails.email}
                         onChange={handleChange}
-                    /><br /><br />
+                        placeholder="Recipient Email"
+                        style={emailError ? { border: '1.5px solid red' } : {}}
+                    />
+                    {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                    <br /><br />
 
                     <label>Recipient Phone Number</label><br />
                     <input
                         type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                         name="phone"
                         required
                         value={recipientDetails.phone}
                         onChange={handleChange}
+                        placeholder="Recipient Phone Number"
                     /><br /><br />
 
                     <label>Date Voucher to be Gifted</label><br />

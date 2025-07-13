@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Accordion from "../Common/Accordion";
 import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -30,6 +30,8 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
     });
   }, [passengerCount, setPassengerData, chooseFlightType]);
 
+  const [emailErrors, setEmailErrors] = useState([]);
+
   // Handle passenger input change
   const handlePassengerInputChange = (index, e) => {
     const { name, value } = e.target;
@@ -38,6 +40,13 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
       updatedData[index] = { ...updatedData[index], [name]: value };
       return updatedData;
     });
+    // Email validation
+    if (name === 'email') {
+      const newErrors = [...emailErrors];
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      newErrors[index] = value && !emailRegex.test(value);
+      setEmailErrors(newErrors);
+    }
   };
 
   // Handle weather refund toggle
@@ -146,11 +155,13 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     <label>First Name*</label>
                     <input
                       type="text"
+                      onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="firstName"
                       value={passenger.firstName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
                       style={error?.firstName ? { border: '1.5px solid red' } : {}}
+                      placeholder="First Name"
                     />
                     {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                   </div>
@@ -158,11 +169,13 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     <label>Last Name*</label>
                     <input
                       type="text"
+                      onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="lastName"
                       value={passenger.lastName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
                       style={error?.lastName ? { border: '1.5px solid red' } : {}}
+                      placeholder="Last Name"
                     />
                     {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                   </div>
@@ -179,7 +192,10 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                       </span>
                     </label>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                       name="weight"
                       value={passenger.weight}
                       onChange={(e) => handlePassengerInputChange(index, e)}
@@ -195,7 +211,10 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     <div style={{ flex: 1 }}>
                       <label>Mobile Number</label>
                       <input
-                        type="text"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                         name="phone"
                         value={passenger.phone || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
@@ -212,9 +231,10 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                         value={passenger.email || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Email"
-                        style={error?.email ? { border: '1.5px solid red' } : {}}
+                        style={error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                      {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
                     </div>
                   </div>
                 )}
