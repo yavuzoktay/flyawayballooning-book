@@ -130,15 +130,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     style={{
                         opacity: isAvailable ? 1 : 0.5,
                         cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                        background: isSelected ? '#1976d2' : soldOut ? '#bbb' : isAvailable ? '#4caf50' : '',
+                        background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
                         color: isAvailable ? '#fff' : '#888',
                         borderRadius: 8,
                         margin: 2,
                         padding: 2,
                         minHeight: 48,
                         position: 'relative',
-                        border: isSelected ? '2px solid #1976d2' : 'none',
-                        boxShadow: isSelected ? '0 0 0 2px #1976d2' : 'none',
+                        border: isSelected ? '2px solid #56C1FF' : 'none',
+                        boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
                         animation: pulse ? 'pulseAnim 1.2s infinite' : 'none'
                     }}
                 >
@@ -192,22 +192,30 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         <button
                                             key={slot.id}
                                             style={{
-                                                background: isAvailable ? (selectedTime === slot.time ? '#1976d2' : '#2196f3') : '#888',
+                                                background: '#56C1FF',
                                                 color: '#fff',
                                                 border: 'none',
-                                                borderRadius: 8,
-                                                padding: '12px 0',
-                                                fontWeight: 600,
-                                                fontSize: 16,
-                                                marginBottom: 6,
+                                                borderRadius: 16,
+                                                padding: '8px 0',
+                                                fontWeight: 700,
+                                                fontSize: 22,
+                                                marginBottom: 12,
                                                 cursor: isAvailable ? 'pointer' : 'not-allowed',
-                                                outline: selectedTime === slot.time ? '2px solid #1976d2' : 'none',
-                                                opacity: isAvailable ? 1 : 0.5
+                                                outline: selectedTime === slot.time ? '2px solid #56C1FF' : 'none',
+                                                opacity: isAvailable ? 1 : 0.5,
+                                                width: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: 18,
+                                                letterSpacing: 1
                                             }}
                                             onClick={() => isAvailable && handleTimeClick(slot.time)}
                                             disabled={!isAvailable}
                                         >
-                                            <span style={{ marginRight: 8 }}>🕒</span> {slot.time} <span style={{ marginLeft: 12 }}>{isAvailable ? `Available (${slot.available}/${slot.capacity})` : 'Full'}</span>
+                                            <span style={{ marginRight: 8, fontSize: 24 }}>🕒</span>
+                                            <span style={{ fontWeight: 700 }}>{slot.time}</span>
+                                            <span style={{ marginLeft: 18, fontWeight: 700 }}>Available ({slot.available}/{slot.capacity})</span>
                                         </button>
                                     );
                                 })}
@@ -236,15 +244,16 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             }
             <style>{`
                 .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }
-                .ampm-btn.active { background: #1976d2; color: #fff; }
+                .ampm-btn.active { background: #56C1FF; color: #fff; }
                 .days-grid { margin-top: 12px; }
                 .weekdays-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
                 .weekday-label { flex: 1; text-align: center; font-weight: 600; color: #888; font-size: 15px; }
                 .days { display: flex; flex-wrap: wrap; }
                 .day { width: 13.5%; min-width: 44px; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 4px; transition: box-shadow 0.2s; }
-                .day.selected { box-shadow: 0 0 0 2px #1976d2; border: 2px solid #1976d2; }
+                .day.selected { box-shadow: 0 0 0 2px #56C1FF; border: 2px solid #56C1FF; background: #56C1FF !important; }
                 .day.sold-out { background: #bbb !important; color: #fff !important; cursor: not-allowed !important; }
                 .day.pulse { animation: pulseAnim 1.2s infinite; }
+                .available-day { background: #61D836 !important; }
                 @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 #ff9800; } 70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } }
             `}</style>
         </>
