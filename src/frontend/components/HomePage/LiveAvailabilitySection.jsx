@@ -21,12 +21,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [ampm, setAmpm] = useState('PM');
 
     var final_pax_count = selectedActivity?.[0]?.seats;
 
     const today = new Date(); // Current date to compare
-    const startDate = startOfWeek(startOfMonth(currentDate));
-    const endDate = endOfWeek(endOfMonth(currentDate));
+    // Change startDate and endDate to only cover the current month
+    const startDate = startOfMonth(currentDate);
+    const endDate = endOfMonth(currentDate);
     // Terms for Bristol Fiesta
     const bristolFiestaTerms = [
         "Ballooning is a weather dependent activity.",
@@ -90,35 +92,58 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         });
     };
 
+    // Filter availabilities by AM/PM
+    const filteredAvailabilities = availabilities.filter(a => {
+        if (!a.time) return true;
+        const hour = parseInt(a.time.split(':')[0], 10);
+        return ampm === 'AM' ? hour < 12 : hour >= 12;
+    });
+    // Günlük toplam available hesapla
+    const getSpacesForDate = (date) => {
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const slots = filteredAvailabilities.filter(a => {
+            if (a.date && a.date.includes('/')) {
+                const [day, month, year] = a.date.split('/');
+                return `${year}-${month}-${day}` === dateStr;
+            }
+            return a.date === dateStr;
+        });
+        const total = slots.reduce((sum, s) => sum + (s.available || 0), 0);
+        return { total, soldOut: slots.length > 0 && total === 0, slots };
+    };
+
     const renderDays = () => {
         const days = [];
         let tempDate = new Date(startDate);
         while (tempDate <= endDate) {
             const dateCopy = new Date(tempDate);
-            const isSameMonthAsCurrent = isSameMonth(dateCopy, currentDate);
             const isPastDate = isBefore(dateCopy, today);
             const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-            const dateStr = format(dateCopy, 'yyyy-MM-dd');
-            const isAvailable = availableDates.includes(dateStr);
-            // const times = getTimesForDate(dateCopy); // Artık kullanılmıyor
+            const { total, soldOut, slots } = getSpacesForDate(dateCopy);
+            const isAvailable = total > 0;
+            const pulse = isAvailable && total <= 4 && total > 0;
             days.push(
                 <div
                     key={dateCopy.toISOString()}
-                    className={`day ${isSameMonthAsCurrent ? '' : ''} ${isPastDate || !isAvailable ? 'disabled' : 'available-day'} ${isSelected ? 'selected' : ''}`}
+                    className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
                     onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
                     style={{
                         opacity: isAvailable ? 1 : 0.5,
                         cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                        background: isAvailable ? (isSelected ? '#1976d2' : '#4caf50') : '',
+                        background: isSelected ? '#1976d2' : soldOut ? '#bbb' : isAvailable ? '#4caf50' : '',
                         color: isAvailable ? '#fff' : '#888',
                         borderRadius: 8,
                         margin: 2,
                         padding: 2,
-                        minHeight: 48
+                        minHeight: 48,
+                        position: 'relative',
+                        border: isSelected ? '2px solid #1976d2' : 'none',
+                        boxShadow: isSelected ? '0 0 0 2px #1976d2' : 'none',
+                        animation: pulse ? 'pulseAnim 1.2s infinite' : 'none'
                     }}
                 >
                     <div>{format(dateCopy, 'd')}</div>
-                    {/* Saatler kaldırıldı */}
+                    {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
                 </div>
             );
             tempDate = addDays(tempDate, 1);
@@ -130,19 +155,38 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         <>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
                 <div className="calendar">
-                    <div className="header">
-                        <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
-                        <h2>{format(currentDate, 'MMMM yyyy')}</h2>
-                        <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
+                    <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%' }}>
+                        <div style={{ position: 'absolute', left: 0, display: 'flex', gap: 8 }}>
+                            <button className={`ampm-btn ${ampm === 'AM' ? 'active' : ''}`} onClick={() => setAmpm('AM')}>AM</button>
+                            <button className={`ampm-btn ${ampm === 'PM' ? 'active' : ''}`} onClick={() => setAmpm('PM')}>PM</button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
+                            <h2 style={{ margin: '0 24px', fontWeight: 400, color: '#222', fontSize: 32, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                            <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
+                        </div>
                     </div>
-                    <div className="days">{renderDays()}</div>
-                    {/* Saatler: sadece seçili günün açık saatleri */}
+                    <div className="days-grid">
+                        <div className="weekdays-row">
+                            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label">{d}</div>)}
+                        </div>
+                        <div className="days">{renderDays()}</div>
+                    </div>
+                    {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
                     {selectedDate && (
                         <div style={{ marginTop: 24, marginBottom: 8 }}>
-                            <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')}</div>
+                            <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')} ({ampm})</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {getTimesForDate(selectedDate).length === 0 && <div style={{color:'#888'}}>No available times</div>}
-                                {getTimesForDate(selectedDate).map(slot => {
+                                {getSpacesForDate(selectedDate).slots.filter(slot => {
+                                    if (!slot.time) return true;
+                                    const hour = parseInt(slot.time.split(':')[0], 10);
+                                    return ampm === 'AM' ? hour < 12 : hour >= 12;
+                                }).length === 0 && <div style={{color:'#888'}}>No available times</div>}
+                                {getSpacesForDate(selectedDate).slots.filter(slot => {
+                                    if (!slot.time) return true;
+                                    const hour = parseInt(slot.time.split(':')[0], 10);
+                                    return ampm === 'AM' ? hour < 12 : hour >= 12;
+                                }).map(slot => {
                                     const isAvailable = slot.available > 0;
                                     return (
                                         <button
@@ -170,32 +214,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </div>
                         </div>
                     )}
-                    {/* Tüm availabilities için tablo */}
-                    {availabilities.length > 0 && (
-                        <div style={{ marginTop: 32 }}>
-                            <h4>Available Dates & Times</h4>
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ border: '1px solid #ccc', padding: 4 }}>Date</th>
-                                        <th style={{ border: '1px solid #ccc', padding: 4 }}>Time</th>
-                                        <th style={{ border: '1px solid #ccc', padding: 4 }}>Capacity</th>
-                                        <th style={{ border: '1px solid #ccc', padding: 4 }}>Available</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {availabilities.map((a) => (
-                                        <tr key={a.id} style={{ opacity: a.available > 0 ? 1 : 0.5 }}>
-                                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{a.date}</td>
-                                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{a.time}</td>
-                                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{a.capacity}</td>
-                                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{a.available}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    {/* Seçili gün ve slot bilgisi */}
+                    <div style={{ marginTop: 24, fontSize: 15, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12 }}>
+                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b>, <b>{ampm}</b></div>
+                        {selectedDate && selectedTime && (
+                            <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
+                        )}
+                    </div>
                 </div>
             </Accordion>
             {
@@ -209,6 +234,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     :
                     ""
             }
+            <style>{`
+                .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }
+                .ampm-btn.active { background: #1976d2; color: #fff; }
+                .days-grid { margin-top: 12px; }
+                .weekdays-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                .weekday-label { flex: 1; text-align: center; font-weight: 600; color: #888; font-size: 15px; }
+                .days { display: flex; flex-wrap: wrap; }
+                .day { width: 13.5%; min-width: 44px; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 4px; transition: box-shadow 0.2s; }
+                .day.selected { box-shadow: 0 0 0 2px #1976d2; border: 2px solid #1976d2; }
+                .day.sold-out { background: #bbb !important; color: #fff !important; cursor: not-allowed !important; }
+                .day.pulse { animation: pulseAnim 1.2s infinite; }
+                @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 #ff9800; } 70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } }
+            `}</style>
         </>
     );
 };

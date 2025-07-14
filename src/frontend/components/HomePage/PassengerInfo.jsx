@@ -186,7 +186,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                         <div className="info-icon-container" style={{ position: 'relative' }}>
                           <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
                           <div className="hover-text">
-                            <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight.</p>
+                            <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight. There is a maximum weight limit of 18 Stone/114Kg on Shared Flights.</p>
                           </div>
                         </div>
                       </span>
