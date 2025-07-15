@@ -150,7 +150,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             totalPrice,
             voucher_code: voucherCode,
             flight_attempts: chooseFlightType?.flight_attempts || 0,
-            preference
+            preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+            preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
         };
         console.log("Booking data to send:", bookingData);
         try {

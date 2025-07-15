@@ -15,6 +15,8 @@ import {
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Modal from "../Common/Modal";
+import LocationSection from "./LocationSection";
+import ChooseActivityCard from "./ChooseActivityCard";
 import axios from 'axios';
 
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities }) => {
@@ -22,6 +24,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [ampm, setAmpm] = useState('PM');
+    const [requestModalOpen, setRequestModalOpen] = useState(false);
+    const [requestName, setRequestName] = useState("");
+    const [requestPhone, setRequestPhone] = useState("");
+    const [requestEmail, setRequestEmail] = useState("");
+    const [requestLocation, setRequestLocation] = useState("");
+    const [requestFlightType, setRequestFlightType] = useState("");
+    const [requestDate, setRequestDate] = useState("");
+    const allLocations = ["Bath", "Devon", "Somerset", "Bristol Fiesta"];
+    const allFlightTypes = ["Book Flight", "Flight Voucher", "Redeem Voucher", "Buy Gift"];
+    const [requestSuccess, setRequestSuccess] = useState("");
+    const [requestError, setRequestError] = useState("");
 
     var final_pax_count = selectedActivity?.[0]?.seats;
 
@@ -151,6 +164,36 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return days;
     };
 
+    const handleRequestSubmit = async () => {
+        setRequestSuccess("");
+        setRequestError("");
+        try {
+            const res = await axios.post(
+                process.env.REACT_APP_API_URL + "/api/date-request",
+                {
+                    name: requestName,
+                    phone: requestPhone,
+                    email: requestEmail,
+                    location: requestLocation,
+                    flight_type: requestFlightType,
+                    requested_date: requestDate
+                }
+            );
+            if (res.data.success) {
+                setRequestSuccess("Your request has been submitted!");
+                setTimeout(() => {
+                    setRequestModalOpen(false);
+                    setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate("");
+                    setRequestSuccess("");
+                }, 1500);
+            } else {
+                setRequestError("Failed to submit request. Please try again.");
+            }
+        } catch (err) {
+            setRequestError("Failed to submit request. Please try again.");
+        }
+    };
+
     return (
         <>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
@@ -229,6 +272,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
                         )}
                     </div>
+                    {/* Add request date section below calendar */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
+                        <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
+                        <button style={{
+                            background: '#56C1FF',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '8px 18px',
+                            fontWeight: 600,
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
+                        }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
+                    </div>
                 </div>
             </Accordion>
             {
@@ -242,6 +300,30 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     :
                     ""
             }
+            <Modal
+                isOpen={requestModalOpen}
+                onClose={() => setRequestModalOpen(false)}
+                title="Request a Date"
+                extraContent={
+                    <form style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16, minWidth: 320 }} onSubmit={e => { e.preventDefault(); handleRequestSubmit(); }}>
+                        <input type="text" placeholder="Name" value={requestName} onChange={e => setRequestName(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
+                        <input type="text" placeholder="Phone" value={requestPhone} onChange={e => setRequestPhone(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} />
+                        <input type="email" placeholder="Email" value={requestEmail} onChange={e => setRequestEmail(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
+                        <select value={requestLocation} onChange={e => setRequestLocation(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required>
+                            <option value="">Select Location</option>
+                            {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                        </select>
+                        <select value={requestFlightType} onChange={e => setRequestFlightType(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required>
+                            <option value="">Select Flight Type</option>
+                            {allFlightTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                        </select>
+                        <input type="date" value={requestDate} onChange={e => setRequestDate(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
+                        <button type="submit" style={{ background: '#56C1FF', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 8 }}>Submit Request</button>
+                        {requestSuccess && <div style={{ color: 'green', textAlign: 'center' }}>{requestSuccess}</div>}
+                        {requestError && <div style={{ color: 'red', textAlign: 'center' }}>{requestError}</div>}
+                    </form>
+                }
+            />
             <style>{`
                 .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }
                 .ampm-btn.active { background: #56C1FF; color: #fff; }
