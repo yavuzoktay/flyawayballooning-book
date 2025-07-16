@@ -112,11 +112,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         if (isFlightVoucher || isRedeemVoucher || isGiftVoucher) {
             // VOUCHER POST
             const voucherData = {
-                name: recipientDetails?.name || "",
+                name: (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
+                weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
                 voucher_type: isFlightVoucher ? "Flight Voucher" : isRedeemVoucher ? "Redeem Voucher" : "Gift Voucher",
-                email: recipientDetails?.email || "",
-                phone: recipientDetails?.phone || "",
+                email: (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
+                phone: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                mobile: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 redeemed: "No",
                 paid: totalPrice,
                 offer_code: "",
