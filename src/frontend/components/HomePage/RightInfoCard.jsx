@@ -3,7 +3,7 @@ import React from "react";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -122,7 +122,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 redeemed: "No",
                 paid: totalPrice,
                 offer_code: "",
-                voucher_ref: voucherCode || ""
+                voucher_ref: voucherCode || "",
+                recipient_name: recipientDetails?.name || "",
+                recipient_email: recipientDetails?.email || "",
+                recipient_phone: recipientDetails?.phone || "",
+                recipient_gift_date: recipientDetails?.date || "",
+                preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+                preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
             };
             try {
                 const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
@@ -140,6 +147,18 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             return;
         }
         // BOOK FLIGHT FLOW
+        let bookingDateStr = selectedDate;
+        // Eğer hem selectedDate hem de selectedTime varsa, birleştir
+        if (selectedDate instanceof Date && selectedTime) {
+            const [h, m, s] = selectedTime.split(":");
+            const localDate = new Date(selectedDate);
+            localDate.setHours(Number(h));
+            localDate.setMinutes(Number(m));
+            localDate.setSeconds(Number(s) || 0);
+            bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+        } else if (selectedDate instanceof Date) {
+            bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+        }
         const bookingData = {
             activitySelect,
             chooseLocation,
@@ -148,7 +167,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             passengerData,
             additionalInfo,
             recipientDetails,
-            selectedDate,
+            selectedDate: bookingDateStr,
+            selectedTime: selectedTime || null,
             totalPrice,
             voucher_code: voucherCode,
             flight_attempts: chooseFlightType?.flight_attempts || 0,

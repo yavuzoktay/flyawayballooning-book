@@ -18,6 +18,7 @@ import Modal from "../Common/Modal";
 import LocationSection from "./LocationSection";
 import ChooseActivityCard from "./ChooseActivityCard";
 import axios from 'axios';
+import Tooltip from '@mui/material/Tooltip';
 
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -85,24 +86,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Yeni: availabilities [{id, date, time, capacity, available, ...}] düz listede geliyor
     // Calendar için: hangi günlerde en az 1 açık slot var?
-    const availableDates = Array.from(new Set(availabilities.map(a => {
-        // DD/MM/YYYY -> YYYY-MM-DD
-        if (a.date && a.date.includes('/')) {
-            const [day, month, year] = a.date.split('/');
-            return `${year}-${month}-${day}`;
-        }
-        return a.date;
-    })));
+    const availableDates = Array.from(new Set(availabilities.map(a => a.date)));
     const getTimesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        // availabilities'deki date'i de aynı şekilde dönüştür
-        return availabilities.filter(a => {
-            if (a.date && a.date.includes('/')) {
-                const [day, month, year] = a.date.split('/');
-                return `${year}-${month}-${day}` === dateStr;
-            }
-            return a.date === dateStr;
-        });
+        return availabilities.filter(a => a.date === dateStr);
     };
 
     // Filter availabilities by AM/PM
@@ -114,13 +101,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        const slots = filteredAvailabilities.filter(a => {
-            if (a.date && a.date.includes('/')) {
-                const [day, month, year] = a.date.split('/');
-                return `${year}-${month}-${day}` === dateStr;
-            }
-            return a.date === dateStr;
-        });
+        const slots = filteredAvailabilities.filter(a => a.date === dateStr);
         const total = slots.reduce((sum, s) => sum + (s.available || 0), 0);
         return { total, soldOut: slots.length > 0 && total === 0, slots };
     };
@@ -230,36 +211,51 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     const hour = parseInt(slot.time.split(':')[0], 10);
                                     return ampm === 'AM' ? hour < 12 : hour >= 12;
                                 }).map(slot => {
+                                    // --- 8 saat kuralı ---
+                                    let slotDateTime = new Date(selectedDate);
+                                    if (slot.time) {
+                                        const [h, m, s] = slot.time.split(':');
+                                        slotDateTime.setHours(Number(h));
+                                        slotDateTime.setMinutes(Number(m || 0));
+                                        slotDateTime.setSeconds(Number(s || 0));
+                                    }
+                                    const now = new Date();
+                                    const diffMs = slotDateTime - now;
+                                    const diffHours = diffMs / (1000 * 60 * 60);
                                     const isAvailable = slot.available > 0;
+                                    const isSelectable = isAvailable && diffHours >= 8;
                                     return (
-                                        <button
-                                            key={slot.id}
-                                            style={{
-                                                background: '#56C1FF',
-                                                color: '#fff',
-                                                border: 'none',
-                                                borderRadius: 16,
-                                                padding: '8px 0',
-                                                fontWeight: 700,
-                                                fontSize: 22,
-                                                marginBottom: 12,
-                                                cursor: isAvailable ? 'pointer' : 'not-allowed',
-                                                outline: selectedTime === slot.time ? '2px solid #56C1FF' : 'none',
-                                                opacity: isAvailable ? 1 : 0.5,
-                                                width: '100%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: 18,
-                                                letterSpacing: 1
-                                            }}
-                                            onClick={() => isAvailable && handleTimeClick(slot.time)}
-                                            disabled={!isAvailable}
-                                        >
-                                            <span style={{ marginRight: 8, fontSize: 24 }}>🕒</span>
-                                            <span style={{ fontWeight: 700 }}>{slot.time}</span>
-                                            <span style={{ marginLeft: 18, fontWeight: 700 }}>Available ({slot.available}/{slot.capacity})</span>
-                                        </button>
+                                        <Tooltip key={slot.id} title={!isSelectable ? 'Call/Text to book' : ''} arrow disableHoverListener={isSelectable}>
+                                            <span style={{ width: '100%' }}>
+                                                <button
+                                                    style={{
+                                                        background: '#56C1FF',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: 16,
+                                                        padding: '8px 0',
+                                                        fontWeight: 700,
+                                                        fontSize: 22,
+                                                        marginBottom: 12,
+                                                        cursor: isSelectable ? 'pointer' : 'not-allowed',
+                                                        outline: selectedTime === slot.time ? '2px solid #56C1FF' : 'none',
+                                                        opacity: isAvailable ? 1 : 0.5,
+                                                        width: '100%',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: 18,
+                                                        letterSpacing: 1
+                                                    }}
+                                                    onClick={() => isSelectable && handleTimeClick(slot.time)}
+                                                    disabled={!isSelectable}
+                                                >
+                                                    <span style={{ marginRight: 8, fontSize: 24 }}>🕒</span>
+                                                    <span style={{ fontWeight: 700 }}>{slot.time}</span>
+                                                    <span style={{ marginLeft: 18, fontWeight: 700 }}>Available ({slot.available}/{slot.capacity})</span>
+                                                </button>
+                                            </span>
+                                        </Tooltip>
                                     );
                                 })}
                             </div>

@@ -33,13 +33,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     const fetchLocationPricing = async () => {
         if (!chooseLocation) return;
-        
         setLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/api/locationPricing/${encodeURIComponent(chooseLocation)}`);
             if (response.data.success) {
                 setLocationPricing(response.data.data);
-                console.log('Location pricing loaded:', response.data.data);
+                // flight_type burada response.data.data.flight_type olarak gelir
             }
         } catch (error) {
             console.error('Error fetching location pricing:', error);
@@ -107,7 +106,14 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         ];
     };
 
-    const experiences = getExperiences();
+    // --- FLIGHT TYPE FILTERING ---
+    // locationPricing.flight_type ör: "Private,Shared"
+    const allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim());
+    const experiences = getExperiences().filter(exp => {
+        if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
+        if (exp.title === "Private Flight") return allowedTypes.includes("Private");
+        return false;
+    });
     
     // Debug: Log experiences data
     console.log('Experiences updated:', experiences);
