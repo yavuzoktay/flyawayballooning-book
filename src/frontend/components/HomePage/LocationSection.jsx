@@ -25,11 +25,17 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
         axios.get(`${API_BASE_URL}/api/activeLocations`)
             .then(res => {
                 if (res.data.success) {
-                    setLocations(res.data.data.map(l => ({
+                    console.log('API Response:', res.data.data);
+                    const mappedLocations = res.data.data.map(l => ({
                         name: l.location,
-                        image: l.image ? l.image : imageMap[l.location]
-                    })));
+                        image: l.image ? `${API_BASE_URL}${l.image}` : imageMap[l.location]
+                    }));
+                    console.log('Mapped locations:', mappedLocations);
+                    setLocations(mappedLocations);
                 }
+            })
+            .catch(error => {
+                console.error('Error fetching locations:', error);
             });
     }, []);
 
