@@ -20,7 +20,7 @@ import ChooseActivityCard from "./ChooseActivityCard";
 import axios from 'axios';
 import Tooltip from '@mui/material/Tooltip';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,6 +36,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const allFlightTypes = ["Book Flight", "Flight Voucher", "Redeem Voucher", "Buy Gift"];
     const [requestSuccess, setRequestSuccess] = useState("");
     const [requestError, setRequestError] = useState("");
+    // State'e yeni bir error ekle
+    const [formError, setFormError] = useState("");
+    // Her input için ayrı error state
+    const [nameError, setNameError] = useState(false);
+    const [emailError, setEmailError] = useState(false);
+    const [locationError, setLocationError] = useState(false);
+    const [flightTypeError, setFlightTypeError] = useState(false);
+    const [dateError, setDateError] = useState(false);
 
     var final_pax_count = selectedActivity?.[0]?.seats;
 
@@ -175,6 +183,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     };
 
+    // Alanların dolu olup olmadığını kontrol eden fonksiyon
+    const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate;
+
+    // Submit butonuna tıklanınca eksik alanlar için error state'lerini tetikleyen fonksiyon
+    const handleShowAllErrors = () => {
+        if (!requestName.trim()) setNameError(true);
+        if (!requestEmail.trim()) setEmailError(true);
+        if (!requestLocation) setLocationError(true);
+        if (!requestFlightType) setFlightTypeError(true);
+        if (!requestDate) setDateError(true);
+    };
+
     return (
         <>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
@@ -269,20 +289,22 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                     </div>
                     {/* Add request date section below calendar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
-                        <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
-                        <button style={{
-                            background: '#56C1FF',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 6,
-                            padding: '8px 18px',
-                            fontWeight: 600,
-                            fontSize: 16,
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
-                        }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
-                    </div>
+                    {activitySelect === 'Book Flight' && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
+                            <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
+                            <button style={{
+                                background: '#56C1FF',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 6,
+                                padding: '8px 18px',
+                                fontWeight: 600,
+                                fontSize: 16,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
+                            }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
+                        </div>
+                    )}
                 </div>
             </Accordion>
             {
@@ -301,24 +323,59 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onClose={() => setRequestModalOpen(false)}
                 title="Request a Date"
                 extraContent={
-                    <form style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16, minWidth: 320 }} onSubmit={e => { e.preventDefault(); handleRequestSubmit(); }}>
-                        <input type="text" placeholder="Name" value={requestName} onChange={e => setRequestName(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
-                        <input type="text" placeholder="Phone" value={requestPhone} onChange={e => setRequestPhone(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} />
-                        <input type="email" placeholder="Email" value={requestEmail} onChange={e => setRequestEmail(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
-                        <select value={requestLocation} onChange={e => setRequestLocation(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required>
-                            <option value="">Select Location</option>
-                            {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                        </select>
-                        <select value={requestFlightType} onChange={e => setRequestFlightType(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required>
-                            <option value="">Select Flight Type</option>
-                            {allFlightTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                        </select>
-                        <input type="date" value={requestDate} onChange={e => setRequestDate(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc' }} required />
-                        <button type="submit" style={{ background: '#56C1FF', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 8 }}>Submit Request</button>
+                    <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 320 }} onSubmit={e => {
+                        e.preventDefault();
+                        let hasError = false;
+                        setNameError(false); setEmailError(false); setLocationError(false); setFlightTypeError(false); setDateError(false);
+                        if (!requestName.trim()) { setNameError(true); hasError = true; }
+                        if (!requestEmail.trim()) { setEmailError(true); hasError = true; }
+                        if (!requestLocation) { setLocationError(true); hasError = true; }
+                        if (!requestFlightType) { setFlightTypeError(true); hasError = true; }
+                        if (!requestDate) { setDateError(true); hasError = true; }
+                        if (hasError) { return; }
+                        handleRequestSubmit();
+                    }}>
+                        <div style={{ marginBottom: 8, position: 'relative' }}>
+                            <input type="text" placeholder="Name" value={requestName} onChange={e => { setRequestName(e.target.value); setNameError(false); }} style={{ padding: 8, borderRadius: 4, border: nameError ? '2px solid red' : '1px solid #ccc', width: '100%' }} required />
+                            {nameError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                            <input type="text" placeholder="Phone" value={requestPhone} onChange={e => setRequestPhone(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', width: '100%' }} />
+                        </div>
+                        <div style={{ marginBottom: 8, position: 'relative' }}>
+                            <input type="email" placeholder="Email" value={requestEmail} onChange={e => { setRequestEmail(e.target.value); setEmailError(false); }} style={{ padding: 8, borderRadius: 4, border: emailError ? '2px solid red' : '1px solid #ccc', width: '100%' }} required />
+                            {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                        </div>
+                        <div style={{ marginBottom: 8, position: 'relative' }}>
+                            <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '100%' }} required>
+                                <option value="">Select Location</option>
+                                {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                            </select>
+                            {locationError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                        </div>
+                        <div style={{ marginBottom: 8, position: 'relative' }}>
+                            <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '100%' }} required>
+                                <option value="">Select Flight Type</option>
+                                <option value="Private Flight">Private Flight</option>
+                                <option value="Shared Flight">Shared Flight</option>
+                            </select>
+                            {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                        </div>
+                        <div style={{ marginBottom: 8, position: 'relative' }}>
+                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%' }} required />
+                            {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                        </div>
                         {requestSuccess && <div style={{ color: 'green', textAlign: 'center' }}>{requestSuccess}</div>}
                         {requestError && <div style={{ color: 'red', textAlign: 'center' }}>{requestError}</div>}
                     </form>
                 }
+                submitButtonProps={{
+                    disabled: !isFormValid,
+                    onClick: handleShowAllErrors,
+                    onSubmit: () => {
+                        if (isFormValid) handleRequestSubmit();
+                    }
+                }}
             />
             <style>{`
                 .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }

@@ -1,14 +1,20 @@
 import React from "react";
 
-const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraContent }) => {
+const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraContent, submitButtonProps = {} }) => {
     if (!isOpen) return null;
 
     const handleConfirm = () => {
-        // Eğer onConfirm fonksiyonu tanımlanmışsa onu çağır, yoksa onClose'u çağır
-        if (typeof onConfirm === 'function') {
+        // Önce submitButtonProps.onClick ile error gösterimini tetikle
+        if (typeof submitButtonProps.onClick === 'function') {
+            submitButtonProps.onClick();
+        }
+        // Sonra submitButtonProps.onSubmit varsa onu çağır (ör: form submit)
+        if (typeof submitButtonProps.onSubmit === 'function') {
+            submitButtonProps.onSubmit();
+        } else if (typeof onConfirm === 'function') {
             onConfirm();
         } else {
-            onClose(); // Geriye dönük uyumluluk için
+            onClose();
         }
     };
 
@@ -29,8 +35,9 @@ const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraCont
                         className="confirm-btn"
                         style={{ backgroundColor: "#61D836" }}
                         onClick={handleConfirm}
+                        disabled={submitButtonProps?.disabled}
                     >
-                        Confirm
+                        {title === 'Request a Date' ? 'Submit' : 'Confirm'}
                     </button>
                     <button 
                         className="cancel-btn"

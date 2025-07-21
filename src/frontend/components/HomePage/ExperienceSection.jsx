@@ -226,7 +226,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             )}
             <div className="flii-scroll" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px' }}>
                 {experiences.map((exp, index) => (
-                    <div className="flight-data" key={index} style={{ flex: '0 0 48%', padding: '15px', boxSizing: 'border-box', border: '1.5px solid #00000080' }}>
+                    <div className="flight-data" key={index} style={{ flex: '0 0 48%', padding: '15px', boxSizing: 'border-box', border: '1.5px solid #00000080', backgroundColor: '#fff' }}>
                         <div className="flight-head-bin">
                             <h3>{exp.title}</h3>
                             <hr />
