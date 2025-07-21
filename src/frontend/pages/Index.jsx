@@ -256,6 +256,7 @@ const Index = () => {
                                             selectedTime={selectedTime}
                                             setSelectedTime={setSelectedTime}
                                             availabilities={availabilities}
+                                            activitySelect={activitySelect}
                                         />
                                     )}
                                     {!(activitySelect === "Flight Voucher") && (

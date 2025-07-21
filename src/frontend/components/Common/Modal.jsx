@@ -20,7 +20,7 @@ const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraCont
 
     return (
         <div className="modal-overlay">
-            <div className="common-modal">
+            <div className="common-modal" style={title === 'Request a Date' ? { maxWidth: 420, width: '90%' } : {}}>
                 <h2 className="text-xl font-semibold mb-4" style={{ textAlign: 'center' }}>{title}</h2>
                 <ul className="list-disc pl-5 space-y-2">
                     {bulletPoints.map((point, index) => (
