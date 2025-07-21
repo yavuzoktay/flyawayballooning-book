@@ -77,25 +77,23 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                     ></textarea>
                     {errors.notes && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
-                {flightType !== "Shared Flight" && (
-                <div className="mt-4 prefer">
-                    <label className="block text-base font-semibold">Which would you prefer?</label>
-                    <div className="add_check">
-                        {prefer.map((input, index) => (
-                            <label className="chaque final-prefer-check" key={index}>
-                                <input
-                                    type="radio"
-                                    name="prefer"
-                                    value={input}
-                                    checked={additionalInfo.prefer === input}
-                                    onChange={handleChange}
-                                />
-                                <span>{input}</span>
-                            </label>
-                        ))}
+                {!isGiftVoucher && !isRedeemVoucher && (
+                    <div className="mt-4 prefer">
+                        <label className="block text-base font-semibold">Which would you prefer?</label>
+                        <select
+                            name="prefer"
+                            className="w-full border p-2 rounded mt-2"
+                            value={additionalInfo.prefer || ""}
+                            onChange={handleChange}
+                            style={errors.prefer ? { border: '1.5px solid red' } : {}}
+                        >
+                            <option value="">Please select</option>
+                            {prefer.map((input, index) => (
+                                <option key={index} value={input}>{input}</option>
+                            ))}
+                        </select>
+                        {errors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                     </div>
-                    {errors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                </div>
                 )}
 
                 <div className="selector mt-4">
