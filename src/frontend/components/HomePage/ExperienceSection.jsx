@@ -108,7 +108,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // --- FLIGHT TYPE FILTERING ---
     // locationPricing.flight_type ör: "Private,Shared"
-    const allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim());
+    let allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim()).filter(Boolean);
+    if ((isFlightVoucher || isGiftVoucher) && allowedTypes.length === 0) {
+        allowedTypes = ['Shared', 'Private'];
+    }
     const experiences = getExperiences().filter(exp => {
         if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
         if (exp.title === "Private Flight") return allowedTypes.includes("Private");
