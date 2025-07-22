@@ -108,7 +108,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
             <div className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px' }}>
               <div className="presnger_one" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="presnger-tag">
-                  <h3 style={{ margin: '0' }}>Passenger {index + 1}</h3>
+                  <h3 style={{ margin: '0' }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
                 {/* Weather Refundable alanı sadece Flight Voucher seçili DEĞİLSE gösterilecek */}
                 {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta") || activitySelect === "Flight Voucher") && (
