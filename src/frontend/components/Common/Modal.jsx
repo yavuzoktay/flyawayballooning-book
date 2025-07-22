@@ -19,17 +19,20 @@ const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraCont
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="common-modal" style={title === 'Request a Date' ? { maxWidth: 420, width: '90%' } : {}}>
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+            <div className="common-modal" style={title === 'Request Date' ? { maxWidth: 420, minWidth: 340, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '32px 0' } : {}}>
                 <h2 className="text-xl font-semibold mb-4" style={{ textAlign: 'center' }}>{title}</h2>
-                <ul className="list-disc pl-5 space-y-2">
-                    {bulletPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                    ))}
-                    {extraContent && (
-                        <li className="mt-4">{extraContent}</li>
-                    )}
-                </ul>
+                {bulletPoints.length > 0 && (
+                    <ul className="list-disc pl-5 space-y-2">
+                        {bulletPoints.map((point, index) => (
+                            <li key={index}>{point}</li>
+                        ))}
+                        {extraContent && (
+                            <li className="mt-4">{extraContent}</li>
+                        )}
+                    </ul>
+                )}
+                {bulletPoints.length === 0 && extraContent}
                 <div className="modal-buttons">
                     <button 
                         className="confirm-btn"
@@ -37,7 +40,7 @@ const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraCont
                         onClick={handleConfirm}
                         disabled={submitButtonProps?.disabled}
                     >
-                        {title === 'Request a Date' ? 'Submit' : 'Confirm'}
+                        {title === 'Request Date' ? 'Submit' : 'Confirm'}
                     </button>
                     <button 
                         className="cancel-btn"

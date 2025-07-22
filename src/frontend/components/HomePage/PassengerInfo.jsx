@@ -87,7 +87,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
 
   return (
     <Accordion 
-      title="Enter Passenger Information" 
+      title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Enter Passenger Information'}
       id="passenger-info" 
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}

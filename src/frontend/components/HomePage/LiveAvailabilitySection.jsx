@@ -46,6 +46,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [locationError, setLocationError] = useState(false);
     const [flightTypeError, setFlightTypeError] = useState(false);
     const [dateError, setDateError] = useState(false);
+    // Ek hata state'leri
+    const [nameFormatError, setNameFormatError] = useState(false);
+    const [phoneFormatError, setPhoneFormatError] = useState(false);
+    const [emailFormatError, setEmailFormatError] = useState(false);
 
     var final_pax_count = selectedActivity?.[0]?.seats;
 
@@ -191,7 +195,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Submit butonuna tıklanınca eksik alanlar için error state'lerini tetikleyen fonksiyon
     const handleShowAllErrors = () => {
         if (!requestName.trim()) setNameError(true);
+        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) { setNameFormatError(true); }
         if (!requestEmail.trim()) setEmailError(true);
+        if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) { setEmailFormatError(true); }
         if (!requestLocation) setLocationError(true);
         if (!requestFlightType) setFlightTypeError(true);
         if (!requestDate) setDateError(true);
@@ -324,40 +330,60 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             <Modal
                 isOpen={requestModalOpen}
                 onClose={() => setRequestModalOpen(false)}
-                title="Request a Date"
+                title="Request Date"
                 extraContent={
-                    <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 320, alignItems: 'center' }} onSubmit={e => {
+                    <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 400, alignItems: 'stretch' }} onSubmit={e => {
                         e.preventDefault();
                         let hasError = false;
                         setNameError(false); setEmailError(false); setLocationError(false); setFlightTypeError(false); setDateError(false);
+                        setNameFormatError(false); setPhoneFormatError(false); setEmailFormatError(false);
                         if (!requestName.trim()) { setNameError(true); hasError = true; }
+                        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) { setNameFormatError(true); hasError = true; }
                         if (!requestEmail.trim()) { setEmailError(true); hasError = true; }
+                        if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) { setEmailFormatError(true); hasError = true; }
                         if (!requestLocation) { setLocationError(true); hasError = true; }
                         if (!requestFlightType) { setFlightTypeError(true); hasError = true; }
                         if (!requestDate) { setDateError(true); hasError = true; }
+                        if (requestPhone && /[^0-9]/.test(requestPhone)) { setPhoneFormatError(true); hasError = true; }
                         if (hasError) { return; }
                         handleRequestSubmit();
                     }}>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <input type="text" placeholder="Name" value={requestName} onChange={e => { setRequestName(e.target.value); setNameError(false); }} style={{ padding: 8, borderRadius: 4, border: nameError ? '2px solid red' : '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} required />
+                            <input type="text" placeholder="Name" value={requestName} onChange={e => {
+                                const val = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '');
+                                setRequestName(val);
+                                setNameError(false);
+                                setNameFormatError(false);
+                            }} style={{ padding: 8, borderRadius: 4, border: nameError || nameFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
                             {nameError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                            {nameFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only letters allowed</div>}
                         </div>
                         <div style={{ marginBottom: 8, width: '100%' }}>
-                            <input type="text" placeholder="Phone" value={requestPhone} onChange={e => setRequestPhone(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} />
+                            <input type="text" placeholder="Phone" value={requestPhone} onChange={e => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setRequestPhone(val);
+                                setPhoneFormatError(false);
+                            }} style={{ padding: 8, borderRadius: 4, border: phoneFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} />
+                            {phoneFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only numbers allowed</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <input type="email" placeholder="Email" value={requestEmail} onChange={e => { setRequestEmail(e.target.value); setEmailError(false); }} style={{ padding: 8, borderRadius: 4, border: emailError ? '2px solid red' : '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} required />
+                            <input type="email" placeholder="Email" value={requestEmail} onChange={e => {
+                                setRequestEmail(e.target.value);
+                                setEmailError(false);
+                                setEmailFormatError(false);
+                            }} style={{ padding: 8, borderRadius: 4, border: emailError || emailFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
                             {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
+                            {emailFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Invalid email format</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} required>
+                            <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal' }} required>
                                 <option value="">Select Location</option>
                                 {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                             </select>
                             {locationError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} required>
+                            <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal' }} required>
                                 <option value="">Select Flight Type</option>
                                 <option value="Private Flight">Private Flight</option>
                                 <option value="Shared Flight">Shared Flight</option>
@@ -365,7 +391,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '90%', margin: '0 auto', display: 'block' }} required />
+                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
                             {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         {requestSuccess && <div style={{ color: 'green', textAlign: 'center' }}>{requestSuccess}</div>}

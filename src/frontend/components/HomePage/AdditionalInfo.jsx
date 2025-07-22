@@ -77,7 +77,7 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                     ></textarea>
                     {errors.notes && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
-                {!isGiftVoucher && !isRedeemVoucher && (
+                {flightType === 'Private Flight' && (
                     <div className="mt-4 prefer">
                         <label className="block text-base font-semibold">Which would you prefer?</label>
                         <select
