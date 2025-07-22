@@ -20,7 +20,7 @@ import { BsInfoCircle } from "react-icons/bs";
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const Index = () => {
-    const [activeAccordion, setActiveAccordion] = useState("activity"); // Start with activity section open
+    const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
     const [activitySelect, setActivitySelect] = useState(null);
     const [chooseLocation, setChooseLocation] = useState(null);
     const [chooseFlightType, setChooseFlightType] = useState({ type: "", passengerCount: "", price: "" });
@@ -96,6 +96,8 @@ const Index = () => {
             setActiveAccordion("location");
         } else if (activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") {
             setActiveAccordion("experience");
+        } else {
+            setActiveAccordion(null);
         }
     }, [activitySelect]);
 
@@ -280,14 +282,7 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                            <EnterPreferences 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                preference={preference} 
-                                                setPreference={setPreference} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
-                                            />
+                                       
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -353,26 +348,6 @@ const Index = () => {
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
-                                            />
-                                            <EnterPreferences 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                preference={preference} 
-                                                setPreference={setPreference} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
-                                            />
-                                            <AddOnsSection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                chooseAddOn={chooseAddOn} 
-                                                setChooseAddOn={setChooseAddOn} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
-                                                chooseLocation={chooseLocation} 
-                                                chooseFlightType={chooseFlightType} 
-                                                activitySelect={activitySelect}
                                             />
                                         </>
                                     ) : activitySelect === "Buy Gift" ? (

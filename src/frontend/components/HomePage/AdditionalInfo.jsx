@@ -47,7 +47,7 @@ export function validateAdditionalInfo(additionalInfo, flightType) {
     };
 }
 
-const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }) => {
+const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -95,8 +95,23 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, addit
                         {errors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                     </div>
                 )}
+                {(isRedeemVoucher || isBookFlight) && (
+                    <div className="selector mt-4">
+                        <label className="block text-base font-semibold">Would you like to receive short notice flight availability?</label>
+                        <select
+                            name="shortNoticeAvailability"
+                            className="w-full border p-2 rounded mt-2"
+                            onChange={handleChange}
+                            value={additionalInfo.shortNoticeAvailability || ""}
+                        >
+                            <option value="">Please select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                )}
 
-                <div className="selector mt-4">
+                <div className="selector  mt-4">
                     <p className="block text-base font-semibold">How did you hear about us?</p>
                     <select name="hearAboutUs" className="w-full border p-2 rounded mt-2" onChange={handleChange} value={additionalInfo.hearAboutUs || ""} style={errors.hearAboutUs ? { border: '1.5px solid red' } : {}}>
                         <option value="">Please select</option>

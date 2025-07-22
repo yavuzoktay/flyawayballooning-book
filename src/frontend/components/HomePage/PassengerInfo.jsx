@@ -87,7 +87,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
 
   return (
     <Accordion 
-      title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Enter Passenger Information'}
+      title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
       id="passenger-info" 
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}
@@ -179,31 +179,34 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                     />
                     {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
-                      Weight (Kg)
-                      <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
-                        <div className="info-icon-container" style={{ position: 'relative' }}>
-                          <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
-                          <div className="hover-text">
-                            <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight. There is a maximum weight limit of 18 Stone/114Kg on Shared Flights.</p>
+                  {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
+                  {activitySelect !== 'Buy Gift' && (
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
+                        Weight (Kg)
+                        <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
+                          <div className="info-icon-container" style={{ position: 'relative' }}>
+                            <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                            <div className="hover-text">
+                              <p>Approximate weights are fine but please be as accurate as you can. If unsure, mark as TBC and contact us before your flight. There is a maximum weight limit of 18 Stone/114Kg on Shared Flights.</p>
+                            </div>
                           </div>
-                        </div>
-                      </span>
-                    </label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
-                      name="weight"
-                      value={passenger.weight}
-                      onChange={(e) => handlePassengerInputChange(index, e)}
-                      placeholder="Kg"
-                      style={error?.weight ? { border: '1.5px solid red' } : {}}
-                    />
-                    {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
-                  </div>
+                        </span>
+                      </label>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
+                        name="weight"
+                        value={passenger.weight}
+                        onChange={(e) => handlePassengerInputChange(index, e)}
+                        placeholder="Kg"
+                        style={error?.weight ? { border: '1.5px solid red' } : {}}
+                      />
+                      {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    </div>
+                  )}
                 </div>
                 {/* Mobile Number ve Email sadece ilk yolcu için, üstteki satırın ALTINDA yan yana gösterilecek */}
                 {index === 0 && (

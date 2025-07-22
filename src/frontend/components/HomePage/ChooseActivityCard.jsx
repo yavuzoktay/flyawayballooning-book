@@ -242,7 +242,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                         <BsInfoCircle size={14} color="#0070f3" />
                                         <div className="hover-text">
-                                            Book a Balloon Flight
+                                            Book a Scheduled Balloon Flight
                                         </div>
                                     </span>
                                 )}
