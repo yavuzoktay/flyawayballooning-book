@@ -194,6 +194,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     const isBookFlight = activitySelect === "Book Flight";
 
+    // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
+    const sectionSpacing = { marginBottom: '24px' };
+
     return (
         <div className="book_active">
             <div className="book_data_active">

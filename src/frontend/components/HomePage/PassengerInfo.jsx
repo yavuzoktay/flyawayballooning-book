@@ -6,7 +6,8 @@ import { BsInfoCircle } from 'react-icons/bs';
 
 const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation }) => {
   // Parse passengerCount from chooseFlightType and ensure it's at least 1
-  const passengerCount = Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
+  // For Buy Gift, always 1 passenger
+  const passengerCount = activitySelect === 'Buy Gift' ? 1 : Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
   
   // Add console logs to debug
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);

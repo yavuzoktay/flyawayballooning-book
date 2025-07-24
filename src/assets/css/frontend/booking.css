@@ -290,8 +290,21 @@ label {
     padding: 30px;
 }
 
-.active-book-cont p {
-    margin: 0;
+.active-book-cont p,
+.book-cont p {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Remove margin and padding for Not Provided/Not Selected specifically */
+.active-book-cont p:contains('Not Provided'),
+.active-book-cont p:contains('Not Selected'),
+.book-cont p:contains('Not Provided'),
+.book-cont p:contains('Not Selected') {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
 .active-book-card {

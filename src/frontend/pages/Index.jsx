@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LOGO from '../../assets/images/FAB_Logo_DarkBlue.png';
+import RATINGS_BAR from '../../assets/images/ratings-bar.png';
 import { Container } from "@mui/material";
 import ChooseActivityCard from "../components/HomePage/ChooseActivityCard";
 import RightInfoCard from "../components/HomePage/RightInfoCard";
@@ -181,7 +182,7 @@ const Index = () => {
             <div className="header-bg">
                 <div className="header-layout">
                     <Container>
-                        <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div className="logo" style={{ marginRight: '32px' }}>
                                 <a href="/" onClick={e => { e.preventDefault(); window.location.reload(); }} style={{ display: 'inline-block' }}>
                                     <img src={LOGO} alt="Fly Away Ballooning Logo" />
@@ -190,6 +191,9 @@ const Index = () => {
                             {showBookingHeader && (
                                 <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
                             )}
+                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%' }}>
+                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
+                            </div>
                         </div>
                     </Container>
                 </div>
@@ -282,7 +286,14 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                       
+                                            <EnterPreferences 
+                                                isGiftVoucher={isGiftVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher} 
+                                                preference={preference} 
+                                                setPreference={setPreference} 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion}
+                                            />
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -294,6 +305,7 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
+                                                disabled={false}
                                             />
                                         </>
                                     ) : activitySelect === "Redeem Voucher" ? (
@@ -349,8 +361,20 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
+                                            <AddOnsSection 
+                                                isGiftVoucher={isGiftVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher} 
+                                                isFlightVoucher={isFlightVoucher} 
+                                                chooseAddOn={chooseAddOn} 
+                                                setChooseAddOn={setChooseAddOn} 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                chooseLocation={chooseLocation} 
+                                                chooseFlightType={chooseFlightType} 
+                                                activitySelect={activitySelect}
+                                            />
                                         </>
-                                    ) : activitySelect === "Buy Gift" ? (
+                                    ) : activitySelect === "Flight Voucher" ? (
                                         <>
                                             <ExperienceSection 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -367,15 +391,6 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                             />
-                                            <EnterRecipientDetails 
-                                                isBookFlight={isBookFlight}
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                recipientDetails={recipientDetails} 
-                                                setRecipientDetails={setRecipientDetails} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
-                                            />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
                                                 isFlightVoucher={isFlightVoucher}
@@ -389,6 +404,14 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                            />
+                                            <EnterPreferences 
+                                                isGiftVoucher={isGiftVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher} 
+                                                preference={preference} 
+                                                setPreference={setPreference} 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion}
                                             />
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -480,7 +503,7 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
                                             />
-                                            {(activitySelect === "Buy Gift" || activitySelect === "Flight Voucher" || activitySelect === "Book Flight") && (
+                                            {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
                                                 <AdditionalInfo 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -493,7 +516,7 @@ const Index = () => {
                                                     flightType={chooseFlightType.type}
                                                 />
                                             )}
-                                            {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
+                                            {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
                                                 <EnterPreferences 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -512,6 +535,21 @@ const Index = () => {
                                                     setRecipientDetails={setRecipientDetails} 
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion}
+                                                />
+                                            )}
+                                            {activitySelect === "Buy Gift" && (
+                                                <AddOnsSection 
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    chooseAddOn={chooseAddOn} 
+                                                    setChooseAddOn={setChooseAddOn} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    chooseLocation={chooseLocation} 
+                                                    chooseFlightType={chooseFlightType} 
+                                                    activitySelect={activitySelect}
+                                                    disabled={false}
                                                 />
                                             )}
                                         </>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../../assets/css/frontend/booking-header.css';
 import LOGO from '../../../assets/images/FAB_Logo_DarkBlue.png';
+import RATINGS_BAR from '../../../assets/images/ratings-bar.png';
 
 /**
  * BookingHeader component to display selected location, date, and countdown timer
@@ -95,8 +96,8 @@ const BookingHeader = ({ location, selectedDate }) => {
   const locationName = location?.name || (typeof location === 'string' ? location : 'Selected Location');
 
   return (
-    <div className="booking-header-outer-center" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-      <div className="booking-header-content" style={{ flex: 1 }}>
+    <div className="booking-header-outer-center" style={{ display: 'flex', alignItems: 'center', width: '100%', position: 'relative' }}>
+      <div className="booking-header-content" style={{ flex: 1, display: 'flex', alignItems: 'center', width: '100%' }}>
         <div className="booking-header-location-display">
           <div className="booking-header-location">{locationName}</div>
         </div>
@@ -106,6 +107,9 @@ const BookingHeader = ({ location, selectedDate }) => {
         <div className="booking-header-timer">
           <span className="timer-label">Time Remaining:</span>
           <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
+        </div>
+        <div className="booking-header-ratings-bar" style={{ marginLeft: '32px', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', justifyContent: 'flex-end' }}>
+          <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
         </div>
       </div>
     </div>
