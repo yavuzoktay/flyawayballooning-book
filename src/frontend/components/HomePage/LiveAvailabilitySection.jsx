@@ -121,42 +121,114 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const renderDays = () => {
-        const days = [];
+        const weeks = [];
+        let week = [];
         let tempDate = new Date(startDate);
-        while (tempDate <= endDate) {
-            const dateCopy = new Date(tempDate);
-            const isPastDate = isBefore(dateCopy, today);
-            const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-            const { total, soldOut, slots } = getSpacesForDate(dateCopy);
-            const isAvailable = total > 0;
-            const pulse = isAvailable && total <= 4 && total > 0;
-            days.push(
-                <div
-                    key={dateCopy.toISOString()}
-                    className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
-                    onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
-                    style={{
-                        opacity: isAvailable ? 1 : 0.5,
-                        cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                        background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                        color: isAvailable ? '#fff' : '#888',
-                        borderRadius: 8,
-                        margin: 2,
-                        padding: 2,
-                        minHeight: 48,
-                        position: 'relative',
-                        border: isSelected ? '2px solid #56C1FF' : 'none',
-                        boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
-                        animation: pulse ? 'pulseAnim 1.2s infinite' : 'none'
-                    }}
-                >
-                    <div>{format(dateCopy, 'd')}</div>
-                    {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
-                </div>
-            );
-            tempDate = addDays(tempDate, 1);
+        // Use startOfWeek to get the correct offset for the first row (Monday as first day)
+        const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
+        let dayPointer = new Date(weekStart);
+        // Fill the first week
+        for (let i = 0; i < 7; i++) {
+            if (dayPointer < startDate) {
+                week.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+            } else if (dayPointer > endDate) {
+                week.push(<div key={`empty-end-firstrow-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+            } else {
+                const dateCopy = new Date(dayPointer);
+                const isPastDate = isBefore(dateCopy, today);
+                const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
+                const { total, soldOut, slots } = getSpacesForDate(dateCopy);
+                const isAvailable = total > 0;
+                const pulse = isAvailable && total <= 4 && total > 0;
+                week.push(
+                    <div
+                        key={dateCopy.toISOString()}
+                        className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                        onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
+                        style={{
+                            opacity: isAvailable ? 1 : 0.5,
+                            cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
+                            background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                            color: isAvailable ? '#fff' : '#888',
+                            borderRadius: 8,
+                            margin: 2,
+                            padding: 2,
+                            minHeight: 48,
+                            minWidth: 80,
+                            maxWidth: 80,
+                            width: 80,
+                            height: 80,
+                            boxSizing: 'border-box',
+                            position: 'relative',
+                            border: isSelected ? '2px solid #56C1FF' : 'none',
+                            boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
+                            animation: pulse ? 'pulseAnim 1.2s infinite' : 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <div>{format(dateCopy, 'd')}</div>
+                        {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                    </div>
+                );
+            }
+            dayPointer = addDays(dayPointer, 1);
         }
-        return days;
+        weeks.push(week);
+        // Fill the rest of the weeks
+        while (dayPointer <= endDate) {
+            let weekRow = [];
+            for (let i = 0; i < 7; i++) {
+                if (dayPointer > endDate) {
+                    weekRow.push(<div key={`empty-end-${dayPointer.toISOString()}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                } else {
+                    const dateCopy = new Date(dayPointer);
+                    const isPastDate = isBefore(dateCopy, today);
+                    const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
+                    const { total, soldOut, slots } = getSpacesForDate(dateCopy);
+                    const isAvailable = total > 0;
+                    const pulse = isAvailable && total <= 4 && total > 0;
+                    weekRow.push(
+                        <div
+                            key={dateCopy.toISOString()}
+                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                            onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
+                            style={{
+                                opacity: isAvailable ? 1 : 0.5,
+                                cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
+                                background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                                color: isAvailable ? '#fff' : '#888',
+                                borderRadius: 8,
+                                margin: 2,
+                                padding: 2,
+                                minHeight: 48,
+                                minWidth: 80,
+                                maxWidth: 80,
+                                width: 80,
+                                height: 80,
+                                boxSizing: 'border-box',
+                                position: 'relative',
+                                border: isSelected ? '2px solid #56C1FF' : 'none',
+                                boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
+                                animation: pulse ? 'pulseAnim 1.2s infinite' : 'none',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <div>{format(dateCopy, 'd')}</div>
+                            {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                        </div>
+                    );
+                }
+                dayPointer = addDays(dayPointer, 1);
+            }
+            weeks.push(weekRow);
+        }
+        return weeks.map((w, i) => <div key={`week-${i}`} style={{ display: 'flex', width: '100%' }}>{w}</div>);
     };
 
     const handleRequestSubmit = async () => {
@@ -218,12 +290,74 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
                     </div>
+                    {/* Centered currently viewing info under the heading */}
+                    <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b>, <b>{ampm}</b></div>
+                        {selectedDate && selectedTime && (
+                            <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
+                        )}
+                    </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid">
-                        <div className="weekdays-row">
-                            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label">{d}</div>)}
-                        </div>
-                        <div className="days">{renderDays()}</div>
+                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px' }}>
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: 15, marginBottom: 8 }}>{d}</div>)}
+                        {(() => {
+                            const days = [];
+                            let tempDate = new Date(startDate);
+                            const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
+                            let dayPointer = new Date(weekStart);
+                            // Fill leading empty cells
+                            for (let i = 0; i < 42; i++) { // 6 weeks max
+                                if (i < 7 && dayPointer < startDate) {
+                                    days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                } else if (dayPointer > endDate) {
+                                    days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                } else if (dayPointer >= startDate && dayPointer <= endDate) {
+                                    const dateCopy = new Date(dayPointer);
+                                    const isPastDate = isBefore(dateCopy, today);
+                                    const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
+                                    const { total, soldOut, slots } = getSpacesForDate(dateCopy);
+                                    const isAvailable = total > 0;
+                                    const pulse = isAvailable && total <= 4 && total > 0;
+                                    days.push(
+                                        <div
+                                            key={dateCopy.toISOString()}
+                                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                                            onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
+                                            style={{
+                                                opacity: isAvailable ? 1 : 0.5,
+                                                cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
+                                                background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                                                color: isAvailable ? '#fff' : '#888',
+                                                borderRadius: 8,
+                                                margin: 2,
+                                                padding: 2,
+                                                minHeight: 48,
+                                                minWidth: 80,
+                                                maxWidth: 80,
+                                                width: 80,
+                                                height: 80,
+                                                boxSizing: 'border-box',
+                                                position: 'relative',
+                                                border: isSelected ? '2px solid #56C1FF' : 'none',
+                                                boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
+                                                animation: pulse ? 'pulseAnim 1.2s infinite' : 'none',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <div>{format(dateCopy, 'd')}</div>
+                                            {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                                        </div>
+                                    );
+                                } else {
+                                    days.push(<div key={`empty-mid-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                }
+                                dayPointer = addDays(dayPointer, 1);
+                            }
+                            return days;
+                        })()}
                     </div>
                     {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
                     {selectedDate && (
@@ -290,28 +424,24 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </div>
                         </div>
                     )}
-                    {/* Seçili gün ve slot bilgisi */}
-                    <div style={{ marginTop: 24, fontSize: 15, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12 }}>
-                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b>, <b>{ampm}</b></div>
-                        {selectedDate && selectedTime && (
-                            <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
-                        )}
-                    </div>
                     {/* Add request date section below calendar */}
                     {activitySelect === 'Book Flight' && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
-                            <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
-                            <button style={{
-                                background: '#56C1FF',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: 6,
-                                padding: '8px 18px',
-                                fontWeight: 600,
-                                fontSize: 16,
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
-                            }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                                <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
+                                <button style={{
+                                    background: '#56C1FF',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: 6,
+                                    padding: '8px 18px',
+                                    fontWeight: 600,
+                                    fontSize: 16,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
+                                }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
+                            </div>
+                            <span style={{ fontSize: 14, color: '#888', marginTop: 2 }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                         </div>
                     )}
                 </div>
@@ -409,12 +539,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             <style>{`
                 .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }
                 .ampm-btn.active { background: #56C1FF; color: #fff; }
-                .days-grid { margin-top: 12px; }
-                .weekdays-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-                .weekday-label { flex: 1; text-align: center; font-weight: 600; color: #888; font-size: 15px; }
-                .days { display: flex; flex-wrap: wrap; }
-                .day { width: 13.5%; min-width: 44px; min-height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 4px; transition: box-shadow 0.2s; }
-                .day.selected { box-shadow: 0 0 0 2px #56C1FF; border: 2px solid #56C1FF; background: #56C1FF !important; }
+                .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0px; }
+                .weekday-label { text-align: center; font-weight: 600; color: #888; font-size: 15px; margin-bottom: 8px; }
+                .day { width: 80px; height: 80px; min-width: 80px; max-width: 80px; min-height: 80px; max-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2px; margin-top: 2px; transition: box-shadow 0.2s; box-sizing: border-box; }
+                .empty-day { background: none !important; border: none !important; box-shadow: none !important; }
+                .day.selected { box-shadow: 0 0 0 2px #56C1FF; border: 2px solid #56C1FF; background: #61D836 !important; }
                 .day.sold-out { background: #bbb !important; color: #fff !important; cursor: not-allowed !important; }
                 .day.pulse { animation: pulseAnim 1.2s infinite; }
                 .available-day { background: #61D836 !important; }
