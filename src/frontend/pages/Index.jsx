@@ -286,14 +286,6 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                            <EnterPreferences 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                preference={preference} 
-                                                setPreference={setPreference} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
-                                            />
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
