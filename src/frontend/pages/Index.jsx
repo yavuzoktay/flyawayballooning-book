@@ -17,6 +17,7 @@ import Accordion from "../components/Common/Accordion";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
+import { useLocation } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -177,6 +178,29 @@ const Index = () => {
         }
     }, [activitySelect]);
 
+    const location = useLocation();
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('payment') === 'success') {
+            // localStorage'da rezervasyon bilgisi varsa createBooking'e gönder
+            const bookingData = JSON.parse(localStorage.getItem('pendingBookingData') || '{}');
+            if (bookingData && bookingData.activitySelect) {
+                axios.post(`${API_BASE_URL}/api/createBooking`, bookingData)
+                    .then(res => {
+                        if (res.data.success) {
+                            alert('Rezervasyonunuz başarıyla tamamlandı!');
+                            localStorage.removeItem('pendingBookingData');
+                        } else {
+                            alert('Rezervasyon kaydı başarısız: ' + (res.data.message || 'Bilinmeyen hata'));
+                        }
+                    })
+                    .catch(() => {
+                        alert('Rezervasyon kaydı sırasında hata oluştu.');
+                    });
+            }
+        }
+    }, [location]);
+
     return (
         <div className="final-booking-wrap">
             <div className="header-bg">
@@ -191,9 +215,11 @@ const Index = () => {
                             {showBookingHeader && (
                                 <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
                             )}
-                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%' }}>
-                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
-                            </div>
+                            {!(activeAccordion === 'live-availability') && (
+                                <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%' }}>
+                                    <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
+                                </div>
+                            )}
                         </div>
                     </Container>
                 </div>

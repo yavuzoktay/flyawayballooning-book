@@ -1,7 +1,10 @@
 import axios from "axios";
 import React from "react";
+import { loadStripe } from '@stripe/stripe-js';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
 
@@ -146,9 +149,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
             return;
         }
-        // BOOK FLIGHT FLOW
+        // BOOK FLIGHT FLOW (Stripe ile ödeme)
         let bookingDateStr = selectedDate;
-        // Eğer hem selectedDate hem de selectedTime varsa, birleştir
         if (selectedDate instanceof Date && selectedTime) {
             const [h, m, s] = selectedTime.split(":");
             const localDate = new Date(selectedDate);
@@ -176,19 +178,27 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
             preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
         };
-        console.log("Booking data to send:", bookingData);
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/createBooking`, bookingData);
-            console.log("Booking response:", response);
-            if (response.data.success) {
-                alert('Booking successful! Booking ID: ' + response.data.bookingId);
-                resetBooking(); 
-            } else {
-                alert('Booking failed: ' + response.data.message);
+            // Stripe Checkout Session başlat
+            // localStorage.setItem('pendingBookingData', JSON.stringify(bookingData)); // ARTIK GEREK YOK
+            const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
+                totalPrice,
+                currency: 'GBP',
+                bookingData
+            });
+            if (!sessionRes.data.success) {
+                alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                return;
             }
+            const stripe = await stripePromise;
+            const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
+            if (error) {
+                alert('Stripe yönlendirme hatası: ' + error.message);
+            }
+            // Başarılı ödeme sonrası createBooking çağrısı success_url ile tetiklenecek (webhook veya frontend ile)
         } catch (error) {
-            console.error('Error during booking:', error);
-            alert('An error occurred while trying to book. Please try again.');
+            console.error('Stripe Checkout başlatılırken hata:', error);
+            alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');
         }
     }
 

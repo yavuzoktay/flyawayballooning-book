@@ -11,6 +11,8 @@
     "@mui/material": "^6.3.1",
     "@mui/x-data-grid": "^7.23.6",
     "@mui/x-date-pickers": "^7.23.6",
+    "@stripe/react-stripe-js": "^3.8.0",
+    "@stripe/stripe-js": "^7.6.1",
     "ajv": "^8.17.1",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
@@ -26,6 +28,7 @@
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
     "react-tooltip": "^5.28.0",
+    "stripe": "^18.3.0",
     "web-vitals": "^4.2.4",
     "yup": "^1.6.1"
   },

@@ -108,9 +108,10 @@ const BookingHeader = ({ location, selectedDate }) => {
           <span className="timer-label">Time Remaining:</span>
           <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
         </div>
-        <div className="booking-header-ratings-bar" style={{ marginLeft: '32px', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', justifyContent: 'flex-end' }}>
-          <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
-        </div>
+      </div>
+      {/* Ratings bar sadece en sağda, timer içinde asla değil */}
+      <div className="booking-header-ratings-bar" style={{ marginLeft: '32px', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', justifyContent: 'flex-end' }}>
+        <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ import axios from 'axios';
 import Tooltip from '@mui/material/Tooltip';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import CheckIcon from '@mui/icons-material/Check';
 
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -289,6 +290,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <h2 style={{ margin: '0 24px', fontWeight: 400, color: '#222', fontSize: 32, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
+                        {/* Real-time availability badge - responsive */}
+                        <div className="realtime-badge-wrap">
+                            <div className="realtime-badge">
+                                <CheckIcon style={{ fontSize: 20, marginRight: 4 }} />
+                                <span className="realtime-badge-text">Real-time availability</span>
+                            </div>
+                        </div>
                     </div>
                     {/* Centered currently viewing info under the heading */}
                     <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
@@ -549,6 +557,41 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 .available-day { background: #61D836 !important; }
                 @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 #ff9800; } 70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } }
             `}</style>
+            <style>{`
+.realtime-badge-wrap {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+@media (max-width: 700px) {
+  .realtime-badge-wrap {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin: 8px 0 0 0;
+  }
+}
+.realtime-badge {
+  background: #61D836;
+  color: #fff;
+  border-radius: 7px;
+  padding: 2px 10px;
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.realtime-badge-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+`}</style>
         </>
     );
 };

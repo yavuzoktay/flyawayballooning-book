@@ -4,17 +4,23 @@ import BookNow from './frontend/pages/BookNow';
 import '../src/assets/css/frontend/style.css';
 import '../src/assets/css/frontend/booking.css';
 import Index from './frontend/pages/Index';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/book" element={<BookNow />} />
-            <Route path="/" element={<BookNow />} />
-          </Routes>
-      </BrowserRouter>
+      <Elements stripe={stripePromise}>
+        <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/book" element={<BookNow />} />
+              <Route path="/" element={<BookNow />} />
+            </Routes>
+        </BrowserRouter>
+      </Elements>
     </div>
   );
 }
