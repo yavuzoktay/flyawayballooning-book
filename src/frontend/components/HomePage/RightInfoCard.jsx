@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -112,6 +112,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const handleBookData = async () => {
         console.log("Book button clicked");
         console.log("API_BASE_URL:", API_BASE_URL);
+        
+        // Validate Buy Gift fields if needed
+        if (isGiftVoucher && validateBuyGiftFields) {
+            const isValid = validateBuyGiftFields();
+            if (!isValid) {
+                return; // Validation failed, don't proceed
+            }
+        }
         if (isFlightVoucher || isRedeemVoucher || isGiftVoucher) {
             // VOUCHER POST
             const voucherData = {

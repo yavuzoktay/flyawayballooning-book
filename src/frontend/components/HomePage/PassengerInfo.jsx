@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import Accordion from "../Common/Accordion";
 import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation }) => {
+const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation }, ref) => {
   // Parse passengerCount from chooseFlightType and ensure it's at least 1
   // For Buy Gift, always 1 passenger
   const passengerCount = activitySelect === 'Buy Gift' ? 1 : Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
@@ -32,6 +32,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
   }, [passengerCount, setPassengerData, chooseFlightType]);
 
   const [emailErrors, setEmailErrors] = useState([]);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   // Handle passenger input change
   const handlePassengerInputChange = (index, e) => {
@@ -41,6 +42,18 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
       updatedData[index] = { ...updatedData[index], [name]: value };
       return updatedData;
     });
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[index] && validationErrors[index][name]) {
+      setValidationErrors(prev => {
+        const newErrors = [...prev];
+        if (newErrors[index]) {
+          newErrors[index] = { ...newErrors[index], [name]: false };
+        }
+        return newErrors;
+      });
+    }
+    
     // Email validation
     if (name === 'email') {
       const newErrors = [...emailErrors];
@@ -58,6 +71,32 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
       return updatedData;
     });
   };
+
+  // Validation function for Buy Gift
+  const validateFields = () => {
+    if (!isGiftVoucher) return true;
+    
+    const errors = [];
+    passengerData.forEach((passenger, index) => {
+      const passengerErrors = {};
+      if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
+      if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
+      if (!passenger.phone?.trim()) passengerErrors.phone = true;
+      if (!passenger.email?.trim()) passengerErrors.email = true;
+      
+      if (Object.keys(passengerErrors).length > 0) {
+        errors[index] = passengerErrors;
+      }
+    });
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  // Expose validation function to parent
+  useImperativeHandle(ref, () => ({
+    validate: validateFields
+  }));
 
   // Styles for custom ticked circle
   const checkStyle = {
@@ -104,7 +143,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
         {/* Generate passenger forms based on passenger count */}
         {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
-          const error = (typeof passengerData[index]?.errors === 'object') ? passengerData[index].errors : {};
+          const error = validationErrors[index] || {};
           return (
             <div className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px' }}>
               <div className="presnger_one" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -153,32 +192,32 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
               <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
                   <div style={{ flex: 1 }}>
-                    <label>First Name*</label>
+                    <label>First Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="firstName"
                       value={passenger.firstName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
-                      required
+                      required={isGiftVoucher}
                       style={error?.firstName ? { border: '1.5px solid red' } : {}}
                       placeholder="First Name"
                     />
-                    {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label>Last Name*</label>
+                    <label>Last Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="lastName"
                       value={passenger.lastName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
-                      required
+                      required={isGiftVoucher}
                       style={error?.lastName ? { border: '1.5px solid red' } : {}}
                       placeholder="Last Name"
                     />
-                    {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
                   </div>
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
@@ -205,7 +244,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                         placeholder="Kg"
                         style={error?.weight ? { border: '1.5px solid red' } : {}}
                       />
-                      {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                      {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                     </div>
                   )}
                 </div>
@@ -213,7 +252,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                 {index === 0 && (
                   <div style={{ width: '100%', display: 'flex', gap: '15px', marginTop: '10px' }}>
                     <div style={{ flex: 1 }}>
-                      <label>Mobile Number</label>
+                      <label>Mobile Number{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                       <input
                         type="tel"
                         inputMode="numeric"
@@ -223,21 +262,23 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
                         value={passenger.phone || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Mobile Number"
+                        required={isGiftVoucher}
                         style={error?.phone ? { border: '1.5px solid red' } : {}}
                       />
-                      {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                      {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label>Email</label>
+                      <label>Email{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                       <input
                         type="email"
                         name="email"
                         value={passenger.email || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Email"
+                        required={isGiftVoucher}
                         style={error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}}
                       />
-                      {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                      {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
                       {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
                     </div>
                   </div>
@@ -249,7 +290,7 @@ const PassengerInfo = ({ isGiftVoucher, isFlightVoucher, addPassenger, passenger
       </div>
     </Accordion>
   );
-};
+});
 
 export function validatePassengers(passengerData) {
   return passengerData.map((p) => {

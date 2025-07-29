@@ -42,6 +42,10 @@ const Index = () => {
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
     
+    // Validation refs for Buy Gift
+    const recipientDetailsRef = React.useRef();
+    const passengerInfoRef = React.useRef();
+    
     const isFlightVoucher = activitySelect === "Flight Voucher";
     const isRedeemVoucher = activitySelect === "Redeem Voucher";
     const isGiftVoucher = activitySelect === "Buy Gift";
@@ -58,6 +62,33 @@ const Index = () => {
             return; // Eğer aktivite seçilmediyse, hiçbir şey yapma
         }
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
+    };
+
+    // Validation function for Buy Gift
+    const validateBuyGiftFields = () => {
+        if (activitySelect !== "Buy Gift") return true;
+        
+        let isValid = true;
+        
+        // Validate Recipient Details
+        if (recipientDetailsRef.current) {
+            const recipientValid = recipientDetailsRef.current.validate();
+            if (!recipientValid) {
+                setActiveAccordion("recipent-details");
+                isValid = false;
+            }
+        }
+        
+        // Validate Purchaser Information
+        if (passengerInfoRef.current) {
+            const passengerValid = passengerInfoRef.current.validate();
+            if (!passengerValid) {
+                setActiveAccordion("passenger-info");
+                isValid = false;
+            }
+        }
+        
+        return isValid;
     };
 
     // Handle voucher code submission
@@ -507,7 +538,21 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                 />
                                             )}
+                                            {!(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
+                                                <EnterRecipientDetails 
+                                                    ref={recipientDetailsRef}
+                                                    isBookFlight={isBookFlight}
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isGiftVoucher={isGiftVoucher}
+                                                    recipientDetails={recipientDetails} 
+                                                    setRecipientDetails={setRecipientDetails} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion}
+                                                />
+                                            )}
                                             <PassengerInfo
+                                                ref={passengerInfoRef}
                                                 isGiftVoucher={isGiftVoucher}
                                                 isFlightVoucher={isFlightVoucher}
                                                 passengerData={passengerData}
@@ -544,32 +589,7 @@ const Index = () => {
                                                     setActiveAccordion={handleSetActiveAccordion}
                                                 />
                                             )}
-                                            {!(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
-                                                <EnterRecipientDetails 
-                                                    isBookFlight={isBookFlight}
-                                                    isRedeemVoucher={isRedeemVoucher} 
-                                                    isFlightVoucher={isFlightVoucher} 
-                                                    recipientDetails={recipientDetails} 
-                                                    setRecipientDetails={setRecipientDetails} 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion}
-                                                />
-                                            )}
-                                            {activitySelect === "Buy Gift" && (
-                                                <AddOnsSection 
-                                                    isGiftVoucher={isGiftVoucher} 
-                                                    isRedeemVoucher={isRedeemVoucher} 
-                                                    isFlightVoucher={isFlightVoucher} 
-                                                    chooseAddOn={chooseAddOn} 
-                                                    setChooseAddOn={setChooseAddOn} 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
-                                                    chooseLocation={chooseLocation} 
-                                                    chooseFlightType={chooseFlightType} 
-                                                    activitySelect={activitySelect}
-                                                    disabled={false}
-                                                />
-                                            )}
+
                                         </>
                                     )}
                                 </div>
@@ -594,6 +614,7 @@ const Index = () => {
                                 voucherCode={voucherCode}
                                 resetBooking={resetBooking}
                                 preference={preference}
+                                validateBuyGiftFields={validateBuyGiftFields}
                             />
                         </div>
                     </div>
