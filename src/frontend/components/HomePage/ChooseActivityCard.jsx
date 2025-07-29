@@ -3,7 +3,7 @@ import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
 
-const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus }) => {
+const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
     const cardBackRef = useRef(null);
@@ -14,6 +14,13 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             setIsFlipped(false);
         }
     }, [voucherStatus]);
+
+    // Update localVoucherCode when voucherCode prop changes
+    useEffect(() => {
+        if (voucherCode) {
+            setLocalVoucherCode(voucherCode);
+        }
+    }, [voucherCode]);
 
     // When activity changes to "Redeem Voucher", flip to show the voucher input
     useEffect(() => {
@@ -160,9 +167,18 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         </h3>
                                         {item.subText && <p>{item.subText}</p>}
                                         {localVoucherCode && (
-                                            <p style={{ fontSize: '12px', marginTop: '5px', color: activitySelect === item.label ? 'white' : '#666' }}>
-                                                Click to enter new code
-                                            </p>
+                                            <div style={{ 
+                                                fontSize: '14px', 
+                                                marginTop: '8px', 
+                                                color: activitySelect === item.label ? '#03a9f4' : '#666',
+                                                fontWeight: '500',
+                                                backgroundColor: activitySelect === item.label ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                display: 'inline-block'
+                                            }}>
+                                                Voucher: {localVoucherCode}
+                                            </div>
                                         )}
                                     </label>
                                 </div>

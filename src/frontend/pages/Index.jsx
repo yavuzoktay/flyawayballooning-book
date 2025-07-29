@@ -42,9 +42,10 @@ const Index = () => {
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
     
-    // Validation refs for Buy Gift
+    // Validation refs for Buy Gift and Flight Voucher
     const recipientDetailsRef = React.useRef();
     const passengerInfoRef = React.useRef();
+    const additionalInfoRef = React.useRef();
     
     const isFlightVoucher = activitySelect === "Flight Voucher";
     const isRedeemVoucher = activitySelect === "Redeem Voucher";
@@ -64,14 +65,14 @@ const Index = () => {
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
 
-    // Validation function for Buy Gift
+    // Validation function for Buy Gift and Flight Voucher
     const validateBuyGiftFields = () => {
-        if (activitySelect !== "Buy Gift") return true;
+        if (activitySelect !== "Buy Gift" && activitySelect !== "Flight Voucher") return true;
         
         let isValid = true;
         
-        // Validate Recipient Details
-        if (recipientDetailsRef.current) {
+        // Validate Recipient Details (only for Buy Gift)
+        if (activitySelect === "Buy Gift" && recipientDetailsRef.current) {
             const recipientValid = recipientDetailsRef.current.validate();
             if (!recipientValid) {
                 setActiveAccordion("recipent-details");
@@ -79,11 +80,20 @@ const Index = () => {
             }
         }
         
-        // Validate Purchaser Information
+        // Validate Passenger Information (for both Buy Gift and Flight Voucher)
         if (passengerInfoRef.current) {
             const passengerValid = passengerInfoRef.current.validate();
             if (!passengerValid) {
                 setActiveAccordion("passenger-info");
+                isValid = false;
+            }
+        }
+        
+        // Validate Additional Information (for both Buy Gift and Flight Voucher)
+        if (additionalInfoRef.current) {
+            const additionalValid = additionalInfoRef.current.validate();
+            if (!additionalValid) {
+                setActiveAccordion("additional-info");
                 isValid = false;
             }
         }
@@ -271,6 +281,7 @@ const Index = () => {
                                         setActivitySelect={setActivitySelect} 
                                         onVoucherSubmit={handleVoucherSubmit}
                                         voucherStatus={voucherStatus}
+                                        voucherCode={voucherCode}
                                     />
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
@@ -454,6 +465,18 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
                                             />
+                                            <AdditionalInfo 
+                                                ref={additionalInfoRef}
+                                                isGiftVoucher={isGiftVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher} 
+                                                isFlightVoucher={isFlightVoucher} 
+                                                isBookFlight={isBookFlight}
+                                                additionalInfo={additionalInfo} 
+                                                setAdditionalInfo={setAdditionalInfo} 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion}
+                                                flightType={chooseFlightType.type}
+                                            />
                                             <EnterPreferences 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -566,8 +589,10 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
                                             />
-                                            {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
+
+                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
                                                 <AdditionalInfo 
+                                                    ref={additionalInfoRef}
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
                                                     isFlightVoucher={isFlightVoucher} 

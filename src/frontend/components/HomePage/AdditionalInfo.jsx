@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef, useImperativeHandle } from "react";
 import Accordion from "../Common/Accordion";
 
 const hearUs = [
@@ -47,7 +47,9 @@ export function validateAdditionalInfo(additionalInfo, flightType) {
     };
 }
 
-const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }) => {
+const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }, ref) => {
+    const [validationErrors, setValidationErrors] = useState({});
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -55,11 +57,36 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlight
             ...prev,
             [name]: value, // Directly set the value instead of handling checkboxes
         }));
+
+        // Clear validation error when user starts typing
+        if (validationErrors[name]) {
+            setValidationErrors(prev => ({ ...prev, [name]: false }));
+        }
     };
 
+    // Validation function
+    const validateFields = () => {
+        const errors = {};
+        
+        // Additional Notes is NOT required
+        // Only validate other fields
+        
+        if (!additionalInfo.hearAboutUs?.trim()) errors.hearAboutUs = true;
+        if (!additionalInfo.reason?.trim()) errors.reason = true;
+        
+        // Prefer is only required for Private Flight
+        if (flightType === 'Private Flight' && !additionalInfo.prefer?.trim()) {
+            errors.prefer = true;
+        }
+        
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
-
-
+    // Expose validation function to parent
+    useImperativeHandle(ref, () => ({
+        validate: validateFields
+    }));
 
     return (
         <Accordion title="Additional Information" id="additional-info" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
@@ -73,26 +100,25 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlight
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
                         value={additionalInfo.notes || ""}
-                        style={errors.notes ? { border: '1.5px solid red' } : {}}
                     ></textarea>
-                    {errors.notes && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
                 </div>
                 {flightType === 'Private Flight' && (
                     <div className="mt-4 prefer">
-                        <label className="block text-base font-semibold">Which would you prefer?</label>
+                        <label className="block text-base font-semibold">Which would you prefer?<span style={{ color: 'red' }}>*</span></label>
                         <select
                             name="prefer"
                             className="w-full border p-2 rounded mt-2"
                             value={additionalInfo.prefer || ""}
                             onChange={handleChange}
-                            style={errors.prefer ? { border: '1.5px solid red' } : {}}
+                            required
+                            style={validationErrors.prefer ? { border: '1.5px solid red' } : {}}
                         >
                             <option value="">Please select</option>
                             {prefer.map((input, index) => (
                                 <option key={index} value={input}>{input}</option>
                             ))}
                         </select>
-                        {errors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                        {validationErrors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Please select a preference</span>}
                     </div>
                 )}
                 {(isRedeemVoucher || isBookFlight) && (
@@ -112,8 +138,15 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlight
                 )}
 
                 <div className="selector  mt-4">
-                    <p className="block text-base font-semibold">How did you hear about us?</p>
-                    <select name="hearAboutUs" className="w-full border p-2 rounded mt-2" onChange={handleChange} value={additionalInfo.hearAboutUs || ""} style={errors.hearAboutUs ? { border: '1.5px solid red' } : {}}>
+                    <p className="block text-base font-semibold">How did you hear about us?<span style={{ color: 'red' }}>*</span></p>
+                    <select 
+                        name="hearAboutUs" 
+                        className="w-full border p-2 rounded mt-2" 
+                        onChange={handleChange} 
+                        value={additionalInfo.hearAboutUs || ""} 
+                        required
+                        style={validationErrors.hearAboutUs ? { border: '1.5px solid red' } : {}}
+                    >
                         <option value="">Please select</option>
                         {
                             hearUs?.map((opt) => {
@@ -123,12 +156,19 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlight
                             })
                         }
                     </select>
-                    {errors.hearAboutUs && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    {validationErrors.hearAboutUs && <span style={{ color: 'red', fontSize: 12 }}>Please select how you heard about us</span>}
                 </div>
 
                 <div className="selector  mt-4">
-                    <label className="block text-base font-semibold">Why Hot Air Ballooning?</label>
-                    <select name="reason" className="w-full border p-2 rounded mt-2" onChange={handleChange} value={additionalInfo.reason || ""} style={errors.reason ? { border: '1.5px solid red' } : {}}>
+                    <label className="block text-base font-semibold">Why Hot Air Ballooning?<span style={{ color: 'red' }}>*</span></label>
+                    <select 
+                        name="reason" 
+                        className="w-full border p-2 rounded mt-2" 
+                        onChange={handleChange} 
+                        value={additionalInfo.reason || ""} 
+                        required
+                        style={validationErrors.reason ? { border: '1.5px solid red' } : {}}
+                    >
                         <option value="">Please select</option>
                         {
                             ballooningReason?.map((opt) => {
@@ -138,11 +178,11 @@ const AdditionalInfo = ({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlight
                             })
                         }
                     </select>
-                    {errors.reason && <span style={{ color: 'red', fontSize: 12 }}>Required</span>}
+                    {validationErrors.reason && <span style={{ color: 'red', fontSize: 12 }}>Please select why you chose hot air ballooning</span>}
                 </div>
             </div>
         </Accordion>
     );
-};
+});
 
 export default AdditionalInfo;
