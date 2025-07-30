@@ -247,8 +247,8 @@ const Index = () => {
             <div className="header-bg">
                 <div className="header-layout">
                     <Container>
-                        <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div className="logo" style={{ marginRight: '32px' }}>
+                        <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '80px' }}>
+                            <div className="logo" style={{ marginRight: '32px', flexShrink: 0, minWidth: '200px' }}>
                                 <a href="/" onClick={e => { e.preventDefault(); window.location.reload(); }} style={{ display: 'inline-block' }}>
                                     <img src={LOGO} alt="Fly Away Ballooning Logo" />
                                 </a>
@@ -256,11 +256,9 @@ const Index = () => {
                             {showBookingHeader && (
                                 <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
                             )}
-                            {!(activeAccordion === 'live-availability') && (
-                                <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%' }}>
-                                    <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '48px', objectFit: 'contain', maxWidth: '100%' }} />
-                                </div>
-                            )}
+                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', flexShrink: 0 }}>
+                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '60px', width: '220px', objectFit: 'contain' }} />
+                            </div>
                         </div>
                     </Container>
                 </div>
