@@ -221,7 +221,7 @@ const VoucherType = ({
                                 }}>
                                     <h3 style={{
                                         fontSize: 18,
-                                        fontWeight: 600,
+                                        fontWeight: 300,
                                         margin: 0,
                                         marginBottom: 6,
                                         color: '#4a4a4a'

@@ -14,7 +14,6 @@ const weatherRefundableHoverTexts = {
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
-    const [showTerms, setShowTerms] = useState(false); // Controls modal visibility
     const [selectedFlight, setSelectedFlight] = useState(null);
     const [locationPricing, setLocationPricing] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -115,32 +114,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     // Debug: Log experiences data
     console.log('Experiences after filtering:', experiences);
 
-    // Bristol-specific terms
-    const bristolTerms = [
-        'Balloon flights are highly dependent on weather conditions and will only proceed if deemed safe by the flight director on the day of the event.',
-        'Fiesta Flights are strictly non-refundable under any circumstances and cannot be deferred to the following year\'s Bristol Balloon Fiesta.',
-        'If your 2025 Bristol Balloon Fiesta Flight is cancelled, your voucher will remain valid for 24 months and can be redeemed against the equivalent flight i.e a private or shared flight (excluding fiesta flights).',
-        'Due to high demand and very limited availability, we are unable to accommodate rescheduling requests during the Fiesta.',
-        'Flight premiums are strictly non-refundable under any circumstances due to the additional costs associated with attending the event.',
-        'If you are not happy with these terms and conditions please do not book this flight.'
-    ];
 
-    // Flight Voucher için özel terms
-    const flightVoucherTerms = [
-        'Ballooning is a weather dependent activity.',
-        'Flight Vouchers are valid for a strict 24 months.',
-        'If 10 attempts to fly are made within 24 months which are cancelled by us, we will extend the voucher for a further 12 months free of charge.',
-        'The date of your booked flight must be in the validity of your flight voucher.',
-        'Non-refundable under any circumstances.',
-        'Your flight voucher will never expire so long as you meet the terms & conditions.'
-    ];
-
-    // Buy Gift için özel terms
-    const buyGiftTerms = [
-        "Remember, vouchers are valid for a strict period of 24 months from the original purchase date. For your voucher to be extended for a further 12 months free of charge, you must have made at least 10 attempts to fly within the voucher's validity period.",
-        "You can purchase a 12 month voucher extension for £30pp whilst redeeming, instead of £60pp if needed later.",
-        "All voucher extension fees must be paid within the validity of your current voucher."
-    ];
 
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
@@ -201,21 +175,13 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         };
         console.log('Setting selected flight:', flightData);
         setSelectedFlight(flightData);
-        console.log('Setting showTerms to true');
-        setShowTerms(true); // Show modal
+        // Directly confirm selection without showing Terms & Conditions popup
+        console.log('Directly confirming selection');
+        setChooseFlightType(flightData);
+        getBookingDates(flightData.type);
     };
 
-    const confirmSelection = () => {
-        console.log('confirmSelection called, selectedFlight:', selectedFlight);
-        if (selectedFlight) {
-            console.log('Setting flight type:', selectedFlight);
-            setChooseFlightType(selectedFlight);
-            getBookingDates(selectedFlight.type);
-        } else {
-            console.error('No selectedFlight available');
-        }
-        setShowTerms(false); // Close modal
-    };
+
 
     // Get Booking Dates
     async function getBookingDates(type) {
@@ -299,52 +265,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 )}
             </div>
 
-            {/* Terms & Conditions Modal */}
-            {showTerms && (
-                <>
-                    <div className="overlay"></div>
-                    <div className="popup">
-                        <div className="modal-content">
-                            <div className="popup-text">
-                                <h3>TERMS & CONDITIONS</h3>
-                                {selectedFlight && (
-                                    <p style={{ fontSize: '16px', marginTop: '10px' }}>
-                                        {selectedFlight.type} for {selectedFlight.passengerCount} passengers: 
-                                        <strong> £{selectedFlight.totalPrice}</strong> 
-                                        {selectedFlight.type === "Shared Flight" && (
-                                            <span style={{ fontSize: '14px', display: 'block', marginTop: '5px' }}>
-                                                (£{selectedFlight.price} per person)
-                                            </span>
-                                        )}
-                                    </p>
-                                )}
-                            </div>
-                            <ul>
-                                {(isGiftVoucher
-                                    ? buyGiftTerms
-                                    : isFlightVoucher
-                                        ? flightVoucherTerms
-                                        : (chooseLocation === 'Bristol Fiesta' ? bristolTerms : [
-                                            'Ballooning is a weather-dependent activity.',
-                                            'Your voucher is valid for 24 months.',
-                                            'Without the weather refundable option, your voucher is non-refundable under any circumstances. However, re-bookable as needed within the voucher validity period.',
-                                            'If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.',
-                                            'Within 48 hours of your flight, no changes or cancellations can be made.',
-                                            'Your flight will never expire so long as you meet the terms & conditions.'
-                                        ])
-                                ).map((item, idx) => (
-                                    <li key={idx}>{item}</li>
-                                ))}
-                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See Full Terms & Conditions</a></li>
-                            </ul>
-                            <div className="modal-buttons">
-                                <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>
-                                <button className="cancel-btn" onClick={() => setShowTerms(false)}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
+
         </Accordion>
     );
 };
