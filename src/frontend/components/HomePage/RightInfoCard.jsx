@@ -286,7 +286,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 <div className="bottom_main">
                     <h3>Total</h3>
                     <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>
-                        {activitySelect === 'Book Flight' ? "" : `£${totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}`}
+                        {totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ""}
                     </p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
