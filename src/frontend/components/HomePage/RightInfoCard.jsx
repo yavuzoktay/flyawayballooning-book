@@ -44,10 +44,21 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0);
     
-    // For Book Flight, exclude flight type price from total
-    const totalPrice = activitySelect === 'Book Flight' 
-        ? parseFloat(voucherTypePrice) + parseFloat(addOnPrice)
-        : parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
+    // Calculate total price based on activity type and selections
+    let totalPrice = 0;
+    
+    if (activitySelect === 'Book Flight') {
+        // For Book Flight, only include voucher type price and add-ons
+        totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
+    } else if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
+        // For Flight Voucher and Buy Gift, only show total when voucher type is selected
+        if (selectedVoucherType) {
+            totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
+        }
+    } else {
+        // For other activity types (like Redeem Voucher), include all components
+        totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
+    }
 
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
