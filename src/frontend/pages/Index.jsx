@@ -321,6 +321,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType} 
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -395,6 +396,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType} 
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -472,6 +474,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType} 
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -559,6 +562,7 @@ const Index = () => {
                                                     selectedVoucherType={selectedVoucherType} 
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
+                                                    chooseFlightType={chooseFlightType}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (

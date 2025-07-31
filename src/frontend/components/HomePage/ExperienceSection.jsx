@@ -62,7 +62,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             8: privatePrice ? Math.round(privatePrice * 4) : 1800
         };
 
-        return [
+        const experiencesArray = [
             {
                 title: "Shared Flight",
                 img: sharedFlightImg,
@@ -75,12 +75,17 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {
                 title: "Private Charter",
                 img: privateCharterImg,
-                price: privatePrice ? (privatePrice / 2).toString() : "450", // Default per person price
-                desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
+                price: isBristol ? (bristolPrivatePrices[2] / 2).toString() : (privatePrice ? (privatePrice / 2).toString() : "450"), // Default per person price
+                desc: isBristol 
+                    ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
+                    : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
                 details: [],
                 maxFlight: "",
-                passengerOptions: [2, 3, 4, 8],
-                specialPrices: {
+                passengerOptions: isBristol ? [2, 3] : [2, 3, 4, 8],
+                specialPrices: isBristol ? {
+                    2: bristolPrivatePrices[2] / 2,  // Price per person for 2 passengers
+                    3: bristolPrivatePrices[3] / 3   // Price per person for 3 passengers
+                } : {
                     2: privatePrice ? (privatePrice / 2) : 450,  // Price per person for 2 passengers
                     3: privatePrice ? (privatePrice / 3) : 350,  // Price per person for 3 passengers
                     4: privatePrice ? (privatePrice / 4) : 300,  // Price per person for 4 passengers
@@ -88,14 +93,19 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 }
             }
         ];
+        return experiencesArray;
     };
 
     // --- FLIGHT TYPE FILTERING ---
     // locationPricing.flight_type ör: "Private,Shared"
     let allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim()).filter(Boolean);
-    if ((isFlightVoucher || isGiftVoucher) && allowedTypes.length === 0) {
+    
+    // If no allowed types are specified (e.g., when locationPricing is not loaded yet), 
+    // or if it's a voucher type, show all experiences
+    if (allowedTypes.length === 0 || isFlightVoucher || isGiftVoucher) {
         allowedTypes = ['Shared', 'Private'];
     }
+    
     const experiences = getExperiences().filter(exp => {
         if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
         if (exp.title === "Private Charter") return allowedTypes.includes("Private");
@@ -103,14 +113,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     });
     
     // Debug: Log experiences data
-    console.log('Experiences updated:', experiences);
-    console.log('Location pricing:', locationPricing);
-
-    // For Private Flight, adjust passenger options and description for Bristol
-    const privatePassengerOptions = isBristol ? [2, 3] : [2, 3, 4, 8];
-    const privateDesc = isBristol
-        ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
-        : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.";
+    console.log('Experiences after filtering:', experiences);
 
     // Bristol-specific terms
     const bristolTerms = [
@@ -148,7 +151,18 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     };
 
     const handleSelectClick = (type, passengerCount, price, index) => {
-        if (!passengerCount) return; // Prevent selection without a valid passenger number
+        console.log('handleSelectClick called with:', { type, passengerCount, price, index });
+        
+        if (!passengerCount) {
+            console.error('No passenger count provided');
+            return; // Prevent selection without a valid passenger number
+        }
+        
+        // Safety check for experiences array
+        if (!experiences || experiences.length === 0) {
+            console.error('Experiences array is not available');
+            return;
+        }
 
         // Calculate the correct price
         let finalPrice, totalPrice;
@@ -161,28 +175,44 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             finalPrice = bristolPrivatePrices[passengerCount];
             totalPrice = bristolPrivatePrices[passengerCount];
         } else if (index === 1) {
-            // For Private Flight, use the total price directly from experiences
-            totalPrice = experiences[1].totalPrices[passengerCount];
-            finalPrice = experiences[1].specialPrices[passengerCount]; // Still store the per person price
+            // For Private Flight, calculate total price from specialPrices
+            if (!experiences[1] || !experiences[1].specialPrices) {
+                console.error('Private Charter pricing is not available');
+                return;
+            }
+            const perPersonPrice = experiences[1].specialPrices[passengerCount];
+            if (!perPersonPrice) {
+                console.error('Invalid passenger count or missing pricing for Private Charter');
+                return;
+            }
+            totalPrice = perPersonPrice * passengerCount;
+            finalPrice = perPersonPrice; // Store the per person price
         } else {
             // For Shared Flight, calculate total from per person price
             finalPrice = price;
             totalPrice = price * passengerCount;
         }
 
-        setSelectedFlight({ 
+        const flightData = { 
             type, 
             passengerCount, 
             price: finalPrice,
             totalPrice: totalPrice
-        });
+        };
+        console.log('Setting selected flight:', flightData);
+        setSelectedFlight(flightData);
+        console.log('Setting showTerms to true');
         setShowTerms(true); // Show modal
     };
 
     const confirmSelection = () => {
+        console.log('confirmSelection called, selectedFlight:', selectedFlight);
         if (selectedFlight) {
+            console.log('Setting flight type:', selectedFlight);
             setChooseFlightType(selectedFlight);
             getBookingDates(selectedFlight.type);
+        } else {
+            console.error('No selectedFlight available');
         }
         setShowTerms(false); // Close modal
     };
@@ -201,6 +231,13 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         }
     }
 
+    // Debug logging for troubleshooting
+    if (experiences.length === 0) {
+        console.log('WARNING: Experiences array is empty!');
+        console.log('Location pricing:', locationPricing);
+        console.log('Allowed types:', allowedTypes);
+    }
+    
     return (
         <Accordion
             title="Select Experience"
@@ -208,7 +245,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             onToggle={() => setActiveAccordion('select-experience')}
         >
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
-                {getExperiences().map((experience, index) => (
+                {experiences && experiences.length > 0 ? experiences.map((experience, index) => (
                     <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '320px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
                         <img src={experience.img} alt={experience.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
                         <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -238,13 +275,28 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                     marginBottom: 0,
                                     transition: 'background 0.2s',
                                 }}
-                                onClick={() => handleSelectClick(experience.title, 1, experience.price, index)}
+                                onClick={() => {
+                                    // Use the first valid passenger count for each experience type
+                                    const defaultPassengerCount = experience.passengerOptions ? experience.passengerOptions[0] : 1;
+                                    const priceNumber = parseFloat(experience.price);
+                                    console.log('Button clicked:', {
+                                        type: experience.title,
+                                        passengerCount: defaultPassengerCount,
+                                        price: priceNumber,
+                                        index: index
+                                    });
+                                    handleSelectClick(experience.title, defaultPassengerCount, priceNumber, index);
+                                }}
                             >
                                 Select
                             </button>
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
+                        <p>Loading experiences...</p>
+                    </div>
+                )}
             </div>
 
             {/* Terms & Conditions Modal */}

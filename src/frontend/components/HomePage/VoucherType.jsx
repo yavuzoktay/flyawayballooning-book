@@ -37,10 +37,11 @@ const scrollbarStyles = `
 
 const VoucherType = ({ 
     activeAccordion, 
-    setActiveAccordion, 
+    setActiveAccordion = () => {}, 
     selectedVoucherType, 
     setSelectedVoucherType,
-    activitySelect 
+    activitySelect,
+    chooseFlightType
 }) => {
     const [quantities, setQuantities] = useState({
         'Weekday Morning': 1,
@@ -107,9 +108,23 @@ const VoucherType = ({
     };
 
     const handleSelectVoucher = (voucher) => {
-        setSelectedVoucherType(voucher);
+        const quantity = quantities[voucher.title];
+        const totalPrice = voucher.price * quantity;
+        
+        const voucherWithQuantity = {
+            ...voucher,
+            quantity: quantity,
+            totalPrice: totalPrice
+        };
+        
+        setSelectedVoucherType(voucherWithQuantity);
         setActiveAccordion(null); // Close this accordion after selection
     };
+
+    // Hide VoucherType section if "Private Charter" is selected
+    if (chooseFlightType?.type === "Private Charter") {
+        return null;
+    }
 
     return (
         <>
