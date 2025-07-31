@@ -43,7 +43,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         }
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0);
-    const totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
+    
+    // For Book Flight, exclude flight type price from total
+    const totalPrice = activitySelect === 'Book Flight' 
+        ? parseFloat(voucherTypePrice) + parseFloat(addOnPrice)
+        : parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice);
 
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
@@ -281,7 +285,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 )}
                 <div className="bottom_main">
                     <h3>Total</h3>
-                    <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>£{totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}</p>
+                    <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>
+                        {activitySelect === 'Book Flight' ? "" : `£${totalPrice > 0 ? totalPrice.toFixed(2) : "0.00"}`}
+                    </p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
                     <button
