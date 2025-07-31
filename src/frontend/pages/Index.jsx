@@ -390,14 +390,6 @@ const Index = () => {
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
                                             />
-                                            <VoucherType 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
-                                                selectedVoucherType={selectedVoucherType} 
-                                                setSelectedVoucherType={setSelectedVoucherType}
-                                                activitySelect={activitySelect}
-                                                chooseFlightType={chooseFlightType}
-                                            />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 

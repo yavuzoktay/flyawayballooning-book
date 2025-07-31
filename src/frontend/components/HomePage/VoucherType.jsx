@@ -48,6 +48,8 @@ const VoucherType = ({
         'Flexible Weekday': 1,
         'Any Day Flight': 1
     });
+    const [showTerms, setShowTerms] = useState(false);
+    const [selectedVoucher, setSelectedVoucher] = useState(null);
 
     const voucherTypes = [
         {
@@ -117,8 +119,50 @@ const VoucherType = ({
             totalPrice: totalPrice
         };
         
-        setSelectedVoucherType(voucherWithQuantity);
-        setActiveAccordion(null); // Close this accordion after selection
+        setSelectedVoucher(voucherWithQuantity);
+        setShowTerms(true); // Show modal
+    };
+
+    const confirmSelection = () => {
+        if (selectedVoucher) {
+            setSelectedVoucherType(selectedVoucher);
+            setActiveAccordion(null); // Close this accordion after selection
+        }
+        setShowTerms(false); // Close modal
+    };
+
+    const getTermsForVoucher = (voucherTitle) => {
+        if (voucherTitle === "Weekday Morning") {
+            return [
+                'Your voucher is valid for weekday morning flights only. You may upgrade your voucher at any time to include weekday evenings or weekends if you wish.',
+                'Ballooning is a weather-dependent activity.',
+                'Your voucher is valid for 18 months from the date of purchase.',
+                'Vouchers are non-refundable under any circumstances but remain fully re-bookable within the 18-month validity period.',
+                'If 6 separate flight attempts within the 18 months are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
+                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
+                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
+            ];
+        } else if (voucherTitle === "Flexible Weekday") {
+            return [
+                'Your voucher is valid for weekday morning and evening flights only. You may upgrade your voucher at any time to include weekends if you wish.',
+                'Please note that ballooning is a weather-dependent activity.',
+                'Your voucher is valid for 18 months from the date of purchase.',
+                'Vouchers are non-refundable under any circumstances but remain fully re-bookable within the 18-month validity period.',
+                'If 6 separate flight attempts within this period are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
+                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
+                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
+            ];
+        } else {
+            return [
+                'Your voucher is valid for morning and evening flights, 7 days a week.',
+                'Please note that ballooning is a weather-dependent activity.',
+                'Your voucher is valid for 24 months from the date of purchase.',
+                'Without the Weather Refundable option, your voucher is non-refundable under any circumstances. However, it remains fully re-bookable as needed within the voucher validity period.',
+                'If 10 separate flight attempts within this period are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
+                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
+                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
+            ];
+        }
     };
 
     // Hide VoucherType section if "Private Charter" is selected
@@ -289,6 +333,39 @@ const VoucherType = ({
                     </div>
                 </div>
             </Accordion>
+
+            {/* Terms & Conditions Modal */}
+            {showTerms && (
+                <>
+                    <div className="overlay"></div>
+                    <div className="popup">
+                        <div className="modal-content">
+                            <div className="popup-text">
+                                <h3>TERMS & CONDITIONS</h3>
+                                {selectedVoucher && (
+                                    <p style={{ fontSize: '16px', marginTop: '10px' }}>
+                                        {selectedVoucher.title} for {selectedVoucher.quantity} passengers: 
+                                        <strong> £{selectedVoucher.totalPrice}</strong> 
+                                        <span style={{ fontSize: '14px', display: 'block', marginTop: '5px' }}>
+                                            (£{selectedVoucher.price} per person)
+                                        </span>
+                                    </p>
+                                )}
+                            </div>
+                            <ul>
+                                {getTermsForVoucher(selectedVoucher?.title).map((item, idx) => (
+                                    <li key={idx}>{item}</li>
+                                ))}
+                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See full Terms & Conditions</a></li>
+                            </ul>
+                            <div className="modal-buttons">
+                                <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>
+                                <button className="cancel-btn" onClick={() => setShowTerms(false)}>Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </>
     );
 };
