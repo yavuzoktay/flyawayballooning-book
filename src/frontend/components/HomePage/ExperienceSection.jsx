@@ -207,8 +207,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     return (
         <Accordion
             title="Select Experience"
-            isActive={activeAccordion === 'select-experience'}
-            onToggle={() => setActiveAccordion('select-experience')}
+            id="select-experience"
+            activeAccordion={activeAccordion}
+            setActiveAccordion={setActiveAccordion}
         >
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
                 {experiences && experiences.length > 0 ? experiences.map((experience, index) => (
