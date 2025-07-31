@@ -38,12 +38,12 @@ const prefer = [
     "We'll bring our own"
 ]
 
-export function validateAdditionalInfo(additionalInfo, flightType) {
+export function validateAdditionalInfo(additionalInfo, flightType, isBookFlight = false) {
     return {
         notes: !additionalInfo.notes,
         hearAboutUs: !additionalInfo.hearAboutUs,
         reason: !additionalInfo.reason,
-        prefer: flightType !== "Shared Flight" ? !additionalInfo.prefer : false,
+        prefer: isBookFlight && flightType === "Private Charter" ? !additionalInfo.prefer : false,
     };
 }
 
@@ -74,8 +74,8 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
         if (!additionalInfo.hearAboutUs?.trim()) errors.hearAboutUs = true;
         if (!additionalInfo.reason?.trim()) errors.reason = true;
         
-        // Prefer is only required for Private Flight
-        if (flightType === 'Private Flight' && !additionalInfo.prefer?.trim()) {
+        // Prefer is only required for Book Flight with Private Charter
+        if (isBookFlight && flightType === 'Private Charter' && !additionalInfo.prefer?.trim()) {
             errors.prefer = true;
         }
         
@@ -102,7 +102,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                         value={additionalInfo.notes || ""}
                     ></textarea>
                 </div>
-                {flightType === 'Private Flight' && (
+                {isBookFlight && flightType === 'Private Charter' && (
                     <div className="mt-4 prefer">
                         <label className="block text-base font-semibold">Which would you prefer?<span style={{ color: 'red' }}>*</span></label>
                         <select
