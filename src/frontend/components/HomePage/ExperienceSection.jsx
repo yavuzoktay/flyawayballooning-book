@@ -3,6 +3,8 @@ import Accordion from "../Common/Accordion";
 import { Link } from "react-router-dom";
 import axios from 'axios';
 import { BsInfoCircle } from 'react-icons/bs';
+import sharedFlightImg from '../../../assets/images/shared-flight.jpg';
+import privateCharterImg from '../../../assets/images/private-charter.jpg';
 
 const weatherRefundableHoverTexts = {
     sharedFlight: "You can select a weather refund option for each passenger for an additional £47.50 per person. This option can be chosen when entering passenger information.",
@@ -49,7 +51,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // Create dynamic experiences based on location pricing
     const getExperiences = () => {
-        const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_price || 205);
+        const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_price || 180);
         const privatePrice = isBristol ? null : (locationPricing?.private_price || 900);
 
         // Calculate private flight prices based on group size
@@ -63,36 +65,19 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         return [
             {
                 title: "Shared Flight",
+                img: sharedFlightImg,
                 price: sharedPrice.toString(),
                 desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
-                details: [
-                    "Around 1 Hour of Air Time", 
-                    "Complimentary Drink", 
-                    "Free Inflight Photo's and 3D Flight Track", 
-                    "24 Month Validity", 
-                    {
-                        text: "Weather Refundable Option",
-                        info: weatherRefundableHoverTexts.sharedFlight
-                    }
-                ],
+                details: [],
                 maxFlight: "Max 8 per flight",
                 passengerOptions: Array.from({ length: 8 }, (_, i) => i + 1), // Options 1 to 8
             },
             {
-                title: "Private Flight",
+                title: "Private Charter",
+                img: privateCharterImg,
                 price: privatePrice ? (privatePrice / 2).toString() : "450", // Default per person price
                 desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
-                details: [
-                    "A Private Charter Balloon Flight", 
-                    "Around 1 Hour of Air Time", 
-                    "Choice of Champagne or Prosecco", 
-                    "Free Inflight Photo's and 3D Flight Track", 
-                    "24 Month Validity", 
-                    {
-                        text: "Weather Refundable Option",
-                        info: weatherRefundableHoverTexts.privateFlight
-                    }
-                ],
+                details: [],
                 maxFlight: "",
                 passengerOptions: [2, 3, 4, 8],
                 specialPrices: {
@@ -100,9 +85,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     3: privatePrice ? (privatePrice / 3) : 350,  // Price per person for 3 passengers
                     4: privatePrice ? (privatePrice / 4) : 300,  // Price per person for 4 passengers
                     8: privatePrice ? (privatePrice / 8) : 225   // Price per person for 8 passengers
-                },
-                totalPrices: privatePrices
-            },
+                }
+            }
         ];
     };
 
@@ -114,7 +98,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     }
     const experiences = getExperiences().filter(exp => {
         if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
-        if (exp.title === "Private Flight") return allowedTypes.includes("Private");
+        if (exp.title === "Private Charter") return allowedTypes.includes("Private");
         return false;
     });
     
@@ -218,98 +202,46 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     }
 
     return (
-        <Accordion title="Select Experience" id="experience" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isRedeemVoucher ? 'disable-acc' : ''}`} >
-            {loading && !isBristol && (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-                    Loading pricing information...
-                </div>
-            )}
-            <div className="flii-scroll" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px' }}>
-                {experiences.map((exp, index) => (
-                    <div className="flight-data" key={index} style={{ flex: '0 0 48%', padding: '15px', boxSizing: 'border-box', border: '1.5px solid #00000080', backgroundColor: '#fff' }}>
-                        <div className="flight-head-bin">
-                            <h3>{exp.title}</h3>
-                            <hr />
-                        </div>
-                        <div className="full-flight">
-                            <p>{index === 1 ? privateDesc : exp.desc}</p>
-                            <div className="content-flight">
-                                <div className="shared-row">
-                                    <ul>
-                                        {exp.details.map((detail, i) => {
-                                            // Hide Weather Refundable Option if Book Flight and Bristol Fiesta selected
-                                            if (
-                                                chooseLocation === 'Bristol Fiesta' &&
-                                                !isFlightVoucher && !isGiftVoucher && !isRedeemVoucher &&
-                                                detail.text === 'Weather Refundable Option'
-                                            ) {
-                                                return null;
-                                            }
-                                            return (
-                                                (typeof detail === 'string' || (!((isFlightVoucher || isGiftVoucher) && detail.text === 'Weather Refundable Option')))
-                                                ? (
-                                                    <li key={i} style={typeof detail !== 'string' ? { alignItems: 'baseline', minHeight: '24px' } : {}}>
-                                                        {typeof detail === 'string' ? (
-                                                            detail
-                                                        ) : (
-                                                            <span style={{ gap: '6px' }}>
-                                                                {detail.text}
-                                                                <div className="info-icon-container">
-                                                                    <BsInfoCircle size={14} />
-                                                                    <div className="hover-text">
-                                                                        {detail.info}
-                                                                    </div>
-                                                                </div>
-                                                            </span>
-                                                        )}
-                                                    </li>
-                                                ) : null
-                                            );
-                                        })}
-                                    </ul>
-                                </div>
-                                <hr />
-                                <div className="presger_count">
-                                    <div className="pera">
-                                        <p>
-                                            {index === 0 
-                                                ? addPassenger[index] 
-                                                    ? `${addPassenger[index]} Passenger${addPassenger[index] > 1 ? 's' : ''}: £${isBristol ? bristolSharedPrice * addPassenger[index] : addPassenger[index] * exp.price}`
-                                                    : `Passengers: £${isBristol ? bristolSharedPrice : exp.price}pp`
-                                                : index === 1 
-                                                ? addPassenger[index] 
-                                                    ? (isBristol && (addPassenger[index] === 2 || addPassenger[index] === 3)
-                                                        ? `Private for ${addPassenger[index]} - £${bristolPrivatePrices[addPassenger[index]]} per flight`
-                                                        : `${addPassenger[index]} Passengers: £${exp.totalPrices[addPassenger[index]]}`)
-                                                    : (isBristol
-                                                        ? <span>Private for 2 - £1200 per flight<br/>Private for 3 - £1500 per flight</span>
-                                                        : <span>2 Passengers: £{exp.totalPrices[2]}<br/>3 Passengers: £{exp.totalPrices[3]}<br/>4 Passengers: £{exp.totalPrices[4]}<br/>8 Passengers: £{exp.totalPrices[8]}</span>)
-                                                : `Passengers: £${exp.price}pp`
-                                            }
-                                        </p>
-                                        {exp.title === "Shared Flight" && <p>{exp.maxFlight}</p>}
-                                    </div>
-                                    <div className="num_count">
-                                        <select
-                                            name="passengerCount"
-                                            value={addPassenger[index] || ""}
-                                            onChange={(e) => handlePassengerChange(index, e.target.value)}
-                                            className="border p-2 rounded"
-                                        >
-                                            <option value="">Select</option> {/* Placeholder option */}
-                                            {(index === 1 ? privatePassengerOptions : exp.passengerOptions).map((option) => (
-                                                <option key={option} value={option}>{option}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="book_select_btn">
-                                    <Link onClick={() => handleSelectClick(exp.title, addPassenger[index], exp.price, index)}
-                                        className={`select-btn ${!addPassenger[index] ? "disabled" : ""}`}>
-                                        Select
-                                    </Link>
-                                </div>
-                            </div>
+        <Accordion
+            title="Select Experience"
+            isActive={activeAccordion === 'select-experience'}
+            onToggle={() => setActiveAccordion('select-experience')}
+        >
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
+                {getExperiences().map((experience, index) => (
+                    <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '320px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
+                        <img src={experience.img} alt={experience.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                        <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
+                            <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
+                            <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
+                            {experience.details.length > 0 && (
+                                <ul style={{ paddingLeft: 16, margin: 0, marginBottom: 12, color: '#444', fontSize: 14 }}>
+                                    {experience.details.map((detail, i) => (
+                                        <li key={i}>{typeof detail === 'string' ? detail : detail.text}</li>
+                                    ))}
+                                </ul>
+                            )}
+                            <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>From £{experience.price}pp</div>
+                            <button
+                                style={{
+                                    width: '100%',
+                                    background: '#03a9f4',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    padding: '10px 0',
+                                    fontSize: 16,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    marginTop: 6,
+                                    marginBottom: 0,
+                                    transition: 'background 0.2s',
+                                }}
+                                onClick={() => handleSelectClick(experience.title, 1, experience.price, index)}
+                            >
+                                Select
+                            </button>
                         </div>
                     </div>
                 ))}

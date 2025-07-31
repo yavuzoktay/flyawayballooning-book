@@ -104,14 +104,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const availableDates = Array.from(new Set(availabilities.map(a => a.date)));
     const getTimesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        return availabilities.filter(a => a.date === dateStr);
+        // Only return availabilities that are open (status = 'Open' or available > 0)
+        return availabilities.filter(a => a.date === dateStr && (a.status === 'Open' || a.available > 0));
     };
 
-    // Filter availabilities by AM/PM
+    // Filter availabilities by AM/PM and only open ones
     const filteredAvailabilities = availabilities.filter(a => {
-        if (!a.time) return true;
+        if (!a.time) return false; // Skip if no time
         const hour = parseInt(a.time.split(':')[0], 10);
-        return ampm === 'AM' ? hour < 12 : hour >= 12;
+        const timeMatch = ampm === 'AM' ? hour < 12 : hour >= 12;
+        // Only include if status is 'Open' or available > 0
+        const isOpen = a.status === 'Open' || a.available > 0;
+        return timeMatch && isOpen;
     });
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
