@@ -175,8 +175,9 @@ const VoucherType = ({
             <style>{scrollbarStyles}</style>
             <Accordion
                 title="Voucher Type"
-                isActive={activeAccordion === 'voucher-type'}
-                onToggle={() => setActiveAccordion('voucher-type')}
+                id="voucher-type"
+                activeAccordion={activeAccordion}
+                setActiveAccordion={setActiveAccordion}
             >
                 <div className="voucher-type-scroll-outer">
                     <div
