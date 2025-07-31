@@ -101,11 +101,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Yeni: availabilities [{id, date, time, capacity, available, ...}] düz listede geliyor
     // Calendar için: hangi günlerde en az 1 açık slot var?
+    console.log('LiveAvailabilitySection received availabilities:', availabilities);
+    console.log('Current date range:', { startDate: format(startDate, 'yyyy-MM-dd'), endDate: format(endDate, 'yyyy-MM-dd'), currentDate: format(currentDate, 'yyyy-MM-dd') });
     const availableDates = Array.from(new Set(availabilities.map(a => a.date)));
+    console.log('Available dates from server:', availableDates);
     const getTimesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        // Only return availabilities that are open (status = 'Open' or available > 0)
-        return availabilities.filter(a => a.date === dateStr && (a.status === 'Open' || a.available > 0));
+        console.log(`Looking for date: ${dateStr}`);
+        const matchingAvailabilities = availabilities.filter(a => {
+            console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
+            return a.date === dateStr && (a.status === 'Open' || a.status === 'open' || a.available > 0);
+        });
+        console.log(`Found ${matchingAvailabilities.length} availabilities for ${dateStr}`);
+        return matchingAvailabilities;
     };
 
     // Filter availabilities by AM/PM and only open ones
@@ -113,15 +121,24 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         if (!a.time) return false; // Skip if no time
         const hour = parseInt(a.time.split(':')[0], 10);
         const timeMatch = ampm === 'AM' ? hour < 12 : hour >= 12;
-        // Only include if status is 'Open' or available > 0
-        const isOpen = a.status === 'Open' || a.available > 0;
-        return timeMatch && isOpen;
+        // Only include if status is 'Open' or 'open' or available > 0
+        const isOpen = a.status === 'Open' || a.status === 'open' || a.available > 0;
+        // Temporarily disable AM/PM filtering to debug
+        return isOpen; // timeMatch && isOpen;
     });
+    console.log('Filtered availabilities for AM/PM:', filteredAvailabilities);
+    console.log('Current AM/PM setting:', ampm);
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        const slots = filteredAvailabilities.filter(a => a.date === dateStr);
+        console.log(`getSpacesForDate called for: ${dateStr}`);
+        console.log(`Filtered availabilities:`, filteredAvailabilities);
+        const slots = filteredAvailabilities.filter(a => {
+            console.log(`Comparing slot date ${a.date} with ${dateStr}`);
+            return a.date === dateStr;
+        });
         const total = slots.reduce((sum, s) => sum + (s.available || 0), 0);
+        console.log(`Date ${dateStr}: ${slots.length} slots, total: ${total}`);
         return { total, soldOut: slots.length > 0 && total === 0, slots };
     };
 

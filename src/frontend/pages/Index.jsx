@@ -184,22 +184,62 @@ const Index = () => {
         const fetchAvailabilities = async () => {
             if (chooseLocation && activeAccordion === "live-availability") {
                 try {
-                    const response = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
+                    // Build query parameters for filtered availabilities
+                    const params = new URLSearchParams({
                         location: chooseLocation
                     });
+                    
+                    // Add flight type if selected - map UI values to backend values
+                    if (chooseFlightType && chooseFlightType.type) {
+                        let flightTypeForBackend;
+                        if (chooseFlightType.type === 'Private Charter') {
+                            flightTypeForBackend = 'Private';
+                        } else if (chooseFlightType.type === 'Shared Flight') {
+                            flightTypeForBackend = 'Shared';
+                        } else {
+                            flightTypeForBackend = chooseFlightType.type;
+                        }
+                        // Only add flight type filter if a voucher type is also selected
+                        // This allows showing all availabilities when no voucher type is selected
+                        if (selectedVoucherType && selectedVoucherType.title) {
+                            params.append('flightType', flightTypeForBackend);
+                        }
+                    }
+                    
+                    // Add voucher types if selected
+                    if (selectedVoucherType && selectedVoucherType.title) {
+                        params.append('voucherTypes', selectedVoucherType.title);
+                    } else if (activitySelect === 'Book Flight') {
+                        // For Book Flight, if no voucher type is selected, show all availabilities
+                        params.append('voucherTypes', 'All');
+                    }
+                    
+                    const url = `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`;
+                    console.log('Fetching availabilities with URL:', url);
+                    console.log('Parameters:', {
+                        location: chooseLocation,
+                        flightType: chooseFlightType?.type,
+                        voucherType: selectedVoucherType?.title,
+                        activitySelect
+                    });
+                    
+                    const response = await axios.get(url);
                     if (response.status === 200 && response.data.success) {
-                        const avails = response.data.availabilities || [];
+                        const avails = response.data.data || [];
+                        console.log('Received availabilities:', avails);
                         setAvailabilities(avails);
                     } else {
+                        console.log('No availabilities received or error');
                         setAvailabilities([]);
                     }
                 } catch (error) {
+                    console.error('Error fetching availabilities:', error);
                     setAvailabilities([]);
                 }
             }
         };
         fetchAvailabilities();
-    }, [chooseLocation, activeAccordion]);
+    }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType]);
 
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
@@ -322,6 +362,7 @@ const Index = () => {
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
                                                 chooseFlightType={chooseFlightType}
+                                                chooseLocation={chooseLocation}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -337,6 +378,7 @@ const Index = () => {
                                                 setSelectedTime={setSelectedTime}
                                                 availabilities={availabilities}
                                                 activitySelect={activitySelect}
+                                                selectedVoucherType={selectedVoucherType}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -404,6 +446,7 @@ const Index = () => {
                                                 setSelectedTime={setSelectedTime}
                                                 availabilities={availabilities}
                                                 activitySelect={activitySelect}
+                                                selectedVoucherType={selectedVoucherType}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -467,6 +510,7 @@ const Index = () => {
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
                                                 chooseFlightType={chooseFlightType}
+                                                chooseLocation={chooseLocation}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -555,6 +599,7 @@ const Index = () => {
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
                                                     chooseFlightType={chooseFlightType}
+                                                    chooseLocation={chooseLocation}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
@@ -572,6 +617,7 @@ const Index = () => {
                                                     setSelectedTime={setSelectedTime}
                                                     availabilities={availabilities}
                                                     activitySelect={activitySelect}
+                                                    selectedVoucherType={selectedVoucherType}
                                                 />
                                             )}
                                             {(activitySelect === "Buy Gift" || activitySelect === "Redeem Voucher") && (

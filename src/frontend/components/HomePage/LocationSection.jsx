@@ -60,16 +60,29 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
 
     async function getActivityId(location) {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
+            // First get the activity details
+            const activityResponse = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
                 location: location
             });
 
-            if (response.status === 200 && response.data.success) {
-                const activity = response.data.activity;
-                const avails = response.data.availabilities || [];
+            if (activityResponse.status === 200 && activityResponse.data.success) {
+                const activity = activityResponse.data.activity;
                 setActivityId(activity?.id || '');
                 setSelectedActivity(activity ? [activity] : []);
-                setAvailabilities(avails);
+                
+                // Then get filtered availabilities using the new endpoint
+                const params = new URLSearchParams({
+                    location: location
+                });
+                
+                const availabilitiesResponse = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                if (availabilitiesResponse.status === 200 && availabilitiesResponse.data.success) {
+                    const avails = availabilitiesResponse.data.data || [];
+                    console.log('LocationSection received availabilities:', avails);
+                    setAvailabilities(avails);
+                } else {
+                    setAvailabilities([]);
+                }
             } else {
                 setActivityId('');
                 setSelectedActivity([]);

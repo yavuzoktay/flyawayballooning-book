@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Accordion from '../Common/Accordion';
+import axios from 'axios';
 import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
@@ -41,7 +42,8 @@ const VoucherType = ({
     selectedVoucherType, 
     setSelectedVoucherType,
     activitySelect,
-    chooseFlightType
+    chooseFlightType,
+    chooseLocation
 }) => {
     const [quantities, setQuantities] = useState({
         'Weekday Morning': 1,
@@ -50,6 +52,34 @@ const VoucherType = ({
     });
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
+    const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // Fetch available voucher types for the selected location
+    useEffect(() => {
+        const fetchVoucherTypes = async () => {
+            if (!chooseLocation) {
+                setAvailableVoucherTypes([]);
+                return;
+            }
+            
+            setLoading(true);
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/locationVoucherTypes/${encodeURIComponent(chooseLocation)}`);
+                if (response.data.success) {
+                    setAvailableVoucherTypes(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching voucher types:', error);
+                // If API fails, show all voucher types as fallback
+                setAvailableVoucherTypes(['Weekday Morning', 'Flexible Weekday', 'Any Day Flight']);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVoucherTypes();
+    }, [chooseLocation]);
 
     const voucherTypes = [
         {
@@ -190,7 +220,16 @@ const VoucherType = ({
                             padding: '0 10px',
                         }}
                     >
-                        {voucherTypes.map((voucher, index) => (
+                        {loading ? (
+                            <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
+                                <p>Loading voucher types...</p>
+                            </div>
+                        ) : voucherTypes
+                            .filter(voucher => availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title))
+                            .length > 0 ? (
+                            voucherTypes
+                                .filter(voucher => availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title))
+                                .map((voucher, index) => (
                             <div key={index} style={{
                                 background: '#fff',
                                 borderRadius: 16,
@@ -330,7 +369,12 @@ const VoucherType = ({
                                     </button>
                                 </div>
                             </div>
-                        ))}
+                        ))
+                        ) : (
+                            <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
+                                <p>No voucher types available for this location.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </Accordion>
