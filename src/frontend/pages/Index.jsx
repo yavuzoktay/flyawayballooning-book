@@ -6,6 +6,7 @@ import ChooseActivityCard from "../components/HomePage/ChooseActivityCard";
 import RightInfoCard from "../components/HomePage/RightInfoCard";
 import LocationSection from "../components/HomePage/LocationSection";
 import ExperienceSection from "../components/HomePage/ExperienceSection";
+import VoucherType from "../components/HomePage/VoucherType";
 import LiveAvailabilitySection from "../components/HomePage/LiveAvailabilitySection";
 import AddOnsSection from "../components/HomePage/AddOnsSection";
 import PassengerInfo from "../components/HomePage/PassengerInfo";
@@ -41,6 +42,7 @@ const Index = () => {
     const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
+    const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     
     // Validation refs for Buy Gift and Flight Voucher
     const recipientDetailsRef = React.useRef();
@@ -174,6 +176,7 @@ const Index = () => {
         setAvailableSeats([]);
         setVoucherCode("");
         setVoucherStatus(null);
+        setSelectedVoucherType(null);
     };
 
     useEffect(() => {
@@ -312,6 +315,13 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                             />
+                                            <VoucherType 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                selectedVoucherType={selectedVoucherType} 
+                                                setSelectedVoucherType={setSelectedVoucherType}
+                                                activitySelect={activitySelect}
+                                            />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 
@@ -378,6 +388,13 @@ const Index = () => {
                                                 setActivityId={setActivityId} 
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
+                                            />
+                                            <VoucherType 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                selectedVoucherType={selectedVoucherType} 
+                                                setSelectedVoucherType={setSelectedVoucherType}
+                                                activitySelect={activitySelect}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -448,6 +465,13 @@ const Index = () => {
                                                 isFlightVoucher={isFlightVoucher}
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
+                                            />
+                                            <VoucherType 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                selectedVoucherType={selectedVoucherType} 
+                                                setSelectedVoucherType={setSelectedVoucherType}
+                                                activitySelect={activitySelect}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -528,6 +552,15 @@ const Index = () => {
                                                     isGiftVoucher={isGiftVoucher}
                                                 />
                                             )}
+                                            {activitySelect === "Buy Gift" && (
+                                                <VoucherType 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    selectedVoucherType={selectedVoucherType} 
+                                                    setSelectedVoucherType={setSelectedVoucherType}
+                                                    activitySelect={activitySelect}
+                                                />
+                                            )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
                                                 <LiveAvailabilitySection 
                                                     isGiftVoucher={isGiftVoucher} 
@@ -545,7 +578,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                 />
                                             )}
-                                            {!(activitySelect === "Flight Voucher") && (
+                                            {(activitySelect === "Buy Gift" || activitySelect === "Redeem Voucher") && (
                                                 <AddOnsSection 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -559,7 +592,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                 />
                                             )}
-                                            {!(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
+                                            {activitySelect === "Buy Gift" && (
                                                 <EnterRecipientDetails 
                                                     ref={recipientDetailsRef}
                                                     isBookFlight={isBookFlight}
@@ -638,6 +671,7 @@ const Index = () => {
                                 resetBooking={resetBooking}
                                 preference={preference}
                                 validateBuyGiftFields={validateBuyGiftFields}
+                                selectedVoucherType={selectedVoucherType}
                             />
                         </div>
                     </div>
