@@ -64,7 +64,7 @@ const VoucherType = ({
                 'Upgradeable at Later Date.'
             ],
             weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: 205
+            price: 180
         },
         {
             id: 'flexible-weekday',
@@ -80,7 +80,7 @@ const VoucherType = ({
                 'Upgradeable at Later Date.'
             ],
             weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: 205
+            price: 200
         },
         {
             id: 'any-day-flight',
@@ -95,8 +95,8 @@ const VoucherType = ({
                 'Inflight Photos and 3D Flight Track',
                 'Weather Refundable Option'
             ],
-            weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: 205
+            weatherClause: 'Flights subject to weather – your voucher remains valid and rebookable, or refundable on request if you select the refundable option.',
+            price: 220
         }
     ];
 
@@ -233,7 +233,7 @@ const VoucherType = ({
                                         marginBottom: 10,
                                         color: '#4a4a4a'
                                     }}>
-                                        1 Passenger: £{voucher.price}
+                                        Price Per Person: £{voucher.price}
                                     </div>
                                     <div style={{
                                         display: 'flex',
@@ -246,7 +246,7 @@ const VoucherType = ({
                                             color: '#666',
                                             fontWeight: 500
                                         }}>
-                                            Quantity:
+                                            Passengers:
                                         </label>
                                         <input
                                             type="number"
