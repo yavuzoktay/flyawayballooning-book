@@ -185,7 +185,7 @@ const VoucherType = ({
                                         {voucher.title}
                                     </h3>
                                     <div style={{
-                                        fontSize: 11,
+                                        fontSize: 14,
                                         color: '#666',
                                         marginBottom: 6,
                                         fontWeight: 500
@@ -193,14 +193,14 @@ const VoucherType = ({
                                         {voucher.refundability}
                                     </div>
                                     <div style={{
-                                        fontSize: 11,
+                                        fontSize: 14,
                                         color: '#666',
                                         marginBottom: 6
                                     }}>
                                         {voucher.availability}
                                     </div>
                                     <div style={{
-                                        fontSize: 11,
+                                        fontSize: 14,
                                         color: '#666',
                                         marginBottom: 10
                                     }}>
@@ -211,7 +211,7 @@ const VoucherType = ({
                                         margin: 0,
                                         marginBottom: 10,
                                         color: '#444',
-                                        fontSize: 12,
+                                        fontSize: 14,
                                         lineHeight: '1.3'
                                     }}>
                                         {voucher.inclusions.map((inclusion, i) => (
@@ -219,7 +219,7 @@ const VoucherType = ({
                                         ))}
                                     </ul>
                                     <div style={{
-                                        fontSize: 10,
+                                        fontSize: 12,
                                         color: '#666',
                                         marginBottom: 12,
                                         lineHeight: '1.2',

@@ -249,7 +249,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '320px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
                         <img src={experience.img} alt={experience.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
                         <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <h2 style={{ fontSize: 24, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
+                            <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
                             <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
                             <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
                             {experience.details.length > 0 && (
