@@ -12,6 +12,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Add console logs to debug
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);
   console.log("Passenger count:", passengerCount);
+  console.log("Current passengerData length:", passengerData.length);
 
   // Sync passengerData with passenger count whenever chooseFlightType changes
   useEffect(() => {
@@ -23,7 +24,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
       // Add passenger objects if needed
       for (let i = prevData.length; i < passengerCount; i++) {
-        newPassengers.push({ firstName: "", lastName: "", weight: "", weatherRefund: false });
+        newPassengers.push({ firstName: "", lastName: "", weight: "", phone: "", email: "", weatherRefund: false });
       }
 
       // Trim the array to match the selected passenger count

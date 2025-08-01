@@ -241,6 +241,16 @@ const Index = () => {
         fetchAvailabilities();
     }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType]);
 
+    // Update chooseFlightType when selectedVoucherType changes to sync passenger count
+    useEffect(() => {
+        if (selectedVoucherType && selectedVoucherType.quantity) {
+            setChooseFlightType(prev => ({
+                ...prev,
+                passengerCount: selectedVoucherType.quantity.toString()
+            }));
+        }
+    }, [selectedVoucherType]);
+
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
         if (activitySelect !== null) {
@@ -248,7 +258,7 @@ const Index = () => {
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
             setAddPassenger([1, 2]);
             setChooseAddOn([]);
-            setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+            setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
             setWeatherRefund(false);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: '', email: '', phone: '', date: '' });
@@ -259,6 +269,7 @@ const Index = () => {
             setAvailableSeats([]);
             setVoucherCode('');
             setVoucherStatus(null);
+            setSelectedVoucherType(null); // Reset voucher type when activity changes
         }
     }, [activitySelect]);
 
