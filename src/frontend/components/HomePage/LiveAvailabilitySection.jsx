@@ -27,7 +27,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [ampm, setAmpm] = useState('PM');
+
     const [requestModalOpen, setRequestModalOpen] = useState(false);
     const [requestName, setRequestName] = useState("");
     const [requestPhone, setRequestPhone] = useState("");
@@ -116,18 +116,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return matchingAvailabilities;
     };
 
-    // Filter availabilities by AM/PM and only open ones
+    // Filter availabilities - show all open ones (no AM/PM filtering)
     const filteredAvailabilities = availabilities.filter(a => {
-        if (!a.time) return false; // Skip if no time
-        const hour = parseInt(a.time.split(':')[0], 10);
-        const timeMatch = ampm === 'AM' ? hour < 12 : hour >= 12;
         // Only include if status is 'Open' or 'open' or available > 0
         const isOpen = a.status === 'Open' || a.status === 'open' || a.available > 0;
-        // Temporarily disable AM/PM filtering to debug
-        return isOpen; // timeMatch && isOpen;
+        return isOpen;
     });
-    console.log('Filtered availabilities for AM/PM:', filteredAvailabilities);
-    console.log('Current AM/PM setting:', ampm);
+    console.log('Filtered availabilities (all times):', filteredAvailabilities);
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
@@ -302,13 +297,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
                 <div className="calendar">
                     <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%' }}>
-                        <div style={{ position: 'absolute', left: 0, display: 'flex', gap: 8 }}>
-                            <button className={`ampm-btn ${ampm === 'AM' ? 'active' : ''}`} onClick={() => setAmpm('AM')}>AM</button>
-                            <button className={`ampm-btn ${ampm === 'PM' ? 'active' : ''}`} onClick={() => setAmpm('PM')}>PM</button>
-                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
-                            <h2 style={{ margin: '0 24px', fontWeight: 400, color: '#222', fontSize: 32, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                            <h2 style={{ margin: '0 4px', fontWeight: 500, color: '#222', fontSize: 24, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
                         {/* Real-time availability badge - responsive */}
@@ -321,7 +312,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     </div>
                     {/* Centered currently viewing info under the heading */}
                     <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b>, <b>{ampm}</b></div>
+                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b></div>
                         {selectedDate && selectedTime && (
                             <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
                         )}
@@ -388,21 +379,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             return days;
                         })()}
                     </div>
+                    {/* Reschedule text below calendar */}
+                    <div style={{ textAlign: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 14, color: '#888' }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
+                    </div>
                     {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
                     {selectedDate && (
                         <div style={{ marginTop: 24, marginBottom: 8 }}>
-                            <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')} ({ampm})</div>
+                            <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')}</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {getSpacesForDate(selectedDate).slots.filter(slot => {
-                                    if (!slot.time) return true;
-                                    const hour = parseInt(slot.time.split(':')[0], 10);
-                                    return ampm === 'AM' ? hour < 12 : hour >= 12;
-                                }).length === 0 && <div style={{color:'#888'}}>No available times</div>}
-                                {getSpacesForDate(selectedDate).slots.filter(slot => {
-                                    if (!slot.time) return true;
-                                    const hour = parseInt(slot.time.split(':')[0], 10);
-                                    return ampm === 'AM' ? hour < 12 : hour >= 12;
-                                }).map(slot => {
+                                {getSpacesForDate(selectedDate).slots.length === 0 && <div style={{color:'#888'}}>No available times</div>}
+                                {getSpacesForDate(selectedDate).slots.map(slot => {
                                     // --- 8 saat kuralı ---
                                     let slotDateTime = new Date(selectedDate);
                                     if (slot.time) {
@@ -470,7 +457,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
                             </div>
-                            <span style={{ fontSize: 14, color: '#888', marginTop: 2 }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                         </div>
                     )}
                 </div>
@@ -566,8 +552,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }}
             />
             <style>{`
-                .ampm-btn { padding: 6px 18px; border-radius: 6px; border: none; background: #eee; color: #222; font-weight: 600; font-size: 16px; margin-right: 4px; cursor: pointer; }
-                .ampm-btn.active { background: #56C1FF; color: #fff; }
                 .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0px; }
                 .weekday-label { text-align: center; font-weight: 600; color: #888; font-size: 15px; margin-bottom: 8px; }
                 .day { width: 80px; height: 80px; min-width: 80px; max-width: 80px; min-height: 80px; max-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2px; margin-top: 2px; transition: box-shadow 0.2s; box-sizing: border-box; }
