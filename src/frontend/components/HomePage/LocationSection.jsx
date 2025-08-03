@@ -16,7 +16,7 @@ const imageMap = {
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
+const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
@@ -97,6 +97,10 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
     }
 
     const handleLocationSelect = (locName) => {
+        // Disable Bristol Fiesta for Redeem Voucher
+        if (isRedeemVoucher && locName === "Bristol Fiesta") {
+            return; // Do nothing, location is disabled
+        }
         // Remove modal for Bristol Fiesta, select directly
         confirmLocation(locName);
     };
@@ -125,13 +129,25 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, chooseLocation, setCh
                 <div className="tab_box scroll-box">
                     {Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
                         <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
-                            {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => (
-                                <div className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""}`} key={loc.name} onClick={() => handleLocationSelect(loc.name)}>
-                                    <img src={loc.image} alt={loc.name} width="100%" />
-                                    <h3>{loc.name}</h3>
-                                    <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
-                                </div>
-                            ))}
+                            {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => {
+                                const isDisabled = isRedeemVoucher && loc.name === "Bristol Fiesta";
+                                return (
+                                    <div 
+                                        className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
+                                        key={loc.name} 
+                                        onClick={() => handleLocationSelect(loc.name)}
+                                        style={{
+                                            opacity: isDisabled ? 0.5 : 1,
+                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                            filter: isDisabled ? 'grayscale(100%)' : 'none'
+                                        }}
+                                    >
+                                        <img src={loc.image} alt={loc.name} width="100%" />
+                                        <h3>{loc.name}</h3>
+                                        <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     ))}
                 </div>

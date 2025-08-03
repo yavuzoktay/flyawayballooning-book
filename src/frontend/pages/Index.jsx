@@ -343,6 +343,7 @@ const Index = () => {
                                             <LocationSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher}
                                                 chooseLocation={chooseLocation} 
                                                 setChooseLocation={setChooseLocation} 
                                                 activeAccordion={activeAccordion} 
@@ -437,6 +438,7 @@ const Index = () => {
                                             <LocationSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 
+                                                isRedeemVoucher={isRedeemVoucher}
                                                 chooseLocation={chooseLocation} 
                                                 setChooseLocation={setChooseLocation} 
                                                 activeAccordion={activeAccordion} 
