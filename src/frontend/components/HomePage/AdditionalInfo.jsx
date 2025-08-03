@@ -121,7 +121,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                         {validationErrors.prefer && <span style={{ color: 'red', fontSize: 12 }}>Please select a preference</span>}
                     </div>
                 )}
-                {(isRedeemVoucher || isBookFlight) && (
+                {(isRedeemVoucher || isBookFlight || isFlightVoucher) && (
                     <div className="selector mt-4">
                         <label className="block text-base font-semibold">Would you like to receive short notice flight availability?</label>
                         <select
@@ -133,6 +133,23 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                             <option value="">Please select</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
+                        </select>
+                    </div>
+                )}
+                
+                {isFlightVoucher && (
+                    <div className="selector mt-4">
+                        <label className="block text-base font-semibold">Which location would you like to fly?</label>
+                        <select
+                            name="preferredLocation"
+                            className="w-full border p-2 rounded mt-2"
+                            onChange={handleChange}
+                            value={additionalInfo.preferredLocation || ""}
+                        >
+                            <option value="">Please select</option>
+                            <option value="Bath">Bath</option>
+                            <option value="Somerset">Somerset</option>
+                            <option value="Devon">Devon</option>
                         </select>
                     </div>
                 )}

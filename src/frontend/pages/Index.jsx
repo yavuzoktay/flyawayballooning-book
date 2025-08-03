@@ -553,14 +553,7 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                            <EnterPreferences 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                preference={preference} 
-                                                setPreference={setPreference} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
-                                            />
+                                            {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -678,7 +671,7 @@ const Index = () => {
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
                                             />
 
-                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && chooseLocation !== "Bristol Fiesta" && (
+                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && chooseLocation !== "Bristol Fiesta" && (
                                                 <AdditionalInfo 
                                                     ref={additionalInfoRef}
                                                     isGiftVoucher={isGiftVoucher} 
@@ -692,7 +685,7 @@ const Index = () => {
                                                     flightType={chooseFlightType.type}
                                                 />
                                             )}
-                                            {(activitySelect === "Book Flight" || activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher") && (
+                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
                                                 <EnterPreferences 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 

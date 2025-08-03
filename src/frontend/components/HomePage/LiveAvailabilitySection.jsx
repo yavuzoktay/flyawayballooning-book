@@ -311,7 +311,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         </div>
                     </div>
                     {/* Centered currently viewing info under the heading */}
-                    <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', background: '#f7f7f7', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                    <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
                         <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b></div>
                         {selectedDate && selectedTime && (
                             <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
