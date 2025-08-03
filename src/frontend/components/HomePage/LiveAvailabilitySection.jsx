@@ -147,9 +147,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // Fill the first week
         for (let i = 0; i < 7; i++) {
             if (dayPointer < startDate) {
-                week.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                week.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
             } else if (dayPointer > endDate) {
-                week.push(<div key={`empty-end-firstrow-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                week.push(<div key={`empty-end-firstrow-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
             } else {
                 const dateCopy = new Date(dayPointer);
                 const isPastDate = isBefore(dateCopy, today);
@@ -199,7 +199,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             let weekRow = [];
             for (let i = 0; i < 7; i++) {
                 if (dayPointer > endDate) {
-                    weekRow.push(<div key={`empty-end-${dayPointer.toISOString()}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                    weekRow.push(<div key={`empty-end-${dayPointer.toISOString()}`} className="day empty-day" style={{ display: 'none' }}></div>);
                 } else {
                     const dateCopy = new Date(dayPointer);
                     const isPastDate = isBefore(dateCopy, today);
@@ -318,7 +318,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                     </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px' }}>
+                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0 }}>
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: 15, marginBottom: 8 }}>{d}</div>)}
                         {(() => {
                             const days = [];
@@ -328,9 +328,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             // Fill leading empty cells
                             for (let i = 0; i < 42; i++) { // 6 weeks max
                                 if (i < 7 && dayPointer < startDate) {
-                                    days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                    days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
                                 } else if (dayPointer > endDate) {
-                                    days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                    days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
                                 } else if (dayPointer >= startDate && dayPointer <= endDate) {
                                     const dateCopy = new Date(dayPointer);
                                     const isPastDate = isBefore(dateCopy, today);
@@ -372,7 +372,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         </div>
                                     );
                                 } else {
-                                    days.push(<div key={`empty-mid-${i}`} className="day empty-day" style={{ visibility: 'hidden' }}></div>);
+                                    days.push(<div key={`empty-mid-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
                                 }
                                 dayPointer = addDays(dayPointer, 1);
                             }
@@ -380,7 +380,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         })()}
                     </div>
                     {/* Reschedule text below calendar */}
-                    <div style={{ textAlign: 'center', marginBottom: 8 }}>
+                    <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 2 }}>
                         <span style={{ fontSize: 14, color: '#888' }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                     </div>
                     {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
