@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Accordion from '../Common/Accordion';
 import axios from 'axios';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
@@ -34,6 +36,28 @@ const scrollbarStyles = `
     .voucher-type-scroll-outer::-webkit-scrollbar-corner {
         background: #f1f1f1;
     }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
 `;
 
 const VoucherType = ({ 
@@ -54,6 +78,9 @@ const VoucherType = ({
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [currentViewIndex, setCurrentViewIndex] = useState(0);
+    const [showTwoVouchers, setShowTwoVouchers] = useState(true);
+    const [slideDirection, setSlideDirection] = useState('right');
 
     // Fetch available voucher types for the selected location
     useEffect(() => {
@@ -139,6 +166,27 @@ const VoucherType = ({
         }));
     };
 
+    const handlePrevVoucher = () => {
+        setSlideDirection('left');
+        setShowTwoVouchers(true);
+        setCurrentViewIndex(0);
+    };
+
+    const handleNextVoucher = () => {
+        setSlideDirection('right');
+        const filteredVouchers = voucherTypes.filter(voucher => 
+            availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
+        );
+        
+        if (showTwoVouchers) {
+            setShowTwoVouchers(false);
+            setCurrentViewIndex(2); // Move to third voucher (Any Day Flight)
+        } else {
+            setShowTwoVouchers(true);
+            setCurrentViewIndex(0);
+        }
+    };
+
     const handleSelectVoucher = (voucher) => {
         const quantity = quantities[voucher.title];
         const totalPrice = voucher.price * quantity;
@@ -209,15 +257,71 @@ const VoucherType = ({
                 activeAccordion={activeAccordion}
                 setActiveAccordion={setActiveAccordion}
             >
-                <div className="voucher-type-scroll-outer">
+                <div style={{ position: 'relative', width: '100%' }}>
+                    {/* Navigation Arrows */}
+                    {(() => {
+                        const filteredVouchers = voucherTypes.filter(voucher => 
+                            availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
+                        );
+                        return (
+                            <>
+                                {/* Show left arrow if not in two-voucher view */}
+                                {!showTwoVouchers && (
+                                    <div style={{ 
+                                        position: 'absolute', 
+                                        left: 10, 
+                                        top: '50%', 
+                                        transform: 'translateY(-50%)', 
+                                        zIndex: 10,
+                                        background: 'rgba(255,255,255,0.9)',
+                                        borderRadius: '50%',
+                                        width: 40,
+                                        height: 40,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        border: '1px solid #ddd',
+                                        transition: 'all 0.2s ease'
+                                    }} onClick={handlePrevVoucher}>
+                                        <ArrowBackIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                    </div>
+                                )}
+                                {/* Show right arrow if in two-voucher view and there's a third voucher */}
+                                {(showTwoVouchers && filteredVouchers.length >= 3) && (
+                                    <div style={{ 
+                                        position: 'absolute', 
+                                        right: 10, 
+                                        top: '50%', 
+                                        transform: 'translateY(-50%)', 
+                                        zIndex: 10,
+                                        background: 'rgba(255,255,255,0.9)',
+                                        borderRadius: '50%',
+                                        width: 40,
+                                        height: 40,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        border: '1px solid #ddd',
+                                        transition: 'all 0.2s ease'
+                                    }} onClick={handleNextVoucher}>
+                                        <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                    </div>
+                                )}
+                            </>
+                        );
+                    })()}
+                    
                     <div
                         style={{
                             display: 'flex',
-                            flexWrap: 'nowrap',
-                            gap: '20px',
-                            minWidth: '1020px', // 3 kart (3x320) + 2 gap (2x20)
-                            justifyContent: 'flex-start',
-                            padding: '0 10px',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: '20px 60px',
+                            minHeight: '400px'
                         }}
                     >
                         {loading ? (
@@ -227,10 +331,176 @@ const VoucherType = ({
                         ) : voucherTypes
                             .filter(voucher => availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title))
                             .length > 0 ? (
-                            voucherTypes
-                                .filter(voucher => availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title))
-                                .map((voucher, index) => (
-                            <div key={index} style={{
+                            (() => {
+                                const filteredVouchers = voucherTypes.filter(voucher => 
+                                    availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
+                                );
+                                
+                                // Show two vouchers side by side (Weekday Morning and Flexible Weekday)
+                                if (showTwoVouchers && filteredVouchers.length >= 2) {
+                                    return (
+                                        <div style={{
+                                            display: 'flex',
+                                            gap: '20px',
+                                            justifyContent: 'center',
+                                            alignItems: 'flex-start',
+                                            transition: 'transform 0.3s ease-in-out'
+                                        }}>
+                                            {filteredVouchers.slice(0, 2).map((voucher, index) => (
+                                                <div key={voucher.id} style={{
+                                                    background: '#fff',
+                                                    borderRadius: 16,
+                                                    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+                                                    width: '320px',
+                                                    minWidth: '320px',
+                                                    flexShrink: 0,
+                                                    padding: 0,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <img
+                                                        src={voucher.image}
+                                                        alt={voucher.title}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: 180,
+                                                            objectFit: 'cover',
+                                                        }}
+                                                    />
+                                                    <div style={{
+                                                        padding: '16px',
+                                                        width: '100%',
+                                                        boxSizing: 'border-box',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        height: '100%'
+                                                    }}>
+                                                        <h3 style={{
+                                                            fontSize: 18,
+                                                            fontWeight: 300,
+                                                            margin: 0,
+                                                            marginBottom: 6,
+                                                            color: '#4a4a4a'
+                                                        }}>
+                                                            {voucher.title}
+                                                        </h3>
+                                                        <div style={{
+                                                            fontSize: 14,
+                                                            color: '#666',
+                                                            marginBottom: 6,
+                                                            fontWeight: 500
+                                                        }}>
+                                                            {voucher.refundability}
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: 14,
+                                                            color: '#666',
+                                                            marginBottom: 6
+                                                        }}>
+                                                            {voucher.availability}
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: 14,
+                                                            color: '#666',
+                                                            marginBottom: 10
+                                                        }}>
+                                                            {voucher.validity}
+                                                        </div>
+                                                        <ul style={{
+                                                            paddingLeft: 14,
+                                                            margin: 0,
+                                                            marginBottom: 10,
+                                                            color: '#444',
+                                                            fontSize: 14,
+                                                            lineHeight: '1.3'
+                                                        }}>
+                                                            {voucher.inclusions.map((inclusion, i) => (
+                                                                <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
+                                                            ))}
+                                                        </ul>
+                                                        <div style={{
+                                                            fontSize: 12,
+                                                            color: '#666',
+                                                            marginBottom: 12,
+                                                            lineHeight: '1.2',
+                                                            fontStyle: 'italic'
+                                                        }}>
+                                                            {voucher.weatherClause}
+                                                        </div>
+                                                        <div style={{
+                                                            fontWeight: 600,
+                                                            fontSize: 15,
+                                                            marginBottom: 10,
+                                                            color: '#4a4a4a'
+                                                        }}>
+                                                            Price Per Person: £{voucher.price}
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            marginBottom: 12,
+                                                            gap: '8px'
+                                                        }}>
+                                                            <label style={{
+                                                                fontSize: 13,
+                                                                color: '#666',
+                                                                fontWeight: 500
+                                                            }}>
+                                                                Passengers:
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={quantities[voucher.title]}
+                                                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)}
+                                                                style={{
+                                                                    width: '50px',
+                                                                    padding: '4px 6px',
+                                                                    border: '1px solid #ddd',
+                                                                    borderRadius: 4,
+                                                                    fontSize: 13,
+                                                                    textAlign: 'center'
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            style={{
+                                                                width: '100%',
+                                                                background: '#03a9f4',
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                borderRadius: 8,
+                                                                padding: '10px 0',
+                                                                fontSize: 15,
+                                                                fontWeight: 600,
+                                                                cursor: 'pointer',
+                                                                marginTop: 'auto',
+                                                                transition: 'background 0.2s',
+                                                            }}
+                                                            onMouseEnter={(e) => e.target.style.background = '#0288d1'}
+                                                            onMouseLeave={(e) => e.target.style.background = '#03a9f4'}
+                                                            onClick={() => handleSelectVoucher(voucher)}
+                                                        >
+                                                            Select
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                }
+                                
+                                // Show single voucher (Any Day Flight) when not in two-voucher view
+                                const currentVoucher = filteredVouchers[currentViewIndex];
+                                
+                                if (!currentVoucher) {
+                                    setCurrentViewIndex(0);
+                                    return null;
+                                }
+                                
+                                return (
+                            <div key={currentVoucher.id} style={{
                                 background: '#fff',
                                 borderRadius: 16,
                                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
@@ -240,11 +510,12 @@ const VoucherType = ({
                                 padding: 0,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : 'slideInLeft 0.3s ease-in-out'
                             }}>
                                 <img
-                                    src={voucher.image}
-                                    alt={voucher.title}
+                                    src={currentVoucher.image}
+                                    alt={currentVoucher.title}
                                     style={{
                                         width: '100%',
                                         height: 180,
@@ -266,7 +537,7 @@ const VoucherType = ({
                                         marginBottom: 6,
                                         color: '#4a4a4a'
                                     }}>
-                                        {voucher.title}
+                                        {currentVoucher.title}
                                     </h3>
                                     <div style={{
                                         fontSize: 14,
@@ -274,21 +545,21 @@ const VoucherType = ({
                                         marginBottom: 6,
                                         fontWeight: 500
                                     }}>
-                                        {voucher.refundability}
+                                        {currentVoucher.refundability}
                                     </div>
                                     <div style={{
                                         fontSize: 14,
                                         color: '#666',
                                         marginBottom: 6
                                     }}>
-                                        {voucher.availability}
+                                        {currentVoucher.availability}
                                     </div>
                                     <div style={{
                                         fontSize: 14,
                                         color: '#666',
                                         marginBottom: 10
                                     }}>
-                                        {voucher.validity}
+                                        {currentVoucher.validity}
                                     </div>
                                     <ul style={{
                                         paddingLeft: 14,
@@ -298,7 +569,7 @@ const VoucherType = ({
                                         fontSize: 14,
                                         lineHeight: '1.3'
                                     }}>
-                                        {voucher.inclusions.map((inclusion, i) => (
+                                        {currentVoucher.inclusions.map((inclusion, i) => (
                                             <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
                                         ))}
                                     </ul>
@@ -309,7 +580,7 @@ const VoucherType = ({
                                         lineHeight: '1.2',
                                         fontStyle: 'italic'
                                     }}>
-                                        {voucher.weatherClause}
+                                        {currentVoucher.weatherClause}
                                     </div>
                                     <div style={{
                                         fontWeight: 600,
@@ -317,7 +588,7 @@ const VoucherType = ({
                                         marginBottom: 10,
                                         color: '#4a4a4a'
                                     }}>
-                                        Price Per Person: £{voucher.price}
+                                        Price Per Person: £{currentVoucher.price}
                                     </div>
                                     <div style={{
                                         display: 'flex',
@@ -335,8 +606,8 @@ const VoucherType = ({
                                         <input
                                             type="number"
                                             min="0"
-                                            value={quantities[voucher.title]}
-                                            onChange={(e) => handleQuantityChange(voucher.title, e.target.value)}
+                                            value={quantities[currentVoucher.title]}
+                                            onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)}
                                             style={{
                                                 width: '50px',
                                                 padding: '4px 6px',
@@ -363,13 +634,14 @@ const VoucherType = ({
                                         }}
                                         onMouseEnter={(e) => e.target.style.background = '#0288d1'}
                                         onMouseLeave={(e) => e.target.style.background = '#03a9f4'}
-                                        onClick={() => handleSelectVoucher(voucher)}
+                                        onClick={() => handleSelectVoucher(currentVoucher)}
                                     >
                                         Select
                                     </button>
                                 </div>
                             </div>
-                        ))
+                            );
+                            })()
                         ) : (
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
                                 <p>No voucher types available for this location.</p>
