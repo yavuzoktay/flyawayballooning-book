@@ -366,15 +366,17 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                             />
-                                            <VoucherType 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
-                                                selectedVoucherType={selectedVoucherType} 
-                                                setSelectedVoucherType={setSelectedVoucherType}
-                                                activitySelect={activitySelect}
-                                                chooseFlightType={chooseFlightType}
-                                                chooseLocation={chooseLocation}
-                                            />
+                                            {chooseLocation !== "Bristol Fiesta" && (
+                                                <VoucherType 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    selectedVoucherType={selectedVoucherType} 
+                                                    setSelectedVoucherType={setSelectedVoucherType}
+                                                    activitySelect={activitySelect}
+                                                    chooseFlightType={chooseFlightType}
+                                                    chooseLocation={chooseLocation}
+                                                />
+                                            )}
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 
@@ -514,15 +516,17 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                             />
-                                            <VoucherType 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
-                                                selectedVoucherType={selectedVoucherType} 
-                                                setSelectedVoucherType={setSelectedVoucherType}
-                                                activitySelect={activitySelect}
-                                                chooseFlightType={chooseFlightType}
-                                                chooseLocation={chooseLocation}
-                                            />
+                                            {chooseLocation !== "Bristol Fiesta" && (
+                                                <VoucherType 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    selectedVoucherType={selectedVoucherType} 
+                                                    setSelectedVoucherType={setSelectedVoucherType}
+                                                    activitySelect={activitySelect}
+                                                    chooseFlightType={chooseFlightType}
+                                                    chooseLocation={chooseLocation}
+                                                />
+                                            )}
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
                                                 isFlightVoucher={isFlightVoucher}
@@ -602,7 +606,7 @@ const Index = () => {
                                                     isGiftVoucher={isGiftVoucher}
                                                 />
                                             )}
-                                            {activitySelect === "Buy Gift" && (
+                                            {activitySelect === "Buy Gift" && chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion} 
