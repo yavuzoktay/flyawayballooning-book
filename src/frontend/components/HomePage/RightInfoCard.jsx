@@ -2,9 +2,10 @@ import axios from "axios";
 import React from "react";
 import { loadStripe } from '@stripe/stripe-js';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+import config from '../../../config';
+const API_BASE_URL = config.API_BASE_URL;
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType }) => {
 
@@ -137,7 +138,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
         }
         if (isFlightVoucher || isRedeemVoucher || isGiftVoucher) {
-            // VOUCHER POST
+            // VOUCHER DATA PREPARATION
             const voucherData = {
                 name: (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
                 weight: passengerData?.[0]?.weight || "",
@@ -158,18 +159,28 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
             };
+            
             try {
-                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
-                console.log("Voucher response:", response);
-                if (response.data.success) {
-                    alert('Voucher created successfully!');
-                    resetBooking();
-                } else {
-                    alert('Voucher creation failed: ' + response.data.message);
+                // Stripe Checkout Session başlat - VOUCHER için
+                const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
+                    totalPrice,
+                    currency: 'GBP',
+                    voucherData,
+                    type: 'voucher'
+                });
+                if (!sessionRes.data.success) {
+                    alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                    return;
                 }
+                const stripe = await stripePromise;
+                const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
+                if (error) {
+                    alert('Stripe yönlendirme hatası: ' + error.message);
+                }
+                // Başarılı ödeme sonrası createVoucher webhook ile tetiklenecek
             } catch (error) {
-                console.error('Error during voucher creation:', error);
-                alert('An error occurred while creating voucher.');
+                console.error('Stripe Checkout başlatılırken hata:', error);
+                alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');
             }
             return;
         }
@@ -208,7 +219,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                 totalPrice,
                 currency: 'GBP',
-                bookingData
+                bookingData,
+                type: 'booking'
             });
             if (!sessionRes.data.success) {
                 alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));

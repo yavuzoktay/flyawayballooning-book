@@ -20,7 +20,8 @@ import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+import config from '../../config';
+const API_BASE_URL = config.API_BASE_URL;
 
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
@@ -277,22 +278,14 @@ const Index = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         if (params.get('payment') === 'success') {
-            // localStorage'da rezervasyon bilgisi varsa createBooking'e gönder
-            const bookingData = JSON.parse(localStorage.getItem('pendingBookingData') || '{}');
-            if (bookingData && bookingData.activitySelect) {
-                axios.post(`${API_BASE_URL}/api/createBooking`, bookingData)
-                    .then(res => {
-                        if (res.data.success) {
-                            alert('Rezervasyonunuz başarıyla tamamlandı!');
-                            localStorage.removeItem('pendingBookingData');
-                        } else {
-                            alert('Rezervasyon kaydı başarısız: ' + (res.data.message || 'Bilinmeyen hata'));
-                        }
-                    })
-                    .catch(() => {
-                        alert('Rezervasyon kaydı sırasında hata oluştu.');
-                    });
-            }
+            // Webhook tarafından booking oluşturuldu, sadece başarı mesajı göster
+            alert('Ödemeniz başarıyla alındı! Rezervasyonunuz oluşturuldu.');
+            // URL'den payment parametresini temizle
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (params.get('payment') === 'cancel') {
+            alert('Ödeme iptal edildi.');
+            // URL'den payment parametresini temizle
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, [location]);
 

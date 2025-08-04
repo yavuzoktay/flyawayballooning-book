@@ -6,6 +6,7 @@ import Image3 from '../../../assets/images/category3.jpg';
 import Image4 from '../../../assets/images/category1.jpeg';
 import axios from "axios";
 import Modal from "../Common/Modal";
+import config from '../../../config';
 
 const imageMap = {
     "Bath": Image1,
@@ -14,7 +15,7 @@ const imageMap = {
     "Bristol Fiesta": Image4,
 };
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = config.API_BASE_URL;
 
 const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);

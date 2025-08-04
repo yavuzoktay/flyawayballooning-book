@@ -5,13 +5,14 @@ import axios from 'axios';
 import { BsInfoCircle } from 'react-icons/bs';
 import sharedFlightImg from '../../../assets/images/shared-flight.jpg';
 import privateCharterImg from '../../../assets/images/private-charter.jpg';
+import config from '../../../config';
 
 const weatherRefundableHoverTexts = {
     sharedFlight: "You can select a weather refund option for each passenger for an additional £47.50 per person. This option can be chosen when entering passenger information.",
     privateFlight: "You can make your experience weather refundable for an additional 10% of your experience cost. This option can be selected during the booking process."
 };
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = config.API_BASE_URL;
 
 const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
     const [selectedFlight, setSelectedFlight] = useState(null);
