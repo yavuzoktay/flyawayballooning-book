@@ -56,10 +56,10 @@ const Index = () => {
             const hasWeatherRefund = passengerData.some(passenger => passenger.weatherRefund);
             
             setChooseAddOn(prev => {
-                const withoutWeatherRefund = prev.filter(addOn => addOn.name !== "Weather Refundable");
+                const withoutWeatherRefund = prev.filter(addOn => addOn.name !== "Weather Refundable" && addOn.name !== "Weather Refundable ");
                 
                 if (hasWeatherRefund) {
-                    return [...withoutWeatherRefund, { name: "Weather Refundable ", price: "47.50" }];
+                    return [...withoutWeatherRefund, { name: "Weather Refundable", price: "47.50" }];
                 } else {
                     return withoutWeatherRefund;
                 }
