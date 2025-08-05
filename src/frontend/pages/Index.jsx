@@ -50,22 +50,8 @@ const Index = () => {
     const passengerInfoRef = React.useRef();
     const additionalInfoRef = React.useRef();
     
-    // Sync Weather Refundable selections from passengerData to chooseAddOn
-    useEffect(() => {
-        if (passengerData && Array.isArray(passengerData)) {
-            const hasWeatherRefund = passengerData.some(passenger => passenger.weatherRefund);
-            
-            setChooseAddOn(prev => {
-                const withoutWeatherRefund = prev.filter(addOn => addOn.name !== "Weather Refundable" && addOn.name !== "Weather Refundable ");
-                
-                if (hasWeatherRefund) {
-                    return [...withoutWeatherRefund, { name: "Weather Refundable", price: "47.50" }];
-                } else {
-                    return withoutWeatherRefund;
-                }
-            });
-        }
-    }, [passengerData]);
+    // Weather Refundable is now part of Passenger Information, not Add To Booking
+    // useEffect removed - Weather Refundable will be handled directly in Passenger Information display
     
     const isFlightVoucher = activitySelect === "Flight Voucher";
     const isRedeemVoucher = activitySelect === "Redeem Voucher";
