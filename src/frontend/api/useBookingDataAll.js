@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import config from "../../config";
 
 const useBooking = () => {
     const [booking, setBooking] = useState([]);
     const [loading, setLoading] = useState(true);
-    const apiUrl = process.env.REACT_APP_API_URL || "";
 
     useEffect(() => {
         const fetchFlights = async () => {
             try {
-                const response = await axios.get(`https://flyawayballooning-system.com/api/getAllBookingData`);
+                const response = await axios.get(`${config.API_BASE_URL}/api/getAllBookingData`);
                 setBooking(response.data.data);
             } catch (error) {
                 // console.error("Error fetching flights:", error);
@@ -19,7 +19,7 @@ const useBooking = () => {
         };
 
         fetchFlights();
-    }, [apiUrl]);
+    }, []);
 
     return { booking, loading };
 };
