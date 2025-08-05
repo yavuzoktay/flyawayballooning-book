@@ -6,7 +6,7 @@ import LOGO from '../../../assets/images/FAB_Logo_DarkBlue.png';
  * BookingHeader component to display selected location, date, and countdown timer
  * Timer starts from 5 minutes when both location and date are selected
  */
-const BookingHeader = ({ location, selectedDate }) => {
+const BookingHeader = ({ location, selectedDate, selectedTime }) => {
   const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
@@ -87,7 +87,7 @@ const BookingHeader = ({ location, selectedDate }) => {
   }, [location, selectedDate, minutes, seconds, timerActive]);
 
   // If no location or date is selected, don't render the header
-  if (!location || !selectedDate) {
+  if (!location || !selectedDate || !selectedTime) {
     return null;
   }
 

@@ -269,7 +269,7 @@ const VoucherType = ({
                                 {!showTwoVouchers && (
                                     <div style={{ 
                                         position: 'absolute', 
-                                        left: 10, 
+                                        left: 20, 
                                         top: '50%', 
                                         transform: 'translateY(-50%)', 
                                         zIndex: 10,
@@ -285,14 +285,17 @@ const VoucherType = ({
                                         border: '1px solid #ddd',
                                         transition: 'all 0.2s ease'
                                     }} onClick={handlePrevVoucher}>
-                                        <ArrowBackIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                        <ArrowBackIosIcon style={{ 
+                                            fontSize: 20, 
+                                            color: '#666'
+                                        }} />
                                     </div>
                                 )}
                                 {/* Show right arrow if in two-voucher view and there's a third voucher */}
                                 {(showTwoVouchers && filteredVouchers.length >= 3) && (
                                     <div style={{ 
                                         position: 'absolute', 
-                                        right: 10, 
+                                        right: 20, 
                                         top: '50%', 
                                         transform: 'translateY(-50%)', 
                                         zIndex: 10,

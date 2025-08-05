@@ -78,7 +78,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const handleDateClick = (date) => {
         if (!isBefore(date, today)) {
-            const newDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), today.getHours(), today.getMinutes(), today.getSeconds()); // Maintain the current time
+            // Tarih değiştirildiğinde selectedTime'ı sıfırla
+            setSelectedTime(null);
+            const newDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0); // Saat bilgisini sıfırla
             setSelectedDate(newDate);
         }
     };
@@ -91,6 +93,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             const [h, m] = time.split(':');
             newDate.setHours(Number(h));
             newDate.setMinutes(Number(m));
+            newDate.setSeconds(0); // Saniyeyi sıfırla
             setSelectedDate(newDate);
         }
     };

@@ -57,7 +57,7 @@ const Index = () => {
     console.log('chooseFlightType', chooseFlightType);
 
     // Lokasyon ve tarih seçilip seçilmediğini kontrol et
-    const showBookingHeader = chooseLocation && selectedDate;
+    const showBookingHeader = chooseLocation && selectedDate && selectedTime;
 
     // Diğer section'lar için özel bir setActiveAccordion fonksiyonu
     // activitySelect null ise section'ların açılmasını engeller
@@ -301,7 +301,7 @@ const Index = () => {
                                 </a>
                             </div>
                             {showBookingHeader && (
-                                <BookingHeader location={chooseLocation} selectedDate={selectedDate} />
+                                <BookingHeader location={chooseLocation} selectedDate={selectedDate} selectedTime={selectedTime} />
                             )}
                             <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', flexShrink: 0 }}>
                                 <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '60px', width: '220px', objectFit: 'contain' }} />
