@@ -324,7 +324,8 @@ const VoucherType = ({
                             justifyContent: 'center',
                             alignItems: 'center',
                             padding: '20px 60px',
-                            minHeight: '400px'
+                            minHeight: '400px',
+                            position: 'relative'
                         }}
                     >
                         {loading ? (
@@ -503,7 +504,7 @@ const VoucherType = ({
                                 }
                                 
                                 return (
-                            <div key={currentVoucher.id} style={{
+                                    <div key={currentVoucher.id} style={{
                                 background: '#fff',
                                 borderRadius: 16,
                                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
@@ -650,6 +651,53 @@ const VoucherType = ({
                                 <p>No voucher types available for this location.</p>
                             </div>
                         )}
+                        
+                        {/* Dot Navigation */}
+                        {(() => {
+                            const filteredVouchers = voucherTypes.filter(voucher => 
+                                availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
+                            );
+                            
+                            if (filteredVouchers.length > 1) {
+                                return (
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginTop: '20px',
+                                        position: 'absolute',
+                                        bottom: '10px',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)'
+                                    }}>
+                                        {filteredVouchers.map((_, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => {
+                                                    if (index === 0 || index === 1) {
+                                                        setShowTwoVouchers(true);
+                                                        setCurrentViewIndex(0);
+                                                    } else {
+                                                        setShowTwoVouchers(false);
+                                                        setCurrentViewIndex(index);
+                                                    }
+                                                }}
+                                                style={{
+                                                    width: '10px',
+                                                    height: '10px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: (showTwoVouchers && (index === 0 || index === 1)) || (!showTwoVouchers && index === currentViewIndex) ? '#03a9f4' : '#ddd',
+                                                    cursor: 'pointer',
+                                                    transition: 'background-color 0.3s ease'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                     </div>
                 </div>
             </Accordion>
