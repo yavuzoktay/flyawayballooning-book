@@ -323,7 +323,7 @@ const VoucherType = ({
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            padding: '20px 60px',
+                            padding: '40px 60px',
                             minHeight: '400px',
                             position: 'relative'
                         }}
