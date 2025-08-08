@@ -222,18 +222,49 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 bookingData,
                 type: 'booking'
             });
-            if (!sessionRes.data.success) {
-                alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+            
+            console.log('Backend response:', sessionRes.data);
+            
+            // Response kontrolü
+            if (!sessionRes.data || !sessionRes.data.success) {
+                const errorMessage = sessionRes.data?.message || 'Bilinmeyen hata';
+                console.error('Backend error:', errorMessage);
+                alert('Ödeme başlatılamadı: ' + errorMessage);
+                return;
+            }
+            
+            if (!sessionRes.data.sessionId) {
+                console.error('Session ID not found in response');
+                alert('Ödeme başlatılamadı: Session ID bulunamadı');
                 return;
             }
             const stripe = await stripePromise;
-            const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
-            if (error) {
-                alert('Stripe yönlendirme hatası: ' + error.message);
+            console.log('Redirecting to Stripe with sessionId:', sessionRes.data.sessionId);
+            
+            try {
+                // Stripe'ın yeni versiyonunda farklı yaklaşım
+                const result = await stripe.redirectToCheckout({ 
+                    sessionId: sessionRes.data.sessionId 
+                });
+                
+                if (result.error) {
+                    console.error('Stripe redirect error:', result.error);
+                    alert('Stripe yönlendirme hatası: ' + result.error.message);
+                } else {
+                    console.log('Stripe redirect successful');
+                }
+            } catch (stripeError) {
+                console.error('Stripe redirect failed:', stripeError);
+                alert('Stripe yönlendirme başarısız: ' + stripeError.message);
             }
             // Başarılı ödeme sonrası createBooking çağrısı success_url ile tetiklenecek (webhook veya frontend ile)
         } catch (error) {
             console.error('Stripe Checkout başlatılırken hata:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                response: error.response?.data
+            });
             alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');
         }
     }
