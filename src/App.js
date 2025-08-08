@@ -6,9 +6,10 @@ import '../src/assets/css/frontend/booking.css';
 import Index from './frontend/pages/Index';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import config from './config';
 
-// Updated for Stripe checkout fix - 2025-08-08
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+// Stripe initialized with config STRIPE_PUBLIC_KEY (test mode in prod)
+const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 function App() {
   return (
