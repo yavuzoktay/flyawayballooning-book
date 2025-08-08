@@ -7,6 +7,7 @@ import Index from './frontend/pages/Index';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
+// Updated for Stripe checkout fix - 2025-08-08
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 function App() {
