@@ -8,8 +8,8 @@ const getApiBaseUrl = () => {
   return process.env.REACT_APP_API_URL || 'https://flyawayballooning-system.com';
 };
 
-// Always use the known TEST publishable key to avoid env mismatches
-const TEST_PK = 'pk_test_51HjVLCHwUKMuFjtp0QPX0KVZF1afEBmWUAcppWC6zTPum93jvgSUzd8X5dMQrLh3vaEUPruz5sgDY1jAbcf9pcuS00tmeruGek';
+// Use the complete publishable key from the same account as the secret key
+const TEST_PK = 'pk_test_51HjVLCHwUKMuFjtpdTxV53bl86vwIpXiNUHurZhSFIVUFGnDBJWZIlBnxMhdpD1ifnsbrHxIvRbNKfRGxd7eOWyy00bJWj8Je1';
 
 const config = {
   API_BASE_URL: getApiBaseUrl(),
