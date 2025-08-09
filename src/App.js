@@ -8,7 +8,12 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import config from './config';
 
-// Stripe initialized with config STRIPE_PUBLIC_KEY (test mode in prod)
+// Quick runtime check for key mode (logs TEST/LIVE only)
+if (typeof window !== 'undefined') {
+  const mode = config.STRIPE_PUBLIC_KEY.startsWith('pk_live_') ? 'LIVE' : 'TEST';
+  console.log(`[Stripe] Publishable key mode: ${mode}`);
+}
+
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 function App() {
