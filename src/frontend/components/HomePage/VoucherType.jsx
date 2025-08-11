@@ -287,7 +287,8 @@ const VoucherType = ({
                                     }} onClick={handlePrevVoucher}>
                                         <ArrowBackIosIcon style={{ 
                                             fontSize: 20, 
-                                            color: '#666'
+                                            color: '#666',
+                                            marginLeft: 5 // optical centering to match forward button
                                         }} />
                                     </div>
                                 )}

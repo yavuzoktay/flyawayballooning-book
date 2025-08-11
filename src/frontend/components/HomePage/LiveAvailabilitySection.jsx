@@ -163,13 +163,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 week.push(
                     <div
                         key={dateCopy.toISOString()}
-                        className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                        className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
                         onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
                         style={{
-                            opacity: isAvailable ? 1 : 0.5,
+                            opacity: isAvailable ? 0.5 : 0.5,
                             cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                            color: isAvailable ? '#fff' : '#888',
+                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                            color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
                             borderRadius: 8,
                             margin: 2,
                             padding: 2,
@@ -190,7 +190,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         }}
                     >
                         <div>{format(dateCopy, 'd')}</div>
-                        {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                        {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
                     </div>
                 );
             }
@@ -213,13 +213,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     weekRow.push(
                         <div
                             key={dateCopy.toISOString()}
-                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
                             onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
                             style={{
-                                opacity: isAvailable ? 1 : 0.5,
+                                opacity: isAvailable ? 1 : 1,
                                 cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                                background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                                color: isAvailable ? '#fff' : '#888',
+                                background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                                color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
                                 borderRadius: 8,
                                 margin: 2,
                                 padding: 2,
@@ -240,7 +240,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }}
                         >
                             <div>{format(dateCopy, 'd')}</div>
-                            {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                            {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
                         </div>
                     );
                 }
@@ -344,13 +344,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     days.push(
                                         <div
                                             key={dateCopy.toISOString()}
-                                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse ? 'pulse' : ''}`}
+                                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
                                             onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
                                             style={{
-                                                opacity: isAvailable ? 1 : 0.5,
+                                                opacity: isAvailable ? 1 : 1,
                                                 cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                                                background: isSelected ? '#56C1FF' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                                                color: isAvailable ? '#fff' : '#888',
+                                                background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
+                                                color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
                                                 borderRadius: 8,
                                                 margin: 2,
                                                 padding: 2,
@@ -371,7 +371,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             }}
                                         >
                                             <div>{format(dateCopy, 'd')}</div>
-                                            {isAvailable && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                                            {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
                                         </div>
                                     );
                                 } else {
@@ -561,6 +561,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 .empty-day { background: none !important; border: none !important; box-shadow: none !important; }
                 .day.selected { box-shadow: 0 0 0 2px #56C1FF; border: 2px solid #56C1FF; background: #61D836 !important; }
                 .day.sold-out { background: #bbb !important; color: #fff !important; cursor: not-allowed !important; }
+                .day.disabled { background: #ddd !important; color: #999 !important; cursor: not-allowed !important; }
                 .day.pulse { animation: pulseAnim 1.2s infinite; }
                 .available-day { background: #61D836 !important; }
                 @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 #ff9800; } 70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } }

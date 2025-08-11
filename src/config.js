@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
 };
 
 // Use the complete publishable key from the same account as the secret key
-const TEST_PK = 'pk_test_51HjVLCHwUKMuFjtpdTxV53bl86vwIpXiNUHurZhSFIVUFGnDBJWZIlBnxMhdpD1ifnsbrHxIvRbNKfRGxd7eOWyy00bJWj8Je1';
+const TEST_PK = 'pk_test_51HjVLCHwUKMuFjtpkabkDGYDbjlEYMKZxLtmVrRxWNSJofcJuVeUKu4NNy0EvDN50DC4cfqf43X1x40BVThLCTRI0007TlISlC';
 
 const config = {
   API_BASE_URL: getApiBaseUrl(),
