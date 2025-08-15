@@ -151,6 +151,18 @@ const Index = () => {
             isValid = false;
         }
         
+        // For Flight Voucher, validate that all required fields are filled
+        if (activitySelect === "Flight Voucher") {
+            // PassengerInfo validation is already handled in validateBuyGiftFields
+            // Additional validation can be added here if needed
+        }
+        
+        // For Buy Gift, validate that all required fields are filled
+        if (activitySelect === "Buy Gift") {
+            // PassengerInfo validation is already handled in validateBuyGiftFields
+            // Additional validation can be added here if needed
+        }
+        
         return isValid;
     };
 

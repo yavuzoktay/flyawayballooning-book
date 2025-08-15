@@ -99,6 +99,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                passenger.email && passenger.email.trim() !== '';
     });
     
+    // Special validation for Buy Gift (no weight required)
+    const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every(passenger => {
+        return passenger.firstName && passenger.firstName.trim() !== '' &&
+               passenger.lastName && passenger.lastName.trim() !== '' &&
+               passenger.phone && passenger.phone.trim() !== '' &&
+               passenger.email && passenger.email.trim() !== '';
+    });
+    
     const isBookDisabled = isRedeemVoucher
         ? !(
             activitySelect &&
@@ -113,15 +121,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         : isFlightVoucher
         ? !(
             chooseFlightType &&
-            hasPassenger &&
+            isPassengerInfoComplete &&
             isNonEmptyObject(additionalInfo) &&
-            isNonEmptyObject(recipientDetails)
+            isNonEmptyArray(chooseAddOn)
         )
         : isGiftVoucher
         ? !(
             chooseFlightType &&
+            selectedVoucherType &&
             isNonEmptyArray(chooseAddOn) &&
-            hasPassenger &&
+            isBuyGiftPassengerComplete &&
             isNonEmptyObject(additionalInfo) &&
             isNonEmptyObject(recipientDetails)
         )
@@ -137,6 +146,41 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate &&
             selectedTime
         );
+
+    // Debug logging for Buy Gift
+    if (isGiftVoucher) {
+        console.log('Buy Gift Debug:', {
+            chooseFlightType: !!chooseFlightType,
+            selectedVoucherType: !!selectedVoucherType,
+            chooseAddOn: isNonEmptyArray(chooseAddOn),
+            isPassengerInfoComplete,
+            additionalInfo: isNonEmptyObject(additionalInfo),
+            recipientDetails: isNonEmptyObject(recipientDetails),
+            isBookDisabled
+        });
+        
+        // Detailed debugging
+        console.log('Buy Gift Detailed Debug:', {
+            chooseFlightType: chooseFlightType,
+            selectedVoucherType: selectedVoucherType,
+            chooseAddOn: chooseAddOn,
+            passengerData: passengerData,
+            additionalInfo: additionalInfo,
+            recipientDetails: recipientDetails,
+            isPassengerInfoComplete: isPassengerInfoComplete,
+            isBuyGiftPassengerComplete: isBuyGiftPassengerComplete
+        });
+        
+        // Check each condition separately
+        console.log('Buy Gift Conditions Check:', {
+            condition1: !!chooseFlightType,
+            condition2: !!selectedVoucherType,
+            condition3: isNonEmptyArray(chooseAddOn),
+            condition4: isBuyGiftPassengerComplete,
+            condition5: isNonEmptyObject(additionalInfo),
+            condition6: isNonEmptyObject(recipientDetails)
+        });
+    }
 
     const [showWarning, setShowWarning] = React.useState(false);
 
@@ -431,7 +475,26 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 • Add to Booking
                             </>
                         )}
-                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
+                        {activitySelect === 'Flight Voucher' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Experience<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect === 'Buy Gift' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Experience<br/>
+                                • Voucher Type<br/>
+                                • Recipient Details<br/>
+                                • Purchaser Information (All fields required)<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
                             'Please fill in all required steps before booking.'
                         )}
                     </div>

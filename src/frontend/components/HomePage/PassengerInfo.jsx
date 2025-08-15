@@ -79,13 +79,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     passengerData.forEach((passenger, index) => {
       const passengerErrors = {};
       
-      // All fields are required for Book Flight and Redeem Voucher
-      if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher') {
+      // All fields are required for Book Flight, Redeem Voucher, Flight Voucher, and Buy Gift
+      if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
         if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
         if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
-        if (!passenger.weight?.trim()) passengerErrors.weight = true;
         if (!passenger.phone?.trim()) passengerErrors.phone = true;
         if (!passenger.email?.trim()) passengerErrors.email = true;
+        
+        // Weight is required for Book Flight, Redeem Voucher, and Flight Voucher but not for Buy Gift
+        if (activitySelect !== 'Buy Gift' && !passenger.weight?.trim()) passengerErrors.weight = true;
       } else {
         // For other activity types, basic validation
         if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
