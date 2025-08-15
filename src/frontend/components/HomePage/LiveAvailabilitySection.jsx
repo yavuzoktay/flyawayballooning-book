@@ -54,7 +54,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     var final_pax_count = selectedActivity?.[0]?.seats;
 
-    const today = new Date(); // Current date to compare
+    const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 0, 0, 0, 0); // Current date at start of day in local timezone
     // Change startDate and endDate to only cover the current month
     const startDate = startOfMonth(currentDate);
     const endDate = endOfMonth(currentDate);
@@ -93,10 +93,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             return;
         }
         
-        if (!isBefore(date, today)) {
+        // Create date strings manually to avoid timezone issues
+        const dateYear = date.getFullYear();
+        const dateMonth = date.getMonth();
+        const dateDay = date.getDate();
+        const dateStartOfDay = new Date(dateYear, dateMonth, dateDay, 0, 0, 0, 0);
+        
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
+        const todayStartOfDay = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
+        
+        if (dateStartOfDay >= todayStartOfDay) {
             // Tarih değiştirildiğinde selectedTime'ı sıfırla
             setSelectedTime(null);
-            const newDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0); // Saat bilgisini sıfırla
+            const newDate = new Date(dateYear, dateMonth, dateDay, 0, 0, 0, 0); // Saat bilgisini sıfırla
             setSelectedDate(newDate);
         }
     };
@@ -171,7 +182,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     console.log('Available dates from server:', availableDates);
     
     const getTimesForDate = (date) => {
-        const dateStr = format(date, 'yyyy-MM-dd');
+        // Use local date string to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
         console.log(`Looking for date: ${dateStr}`);
         const matchingAvailabilities = finalFilteredAvailabilities.filter(a => {
             console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
@@ -183,16 +199,44 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
-        const dateStr = format(date, 'yyyy-MM-dd');
+        // Use local date string to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
         console.log(`getSpacesForDate called for: ${dateStr}`);
-        console.log(`Final filtered availabilities:`, finalFilteredAvailabilities);
-        const slots = finalFilteredAvailabilities.filter(a => {
-            console.log(`Comparing slot date ${a.date} with ${dateStr}, match: ${a.date === dateStr}`);
-            return a.date === dateStr;
-        });
-        const total = slots.reduce((sum, s) => sum + (s.available || s.capacity || 0), 0);
-        console.log(`Date ${dateStr}: ${slots.length} slots, total: ${total}`);
-        return { total, soldOut: slots.length > 0 && total === 0, slots };
+        console.log(`Input date object:`, date);
+        console.log(`Manual date string:`, dateStr);
+        console.log(`Today object:`, today);
+        console.log(`Today manual:`, `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+        console.log(`All availabilities:`, availabilities);
+        console.log(`Sample availability dates:`, availabilities.slice(0, 3).map(a => ({ id: a.id, date: a.date, originalDate: a.date })));
+        
+        // Check ALL availabilities for this date (including capacity = 0)
+        const allSlotsForDate = availabilities.filter(a => a.date === dateStr);
+        console.log(`All slots for ${dateStr}:`, allSlotsForDate);
+        console.log(`Slot statuses for ${dateStr}:`, allSlotsForDate.map(slot => ({ 
+            id: slot.id, 
+            status: slot.status, 
+            available: slot.available, 
+            capacity: slot.capacity,
+            date: slot.date
+        })));
+        console.log(`Raw availabilities for ${dateStr}:`, availabilities.filter(a => a.date === dateStr));
+        
+        // Get available slots (capacity > 0)
+        const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
+        const total = availableSlots.reduce((sum, s) => sum + (s.available || s.capacity || 0), 0);
+        
+        // Sold out: when there are slots for this date but total available capacity is 0
+        // Also check for closed status slots
+        const hasClosedSlots = allSlotsForDate.some(slot => slot.status === 'Closed' || slot.status === 'closed' || slot.status === 'closed');
+        const hasOpenSlots = allSlotsForDate.some(slot => slot.status === 'Open' || slot.status === 'open');
+        const soldOut = (allSlotsForDate.length > 0 && total === 0) || hasClosedSlots;
+        
+        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${soldOut}`);
+        return { total, soldOut, slots: availableSlots };
     };
 
         const renderDays = () => {
@@ -214,25 +258,37 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             } else {
                 // Within the month
                 const dateCopy = new Date(dayPointer);
-                const isPastDate = isBefore(dateCopy, today);
+                // Create date strings manually to avoid timezone issues
+                const dateCopyYear = dateCopy.getFullYear();
+                const dateCopyMonth = dateCopy.getMonth();
+                const dateCopyDay = dateCopy.getDate();
+                const dateCopyStartOfDay = new Date(dateCopyYear, dateCopyMonth, dateCopyDay, 0, 0, 0, 0);
+                
+                const todayYear = today.getFullYear();
+                const todayMonth = today.getMonth();
+                const todayDay = today.getDate();
+                const todayStartOfDay = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
+                
+                const isPastDate = dateCopyStartOfDay < todayStartOfDay;
                 const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
                 const { total, soldOut, slots } = getSpacesForDate(dateCopy);
-                const isAvailable = total > 0;
-                const pulse = isAvailable && total <= 4 && total > 0;
+                // Fix: isAvailable should be true if there are slots (even if sold out)
+                const isAvailable = total > 0 || soldOut;
+                const pulse = isAvailable && total <= 4 && total > 0 && !soldOut;
                 
                 // Determine if date should be interactive
-                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected;
+                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected && !soldOut;
                 
                 days.push(
                     <div
-                        key={dateCopy.toISOString()}
-                        className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
+                        key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`}
+                        className={`day ${isPastDate || (!isAvailable && !soldOut) ? 'disabled' : ''} ${!isPastDate && isAvailable && !soldOut ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
                         onClick={() => isInteractive && handleDateClick(dateCopy)}
                         style={{
-                            opacity: isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5,
+                            opacity: soldOut ? 1 : (isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5),
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                            color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
+                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#61D836' : '',
+                            color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
                             borderRadius: 8,
                             margin: 2,
                             padding: 2,
@@ -255,7 +311,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div>{format(dateCopy, 'd')}</div>
                         {isAvailable && !isPastDate && (
                             <div style={{ fontSize: 12, marginTop: 2 }}>
-                                {soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}
+                                {`${total} Space${total > 1 ? 's' : ''}`}
+                            </div>
+                        )}
+                        {soldOut && !isPastDate && (
+                            <div style={{ fontSize: 12, marginTop: 2, color: '#fff', fontWeight: 600 }}>
+                                Sold Out
+                            </div>
+                        )}
+                        {!isAvailable && !isPastDate && !soldOut && (
+                            <div style={{ fontSize: 12, marginTop: 2, color: '#666' }}>
+                                Not Available
                             </div>
                         )}
                         {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
