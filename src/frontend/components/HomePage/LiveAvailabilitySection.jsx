@@ -23,7 +23,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,6 +58,16 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Change startDate and endDate to only cover the current month
     const startDate = startOfMonth(currentDate);
     const endDate = endOfMonth(currentDate);
+    
+    // Check if location and experience are selected
+    // For Book Flight: also need voucher type
+    // For Redeem Voucher: only need location and activity
+    const isLocationAndExperienceSelected = chooseLocation && selectedActivity && selectedActivity.length > 0 && (
+        (activitySelect === 'Book Flight' && chooseFlightType && chooseFlightType.type && selectedVoucherType) ||
+        (activitySelect === 'Redeem Voucher') ||
+        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+    );
+    
     // Terms for Bristol Fiesta
     const bristolFiestaTerms = [
         "Ballooning is a weather dependent activity.",
@@ -77,6 +87,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const handleDateClick = (date) => {
+        // Only allow date selection if location and experience are selected
+        if (!isLocationAndExperienceSelected) {
+            setIsModalOpen(true);
+            return;
+        }
+        
         if (!isBefore(date, today)) {
             // Tarih değiştirildiğinde selectedTime'ı sıfırla
             setSelectedTime(null);
@@ -86,6 +102,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const handleTimeClick = (time) => {
+        // Only allow time selection if location and experience are selected
+        if (!isLocationAndExperienceSelected) {
+            setIsModalOpen(true);
+            return;
+        }
+        
         setSelectedTime(time);
         // Seçilen saat ile birlikte tarihi güncelle (tarih saat birleşik olsun)
         if (selectedDate) {
@@ -98,6 +120,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     };
 
+    // Check if form is valid for submission
+    const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate;
+
+    const handleShowAllErrors = () => {
+        if (!requestName.trim()) setNameError(true);
+        if (!requestEmail.trim()) setEmailError(true);
+        if (!requestLocation) setLocationError(true);
+        if (!requestFlightType) setFlightTypeError(true);
+        if (!requestDate) setDateError(true);
+    };
+
     if (chooseLocation === '') {
         setIsModalOpen(true);
     }
@@ -106,68 +139,98 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Calendar için: hangi günlerde en az 1 açık slot var?
     console.log('LiveAvailabilitySection received availabilities:', availabilities);
     console.log('Current date range:', { startDate: format(startDate, 'yyyy-MM-dd'), endDate: format(endDate, 'yyyy-MM-dd'), currentDate: format(currentDate, 'yyyy-MM-dd') });
-    const availableDates = Array.from(new Set(availabilities.map(a => a.date)));
+    
+    // Filter availabilities - show all open ones (no AM/PM filtering)
+    // Only filter if location and experience are selected
+    const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
+        // Check multiple conditions for availability
+        const isOpen = a.status === 'Open' || a.status === 'open' || a.status === 'Open' || a.available > 0;
+        const hasCapacity = a.capacity && a.capacity > 0;
+        const isAvailable = isOpen && hasCapacity;
+        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
+        return isAvailable;
+    }) : [];
+    console.log('Filtered availabilities (all times):', filteredAvailabilities);
+    
+    // Alternative filtering: if the above is too restrictive, try this
+    const alternativeFiltered = isLocationAndExperienceSelected ? availabilities.filter(a => {
+        // More permissive filtering
+        const hasDate = a.date && a.date.length > 0;
+        const hasCapacity = a.capacity && a.capacity > 0;
+        const isAvailable = hasDate && hasCapacity;
+        console.log(`Alternative filter ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
+        return isAvailable;
+    }) : [];
+    console.log('Alternative filtered availabilities:', alternativeFiltered);
+    
+    // Use the more permissive filtering if the strict one returns nothing
+    const finalFilteredAvailabilities = filteredAvailabilities.length > 0 ? filteredAvailabilities : alternativeFiltered;
+    console.log('Final filtered availabilities:', finalFilteredAvailabilities);
+    
+    const availableDates = Array.from(new Set(finalFilteredAvailabilities.map(a => a.date)));
     console.log('Available dates from server:', availableDates);
+    
     const getTimesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
         console.log(`Looking for date: ${dateStr}`);
-        const matchingAvailabilities = availabilities.filter(a => {
+        const matchingAvailabilities = finalFilteredAvailabilities.filter(a => {
             console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
-            return a.date === dateStr && (a.status === 'Open' || a.status === 'open' || a.available > 0);
+            return a.date === dateStr;
         });
         console.log(`Found ${matchingAvailabilities.length} availabilities for ${dateStr}`);
         return matchingAvailabilities;
     };
 
-    // Filter availabilities - show all open ones (no AM/PM filtering)
-    const filteredAvailabilities = availabilities.filter(a => {
-        // Only include if status is 'Open' or 'open' or available > 0
-        const isOpen = a.status === 'Open' || a.status === 'open' || a.available > 0;
-        return isOpen;
-    });
-    console.log('Filtered availabilities (all times):', filteredAvailabilities);
     // Günlük toplam available hesapla
     const getSpacesForDate = (date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
         console.log(`getSpacesForDate called for: ${dateStr}`);
-        console.log(`Filtered availabilities:`, filteredAvailabilities);
-        const slots = filteredAvailabilities.filter(a => {
-            console.log(`Comparing slot date ${a.date} with ${dateStr}`);
+        console.log(`Final filtered availabilities:`, finalFilteredAvailabilities);
+        const slots = finalFilteredAvailabilities.filter(a => {
+            console.log(`Comparing slot date ${a.date} with ${dateStr}, match: ${a.date === dateStr}`);
             return a.date === dateStr;
         });
-        const total = slots.reduce((sum, s) => sum + (s.available || 0), 0);
+        const total = slots.reduce((sum, s) => sum + (s.available || s.capacity || 0), 0);
         console.log(`Date ${dateStr}: ${slots.length} slots, total: ${total}`);
         return { total, soldOut: slots.length > 0 && total === 0, slots };
     };
 
-    const renderDays = () => {
-        const weeks = [];
-        let week = [];
-        let tempDate = new Date(startDate);
+        const renderDays = () => {
+        const days = [];
+        let dayPointer = new Date(startDate);
+        
         // Use startOfWeek to get the correct offset for the first row (Monday as first day)
         const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
-        let dayPointer = new Date(weekStart);
-        // Fill the first week
-        for (let i = 0; i < 7; i++) {
+        dayPointer = new Date(weekStart);
+        
+        // Fill all days for the grid (6 weeks * 7 days = 42 days)
+        for (let i = 0; i < 42; i++) {
             if (dayPointer < startDate) {
-                week.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
+                // Before the month starts
+                days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
             } else if (dayPointer > endDate) {
-                week.push(<div key={`empty-end-firstrow-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
+                // After the month ends
+                days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
             } else {
+                // Within the month
                 const dateCopy = new Date(dayPointer);
                 const isPastDate = isBefore(dateCopy, today);
                 const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
                 const { total, soldOut, slots } = getSpacesForDate(dateCopy);
                 const isAvailable = total > 0;
                 const pulse = isAvailable && total <= 4 && total > 0;
-                week.push(
+                
+                // Determine if date should be interactive
+                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected;
+                
+                days.push(
                     <div
                         key={dateCopy.toISOString()}
                         className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
-                        onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
+                        onClick={() => isInteractive && handleDateClick(dateCopy)}
                         style={{
-                            opacity: isAvailable ? 0.5 : 0.5,
-                            cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
+                            opacity: isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5,
+                            cursor: isInteractive ? 'pointer' : 'not-allowed',
                             background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
                             color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
                             borderRadius: 8,
@@ -190,65 +253,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         }}
                     >
                         <div>{format(dateCopy, 'd')}</div>
-                        {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
+                        {isAvailable && !isPastDate && (
+                            <div style={{ fontSize: 12, marginTop: 2 }}>
+                                {soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}
+                            </div>
+                        )}
+                        {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
+                            <div style={{ fontSize: 10, marginTop: 2, color: '#666', textAlign: 'center' }}>
+                                {activitySelect === 'Redeem Voucher' ? 'Select Location & Experience' : 'Select Location, Experience & Voucher Type'}
+                            </div>
+                        )}
                     </div>
                 );
             }
             dayPointer = addDays(dayPointer, 1);
         }
-        weeks.push(week);
-        // Fill the rest of the weeks
-        while (dayPointer <= endDate) {
-            let weekRow = [];
-            for (let i = 0; i < 7; i++) {
-                if (dayPointer > endDate) {
-                    weekRow.push(<div key={`empty-end-${dayPointer.toISOString()}`} className="day empty-day" style={{ display: 'none' }}></div>);
-                } else {
-                    const dateCopy = new Date(dayPointer);
-                    const isPastDate = isBefore(dateCopy, today);
-                    const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-                    const { total, soldOut, slots } = getSpacesForDate(dateCopy);
-                    const isAvailable = total > 0;
-                    const pulse = isAvailable && total <= 4 && total > 0;
-                    weekRow.push(
-                        <div
-                            key={dateCopy.toISOString()}
-                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
-                            onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
-                            style={{
-                                opacity: isAvailable ? 1 : 1,
-                                cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                                background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                                color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
-                                borderRadius: 8,
-                                margin: 2,
-                                padding: 2,
-                                minHeight: 48,
-                                minWidth: 80,
-                                maxWidth: 80,
-                                width: 80,
-                                height: 80,
-                                boxSizing: 'border-box',
-                                position: 'relative',
-                                border: isSelected ? '2px solid #56C1FF' : 'none',
-                                boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
-                                animation: pulse ? 'pulseAnim 1.2s infinite' : 'none',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <div>{format(dateCopy, 'd')}</div>
-                            {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
-                        </div>
-                    );
-                }
-                dayPointer = addDays(dayPointer, 1);
-            }
-            weeks.push(weekRow);
-        }
-        return weeks.map((w, i) => <div key={`week-${i}`} style={{ display: 'flex', width: '100%' }}>{w}</div>);
+        
+        return days;
     };
 
     const handleRequestSubmit = async () => {
@@ -281,20 +302,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     };
 
-    // Alanların dolu olup olmadığını kontrol eden fonksiyon
-    const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate;
-
-    // Submit butonuna tıklanınca eksik alanlar için error state'lerini tetikleyen fonksiyon
-    const handleShowAllErrors = () => {
-        if (!requestName.trim()) setNameError(true);
-        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) { setNameFormatError(true); }
-        if (!requestEmail.trim()) setEmailError(true);
-        if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) { setEmailFormatError(true); }
-        if (!requestLocation) setLocationError(true);
-        if (!requestFlightType) setFlightTypeError(true);
-        if (!requestDate) setDateError(true);
-    };
-
     return (
         <>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
@@ -315,79 +322,33 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     </div>
                     {/* Centered currently viewing info under the heading */}
                     <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-                        <div>Currently viewing: <b>{chooseLocation || 'Location Selected'}</b>, <b>{selectedActivity?.[0]?.type || 'Shared'}</b></div>
-                        {selectedDate && selectedTime && (
-                            <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
+                        {isLocationAndExperienceSelected ? (
+                            <>
+                                <div>Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b></div>
+                                {selectedDate && selectedTime && (
+                                    <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
+                                )}
+                            </>
+                        ) : (
+                            <div style={{ color: '#666' }}>
+                                {activitySelect === 'Redeem Voucher' ? 
+                                    'Please select a <b>Flight Location</b> and <b>Experience</b> to view available dates and times' :
+                                    'Please select a <b>Flight Location</b>, <b>Experience</b>, and <b>Voucher Type</b> to view available dates and times'
+                                }
+                            </div>
                         )}
                     </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0 }}>
+                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0, width: '100%', maxWidth: '600px', margin: '0 auto' }}>
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: 15, marginBottom: 8 }}>{d}</div>)}
-                        {(() => {
-                            const days = [];
-                            let tempDate = new Date(startDate);
-                            const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
-                            let dayPointer = new Date(weekStart);
-                            // Fill leading empty cells
-                            for (let i = 0; i < 42; i++) { // 6 weeks max
-                                if (i < 7 && dayPointer < startDate) {
-                                    days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
-                                } else if (dayPointer > endDate) {
-                                    days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
-                                } else if (dayPointer >= startDate && dayPointer <= endDate) {
-                                    const dateCopy = new Date(dayPointer);
-                                    const isPastDate = isBefore(dateCopy, today);
-                                    const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-                                    const { total, soldOut, slots } = getSpacesForDate(dateCopy);
-                                    const isAvailable = total > 0;
-                                    const pulse = isAvailable && total <= 4 && total > 0;
-                                    days.push(
-                                        <div
-                                            key={dateCopy.toISOString()}
-                                            className={`day ${isPastDate || !isAvailable ? 'disabled' : ''} ${!isPastDate && isAvailable ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
-                                            onClick={() => (!isPastDate && isAvailable) && handleDateClick(dateCopy)}
-                                            style={{
-                                                opacity: isAvailable ? 1 : 1,
-                                                cursor: (!isPastDate && isAvailable) ? 'pointer' : 'not-allowed',
-                                                background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#bbb' : isAvailable ? '#61D836' : '',
-                                                color: isPastDate ? '#999' : isAvailable ? '#fff' : '#888',
-                                                borderRadius: 8,
-                                                margin: 2,
-                                                padding: 2,
-                                                minHeight: 48,
-                                                minWidth: 80,
-                                                maxWidth: 80,
-                                                width: 80,
-                                                height: 80,
-                                                boxSizing: 'border-box',
-                                                position: 'relative',
-                                                border: isSelected ? '2px solid #56C1FF' : 'none',
-                                                boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
-                                                animation: pulse ? 'pulseAnim 1.2s infinite' : 'none',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <div>{format(dateCopy, 'd')}</div>
-                                            {isAvailable && !isPastDate && <div style={{ fontSize: 12, marginTop: 2 }}>{soldOut ? 'Sold Out' : `${total} Space${total > 1 ? 's' : ''}`}</div>}
-                                        </div>
-                                    );
-                                } else {
-                                    days.push(<div key={`empty-mid-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
-                                }
-                                dayPointer = addDays(dayPointer, 1);
-                            }
-                            return days;
-                        })()}
+                        {renderDays()}
                     </div>
                     {/* Reschedule text below calendar */}
                     <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 2 }}>
                         <span style={{ fontSize: 14, color: '#888' }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                     </div>
                     {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
-                    {selectedDate && (
+                    {selectedDate && isLocationAndExperienceSelected && (
                         <div style={{ marginTop: 24, marginBottom: 8 }}>
                             <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')}</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -469,8 +430,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <Modal
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
-                        title="Bristol Balloon Fiesta - Terms & Conditions"
-                        bulletPoints={bristolFiestaTerms}
+                        title={activitySelect === 'Redeem Voucher' ? "Select Location & Experience" : "Bristol Balloon Fiesta - Terms & Conditions"}
+                        bulletPoints={activitySelect === 'Redeem Voucher' ? ["Please select a flight location and experience first to view available dates and times."] : bristolFiestaTerms}
                     />
                     :
                     ""
@@ -555,16 +516,93 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }}
             />
             <style>{`
-                .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0px; }
-                .weekday-label { text-align: center; font-weight: 600; color: #888; font-size: 15px; margin-bottom: 8px; }
-                .day { width: 80px; height: 80px; min-width: 80px; max-width: 80px; min-height: 80px; max-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2px; margin-top: 2px; transition: box-shadow 0.2s; box-sizing: border-box; }
-                .empty-day { background: none !important; border: none !important; box-shadow: none !important; }
-                .day.selected { box-shadow: 0 0 0 2px #56C1FF; border: 2px solid #56C1FF; background: #61D836 !important; }
-                .day.sold-out { background: #bbb !important; color: #fff !important; cursor: not-allowed !important; }
-                .day.disabled { background: #ddd !important; color: #999 !important; cursor: not-allowed !important; }
-                .day.pulse { animation: pulseAnim 1.2s infinite; }
-                .available-day { background: #61D836 !important; }
-                @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 #ff9800; } 70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } }
+                .days-grid { 
+                    display: grid; 
+                    grid-template-columns: repeat(7, 1fr); 
+                    gap: 0px; 
+                    width: 100%;
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                .weekday-label { 
+                    text-align: center; 
+                    font-weight: 600; 
+                    color: #888; 
+                    font-size: 15px; 
+                    margin-bottom: 8px; 
+                    padding: 8px;
+                }
+                .day { 
+                    width: 80px; 
+                    height: 80px; 
+                    min-width: 80px; 
+                    max-width: 80px; 
+                    min-height: 80px; 
+                    max-height: 80px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    justify-content: center; 
+                    margin: 2px; 
+                    transition: all 0.2s ease; 
+                    box-sizing: border-box;
+                    border-radius: 8px;
+                }
+                .empty-day { 
+                    background: none !important; 
+                    border: none !important; 
+                    box-shadow: none !important; 
+                    width: 80px;
+                    height: 80px;
+                }
+                .day.selected { 
+                    box-shadow: 0 0 0 2px #56C1FF; 
+                    border: 2px solid #56C1FF; 
+                    background: #56C1FF !important;
+                    color: white !important;
+                }
+                .day.sold-out { 
+                    background: #bbb !important; 
+                    color: #fff !important; 
+                    cursor: not-allowed !important; 
+                }
+                .day.disabled { 
+                    background: #ddd !important; 
+                    color: #999 !important; 
+                    cursor: not-allowed !important; 
+                }
+                .day.pulse { 
+                    animation: pulseAnim 1.2s infinite; 
+                }
+                .available-day { 
+                    background: #61D836 !important; 
+                    color: white !important;
+                }
+                @keyframes pulseAnim { 
+                    0% { box-shadow: 0 0 0 0 #ff9800; } 
+                    70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 
+                    100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } 
+                }
+                
+                @media (max-width: 768px) {
+                    .days-grid {
+                        max-width: 100%;
+                        grid-template-columns: repeat(7, 1fr);
+                    }
+                    .day {
+                        width: 60px;
+                        height: 60px;
+                        min-width: 60px;
+                        max-width: 60px;
+                        min-height: 60px;
+                        max-height: 60px;
+                        font-size: 14px;
+                    }
+                    .empty-day {
+                        width: 60px;
+                        height: 60px;
+                    }
+                }
             `}</style>
             <style>{`
 .realtime-badge-wrap {

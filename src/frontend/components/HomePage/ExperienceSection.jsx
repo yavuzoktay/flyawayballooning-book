@@ -51,8 +51,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // Create dynamic experiences based on location pricing
     const getExperiences = () => {
-        const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_price || 180);
-        const privatePrice = isBristol ? null : (locationPricing?.private_price || 900);
+        const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_flight_from_price || 180);
+        const privatePrice = isBristol ? null : (locationPricing?.private_charter_from_price || 900);
 
         // Calculate private flight prices based on group size
         const privatePrices = {
@@ -75,7 +75,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {
                 title: "Private Charter",
                 img: privateCharterImg,
-                price: isBristol ? (bristolPrivatePrices[2] / 2).toString() : (privatePrice ? (privatePrice / 2).toString() : "450"), // Default per person price
+                price: isBristol ? (bristolPrivatePrices[2] / 2).toString() : (privatePrice ? privatePrice.toString() : "900"), // Use private_charter_from_price directly
                 desc: isBristol 
                     ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
                     : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
@@ -86,10 +86,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     2: bristolPrivatePrices[2] / 2,  // Price per person for 2 passengers
                     3: bristolPrivatePrices[3] / 3   // Price per person for 3 passengers
                 } : {
-                    2: privatePrice ? (privatePrice / 2) : 450,  // Price per person for 2 passengers
-                    3: privatePrice ? (privatePrice / 3) : 350,  // Price per person for 3 passengers
-                    4: privatePrice ? (privatePrice / 4) : 300,  // Price per person for 4 passengers
-                    8: privatePrice ? (privatePrice / 8) : 225   // Price per person for 8 passengers
+                    2: privatePrice || 900,  // Total price for 2 passengers
+                    3: privatePrice || 900,  // Total price for 3 passengers
+                    4: privatePrice || 900,  // Total price for 4 passengers
+                    8: privatePrice || 900   // Total price for 8 passengers
                 }
             }
         ];
@@ -160,8 +160,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 console.error('Invalid passenger count or missing pricing for Private Charter');
                 return;
             }
-            totalPrice = perPersonPrice * passengerCount;
-            finalPrice = perPersonPrice; // Store the per person price
+            totalPrice = perPersonPrice; // specialPrices now contains total price, not per-person
+            finalPrice = perPersonPrice; // Store the total price
         } else {
             // For Shared Flight, calculate total from per person price
             finalPrice = price;
@@ -227,7 +227,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                     ))}
                                 </ul>
                             )}
-                            <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>From £{experience.price}pp</div>
+                            <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
+                                From £{experience.price}{experience.title === "Private Charter" ? "" : "pp"}
+                            </div>
                             <button
                                 style={{
                                     width: '100%',

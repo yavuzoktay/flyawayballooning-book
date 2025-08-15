@@ -45,6 +45,49 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     
+    // Function to re-fetch availabilities when filters change
+    const refetchAvailabilities = async () => {
+        if (chooseLocation && activityId) {
+            try {
+                const params = new URLSearchParams({
+                    location: chooseLocation,
+                    activityId: activityId
+                });
+                
+                // Add voucher type filter if selected
+                if (selectedVoucherType?.title) {
+                    params.append('voucherTypes', selectedVoucherType.title);
+                }
+                
+                // Add flight type filter if selected
+                if (chooseFlightType?.type && chooseFlightType.type !== 'Shared Flight') {
+                    params.append('flightType', chooseFlightType.type);
+                }
+                
+                const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                if (response.data.success) {
+                    setAvailabilities(response.data.data || []);
+                }
+            } catch (error) {
+                console.error('Error refetching availabilities:', error);
+            }
+        }
+    };
+    
+    // Refetch availabilities when voucher type changes
+    useEffect(() => {
+        if (selectedVoucherType && chooseLocation && activityId) {
+            refetchAvailabilities();
+        }
+    }, [selectedVoucherType, chooseLocation, activityId]);
+    
+    // Refetch availabilities when flight type changes
+    useEffect(() => {
+        if (chooseFlightType?.type && chooseLocation && activityId) {
+            refetchAvailabilities();
+        }
+    }, [chooseFlightType?.type, chooseLocation, activityId]);
+    
     // Validation refs for Buy Gift and Flight Voucher
     const recipientDetailsRef = React.useRef();
     const passengerInfoRef = React.useRef();
@@ -71,10 +114,8 @@ const Index = () => {
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
 
-    // Validation function for Buy Gift and Flight Voucher
+    // Validation function for all activity types
     const validateBuyGiftFields = () => {
-        if (activitySelect !== "Buy Gift" && activitySelect !== "Flight Voucher") return true;
-        
         let isValid = true;
         
         // Validate Recipient Details (only for Buy Gift)
@@ -86,7 +127,7 @@ const Index = () => {
             }
         }
         
-        // Validate Passenger Information (for both Buy Gift and Flight Voucher)
+        // Validate Passenger Information (for all activity types)
         if (passengerInfoRef.current) {
             const passengerValid = passengerInfoRef.current.validate();
             if (!passengerValid) {
@@ -95,13 +136,19 @@ const Index = () => {
             }
         }
         
-        // Validate Additional Information (for both Buy Gift and Flight Voucher)
+        // Validate Additional Information (for all activity types)
         if (additionalInfoRef.current) {
             const additionalValid = additionalInfoRef.current.validate();
             if (!additionalValid) {
                 setActiveAccordion("additional-info");
                 isValid = false;
             }
+        }
+        
+        // For Redeem Voucher, also validate that Live Availability is selected
+        if (activitySelect === "Redeem Voucher" && (!selectedDate || !selectedTime)) {
+            setActiveAccordion("live-availability");
+            isValid = false;
         }
         
         return isValid;
@@ -281,8 +328,34 @@ const Index = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         if (params.get('payment') === 'success') {
-            // Webhook tarafından booking oluşturuldu, sadece başarı mesajı göster
-            alert('Ödemeniz başarıyla alındı! Rezervasyonunuz oluşturuldu.');
+            const session_id = params.get('session_id');
+            const type = params.get('type');
+            
+            if (session_id && type) {
+                // Try to create booking/voucher using fallback endpoint
+                const createFromSession = async () => {
+                    try {
+                        const response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, {
+                            session_id,
+                            type
+                        });
+                        
+                        if (response.data.success) {
+                            alert(`Ödemeniz başarıyla alındı! ${type === 'booking' ? 'Rezervasyonunuz' : 'Voucher\'ınız'} oluşturuldu. ID: ${response.data.id}`);
+                        } else {
+                            alert('Ödeme başarılı ancak rezervasyon oluşturulamadı. Lütfen müşteri hizmetleri ile iletişime geçin.');
+                        }
+                    } catch (error) {
+                        console.error('Error creating from session:', error);
+                        alert('Ödeme başarılı ancak rezervasyon oluşturulamadı. Lütfen müşteri hizmetleri ile iletişime geçin.');
+                    }
+                };
+                
+                createFromSession();
+            } else {
+                alert('Ödemeniz başarıyla alındı! Rezervasyonunuz oluşturuldu.');
+            }
+            
             // URL'den payment parametresini temizle
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (params.get('payment') === 'cancel') {
@@ -347,6 +420,8 @@ const Index = () => {
                                                 setActivityId={setActivityId} 
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
+                                                selectedVoucherType={selectedVoucherType}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <ExperienceSection 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -372,6 +447,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
+                                                    selectedActivity={selectedActivity}
                                                 />
                                             )}
                                             <LiveAvailabilitySection 
@@ -389,6 +465,7 @@ const Index = () => {
                                                 availabilities={availabilities}
                                                 activitySelect={activitySelect}
                                                 selectedVoucherType={selectedVoucherType}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -442,6 +519,8 @@ const Index = () => {
                                                 setActivityId={setActivityId} 
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
+                                                selectedVoucherType={selectedVoucherType}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -458,6 +537,7 @@ const Index = () => {
                                                 availabilities={availabilities}
                                                 activitySelect={activitySelect}
                                                 selectedVoucherType={selectedVoucherType}
+                                                chooseFlightType={chooseFlightType}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -523,6 +603,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
+                                                    selectedActivity={selectedActivity}
                                                 />
                                             )}
                                             <PassengerInfo
@@ -578,6 +659,8 @@ const Index = () => {
                                                     setActivityId={setActivityId} 
                                                     setSelectedActivity={setSelectedActivity}
                                                     setAvailabilities={setAvailabilities}
+                                                    selectedVoucherType={selectedVoucherType}
+                                                    chooseFlightType={chooseFlightType}
                                                 />
                                             )}
                                             {!(activitySelect === "Redeem Voucher") && (
@@ -606,6 +689,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
+                                                    selectedActivity={selectedActivity}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
@@ -624,6 +708,7 @@ const Index = () => {
                                                     availabilities={availabilities}
                                                     activitySelect={activitySelect}
                                                     selectedVoucherType={selectedVoucherType}
+                                                    chooseFlightType={chooseFlightType}
                                                 />
                                             )}
                                             {(activitySelect === "Buy Gift" || activitySelect === "Redeem Voucher") && (

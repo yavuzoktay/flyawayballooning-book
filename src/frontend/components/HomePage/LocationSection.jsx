@@ -17,7 +17,7 @@ const imageMap = {
 
 const API_BASE_URL = config.API_BASE_URL;
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities }) => {
+const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
@@ -73,8 +73,19 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                 
                 // Then get filtered availabilities using the new endpoint
                 const params = new URLSearchParams({
-                    location: location
+                    location: location,
+                    activityId: activity?.id
                 });
+                
+                // Add voucher type filter if selected
+                if (selectedVoucherType?.title) {
+                    params.append('voucherTypes', selectedVoucherType.title);
+                }
+                
+                // Add flight type filter if selected
+                if (chooseFlightType?.type && chooseFlightType.type !== 'Shared Flight') {
+                    params.append('flightType', chooseFlightType.type);
+                }
                 
                 const availabilitiesResponse = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
                 if (availabilitiesResponse.status === 200 && availabilitiesResponse.data.success) {

@@ -73,20 +73,29 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     });
   };
 
-  // Validation function for Buy Gift and Flight Voucher
+  // Validation function for all activity types
   const validateFields = () => {
-    if (!isGiftVoucher && !isFlightVoucher) return true;
-    
     const errors = [];
     passengerData.forEach((passenger, index) => {
       const passengerErrors = {};
-      if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
-      if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
-      if (!passenger.phone?.trim()) passengerErrors.phone = true;
-      if (!passenger.email?.trim()) passengerErrors.email = true;
       
-      // Weight is required for Flight Voucher but not for Buy Gift
-      if (isFlightVoucher && !passenger.weight?.trim()) passengerErrors.weight = true;
+      // All fields are required for Book Flight and Redeem Voucher
+      if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher') {
+        if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
+        if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
+        if (!passenger.weight?.trim()) passengerErrors.weight = true;
+        if (!passenger.phone?.trim()) passengerErrors.phone = true;
+        if (!passenger.email?.trim()) passengerErrors.email = true;
+      } else {
+        // For other activity types, basic validation
+        if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
+        if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
+        if (!passenger.phone?.trim()) passengerErrors.phone = true;
+        if (!passenger.email?.trim()) passengerErrors.email = true;
+        
+        // Weight is required for Flight Voucher but not for Buy Gift
+        if (isFlightVoucher && !passenger.weight?.trim()) passengerErrors.weight = true;
+      }
       
       if (Object.keys(passengerErrors).length > 0) {
         errors[index] = passengerErrors;
@@ -196,28 +205,28 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
                   <div style={{ flex: 1 }}>
-                    <label>First Name{(isGiftVoucher || isFlightVoucher) && <span style={{ color: 'red' }}>*</span>}</label>
+                    <label>First Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="firstName"
                       value={passenger.firstName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
-                      required={isGiftVoucher || isFlightVoucher}
+                      required
                       style={error?.firstName ? { border: '1.5px solid red' } : {}}
                       placeholder="First Name"
                     />
                     {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label>Last Name{(isGiftVoucher || isFlightVoucher) && <span style={{ color: 'red' }}>*</span>}</label>
+                    <label>Last Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                       name="lastName"
                       value={passenger.lastName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
-                      required={isGiftVoucher || isFlightVoucher}
+                      required
                       style={error?.lastName ? { border: '1.5px solid red' } : {}}
                       placeholder="Last Name"
                     />
@@ -227,7 +236,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   {activitySelect !== 'Buy Gift' && (
                     <div style={{ flex: 1 }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
-                        Weight (Kg){isFlightVoucher && <span style={{ color: 'red' }}>*</span>}
+                        Weight (Kg)<span style={{ color: 'red' }}>*</span>
                         <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                           <div className="info-icon-container" style={{ position: 'relative' }}>
                             <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
@@ -239,6 +248,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       </label>
                       <input
                         type="tel"
+                        required
+                        style={error?.weight ? { border: '1.5px solid red' } : {}}
                         inputMode="numeric"
                         pattern="[0-9]*"
                         onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
@@ -246,8 +257,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         value={passenger.weight}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Kg"
-                        required={isFlightVoucher}
-                        style={error?.weight ? { border: '1.5px solid red' } : {}}
                       />
                       {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                     </div>
@@ -257,7 +266,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 {index === 0 && (
                   <div style={{ width: '100%', display: 'flex', gap: '15px', marginTop: '10px' }}>
                     <div style={{ flex: 1 }}>
-                      <label>Mobile Number{(isGiftVoucher || isFlightVoucher) && <span style={{ color: 'red' }}>*</span>}</label>
+                      <label>Mobile Number<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="tel"
                         inputMode="numeric"
@@ -267,20 +276,20 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         value={passenger.phone || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Mobile Number"
-                        required={isGiftVoucher || isFlightVoucher}
+                        required
                         style={error?.phone ? { border: '1.5px solid red' } : {}}
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label>Email{(isGiftVoucher || isFlightVoucher) && <span style={{ color: 'red' }}>*</span>}</label>
+                      <label>Email<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="email"
                         name="email"
                         value={passenger.email || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Email"
-                        required={isGiftVoucher || isFlightVoucher}
+                        required
                         style={error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}

@@ -87,15 +87,28 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // - Redeem Voucher: only require main fields (already handled)
     // - Flight Voucher: require chooseFlightType, passengerData (at least one with firstName), additionalInfo, recipientDetails
     // - Buy Gift: require chooseFlightType, chooseAddOn (at least one), passengerData (at least one with firstName), additionalInfo, recipientDetails
-    // - Book Flight: require all fields (as before)
+    // - Book Flight: require all fields including complete passenger information
     const hasPassenger = Array.isArray(passengerData) && passengerData.some(p => p.firstName && p.firstName.trim() !== '');
+    
+    // Enhanced passenger validation for Book Flight
+    const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every(passenger => {
+        return passenger.firstName && passenger.firstName.trim() !== '' &&
+               passenger.lastName && passenger.lastName.trim() !== '' &&
+               passenger.weight && passenger.weight.trim() !== '' &&
+               passenger.phone && passenger.phone.trim() !== '' &&
+               passenger.email && passenger.email.trim() !== '';
+    });
+    
     const isBookDisabled = isRedeemVoucher
         ? !(
             activitySelect &&
             chooseLocation &&
             chooseFlightType &&
+            selectedDate &&
+            selectedTime &&
+            isPassengerInfoComplete &&
             isNonEmptyObject(additionalInfo) &&
-            isNonEmptyObject(recipientDetails)
+            isNonEmptyArray(chooseAddOn)
         )
         : isFlightVoucher
         ? !(
@@ -116,11 +129,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             activitySelect &&
             chooseLocation &&
             chooseFlightType &&
+            selectedVoucherType &&
             isNonEmptyArray(chooseAddOn) &&
-            isNonEmptyArray(passengerData) &&
+            isPassengerInfoComplete &&
             isNonEmptyObject(additionalInfo) &&
             isNonEmptyObject(recipientDetails) &&
-            selectedDate
+            selectedDate &&
+            selectedTime
         );
 
     const [showWarning, setShowWarning] = React.useState(false);
@@ -394,8 +409,31 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     </button>
                 </div>
                 {showWarning && (
-                    <div style={{ color: 'red', marginTop: 10 }}>
-                        Please fill in all required steps before booking.
+                    <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
+                        {activitySelect === 'Book Flight' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Voucher Type<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect === 'Redeem Voucher' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
+                            'Please fill in all required steps before booking.'
+                        )}
                     </div>
                 )}
             </div>

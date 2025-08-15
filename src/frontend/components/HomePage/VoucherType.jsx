@@ -6,6 +6,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
+import { useMemo } from 'react';
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -67,7 +68,8 @@ const VoucherType = ({
     setSelectedVoucherType,
     activitySelect,
     chooseFlightType,
-    chooseLocation
+    chooseLocation,
+    selectedActivity
 }) => {
     const [quantities, setQuantities] = useState({
         'Weekday Morning': 1,
@@ -78,6 +80,11 @@ const VoucherType = ({
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [locationPricing, setLocationPricing] = useState({
+        weekday_morning_price: 180,
+        flexible_weekday_price: 200,
+        any_day_flight_price: 220
+    });
     const [currentViewIndex, setCurrentViewIndex] = useState(0);
     const [showTwoVouchers, setShowTwoVouchers] = useState(true);
     const [slideDirection, setSlideDirection] = useState('right');
@@ -98,8 +105,6 @@ const VoucherType = ({
                 }
             } catch (error) {
                 console.error('Error fetching voucher types:', error);
-                // If API fails, show all voucher types as fallback
-                setAvailableVoucherTypes(['Weekday Morning', 'Flexible Weekday', 'Any Day Flight']);
             } finally {
                 setLoading(false);
             }
@@ -108,7 +113,26 @@ const VoucherType = ({
         fetchVoucherTypes();
     }, [chooseLocation]);
 
-    const voucherTypes = [
+    // Update locationPricing when selectedActivity changes
+    useEffect(() => {
+        if (selectedActivity && selectedActivity.length > 0) {
+            const activity = selectedActivity[0];
+            setLocationPricing({
+                weekday_morning_price: parseFloat(activity.weekday_morning_price) || 180,
+                flexible_weekday_price: parseFloat(activity.flexible_weekday_price) || 200,
+                any_day_flight_price: parseFloat(activity.any_day_flight_price) || 220
+            });
+        } else {
+            // Fallback to default pricing
+            setLocationPricing({
+                weekday_morning_price: 180,
+                flexible_weekday_price: 200,
+                any_day_flight_price: 220
+            });
+        }
+    }, [selectedActivity]);
+
+    const voucherTypes = useMemo(() => [
         {
             id: 'weekday-morning',
             title: 'Weekday Morning',
@@ -123,7 +147,7 @@ const VoucherType = ({
                 'Upgradeable at Later Date.'
             ],
             weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: 180
+            price: locationPricing.weekday_morning_price
         },
         {
             id: 'flexible-weekday',
@@ -139,7 +163,7 @@ const VoucherType = ({
                 'Upgradeable at Later Date.'
             ],
             weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: 200
+            price: locationPricing.flexible_weekday_price
         },
         {
             id: 'any-day-flight',
@@ -155,9 +179,9 @@ const VoucherType = ({
                 'Weather Refundable Option'
             ],
             weatherClause: 'Flights subject to weather – your voucher remains valid and rebookable, or refundable on request if you select the refundable option.',
-            price: 220
+            price: locationPricing.any_day_flight_price
         }
-    ];
+    ], [locationPricing]);
 
     const handleQuantityChange = (voucherTitle, value) => {
         setQuantities(prev => ({
