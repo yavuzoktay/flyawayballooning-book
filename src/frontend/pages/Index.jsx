@@ -54,9 +54,11 @@ const Index = () => {
                     activityId: activityId
                 });
                 
-                // Add voucher type filter if selected
+                // Add voucher type filter if selected (TEMPORARILY DISABLED FOR DEBUG)
                 if (selectedVoucherType?.title) {
-                    params.append('voucherTypes', selectedVoucherType.title);
+                    console.log('⚠️ Voucher Type filter temporarily disabled for debugging');
+                    console.log('Original filter would be:', selectedVoucherType.title);
+                    // params.append('voucherTypes', selectedVoucherType.title); // TEMPORARILY COMMENTED OUT
                 }
                 
                 // Add flight type filter if selected
