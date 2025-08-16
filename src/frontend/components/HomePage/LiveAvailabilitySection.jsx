@@ -390,7 +390,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }
             );
             if (res.data.success) {
-                setRequestSuccess("Your request has been submitted!");
+                setRequestSuccess("We will be in touch shortly");
                 setTimeout(() => {
                     setRequestModalOpen(false);
                     setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate("");
