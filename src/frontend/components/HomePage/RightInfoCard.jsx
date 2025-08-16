@@ -40,7 +40,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const voucherTypePrice = selectedVoucherType?.totalPrice || 0;
     const addOnPrice = chooseAddOn.reduce((total, addOn) => {
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
-    }, 0);
+    }, 0); // Opsiyonel - boş array ise 0 döner
     
     // Weather Refundable price is now calculated separately from passengerData
     const weatherRefundPrice = passengerData && passengerData.some(p => p.weatherRefund) ? 47.50 : 0;
@@ -86,8 +86,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Book button enable logic:
     // - Redeem Voucher: only require main fields (already handled)
     // - Flight Voucher: require chooseFlightType, passengerData (at least one with firstName), additionalInfo, recipientDetails
-    // - Buy Gift: require chooseFlightType, chooseAddOn (at least one), passengerData (at least one with firstName), additionalInfo, recipientDetails
+    // - Buy Gift: require chooseFlightType, passengerData (at least one with firstName), additionalInfo, recipientDetails
     // - Book Flight: require all fields including complete passenger information
+    // Note: chooseAddOn (Add To Booking) is now optional for all activity types
     const hasPassenger = Array.isArray(passengerData) && passengerData.some(p => p.firstName && p.firstName.trim() !== '');
     
     // Enhanced passenger validation for Book Flight
@@ -115,21 +116,21 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate &&
             selectedTime &&
             isPassengerInfoComplete &&
-            isNonEmptyObject(additionalInfo) &&
-            isNonEmptyArray(chooseAddOn)
+            isNonEmptyObject(additionalInfo)
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isFlightVoucher
         ? !(
             chooseFlightType &&
             isPassengerInfoComplete &&
-            isNonEmptyObject(additionalInfo) &&
-            isNonEmptyArray(chooseAddOn)
+            isNonEmptyObject(additionalInfo)
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
         ? !(
             chooseFlightType &&
             selectedVoucherType &&
-            isNonEmptyArray(chooseAddOn) &&
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isBuyGiftPassengerComplete &&
             isNonEmptyObject(additionalInfo) &&
             isNonEmptyObject(recipientDetails)
@@ -139,7 +140,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseLocation &&
             chooseFlightType &&
             selectedVoucherType &&
-            isNonEmptyArray(chooseAddOn) &&
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
             isNonEmptyObject(additionalInfo) &&
             isNonEmptyObject(recipientDetails) &&
@@ -152,7 +153,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         console.log('Buy Gift Debug:', {
             chooseFlightType: !!chooseFlightType,
             selectedVoucherType: !!selectedVoucherType,
-            chooseAddOn: isNonEmptyArray(chooseAddOn),
+            chooseAddOn: isNonEmptyArray(chooseAddOn), // Opsiyonel - sadece bilgi amaçlı
             isPassengerInfoComplete,
             additionalInfo: isNonEmptyObject(additionalInfo),
             recipientDetails: isNonEmptyObject(recipientDetails),
@@ -163,7 +164,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         console.log('Buy Gift Detailed Debug:', {
             chooseFlightType: chooseFlightType,
             selectedVoucherType: selectedVoucherType,
-            chooseAddOn: chooseAddOn,
+            chooseAddOn: chooseAddOn, // Opsiyonel - sadece bilgi amaçlı
             passengerData: passengerData,
             additionalInfo: additionalInfo,
             recipientDetails: recipientDetails,
@@ -174,7 +175,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         console.log('Buy Gift Conditions Check:', {
             condition1: !!chooseFlightType,
             condition2: !!selectedVoucherType,
-            condition3: isNonEmptyArray(chooseAddOn),
+            condition3: 'chooseAddOn is now optional', // Opsiyonel olduğu belirtildi
             condition4: isPassengerInfoComplete,
             condition5: isNonEmptyObject(additionalInfo),
             condition6: isNonEmptyObject(recipientDetails)
@@ -195,13 +196,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 return; // Validation failed, don't proceed
             }
         }
-        if (isFlightVoucher || isRedeemVoucher || isGiftVoucher) {
-            // VOUCHER DATA PREPARATION
+        if (isFlightVoucher || isGiftVoucher) {
+            // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
             const voucherData = {
                 name: (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
-                voucher_type: isFlightVoucher ? "Flight Voucher" : isRedeemVoucher ? "Redeem Voucher" : "Gift Voucher",
+                voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
                 email: (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
                 phone: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 mobile: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
@@ -242,6 +243,48 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
             return;
         }
+        
+        // REDEEM VOUCHER FLOW (Stripe ödeme olmadan direkt createVoucher)
+        if (isRedeemVoucher) {
+            // Voucher data preparation for Redeem Voucher
+            const voucherData = {
+                name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
+                weight: passengerData?.[0]?.weight || "",
+                flight_type: chooseFlightType?.type || "",
+                voucher_type: "Redeem Voucher",
+                email: passengerData?.[0]?.email || "",
+                phone: passengerData?.[0]?.phone || "",
+                mobile: passengerData?.[0]?.phone || "",
+                redeemed: "Yes", // Redeem Voucher için redeemed = "Yes"
+                paid: 0, // Redeem Voucher için ödeme yok
+                offer_code: voucherCode || "",
+                voucher_ref: voucherCode || "",
+                recipient_name: "",
+                recipient_email: "",
+                recipient_phone: "",
+                recipient_gift_date: "",
+                preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+                preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+            };
+            
+            try {
+                // Direkt createVoucher endpoint'ini çağır
+                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
+                
+                if (response.data.success) {
+                    alert(`Voucher başarıyla kullanıldı! Voucher ID: ${response.data.voucherId}`);
+                    // Başarılı işlem sonrası form'u temizle
+                    resetBooking();
+                } else {
+                    alert('Voucher kullanılırken hata oluştu: ' + (response.data.error || 'Bilinmeyen hata'));
+                }
+            } catch (error) {
+                console.error('Voucher kullanılırken hata:', error);
+                alert('Voucher kullanılırken hata oluştu. Lütfen tekrar deneyin.');
+            }
+            return;
+        }
         // BOOK FLIGHT FLOW (Stripe ile ödeme)
         let bookingDateStr = selectedDate;
         if (selectedDate instanceof Date && selectedTime) {
@@ -258,7 +301,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             activitySelect,
             chooseLocation,
             chooseFlightType,
-            chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
+            chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [], // Opsiyonel - boş array olabilir
             passengerData,
             additionalInfo,
             recipientDetails,

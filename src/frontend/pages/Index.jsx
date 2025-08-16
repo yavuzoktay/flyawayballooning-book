@@ -145,7 +145,23 @@ const Index = () => {
                 setVoucherData(null);
                 // Clear voucher code from summary when validation fails
                 setVoucherCode('');
-                console.log('Voucher validation failed:', response.data.message);
+                
+                // Daha detaylı hata mesajları göster
+                const errorMessage = response.data.message || 'Voucher code validation failed';
+                console.log('Voucher validation failed:', errorMessage);
+                
+                // Kullanıcıya daha açıklayıcı mesaj göster
+                if (errorMessage.includes('usage limit reached')) {
+                    alert(`Bu voucher code artık kullanılamaz: ${errorMessage}`);
+                } else if (errorMessage.includes('expired')) {
+                    alert(`Bu voucher code süresi dolmuş: ${errorMessage}`);
+                } else if (errorMessage.includes('not yet valid')) {
+                    alert(`Bu voucher code henüz geçerli değil: ${errorMessage}`);
+                } else if (errorMessage.includes('inactive')) {
+                    alert(`Bu voucher code aktif değil: ${errorMessage}`);
+                } else {
+                    alert(`Voucher code hatası: ${errorMessage}`);
+                }
             }
         } catch (error) {
             console.error('Error validating voucher code:', error);
