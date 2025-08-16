@@ -73,12 +73,15 @@ const Index = () => {
                 
                 const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
                 console.log('API Response:', response.data);
+                console.log('Response success:', response.data.success);
+                console.log('Response data length:', response.data.data?.length || 0);
                 
                 if (response.data.success) {
                     setAvailabilities(response.data.data || []);
                     console.log('Availabilities set to:', response.data.data?.length || 0);
                 } else {
                     console.log('API returned success: false');
+                    console.log('Response error:', response.data.error || 'No error message');
                 }
             } catch (error) {
                 console.error('Error refetching availabilities:', error);
