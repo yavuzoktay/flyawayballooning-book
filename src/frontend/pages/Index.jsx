@@ -41,6 +41,7 @@ const Index = () => {
     const [availableSeats, setAvailableSeats] = useState([]);
     const [voucherCode, setVoucherCode] = useState("");
     const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
+    const [voucherData, setVoucherData] = useState(null); // Store validated voucher data
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
@@ -92,6 +93,67 @@ const Index = () => {
         }
     };
     
+    // Voucher code validation function
+    const validateVoucherCode = async (codeToValidate = null) => {
+        const code = codeToValidate || voucherCode;
+        
+        if (!code.trim()) {
+            setVoucherStatus('invalid');
+            setVoucherData(null);
+            return;
+        }
+
+        // For voucher validation, we need at least the code
+        // Other fields can be optional for basic validation
+        try {
+            console.log('Validating voucher code:', code.trim());
+            console.log('Validation params:', {
+                code: code.trim(),
+                location: chooseLocation || 'Somerset', // Default location for testing
+                experience: chooseFlightType?.type || 'Private Charter', // Default experience for testing
+                voucher_type: selectedVoucherType?.title || 'Weekday Morning', // Default voucher type for testing
+                booking_amount: chooseFlightType?.totalPrice || 100 // Default amount for testing
+            });
+
+            const response = await axios.post(`${API_BASE_URL}/api/voucher-codes/validate`, {
+                code: code.trim(),
+                location: chooseLocation || 'Somerset',
+                experience: chooseFlightType?.type || 'Private Charter',
+                voucher_type: selectedVoucherType?.title || 'Weekday Morning',
+                booking_amount: chooseFlightType?.totalPrice || 100
+            });
+
+            console.log('Voucher validation response:', response.data);
+
+            if (response.data.success) {
+                setVoucherStatus('valid');
+                setVoucherData(response.data.data);
+                
+                // Update total price with discount if available
+                if (chooseFlightType?.totalPrice) {
+                    const discountedPrice = response.data.data.final_amount;
+                    setChooseFlightType(prev => ({
+                        ...prev,
+                        totalPrice: discountedPrice,
+                        originalPrice: chooseFlightType.totalPrice
+                    }));
+                }
+                
+                console.log('Voucher code validated successfully:', response.data.data);
+            } else {
+                setVoucherStatus('invalid');
+                setVoucherData(null);
+                // Clear voucher code from summary when validation fails
+                setVoucherCode('');
+                console.log('Voucher validation failed:', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error validating voucher code:', error);
+            setVoucherStatus('invalid');
+            setVoucherData(null);
+        }
+    };
+
     // Refetch availabilities when voucher type changes
     useEffect(() => {
         if (selectedVoucherType && chooseLocation && activityId) {
@@ -187,34 +249,16 @@ const Index = () => {
     // Handle voucher code submission
     const handleVoucherSubmit = (code) => {
         setVoucherCode(code);
-        // You would typically validate the voucher code with an API call
-        // For now, let's just set it as valid
-        setVoucherStatus("valid");
         setActivitySelect("Redeem Voucher");
+        
+        // Always trigger voucher validation when code is submitted
+        // Use default values if other fields are not selected yet
+        validateVoucherCode(code);
         
         // Don't automatically move to the location section
         // setTimeout(() => {
         //     setActiveAccordion("location");
         // }, 500);
-        
-        // Here you would make an API call to validate the voucher
-        // Example:
-        /*
-        axios.post("/api/validate-voucher", { voucherCode: code })
-            .then(response => {
-                if (response.data.success) {
-                    setVoucherStatus("valid");
-                    setActivitySelect("Redeem Voucher");
-                    setActiveAccordion("location");
-                } else {
-                    setVoucherStatus("invalid");
-                }
-            })
-            .catch(error => {
-                console.error("Error validating voucher:", error);
-                setVoucherStatus("invalid");
-            });
-        */
     };
 
     useEffect(() => {
@@ -257,6 +301,7 @@ const Index = () => {
         setAvailableSeats([]);
         setVoucherCode("");
         setVoucherStatus(null);
+        setVoucherData(null);
         setSelectedVoucherType(null);
     };
 
@@ -437,6 +482,8 @@ const Index = () => {
                                         onVoucherSubmit={handleVoucherSubmit}
                                         voucherStatus={voucherStatus}
                                         voucherCode={voucherCode}
+                                        voucherData={voucherData}
+                                        onValidate={validateVoucherCode}
                                     />
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
@@ -839,6 +886,8 @@ const Index = () => {
                                 preference={preference}
                                 validateBuyGiftFields={validateBuyGiftFields}
                                 selectedVoucherType={selectedVoucherType}
+                                voucherStatus={voucherStatus}
+                                voucherData={voucherData}
                             />
                         </div>
                     </div>

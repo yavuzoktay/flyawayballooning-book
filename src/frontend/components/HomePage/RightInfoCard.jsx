@@ -7,7 +7,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData }) => {
 
     // Function to format date
     const formatDate = (date) => {
@@ -337,14 +337,23 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             <div className="book_data_active">
                 {/* En üstte Flight Type/What would you like to do? */}
                 <div className="book_data_active">
-                    <div className={`row-1 ${activitySelect ? 'active-card-val' : ''}`}>
+                    <div className={`row-1 ${(() => {
+                        // For Redeem Voucher, only show green tick if voucher is valid
+                        if (activitySelect === 'Redeem Voucher') {
+                            return voucherStatus === 'valid' ? 'active-card-val' : '';
+                        }
+                        // For other activity types, show green tick if selected
+                        return activitySelect ? 'active-card-val' : '';
+                    })()}`}>
                         <span className="active-book-card"></span>
                         <div className="active-book-cont">
                             <h3>Flight Type</h3>
                             <p>
                                 {activitySelect ? (
-                                    activitySelect === 'Redeem Voucher' && voucherCode ? 
+                                    activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'valid' ? 
                                     `${activitySelect} - ${voucherCode}` : 
+                                    activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'invalid' ?
+                                    `${activitySelect} - Invalid Code` :
                                     activitySelect
                                 ) : 'Not Selected'}
                             </p>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-const RedeemVoucherCard = ({ onSubmit }) => {
-  const [voucherCode, setVoucherCode] = useState("");
+const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate }) => {
+  const [localVoucherCode, setLocalVoucherCode] = useState("");
 
   // Input alanı otomatik olarak odaklanacak
   useEffect(() => {
@@ -27,18 +27,25 @@ const RedeemVoucherCard = ({ onSubmit }) => {
     if (e && e.preventDefault) e.preventDefault();
     if (e && e.stopPropagation) e.stopPropagation();
     
-    if (voucherCode.trim()) {
+    if (localVoucherCode.trim()) {
       try {
-        // Just store the voucher code but don't navigate away
+        // Validate voucher code first
+        if (typeof onValidate === 'function') {
+          onValidate(localVoucherCode);
+        }
+        
+        // Don't flip back immediately - wait for validation result
+        // The card will flip back when voucherStatus changes to 'valid'
+        
+        // Just store the voucher code
         if (typeof onSubmit === 'function') {
-          onSubmit(voucherCode);
+          onSubmit(localVoucherCode);
         }
       } catch (error) {
         console.error('Error submitting voucher:', error);
+        // Flip back on error
+        handleBackToCard();
       }
-      
-      // Immediately flip back to card view
-      handleBackToCard();
       
       // Return false to prevent further event handling
       return false;
@@ -57,20 +64,38 @@ const RedeemVoucherCard = ({ onSubmit }) => {
   };
 
   return (
-    <div className="voucher-card-container">
-      <div className="voucher-label" style={{ color: "#0d47a1", fontSize: "18px", fontWeight: "500", marginBottom: "10px", textAlign: "center", width: '100%' }}>
+    <div className="voucher-card-container" style={{ width: '100%', maxWidth: '100%' }}>
+      <div className="voucher-label" style={{ 
+        color: "#0d47a1", 
+        fontSize: "16px", 
+        fontWeight: "500", 
+        marginBottom: "8px", 
+        textAlign: "center", 
+        width: '100%',
+        lineHeight: '1.3'
+      }}>
         Enter Voucher Code
       </div>
       <input
         id="voucher-code-input"
         type="text"
-        value={voucherCode}
-        onChange={(e) => setVoucherCode(e.target.value)}
+        value={localVoucherCode}
+        onChange={(e) => setLocalVoucherCode(e.target.value)}
         onKeyDown={handleKeyDown}
         className="voucher-input-field"
-        style={{ width: '90%', margin: '16px auto 24px auto', display: 'block' }}
+        style={{ 
+          width: '85%', 
+          margin: '16px auto 20px auto', 
+          display: 'block',
+          padding: '8px 12px',
+          fontSize: '14px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          boxSizing: 'border-box'
+        }}
         onClick={e => e.stopPropagation()}
         onFocus={e => e.stopPropagation()}
+        placeholder="Enter voucher code..."
       />
       <button
         onClick={handleSubmit}
@@ -79,17 +104,82 @@ const RedeemVoucherCard = ({ onSubmit }) => {
           color: "white", 
           border: "none",
           borderRadius: "4px",
-          padding: "10px 30px",
-          fontSize: "16px",
+          padding: "8px 24px",
+          fontSize: "14px",
           fontWeight: "500",
           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           cursor: "pointer",
-          lineHeight: "1.5",
-          marginBottom: "15px"
+          lineHeight: "1.4",
+          marginBottom: "12px",
+          minWidth: "80px"
         }}
       >
         Redeem
       </button>
+
+      {/* Voucher Status Display */}
+      {voucherStatus === 'valid' && voucherData && (
+        <div style={{
+          background: '#d4edda',
+          color: '#155724',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          marginTop: '12px',
+          fontSize: '13px',
+          textAlign: 'center',
+          border: '1px solid #c3e6cb',
+          maxWidth: '100%',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word'
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '4px', fontSize: '13px' }}>
+            ✅ {voucherData.title}
+          </div>
+          <div style={{ marginBottom: '3px', fontSize: '12px' }}>
+            {voucherData.discount_type === 'percentage' 
+              ? `${voucherData.discount_value}% off` 
+              : `£${voucherData.discount_value} off`
+            }
+            {voucherData.max_discount && voucherData.discount_type === 'percentage' && (
+              <span style={{ fontSize: '11px', color: '#666' }}>
+                {' '}(Max: £{voucherData.max_discount})
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: '500' }}>
+            Final Price: £{voucherData.final_amount}
+          </div>
+          <div style={{ fontSize: '10px', marginTop: '3px', color: '#666' }}>
+            Valid until: {new Date(voucherData.valid_until).toLocaleDateString()}
+          </div>
+        </div>
+      )}
+
+      {voucherStatus === 'invalid' && (
+        <div style={{
+          background: '#f8d7da',
+          color: '#721c24',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          marginTop: '12px',
+          fontSize: '13px',
+          textAlign: 'center',
+          border: '1px solid #f5c6cb',
+          maxWidth: '100%',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word'
+        }}>
+          ❌ Invalid voucher code
+          <div style={{ 
+            fontSize: '11px', 
+            marginTop: '3px', 
+            color: '#721c24',
+            lineHeight: '1.3'
+          }}>
+            Please check the code and try again
+          </div>
+        </div>
+      )}
     </div>
   );
 };

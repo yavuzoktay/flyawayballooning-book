@@ -3,7 +3,7 @@ import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
 
-const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode }) => {
+const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
     const cardBackRef = useRef(null);
@@ -11,7 +11,13 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     // Reset the flipped state when voucher status changes
     useEffect(() => {
         if (voucherStatus === "valid") {
-            setIsFlipped(false);
+            // Wait a bit to show the success message before flipping back
+            setTimeout(() => {
+                setIsFlipped(false);
+            }, 2000);
+        } else if (voucherStatus === "invalid") {
+            // Keep the card flipped for invalid vouchers so user can see the error
+            // The card will flip back when user clicks on the back
         }
     }, [voucherStatus]);
 
@@ -196,7 +202,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     }}
                                     style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
                                 >
-                                    <RedeemVoucherCard onSubmit={handleVoucherSubmit} />
+                                    <RedeemVoucherCard 
+                                        onSubmit={handleVoucherSubmit}
+                                        voucherStatus={voucherStatus}
+                                        voucherData={voucherData}
+                                        onValidate={onValidate}
+                                    />
                                     {voucherStatus === "invalid" && (
                                         <div className="error-message" style={{ color: 'white', textAlign: 'center', fontSize: '12px', marginTop: '4px' }}>
                                             Invalid voucher code. Please try again.
