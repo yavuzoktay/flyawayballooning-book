@@ -434,8 +434,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         ) : (
                             <div style={{ color: '#666' }}>
                                 {activitySelect === 'Redeem Voucher' ? 
-                                    'Please select a <b>Flight Location</b> and <b>Experience</b> to view available dates and times' :
-                                    'Please select a <b>Flight Location</b>, <b>Experience</b>, and <b>Voucher Type</b> to view available dates and times'
+                                    'Please select a Flight Location and Experience to view available dates and times' :
+                                    'Please select a Flight Location, Experience, and Voucher Type to view available dates and times'
                                 }
                             </div>
                         )}
