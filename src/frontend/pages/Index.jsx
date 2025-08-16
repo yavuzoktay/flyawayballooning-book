@@ -269,7 +269,8 @@ const Index = () => {
                 try {
                     // Build query parameters for filtered availabilities
                     const params = new URLSearchParams({
-                        location: chooseLocation
+                        location: chooseLocation,
+                        activityId: activityId
                     });
                     
                     // Add flight type if selected - map UI values to backend values
