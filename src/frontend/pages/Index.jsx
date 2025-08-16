@@ -64,13 +64,28 @@ const Index = () => {
                     params.append('flightType', chooseFlightType.type);
                 }
                 
+                // PRODUCTION DEBUG: Log API call details
+                console.log('=== refetchAvailabilities DEBUG ===');
+                console.log('API_BASE_URL:', API_BASE_URL);
+                console.log('Params:', params.toString());
+                console.log('Full URL:', `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                console.log('================================');
+                
                 const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                console.log('API Response:', response.data);
+                
                 if (response.data.success) {
                     setAvailabilities(response.data.data || []);
+                    console.log('Availabilities set to:', response.data.data?.length || 0);
+                } else {
+                    console.log('API returned success: false');
                 }
             } catch (error) {
                 console.error('Error refetching availabilities:', error);
+                console.error('Error details:', error.response?.data);
             }
+        } else {
+            console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
         }
     };
     
