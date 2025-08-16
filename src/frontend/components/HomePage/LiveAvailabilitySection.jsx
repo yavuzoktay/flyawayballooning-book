@@ -395,7 +395,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     setRequestModalOpen(false);
                     setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate("");
                     setRequestSuccess("");
-                }, 1500);
+                }, 5000);
             } else {
                 setRequestError("Failed to submit request. Please try again.");
             }
