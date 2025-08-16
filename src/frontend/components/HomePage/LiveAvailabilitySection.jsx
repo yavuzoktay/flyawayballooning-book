@@ -342,27 +342,29 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             justifyContent: 'center',
                         }}
                     >
-                        <div>{format(dateCopy, 'd')}</div>
+                        <div style={{ fontSize: 18, fontWeight: 600 }}>{format(dateCopy, 'd')}</div>
                         {isAvailable && !isPastDate && (
-                            <div style={{ fontSize: 12, marginTop: 2 }}>
+                            <div style={{ fontSize: 11, marginTop: 4, fontWeight: 500 }}>
                                 {`${total} Space${total > 1 ? 's' : ''}`}
                             </div>
                         )}
                         {soldOut && !isPastDate && (
-                            <div style={{ fontSize: 12, marginTop: 2, color: '#fff', fontWeight: 600 }}>
+                            <div style={{ fontSize: 11, marginTop: 4, color: '#fff', fontWeight: 600 }}>
                                 Sold Out
                             </div>
                         )}
-                        {!isAvailable && !isPastDate && !soldOut && (
+                        {/* Remove "Not Available" text to clean up layout */}
+                        {/* {!isAvailable && !isPastDate && !soldOut && (
                             <div style={{ fontSize: 12, marginTop: 2, color: '#666' }}>
                                 Not Available
                             </div>
-                        )}
-                        {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
+                        )} */}
+                        {/* Remove instruction text from calendar boxes to fix layout */}
+                        {/* {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
                             <div style={{ fontSize: 10, marginTop: 2, color: '#666', textAlign: 'center' }}>
                                 {activitySelect === 'Redeem Voucher' ? 'Select Location & Experience' : 'Select Location, Experience & Voucher Type'}
                             </div>
-                        )}
+                        )} */}
                     </div>
                 );
             }
