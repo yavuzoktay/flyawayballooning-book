@@ -288,12 +288,15 @@ const Index = () => {
                         }
                     }
                     
-                    // Add voucher types if selected
+                    // Add voucher types if selected (TEMPORARILY DISABLED FOR DEBUG)
                     if (selectedVoucherType && selectedVoucherType.title) {
-                        params.append('voucherTypes', selectedVoucherType.title);
+                        console.log('⚠️ Voucher Type filter temporarily disabled for debugging');
+                        console.log('Original filter would be:', selectedVoucherType.title);
+                        // params.append('voucherTypes', selectedVoucherType.title); // TEMPORARILY COMMENTED OUT
                     } else if (activitySelect === 'Book Flight') {
                         // For Book Flight, if no voucher type is selected, show all availabilities
-                        params.append('voucherTypes', 'All');
+                        console.log('⚠️ Voucher Types filter set to All (temporarily disabled)');
+                        // params.append('voucherTypes', 'All'); // TEMPORARILY COMMENTED OUT
                     }
                     
                     const url = `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`;
