@@ -77,6 +77,40 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         "Within 48 hours of your flight no changes or cancellations can be made.",
         "Your flight will never expire so long as you meet the terms & conditions. "
     ];
+    
+    // PRODUCTION DEBUG: Monitor availabilities state changes
+    useEffect(() => {
+        console.log('=== LiveAvailabilitySection availabilities changed ===');
+        console.log('New availabilities count:', availabilities?.length);
+        console.log('New availabilities data:', availabilities);
+        console.log('isLocationAndExperienceSelected:', isLocationAndExperienceSelected);
+        console.log('==================================================');
+    }, [availabilities, isLocationAndExperienceSelected]);
+    
+    // PRODUCTION DEBUG: Monitor Voucher Type changes
+    useEffect(() => {
+        console.log('=== VOUCHER TYPE CHANGED DEBUG ===');
+        console.log('selectedVoucherType:', selectedVoucherType);
+        console.log('availabilities count:', availabilities?.length);
+        console.log('availabilities data:', availabilities);
+        console.log('chooseLocation:', chooseLocation);
+        console.log('selectedActivity:', selectedActivity);
+        console.log('chooseFlightType:', chooseFlightType);
+        console.log('activitySelect:', activitySelect);
+        console.log('================================');
+    }, [selectedVoucherType, availabilities, chooseLocation, selectedActivity, chooseFlightType, activitySelect]);
+    
+    // PRODUCTION DEBUG: Monitor isLocationAndExperienceSelected changes
+    useEffect(() => {
+        console.log('=== isLocationAndExperienceSelected DEBUG ===');
+        console.log('chooseLocation:', chooseLocation);
+        console.log('selectedActivity:', selectedActivity);
+        console.log('chooseFlightType:', chooseFlightType);
+        console.log('selectedVoucherType:', selectedVoucherType);
+        console.log('activitySelect:', activitySelect);
+        console.log('Result:', isLocationAndExperienceSelected);
+        console.log('==========================================');
+    }, [chooseLocation, selectedActivity, chooseFlightType, selectedVoucherType, activitySelect, isLocationAndExperienceSelected]);
 
     const handlePrevMonth = () => {
         setCurrentDate(subMonths(currentDate, 1));
