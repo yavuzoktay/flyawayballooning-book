@@ -451,21 +451,66 @@ const Index = () => {
                         });
                         
                         if (response.data.success) {
-                            // For Flight Vouchers and Buy Gift vouchers, generate voucher code if not already generated
+                            // For Flight Vouchers, Buy Gift vouchers, and Book Flight, generate voucher code if not already generated
                             let finalVoucherCode = response.data.voucher_code;
                             
-                            if (type === 'voucher' && !finalVoucherCode) {
+                            if ((type === 'voucher' || type === 'booking') && !finalVoucherCode) {
                                 try {
                                     // Determine voucher type and generate appropriate code
                                     let voucherType = 'Flight Voucher'; // Default
                                     let flightCategory = 'Any Day Flight'; // Default
                                     
-                                    // Check if it's a Buy Gift voucher
+                                    // Check voucher type and generate appropriate code
                                     if (response.data.voucher_type === 'Buy Gift' || response.data.voucher_type === 'Gift Voucher') {
                                         voucherType = 'Gift Voucher';
                                         console.log('Generating voucher code for Gift Voucher...');
+                                    } else if (response.data.voucher_type === 'Book Flight') {
+                                        voucherType = 'Book Flight';
+                                        console.log('Generating voucher code for Book Flight...');
                                     } else {
+                                        voucherType = 'Flight Voucher';
                                         console.log('Generating voucher code for Flight Voucher...');
+                                    }
+                                    
+                                    // Determine flight category based on voucher type detail
+                                    // For Book Flight, we need to get the voucher type from the current state
+                                    if (type === 'booking' && selectedVoucherType) {
+                                        const voucherTypeTitle = selectedVoucherType.title;
+                                        console.log('Selected Voucher Type Title:', voucherTypeTitle);
+                                        console.log('Full selectedVoucherType:', selectedVoucherType);
+                                        
+                                        if (voucherTypeTitle === 'Weekday Morning') {
+                                            flightCategory = 'Weekday Morning';
+                                        } else if (voucherTypeTitle === 'Flexible Weekday') {
+                                            flightCategory = 'Weekday Flex';
+                                        } else if (voucherTypeTitle === 'Any Day Flight') {
+                                            flightCategory = 'Any Day Flight';
+                                        }
+                                        
+                                        console.log('Frontend Flight Category:', flightCategory);
+                                    } else if (response.data.voucher_type_detail) {
+                                        const voucherTypeDetail = response.data.voucher_type_detail;
+                                        if (voucherTypeDetail === 'Weekday Morning') {
+                                            flightCategory = 'Weekday Morning';
+                                        } else if (voucherTypeDetail === 'Flexible Weekday') {
+                                            flightCategory = 'Weekday Flex';
+                                        } else if (voucherTypeDetail === 'Any Day Flight') {
+                                            flightCategory = 'Any Day Flight';
+                                        }
+                                    }
+                                    
+                                    // If still default, try to get from the current state
+                                    if (flightCategory === 'Any Day Flight' && selectedVoucherType) {
+                                        console.log('Falling back to current state selectedVoucherType');
+                                        const fallbackTitle = selectedVoucherType.title;
+                                        if (fallbackTitle === 'Weekday Morning') {
+                                            flightCategory = 'Weekday Morning';
+                                        } else if (fallbackTitle === 'Flexible Weekday') {
+                                            flightCategory = 'Weekday Flex';
+                                        } else if (fallbackTitle === 'Any Day Flight') {
+                                            flightCategory = 'Any Day Flight';
+                                        }
+                                        console.log('Fallback Flight Category:', flightCategory);
                                     }
                                     
                                     // Generate voucher code
