@@ -228,49 +228,66 @@ const VoucherType = ({
         };
         
         setSelectedVoucher(voucherWithQuantity);
+        
+        // Fetch terms and conditions for this voucher type
+        if (voucher.id) {
+            console.log('VoucherType: Fetching terms for voucher:', voucher);
+            fetchTermsForVoucher(voucher.id);
+        }
+        
         setShowTerms(true); // Show modal
     };
 
     const confirmSelection = () => {
         if (selectedVoucher) {
+            console.log('VoucherType: Setting selectedVoucherType to:', selectedVoucher);
             setSelectedVoucherType(selectedVoucher);
             setActiveAccordion(null); // Close this accordion after selection
         }
         setShowTerms(false); // Close modal
     };
 
-    const getTermsForVoucher = (voucherTitle) => {
-        if (voucherTitle === "Weekday Morning") {
-            return [
-                'Your voucher is valid for weekday morning flights only. You may upgrade your voucher at any time to include weekday evenings or weekends if you wish.',
-                'Ballooning is a weather-dependent activity.',
-                'Your voucher is valid for 18 months from the date of purchase.',
-                'Vouchers are non-refundable under any circumstances but remain fully re-bookable within the 18-month validity period.',
-                'If 6 separate flight attempts within the 18 months are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
-                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
-                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
-            ];
-        } else if (voucherTitle === "Flexible Weekday") {
-            return [
-                'Your voucher is valid for weekday morning and evening flights only. You may upgrade your voucher at any time to include weekends if you wish.',
-                'Please note that ballooning is a weather-dependent activity.',
-                'Your voucher is valid for 18 months from the date of purchase.',
-                'Vouchers are non-refundable under any circumstances but remain fully re-bookable within the 18-month validity period.',
-                'If 6 separate flight attempts within this period are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
-                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
-                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
-            ];
-        } else {
-            return [
-                'Your voucher is valid for morning and evening flights, 7 days a week.',
-                'Please note that ballooning is a weather-dependent activity.',
-                'Your voucher is valid for 24 months from the date of purchase.',
-                'Without the Weather Refundable option, your voucher is non-refundable under any circumstances. However, it remains fully re-bookable as needed within the voucher validity period.',
-                'If 10 separate flight attempts within this period are cancelled by us due to weather, we will extend your voucher for an additional 12 months free of charge.',
-                'No changes or cancellations can be made within 48 hours of your scheduled flight.',
-                'Your flight will never expire as long as you continue to meet the terms & conditions outlined above.'
-            ];
+    // Fetch terms and conditions from API
+    const [termsAndConditions, setTermsAndConditions] = useState([]);
+    const [termsLoading, setTermsLoading] = useState(false);
+
+    const fetchTermsForVoucher = async (voucherTypeId) => {
+        try {
+            setTermsLoading(true);
+            console.log('VoucherType: Fetching terms for voucher type ID:', voucherTypeId);
+            
+            const response = await axios.get(`/api/terms-and-conditions/voucher-type/${voucherTypeId}`);
+            console.log('VoucherType: Terms API response:', response.data);
+            
+            if (response.data.success) {
+                setTermsAndConditions(response.data.data);
+                console.log('VoucherType: Terms set to:', response.data.data);
+            }
+        } catch (error) {
+            console.error('VoucherType: Error fetching terms and conditions:', error);
+            setTermsAndConditions([]);
+        } finally {
+            setTermsLoading(false);
         }
+    };
+
+    const getTermsForVoucher = (voucherTitle) => {
+        // Return terms from API if available, otherwise show loading or empty state
+        if (termsLoading) {
+            return ['Loading terms and conditions...'];
+        }
+        
+        if (termsAndConditions.length === 0) {
+            return ['Terms and conditions not available for this voucher type.'];
+        }
+        
+        // Return the content from the first available terms
+        const terms = termsAndConditions[0];
+        if (terms && terms.content) {
+            return terms.content.split('\n').filter(line => line.trim() !== '');
+        }
+        
+        return ['Terms and conditions not available for this voucher type.'];
     };
 
     // Hide VoucherType section if "Private Charter" is selected
@@ -761,10 +778,16 @@ const VoucherType = ({
                                 )}
                             </div>
                             <ul>
-                                {getTermsForVoucher(selectedVoucher?.title).map((item, idx) => (
-                                    <li key={idx}>{item}</li>
-                                ))}
-                                <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See full Terms & Conditions</a></li>
+                                {termsLoading ? (
+                                    <li>Loading terms and conditions...</li>
+                                ) : (
+                                    <>
+                                        {getTermsForVoucher(selectedVoucher?.title).map((item, idx) => (
+                                            <li key={idx}>{item}</li>
+                                        ))}
+                                        <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See full Terms & Conditions</a></li>
+                                    </>
+                                )}
                             </ul>
                             <div className="modal-buttons">
                                 <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>

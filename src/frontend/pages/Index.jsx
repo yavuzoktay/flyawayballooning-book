@@ -13,10 +13,12 @@ import PassengerInfo from "../components/HomePage/PassengerInfo";
 import EnterPreferences from "../components/HomePage/EnterPreferences";
 import EnterRecipientDetails from "../components/HomePage/EnterRecipientDetails";
 import AdditionalInfo from "../components/HomePage/AdditionalInfo";
+import TermsAndConditions from "../components/HomePage/TermsAndConditions.jsx";
 import BookingHeader from "../components/Common/BookingHeader";
 import Accordion from "../components/Common/Accordion";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
+import "../components/HomePage/TermsAndConditions.css";
 import { BsInfoCircle } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 
@@ -45,15 +47,52 @@ const Index = () => {
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
+
+    // Debug selectedVoucherType changes
+    useEffect(() => {
+        console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);
+    }, [selectedVoucherType]);
     
     // Payment success popup state
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
     const [paymentSuccessData, setPaymentSuccessData] = useState(null);
     
+    // Terms & Conditions state
+    const [termsAndConditions, setTermsAndConditions] = useState([]);
+    const [termsLoading, setTermsLoading] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    
     // Close payment success popup
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
+    };
+    
+    // Fetch terms and conditions
+    const fetchTermsAndConditions = async () => {
+        try {
+            setTermsLoading(true);
+            const response = await axios.get(`${API_BASE_URL}/api/terms-and-conditions`);
+            if (response.data.success) {
+                setTermsAndConditions(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching terms and conditions:', error);
+        } finally {
+            setTermsLoading(false);
+        }
+    };
+
+    // Handle terms acceptance
+    const handleTermsAccept = () => {
+        setTermsAccepted(true);
+        setShowTerms(false);
+    };
+
+    // Show terms and conditions
+    const showTermsAndConditions = () => {
+        setShowTerms(true);
     };
     
     // Function to re-fetch availabilities when filters change
@@ -700,6 +739,16 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
+                                            {selectedVoucherType && (
+                                                <>
+                                                    {console.log('Rendering TermsAndConditions with selectedVoucherType:', selectedVoucherType)}
+                                                    <TermsAndConditions
+                                                        key={`terms-${selectedVoucherType.id}`}
+                                                        selectedVoucherType={selectedVoucherType}
+                                                        onAccept={handleTermsAccept}
+                                                    />
+                                                </>
+                                            )}
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -840,6 +889,13 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
+                                            {selectedVoucherType && (
+                                                <TermsAndConditions
+                                                    key={`terms-${selectedVoucherType.id}`}
+                                                    selectedVoucherType={selectedVoucherType}
+                                                    onAccept={handleTermsAccept}
+                                                />
+                                            )}
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -974,6 +1030,13 @@ const Index = () => {
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion}
                                                     flightType={chooseFlightType.type}
+                                                />
+                                            )}
+                                            {selectedVoucherType && (
+                                                <TermsAndConditions
+                                                    key={`terms-${selectedVoucherType.id}`}
+                                                    selectedVoucherType={selectedVoucherType}
+                                                    onAccept={handleTermsAccept}
                                                 />
                                             )}
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
