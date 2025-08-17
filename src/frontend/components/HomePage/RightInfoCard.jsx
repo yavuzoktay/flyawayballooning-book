@@ -236,7 +236,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 if (error) {
                     alert('Stripe yönlendirme hatası: ' + error.message);
                 }
-                // Başarılı ödeme sonrası createVoucher webhook ile tetiklenecek
+                // Başarılı ödeme sonrası voucher code generation ve createVoucher webhook ile tetiklenecek
             } catch (error) {
                 console.error('Stripe Checkout başlatılırken hata:', error);
                 alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');

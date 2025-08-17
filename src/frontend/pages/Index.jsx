@@ -46,6 +46,16 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     
+    // Payment success popup state
+    const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+    const [paymentSuccessData, setPaymentSuccessData] = useState(null);
+    
+    // Close payment success popup
+    const closePaymentSuccess = () => {
+        setShowPaymentSuccess(false);
+        setPaymentSuccessData(null);
+    };
+    
     // Function to re-fetch availabilities when filters change
     const refetchAvailabilities = async () => {
         if (chooseLocation && activityId) {
@@ -420,13 +430,18 @@ const Index = () => {
     }, [activitySelect]);
 
     const location = useLocation();
+    const [paymentProcessed, setPaymentProcessed] = React.useState(false);
+    
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if (params.get('payment') === 'success') {
+        if (params.get('payment') === 'success' && !paymentProcessed) {
             const session_id = params.get('session_id');
             const type = params.get('type');
             
             if (session_id && type) {
+                // Mark as processed to prevent duplicate calls
+                setPaymentProcessed(true);
+                
                 // Try to create booking/voucher using fallback endpoint
                 const createFromSession = async () => {
                     try {
@@ -436,7 +451,58 @@ const Index = () => {
                         });
                         
                         if (response.data.success) {
-                            alert(`Ödemeniz başarıyla alındı! ${type === 'booking' ? 'Rezervasyonunuz' : 'Voucher\'ınız'} oluşturuldu. ID: ${response.data.id}`);
+                            // For Flight Vouchers and Buy Gift vouchers, generate voucher code if not already generated
+                            let finalVoucherCode = response.data.voucher_code;
+                            
+                            if (type === 'voucher' && !finalVoucherCode) {
+                                try {
+                                    // Determine voucher type and generate appropriate code
+                                    let voucherType = 'Flight Voucher'; // Default
+                                    let flightCategory = 'Any Day Flight'; // Default
+                                    
+                                    // Check if it's a Buy Gift voucher
+                                    if (response.data.voucher_type === 'Buy Gift' || response.data.voucher_type === 'Gift Voucher') {
+                                        voucherType = 'Gift Voucher';
+                                        console.log('Generating voucher code for Gift Voucher...');
+                                    } else {
+                                        console.log('Generating voucher code for Flight Voucher...');
+                                    }
+                                    
+                                    // Generate voucher code
+                                    const voucherCodeResponse = await axios.post(`${API_BASE_URL}/api/generate-voucher-code`, {
+                                        flight_category: flightCategory,
+                                        customer_name: response.data.customer_name || 'Unknown Customer',
+                                        customer_email: response.data.customer_email || '',
+                                        location: 'Somerset', // Default
+                                        experience_type: 'Shared Flight', // Default
+                                        voucher_type: voucherType,
+                                        paid_amount: response.data.paid_amount || 0,
+                                        expires_date: null // Will use default (1 year)
+                                    });
+                                    
+                                    if (voucherCodeResponse.data.success) {
+                                        console.log('Voucher code generated successfully:', voucherCodeResponse.data.voucher_code);
+                                        finalVoucherCode = voucherCodeResponse.data.voucher_code;
+                                    } else {
+                                        console.error('Failed to generate voucher code:', voucherCodeResponse.data.message);
+                                    }
+                                } catch (voucherCodeError) {
+                                    console.error('Error generating voucher code:', voucherCodeError);
+                                    // Continue even if code generation fails
+                                }
+                            }
+                            
+                            // Set payment success data for popup
+                            setPaymentSuccessData({
+                                type: type,
+                                id: response.data.id,
+                                voucherCode: finalVoucherCode,
+                                customerName: response.data.customer_name || null,
+                                customerEmail: response.data.customer_email || null,
+                                paidAmount: response.data.paid_amount || null,
+                                message: type === 'booking' ? 'reservation' : 'voucher'
+                            });
+                            setShowPaymentSuccess(true);
                         } else {
                             alert('Ödeme başarılı ancak rezervasyon oluşturulamadı. Lütfen müşteri hizmetleri ile iletişime geçin.');
                         }
@@ -448,7 +514,7 @@ const Index = () => {
                 
                 createFromSession();
             } else {
-                alert('Ödemeniz başarıyla alındı! Rezervasyonunuz oluşturuldu.');
+                                            alert('Payment successfully received! Your reservation has been created.');
             }
             
             // URL'den payment parametresini temizle
@@ -458,7 +524,7 @@ const Index = () => {
             // URL'den payment parametresini temizle
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-    }, [location]);
+    }, [location, paymentProcessed]);
 
     return (
         <div className="final-booking-wrap">
@@ -909,6 +975,207 @@ const Index = () => {
                     </div>
                 </div>
             </Container>
+            
+            {/* Payment Success Popup */}
+            {showPaymentSuccess && paymentSuccessData && (
+                <div className="payment-success-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <div className="payment-success-popup" style={{
+                        backgroundColor: 'white',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        textAlign: 'center',
+                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                        position: 'relative'
+                    }}>
+                        {/* Success Icon */}
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            backgroundColor: '#10b981',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            fontSize: '40px',
+                            color: 'white'
+                        }}>
+                            ✓
+                        </div>
+                        
+                        {/* Success Message */}
+                        <h2 style={{
+                            color: '#1f2937',
+                            fontSize: '28px',
+                            fontWeight: '600',
+                            marginBottom: '16px'
+                        }}>
+                            Payment Successfully Received!
+                        </h2>
+                        
+                        <p style={{
+                            color: '#6b7280',
+                            fontSize: '18px',
+                            marginBottom: '24px',
+                            lineHeight: '1.5'
+                        }}>
+                            Your {paymentSuccessData.message} has been created successfully.
+                        </p>
+                        
+                        {/* Voucher Code Display - Always show for vouchers */}
+                        <div style={{
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            marginBottom: '24px',
+                            border: '2px solid #3b82f6'
+                        }}>
+                            <p style={{
+                                color: '#374151',
+                                fontSize: '14px',
+                                marginBottom: '8px',
+                                fontWeight: '500'
+                            }}>
+                                Voucher Code:
+                            </p>
+                            <div style={{
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                fontSize: '24px',
+                                fontWeight: '700',
+                                padding: '12px 20px',
+                                borderRadius: '8px',
+                                letterSpacing: '2px',
+                                fontFamily: 'monospace'
+                            }}>
+                                {paymentSuccessData.voucherCode || 'Voucher Code Not Available'}
+                            </div>
+                            <p style={{
+                                color: '#6b7280',
+                                fontSize: '12px',
+                                marginTop: '8px'
+                            }}>
+                                Please keep this code in a safe place
+                            </p>
+                        </div>
+                        
+                        {/* Customer Information */}
+                        {paymentSuccessData.customerName && (
+                            <div style={{
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                marginBottom: '16px'
+                            }}>
+                                <p style={{
+                                    color: '#374151',
+                                    fontSize: '14px',
+                                    marginBottom: '4px'
+                                }}>
+                                    Customer:
+                                </p>
+                                <p style={{
+                                    color: '#1f2937',
+                                    fontSize: '18px',
+                                    fontWeight: '600'
+                                }}>
+                                    {paymentSuccessData.customerName}
+                                </p>
+                                {paymentSuccessData.customerEmail && (
+                                    <p style={{
+                                        color: '#6b7280',
+                                        fontSize: '14px',
+                                        marginTop: '4px'
+                                    }}>
+                                        {paymentSuccessData.customerEmail}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                        
+                        {/* Paid Amount */}
+                        {paymentSuccessData.paidAmount && (
+                            <div style={{
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                marginBottom: '16px'
+                            }}>
+                                <p style={{
+                                    color: '#374151',
+                                    fontSize: '14px',
+                                    marginBottom: '4px'
+                                }}>
+                                    Paid Amount:
+                                </p>
+                                <p style={{
+                                    color: '#10b981',
+                                    fontSize: '18px',
+                                    fontWeight: '600'
+                                }}>
+                                    £{paymentSuccessData.paidAmount}
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* Booking/Voucher ID */}
+                        <div style={{
+                            backgroundColor: '#f9fafb',
+                            borderRadius: '8px',
+                            padding: '16px',
+                            marginBottom: '24px'
+                        }}>
+                            <p style={{
+                                color: '#374151',
+                                fontSize: '14px',
+                                marginBottom: '4px'
+                            }}>
+                                {paymentSuccessData.type === 'booking' ? 'Reservation' : 'Voucher'} ID:
+                            </p>
+                            <p style={{
+                                color: '#1f2937',
+                                fontSize: '18px',
+                                fontWeight: '600'
+                            }}>
+                                {paymentSuccessData.id}
+                            </p>
+                        </div>
+                        
+                        {/* Close Button */}
+                        <button
+                            onClick={closePaymentSuccess}
+                            style={{
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '12px 32px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+                            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
