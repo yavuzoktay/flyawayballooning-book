@@ -6,7 +6,31 @@ import { BsInfoCircle } from 'react-icons/bs';
 const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
+    const [voucherTypes, setVoucherTypes] = useState([]);
+    const [voucherTypesLoading, setVoucherTypesLoading] = useState(true);
     const cardBackRef = useRef(null);
+
+    // Fetch voucher types from API
+    useEffect(() => {
+        const fetchVoucherTypes = async () => {
+            try {
+                setVoucherTypesLoading(true);
+                const response = await fetch('http://localhost:3002/api/voucher-types');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setVoucherTypes(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching voucher types:', error);
+            } finally {
+                setVoucherTypesLoading(false);
+            }
+        };
+
+        fetchVoucherTypes();
+    }, []);
 
     // Reset the flipped state when voucher status changes
     useEffect(() => {

@@ -71,23 +71,51 @@ const VoucherType = ({
     chooseLocation,
     selectedActivity
 }) => {
-    const [quantities, setQuantities] = useState({
-        'Weekday Morning': 1,
-        'Flexible Weekday': 1,
-        'Any Day Flight': 1
-    });
+    const [quantities, setQuantities] = useState({});
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [locationPricing, setLocationPricing] = useState({
-        weekday_morning_price: 180,
-        flexible_weekday_price: 200,
-        any_day_flight_price: 220
-    });
+    const [locationPricing, setLocationPricing] = useState({});
     const [currentViewIndex, setCurrentViewIndex] = useState(0);
     const [showTwoVouchers, setShowTwoVouchers] = useState(true);
     const [slideDirection, setSlideDirection] = useState('right');
+    const [allVoucherTypes, setAllVoucherTypes] = useState([]);
+    const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
+
+    // Fetch all voucher types from API
+    useEffect(() => {
+        const fetchAllVoucherTypes = async () => {
+            try {
+                setAllVoucherTypesLoading(true);
+                const response = await fetch('http://localhost:3002/api/voucher-types');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setAllVoucherTypes(data.data);
+                        
+                        // Initialize quantities and pricing from API data
+                        const newQuantities = {};
+                        const newPricing = {};
+                        
+                        data.data.forEach(vt => {
+                            newQuantities[vt.title] = 1;
+                            newPricing[vt.title.toLowerCase().replace(/\s+/g, '_') + '_price'] = parseFloat(vt.price_per_person);
+                        });
+                        
+                        setQuantities(newQuantities);
+                        setLocationPricing(newPricing);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching voucher types:', error);
+            } finally {
+                setAllVoucherTypesLoading(false);
+            }
+        };
+
+        fetchAllVoucherTypes();
+    }, []);
 
     // Fetch available voucher types for the selected location
     useEffect(() => {
@@ -132,56 +160,34 @@ const VoucherType = ({
         }
     }, [selectedActivity]);
 
-    const voucherTypes = useMemo(() => [
-        {
-            id: 'weekday-morning',
-            title: 'Weekday Morning',
-            image: weekdayMorningImg,
-            refundability: 'Non-Refundable',
-            availability: 'Monday - Friday AM',
-            validity: 'Valid: 18 Months',
-            inclusions: [
-                'Around 1 Hour of Air Time.',
-                'Complimentary Drink.',
-                'Inflight Photos and 3D Flight Track.',
-                'Upgradeable at Later Date.'
-            ],
-            weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: locationPricing.weekday_morning_price
-        },
-        {
-            id: 'flexible-weekday',
-            title: 'Flexible Weekday',
-            image: flexibleWeekdayImg,
-            refundability: 'Non-Refundable',
-            availability: 'Monday - Friday AM & PM',
-            validity: 'Valid: 18 Months',
-            inclusions: [
-                'Around 1 Hour of Air Time.',
-                'Complimentary Drink.',
-                'Inflight Photos and 3D Flight Track.',
-                'Upgradeable at Later Date.'
-            ],
-            weatherClause: 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-            price: locationPricing.flexible_weekday_price
-        },
-        {
-            id: 'any-day-flight',
-            title: 'Any Day Flight',
-            image: anyDayFlightImg,
-            refundability: 'Refundable Option',
-            availability: '7 Days A Week AM & PM',
-            validity: 'Valid: 24 Months',
-            inclusions: [
-                'Around 1 Hour of Air Time',
-                'Complimentary Drink',
-                'Inflight Photos and 3D Flight Track',
-                'Weather Refundable Option'
-            ],
-            weatherClause: 'Flights subject to weather – your voucher remains valid and rebookable, or refundable on request if you select the refundable option.',
-            price: locationPricing.any_day_flight_price
+    const voucherTypes = useMemo(() => {
+        if (allVoucherTypesLoading || allVoucherTypes.length === 0) {
+            return [];
         }
-    ], [locationPricing]);
+
+        return allVoucherTypes.map(vt => {
+            // Parse features from JSON string
+            let features = [];
+            try {
+                features = JSON.parse(vt.features || '[]');
+            } catch (e) {
+                features = ['Around 1 Hour of Air Time', 'Complimentary Drink', 'Inflight Photos and 3D Flight Track'];
+            }
+
+            return {
+                id: vt.id,
+                title: vt.title,
+                description: vt.description || 'No description available',
+                image: vt.image_url ? (vt.image_url.startsWith('/uploads/') ? vt.image_url : vt.image_url) : weekdayMorningImg, // Fallback to default image
+                refundability: 'Non-Refundable',
+                availability: vt.flight_days,
+                validity: `Valid: ${vt.validity_months} Months`,
+                inclusions: features,
+                weatherClause: vt.terms || 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
+                price: parseFloat(vt.price_per_person)
+            };
+        });
+    }, [allVoucherTypes, allVoucherTypesLoading]);
 
     const handleQuantityChange = (voucherTitle, value) => {
         setQuantities(prev => ({
@@ -353,7 +359,7 @@ const VoucherType = ({
                             position: 'relative'
                         }}
                     >
-                        {loading ? (
+                        {loading || allVoucherTypesLoading ? (
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
                                 <p>Loading voucher types...</p>
                             </div>
@@ -414,6 +420,15 @@ const VoucherType = ({
                                                         }}>
                                                             {voucher.title}
                                                         </h3>
+                                                        <div style={{
+                                                            fontSize: 12,
+                                                            color: '#666',
+                                                            marginBottom: 8,
+                                                            lineHeight: '1.3',
+                                                            fontStyle: 'italic'
+                                                        }}>
+                                                            {voucher.description}
+                                                        </div>
                                                         <div style={{
                                                             fontSize: 14,
                                                             color: '#666',
