@@ -18,6 +18,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const [selectedFlight, setSelectedFlight] = useState(null);
     const [locationPricing, setLocationPricing] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [experiences, setExperiences] = useState([]);
+    const [experiencesLoading, setExperiencesLoading] = useState(false);
 
     // Determine if Bristol pricing should be used
     const isBristol = chooseLocation === 'Bristol Fiesta';
@@ -32,6 +34,11 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             fetchLocationPricing();
         }
     }, [chooseLocation]);
+
+    // Fetch experiences from API on component mount
+    useEffect(() => {
+        fetchExperiences();
+    }, []);
 
     const fetchLocationPricing = async () => {
         if (!chooseLocation) return;
@@ -59,7 +66,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             2: privatePrice || 900,
             3: privatePrice ? Math.round(privatePrice * 1.5) : 1050,
             4: privatePrice ? Math.round(privatePrice * 2) : 1200,
-            8: privatePrice ? Math.round(privatePrice * 4) : 1800
+            8: privatePrice ? Math.round(privatePrice * 2) : 1800
         };
 
         const experiencesArray = [
@@ -96,6 +103,42 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         return experiencesArray;
     };
 
+    // Fetch experiences from API
+    const fetchExperiences = async () => {
+        setExperiencesLoading(true);
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/experiences`);
+            if (response.data.success) {
+                setExperiences(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching experiences:', error);
+            // Fallback to default experiences if API fails
+            setExperiences([]);
+        } finally {
+            setExperiencesLoading(false);
+        }
+    };
+
+    // Use API experiences if available, otherwise fallback to default
+    const getExperiencesFromAPI = () => {
+        if (experiences.length > 0) {
+            return experiences.map(exp => ({
+                title: exp.title,
+                img: exp.image_url ? `${API_BASE_URL}${exp.image_url}` : (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
+                price: exp.price_from.toString(),
+                desc: exp.description,
+                details: [],
+                maxFlight: `Max ${exp.max_passengers} per flight`,
+                passengerOptions: Array.from({ length: exp.max_passengers }, (_, i) => i + 1),
+                priceUnit: exp.price_unit,
+                max_passengers: exp.max_passengers,
+                isFromAPI: true
+            }));
+        }
+        return getExperiences();
+    };
+
     // --- FLIGHT TYPE FILTERING ---
     // locationPricing.flight_type ör: "Private,Shared"
     let allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim()).filter(Boolean);
@@ -106,20 +149,20 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         allowedTypes = ['Shared', 'Private'];
     }
     
-    const experiences = getExperiences().filter(exp => {
+    const filteredExperiences = getExperiencesFromAPI().filter(exp => {
         if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
         if (exp.title === "Private Charter") return allowedTypes.includes("Private");
         return false;
     });
     
     // Debug: Log experiences data
-    console.log('Experiences after filtering:', experiences);
+    console.log('Experiences after filtering:', filteredExperiences);
 
 
 
     const handlePassengerChange = (index, value) => {
         setAddPassenger((prev) => {
-            const updatedPassengers = Array(experiences.length).fill(null); // Reset all selections
+            const updatedPassengers = Array(filteredExperiences.length).fill(null); // Reset all selections
             updatedPassengers[index] = value ? parseInt(value) : null;
             return updatedPassengers;
         });
@@ -134,7 +177,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         }
         
         // Safety check for experiences array
-        if (!experiences || experiences.length === 0) {
+        if (!filteredExperiences || filteredExperiences.length === 0) {
             console.error('Experiences array is not available');
             return;
         }
@@ -151,11 +194,11 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             totalPrice = bristolPrivatePrices[passengerCount];
         } else if (index === 1) {
             // For Private Flight, calculate total price from specialPrices
-            if (!experiences[1] || !experiences[1].specialPrices) {
+            if (!filteredExperiences[1] || !filteredExperiences[1].specialPrices) {
                 console.error('Private Charter pricing is not available');
                 return;
             }
-            const perPersonPrice = experiences[1].specialPrices[passengerCount];
+            const perPersonPrice = filteredExperiences[1].specialPrices[passengerCount];
             if (!perPersonPrice) {
                 console.error('Invalid passenger count or missing pricing for Private Charter');
                 return;
@@ -199,7 +242,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     }
 
     // Debug logging for troubleshooting
-    if (experiences.length === 0) {
+    if (filteredExperiences.length === 0) {
         console.log('WARNING: Experiences array is empty!');
         console.log('Location pricing:', locationPricing);
         console.log('Allowed types:', allowedTypes);
@@ -213,22 +256,22 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             setActiveAccordion={setActiveAccordion}
         >
             <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
-                {experiences && experiences.length > 0 ? experiences.map((experience, index) => (
+                {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
                     <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '320px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
-                        <img src={experience.img} alt={experience.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                        <img 
+                            src={experience.img || '/images/placeholder-experience.svg'} 
+                            alt={experience.title} 
+                            style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                            onError={(e) => {
+                                e.target.src = '/images/placeholder-experience.svg';
+                            }}
+                        />
                         <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
                             <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
                             <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
                             <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
-                            {experience.details.length > 0 && (
-                                <ul style={{ paddingLeft: 16, margin: 0, marginBottom: 12, color: '#444', fontSize: 14 }}>
-                                    {experience.details.map((detail, i) => (
-                                        <li key={i}>{typeof detail === 'string' ? detail : detail.text}</li>
-                                    ))}
-                                </ul>
-                            )}
                             <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
-                                From £{experience.price}{experience.title === "Private Charter" ? "" : "pp"}
+                                From £{experience.price}{experience.priceUnit === 'total' ? '' : 'pp'}
                             </div>
                             <button
                                 style={{
@@ -247,7 +290,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 }}
                                 onClick={() => {
                                     // Use the first valid passenger count for each experience type
-                                    const defaultPassengerCount = experience.passengerOptions ? experience.passengerOptions[0] : 1;
+                                    const defaultPassengerCount = experience.max_passengers || 1;
                                     const priceNumber = parseFloat(experience.price);
                                     console.log('Button clicked:', {
                                         type: experience.title,
