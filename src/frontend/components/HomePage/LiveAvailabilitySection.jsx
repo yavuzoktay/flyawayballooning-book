@@ -52,6 +52,26 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [phoneFormatError, setPhoneFormatError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
 
+    // Responsive calendar cell size for mobile
+    const [daySize, setDaySize] = useState(80);
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const computeSizes = () => {
+            const w = window.innerWidth;
+            setIsMobile(w <= 576);
+            // 7 columns must fit within container padding; pick safe sizes
+            if (w <= 360) setDaySize(42);
+            else if (w <= 420) setDaySize(46);
+            else if (w <= 480) setDaySize(50);
+            else if (w <= 576) setDaySize(54);
+            else if (w <= 768) setDaySize(60);
+            else setDaySize(80);
+        };
+        computeSizes();
+        window.addEventListener('resize', computeSizes);
+        return () => window.removeEventListener('resize', computeSizes);
+    }, []);
+
     var final_pax_count = selectedActivity?.[0]?.seats;
 
     const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 0, 0, 0, 0); // Current date at start of day in local timezone
@@ -326,11 +346,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             borderRadius: 8,
                             margin: 2,
                             padding: 2,
-                            minHeight: 48,
-                            minWidth: 80,
-                            maxWidth: 80,
-                            width: 80,
-                            height: 80,
+                            minHeight: daySize,
+                            minWidth: daySize,
+                            maxWidth: daySize,
+                            width: daySize,
+                            height: daySize,
                             boxSizing: 'border-box',
                             position: 'relative',
                             border: isSelected ? '2px solid #56C1FF' : 'none',
@@ -411,7 +431,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
-                            <h2 style={{ margin: '0 4px', fontWeight: 500, color: '#222', fontSize: 24, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                            <h2 style={{ margin: '0 4px', fontWeight: 500, color: '#222', fontSize: isMobile ? 20 : 24, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
                         {/* Real-time availability badge - responsive */}
@@ -441,8 +461,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                     </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0, width: '100%', maxWidth: '600px', margin: '0 auto' }}>
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: 15, marginBottom: 8 }}>{d}</div>)}
+                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0, width: '100%', maxWidth: '100%', margin: '0 auto', padding: '0 6px', boxSizing: 'border-box' }}>
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: isMobile ? 13 : 15, marginBottom: 8 }}>{d}</div>)}
                         {renderDays()}
                     </div>
                     {/* Reschedule text below calendar */}
@@ -623,14 +643,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     grid-template-columns: repeat(7, 1fr); 
                     gap: 0px; 
                     width: 100%;
-                    max-width: 600px;
+                    max-width: 100%;
                     margin: 0 auto;
+                    padding: 0 4px;
                 }
                 .weekday-label { 
                     text-align: center; 
                     font-weight: 600; 
                     color: #888; 
-                    font-size: 15px; 
+                    font-size: ${isMobile ? 13 : 15}px;
                     margin-bottom: 8px; 
                     padding: 8px;
                 }
@@ -669,14 +690,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     cursor: not-allowed !important; 
                 }
                 .day.disabled { 
-                    background: #ddd !important; 
-                    color: #999 !important; 
-                    cursor: not-allowed !important; 
+                    background: #ededed;
+                    color: #999;
                 }
-                .day.pulse { 
-                    animation: pulseAnim 1.2s infinite; 
-                }
-                .available-day { 
+                .day.available-day {
                     background: #61D836 !important; 
                     color: white !important;
                 }
@@ -690,19 +707,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     .days-grid {
                         max-width: 100%;
                         grid-template-columns: repeat(7, 1fr);
-                    }
-                    .day {
-                        width: 60px;
-                        height: 60px;
-                        min-width: 60px;
-                        max-width: 60px;
-                        min-height: 60px;
-                        max-height: 60px;
-                        font-size: 14px;
-                    }
-                    .empty-day {
-                        width: 60px;
-                        height: 60px;
                     }
                 }
             `}</style>

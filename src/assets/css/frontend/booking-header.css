@@ -204,4 +204,15 @@
   margin-right: -50vw;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   z-index: 10;
+}
+
+@media (max-width: 576px) {
+  .header-bg {
+    width: 100%;
+    left: auto;
+    right: auto;
+    margin-left: 0;
+    margin-right: 0;
+    overflow-x: hidden;
+  }
 } 

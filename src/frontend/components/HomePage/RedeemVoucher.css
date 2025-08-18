@@ -311,6 +311,18 @@
   .activity-panel .book_data {
     height: 180px;
   }
+
+  /* Force single-column for activity cards on small screens */
+  .tab_box .book_data {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    min-height: 180px !important;
+    height: auto !important;
+  }
+
+  .activity-panel .tab_box {
+    gap: 16px !important;
+  }
 }
 
 .activity-panel .book_data_label:hover {

@@ -9,6 +9,24 @@ const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData }) => {
 
+    // Mobile breakpoint + drawer state
+    const [isMobile, setIsMobile] = React.useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+    React.useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 576);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+    // Prevent background scroll when drawer is open
+    React.useEffect(() => {
+        if (isDrawerOpen) {
+            const prev = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => { document.body.style.overflow = prev; };
+        }
+    }, [isDrawerOpen]);
+
     // Function to format date
     const formatDate = (date) => {
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -383,183 +401,272 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
     const sectionSpacing = { marginBottom: '24px' };
 
+    // --- Mobile drawer compact section list ---
+    const mobileSections = [
+        { id: 'activity', title: 'Flight Type', value: activitySelect ? (activitySelect === 'Redeem Voucher' && voucherCode ? `${activitySelect} - ${voucherStatus === 'invalid' ? 'Invalid' : voucherCode}` : activitySelect) : 'Not Selected', completed: !!activitySelect && (activitySelect !== 'Redeem Voucher' || voucherStatus === 'valid') },
+        ...(activitySelect === 'Book Flight' ? [
+            { id: 'location', title: 'Location', value: chooseLocation || 'Not Selected', completed: !!chooseLocation },
+            { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
+            ...(chooseLocation !== 'Bristol Fiesta' && chooseFlightType?.type !== 'Private Charter' ? [{ id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType }] : []),
+            { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDate(selectedDate) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
+            { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+        ] : []),
+        ...(activitySelect === 'Redeem Voucher' ? [
+            { id: 'location', title: 'Location', value: chooseLocation || 'Not Selected', completed: !!chooseLocation },
+            { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDate(selectedDate) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
+            { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+        ] : []),
+        ...(activitySelect === 'Flight Voucher' ? [
+            { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
+            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType },
+            { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+        ] : []),
+        ...(activitySelect === 'Buy Gift' ? [
+            { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
+            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType },
+            { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : 'Not Provided', completed: !!recipientDetails?.name },
+            { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isBuyGiftPassengerComplete },
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+        ] : [])
+    ];
+
     return (
-        <div className="book_active">
-            <div className="book_data_active">
-                {/* En üstte Flight Type/What would you like to do? */}
-                <div className="book_data_active">
-                    <div className={`row-1 ${(() => {
-                        // For Redeem Voucher, only show green tick if voucher is valid
-                        if (activitySelect === 'Redeem Voucher') {
-                            return voucherStatus === 'valid' ? 'active-card-val' : '';
-                        }
-                        // For other activity types, show green tick if selected
-                        return activitySelect ? 'active-card-val' : '';
-                    })()}`}>
-                        <span className="active-book-card"></span>
-                        <div className="active-book-cont">
-                            <h3>Flight Type</h3>
-                            <p>
-                                {activitySelect ? (
-                                    activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'valid' ? 
-                                    `${activitySelect} - ${voucherCode}` : 
-                                    activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'invalid' ?
-                                    `${activitySelect} - Invalid Code` :
-                                    activitySelect
-                                ) : 'Not Selected'}
-                            </p>
+        <>
+            {/* Desktop/Tablet full card */}
+            <div style={{ display: isMobile ? 'none' : 'block' }}>
+                <div className="book_active">
+                    <div className="book_data_active">
+                        {/* En üstte Flight Type/What would you like to do? */}
+                        <div className="book_data_active">
+                            <div className={`row-1 ${(() => {
+                                // For Redeem Voucher, only show green tick if voucher is valid
+                                if (activitySelect === 'Redeem Voucher') {
+                                    return voucherStatus === 'valid' ? 'active-card-val' : '';
+                                }
+                                // For other activity types, show green tick if selected
+                                return activitySelect ? 'active-card-val' : '';
+                            })()}`}>
+                                <span className="active-book-card"></span>
+                                <div className="active-book-cont">
+                                    <h3>Flight Type</h3>
+                                    <p>
+                                        {activitySelect ? (
+                                            activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'valid' ? 
+                                            `${activitySelect} - ${voucherCode}` : 
+                                            activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'invalid' ?
+                                            `${activitySelect} - Invalid Code` :
+                                            activitySelect
+                                        ) : 'Not Selected'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                {activitySelect === 'Book Flight' && (
-                    <>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
-                        {chooseLocation !== "Bristol Fiesta" && chooseFlightType?.type !== "Private Charter" && (
-                            <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
-                        )}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDate(selectedDate) : "Not Selected"}</p></div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
-                        {/* Preferences only for non-Book Flight and non-Redeem Voucher */}
-                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
-                            <div className="book_data_active" onClick={() => setActiveAccordion("select-preferences")}> <div className={`row-1 ${(activeAccordion === 'select-preferences' || activeAccordion === 'preference') ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Preferences</h3>{(preference && ((preference.location && Object.values(preference.location).some(Boolean)) || (preference.time && Object.values(preference.time).some(Boolean)) || (preference.day && Object.values(preference.day).some(Boolean)))) ? null : <p>Not Provided</p>}</div></div></div></div>
-                        )}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
-                    </>
-                )}
-                {activitySelect === 'Redeem Voucher' && (
-                    <>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDate(selectedDate) : "Not Selected"}</p></div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
-                        {/* Preferences REMOVED for Redeem Voucher */}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
-                    </>
-                )}
-                {activitySelect === 'Buy Gift' && (
-                    <>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
-                        {chooseLocation !== "Bristol Fiesta" && (
-                            <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
-                        )}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("recipient-details")}> <div className={`row-1 ${recipientDetails?.name ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Recipient Details</h3><p>{recipientDetails?.name ? recipientDetails.name : "Not Provided"}</p></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Purchaser Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{data.firstName + " " + data.lastName}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
-                    </>
-                )}
-                {activitySelect === 'Flight Voucher' && (
-                    <>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
-                        {chooseLocation !== "Bristol Fiesta" && (
-                            <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
-                        )}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                        <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
-                        {/* Preferences removed for Flight Voucher */}
-                        <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
-                    </>
-                )}
-                <div className="bottom_main">
-                    <h3>Total</h3>
-                    <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>
-                        {totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ""}
-                    </p>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
-                    <button
-                        className="booking_btn clear_booking-button"
-                        style={{
-                            background: '#fff',
-                            color: '#444',
-                            border: '1.5px solid #bbb',
-                            boxShadow: 'none',
-                            fontWeight: 500,
-                            borderRadius: '8px',
-                            padding: '8px 22px',
-                            cursor: 'pointer',
-                            opacity: 1
-                        }}
-                        onClick={resetBooking}
-                        type="button"
-                    >
-                        Clear
-                    </button>
-                    <button
-                        className="booking_btn final_booking-button"
-                        style={{
-                            background: isBookDisabled ? '#eee' : '#2d4263',
-                            color: '#fff',
-                            fontWeight: 500,
-                            borderRadius: '8px',
-                            padding: '8px 22px',
-                            cursor: isBookDisabled ? 'not-allowed' : 'pointer',
-                            opacity: isBookDisabled ? 0.5 : 1
-                        }}
-                        disabled={isBookDisabled}
-                        onClick={() => {
-                            if (isBookDisabled) {
-                                setShowWarning(true);
-                            } else {
-                                setShowWarning(false);
-                                handleBookData();
-                            }
-                        }}
-                        type="button"
-                    >
-                        Book
-                    </button>
-                </div>
-                {showWarning && (
-                    <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
                         {activitySelect === 'Book Flight' && (
                             <>
-                                Please complete all required fields:<br/>
-                                • Flight Location and Experience<br/>
-                                • Voucher Type<br/>
-                                • Live Availability (Date & Time)<br/>
-                                • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
+                                <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
+                                {chooseLocation !== "Bristol Fiesta" && chooseFlightType?.type !== "Private Charter" && (
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                )}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDate(selectedDate) : "Not Selected"}</p></div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                {/* Preferences only for non-Book Flight and non-Redeem Voucher */}
+                                {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("select-preferences")}> <div className={`row-1 ${(activeAccordion === 'select-preferences' || activeAccordion === 'preference') ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Preferences</h3>{(preference && ((preference.location && Object.values(preference.location).some(Boolean)) || (preference.time && Object.values(preference.time).some(Boolean)) || (preference.day && Object.values(preference.day).some(Boolean)))) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                )}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
                         )}
                         {activitySelect === 'Redeem Voucher' && (
                             <>
-                                Please complete all required fields:<br/>
-                                • Flight Location and Experience<br/>
-                                • Live Availability (Date & Time)<br/>
-                                • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
-                            </>
-                        )}
-                        {activitySelect === 'Flight Voucher' && (
-                            <>
-                                Please complete all required fields:<br/>
-                                • Experience<br/>
-                                • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
+                                <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDate(selectedDate) : "Not Selected"}</p></div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                {/* Preferences REMOVED for Redeem Voucher */}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
                         )}
                         {activitySelect === 'Buy Gift' && (
                             <>
-                                Please complete all required fields:<br/>
-                                • Experience<br/>
-                                • Voucher Type<br/>
-                                • Recipient Details<br/>
-                                • Purchaser Information (All fields required)<br/>
-                                • Add to Booking
+                                <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
+                                {chooseLocation !== "Bristol Fiesta" && (
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                )}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("recipient-details")}> <div className={`row-1 ${recipientDetails?.name ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Recipient Details</h3><p>{recipientDetails?.name ? recipientDetails.name : "Not Provided"}</p></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Purchaser Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{data.firstName + " " + data.lastName}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
                         )}
-                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
-                            'Please fill in all required steps before booking.'
+                        {activitySelect === 'Flight Voucher' && (
+                            <>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
+                                {chooseLocation !== "Bristol Fiesta" && (
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                )}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                {/* Preferences removed for Flight Voucher */}
+                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
+                            </>
+                        )}
+                        <div className="bottom_main">
+                            <h3>Total</h3>
+                            <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>
+                                {totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ""}
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
+                            <button
+                                className="booking_btn clear_booking-button"
+                                style={{
+                                    background: '#fff',
+                                    color: '#444',
+                                    border: '1.5px solid #bbb',
+                                    boxShadow: 'none',
+                                    fontWeight: 500,
+                                    borderRadius: '8px',
+                                    padding: '8px 22px',
+                                    cursor: 'pointer',
+                                    opacity: 1
+                                }}
+                                onClick={resetBooking}
+                                type="button"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                className="booking_btn final_booking-button"
+                                style={{
+                                    background: isBookDisabled ? '#eee' : '#2d4263',
+                                    color: '#fff',
+                                    fontWeight: 500,
+                                    borderRadius: '8px',
+                                    padding: '8px 22px',
+                                    cursor: isBookDisabled ? 'not-allowed' : 'pointer',
+                                    opacity: isBookDisabled ? 0.5 : 1
+                                }}
+                                disabled={isBookDisabled}
+                                onClick={() => {
+                                    if (isBookDisabled) {
+                                        setShowWarning(true);
+                                    } else {
+                                        setShowWarning(false);
+                                        handleBookData();
+                                    }
+                                }}
+                                type="button"
+                            >
+                                Book
+                            </button>
+                        </div>
+                        {showWarning && (
+                            <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
+                                {activitySelect === 'Book Flight' && (
+                                    <>
+                                        Please complete all required fields:<br/>
+                                        • Flight Location and Experience<br/>
+                                        • Voucher Type<br/>
+                                        • Live Availability (Date & Time)<br/>
+                                        • Passenger Information (All fields required)<br/>
+                                        • Additional Information<br/>
+                                        • Add to Booking
+                                    </>
+                                )}
+                                {activitySelect === 'Redeem Voucher' && (
+                                    <>
+                                        Please complete all required fields:<br/>
+                                        • Flight Location and Experience<br/>
+                                        • Live Availability (Date & Time)<br/>
+                                        • Passenger Information (All fields required)<br/>
+                                        • Additional Information<br/>
+                                        • Add to Booking
+                                    </>
+                                )}
+                                {activitySelect === 'Flight Voucher' && (
+                                    <>
+                                        Please complete all required fields:<br/>
+                                        • Experience<br/>
+                                        • Passenger Information (All fields required)<br/>
+                                        • Additional Information<br/>
+                                        • Add to Booking
+                                    </>
+                                )}
+                                {activitySelect === 'Buy Gift' && (
+                                    <>
+                                        Please complete all required fields:<br/>
+                                        • Experience<br/>
+                                        • Voucher Type<br/>
+                                        • Recipient Details<br/>
+                                        • Purchaser Information (All fields required)<br/>
+                                        • Add to Booking
+                                    </>
+                                )}
+                                {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
+                                    'Please fill in all required steps before booking.'
+                                )}
+                            </div>
                         )}
                     </div>
-                )}
+                </div>
             </div>
-        </div>
+
+            {/* Mobile sticky summary + drawer */}
+            {isMobile && (
+                <>
+                    <div className="summary-sticky" onClick={() => setIsDrawerOpen(true)}>
+                        <div className="summary-sticky-left">
+                            <strong>Summary</strong>
+                            <span style={{ color: '#666', marginLeft: 8 }}>{totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ''}</span>
+                        </div>
+                        <button
+                            className="summary-sticky-book"
+                            disabled={isBookDisabled}
+                            onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) handleBookData(); }}
+                        >
+                            Book
+                        </button>
+                    </div>
+                    {isDrawerOpen && (
+                        <div className="summary-overlay" onClick={() => setIsDrawerOpen(false)}>
+                            <div className="summary-drawer" onClick={(e) => e.stopPropagation()}>
+                                <div className="summary-drawer-header">
+                                    <span>Booking Summary</span>
+                                    <button className="drawer-close" onClick={() => setIsDrawerOpen(false)}>✕</button>
+                                </div>
+                                <div className="summary-drawer-body">
+                                    {mobileSections.map((s) => (
+                                        <div key={s.id} className={`summary-row ${s.completed ? 'completed' : ''}`} onClick={() => { setIsDrawerOpen(false); setActiveAccordion(s.id); }}>
+                                            <div className="summary-row-left">
+                                                <div className="summary-dot" />
+                                                <div>
+                                                    <div className="summary-row-title">{s.title}</div>
+                                                    <div className="summary-row-sub">{s.value}</div>
+                                                </div>
+                                            </div>
+                                            <div className="summary-chevron">›</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="summary-drawer-footer">
+                                    <div className="summary-total">{totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ''}</div>
+                                    <button className="summary-primary" disabled={isBookDisabled} onClick={() => { if (!isBookDisabled) handleBookData(); }}>
+                                        Book
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </>
     )
 }
 

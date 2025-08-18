@@ -83,6 +83,25 @@ const VoucherType = ({
     const [allVoucherTypes, setAllVoucherTypes] = useState([]);
     const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
 
+    // Mobile breakpoint
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 576);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    // Keep layout sensible per device
+    useEffect(() => {
+        if (isMobile) {
+            setShowTwoVouchers(false);
+        } else {
+            setShowTwoVouchers(true);
+            setCurrentViewIndex(0);
+        }
+    }, [isMobile]);
+
     // Fetch all voucher types from API
     useEffect(() => {
         const fetchAllVoucherTypes = async () => {
@@ -248,8 +267,9 @@ const VoucherType = ({
                 setActiveAccordion={setActiveAccordion}
             >
                 <div style={{ position: 'relative', width: '100%' }}>
-                    {/* Navigation Arrows */}
+                    {/* Navigation Arrows - hidden on mobile */}
                     {(() => {
+                        if (isMobile) return null;
                         const filteredVouchers = voucherTypes.filter(voucher => 
                             availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                         );
@@ -314,9 +334,10 @@ const VoucherType = ({
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            padding: '40px 60px',
-                            minHeight: '400px',
-                            position: 'relative'
+                            padding: isMobile ? '16px' : '40px 60px',
+                            minHeight: isMobile ? 'auto' : '400px',
+                            position: 'relative',
+                            width: '100%'
                         }}
                     >
                         {loading || allVoucherTypesLoading ? (
@@ -331,6 +352,55 @@ const VoucherType = ({
                                     availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                                 );
                                 
+                                // Mobile: stack cards vertically to fit screen
+                                if (isMobile) {
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                                            {filteredVouchers.map((voucher) => (
+                                                <div key={voucher.id} style={{
+                                                    background: '#fff',
+                                                    borderRadius: 16,
+                                                    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+                                                    width: '100%',
+                                                    minWidth: '0',
+                                                    padding: 0,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <img
+                                                        src={voucher.image}
+                                                        alt={voucher.title}
+                                                        style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                                                    />
+                                                    <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                                        <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
+                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{voucher.refundability}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
+                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
+                                                            {voucher.inclusions.map((inclusion, i) => (
+                                                                <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
+                                                            ))}
+                                                        </ul>
+                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
+                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{voucher.price}</div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
+                                                            <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                                                            <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
+                                                        </div>
+                                                        <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
+                                                            Select
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                }
+
+                                // Desktop / tablet: original layout
                                 // Show two vouchers side by side (Weekday Morning and Flexible Weekday)
                                 if (showTwoVouchers && filteredVouchers.length >= 2) {
                                     return (
@@ -371,121 +441,23 @@ const VoucherType = ({
                                                         flexDirection: 'column',
                                                         height: '100%'
                                                     }}>
-                                                        <h3 style={{
-                                                            fontSize: 18,
-                                                            fontWeight: 300,
-                                                            margin: 0,
-                                                            marginBottom: 6,
-                                                            color: '#4a4a4a'
-                                                        }}>
-                                                            {voucher.title}
-                                                        </h3>
-                                                        <div style={{
-                                                            fontSize: 12,
-                                                            color: '#666',
-                                                            marginBottom: 8,
-                                                            lineHeight: '1.3',
-                                                            fontStyle: 'italic'
-                                                        }}>
-                                                            {voucher.description}
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: 14,
-                                                            color: '#666',
-                                                            marginBottom: 6,
-                                                            fontWeight: 500
-                                                        }}>
-                                                            {voucher.refundability}
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: 14,
-                                                            color: '#666',
-                                                            marginBottom: 6
-                                                        }}>
-                                                            {voucher.availability}
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: 14,
-                                                            color: '#666',
-                                                            marginBottom: 10
-                                                        }}>
-                                                            {voucher.validity}
-                                                        </div>
-                                                        <ul style={{
-                                                            paddingLeft: 14,
-                                                            margin: 0,
-                                                            marginBottom: 10,
-                                                            color: '#444',
-                                                            fontSize: 14,
-                                                            lineHeight: '1.3'
-                                                        }}>
+                                                        <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
+                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{voucher.refundability}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
+                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
                                                             {voucher.inclusions.map((inclusion, i) => (
                                                                 <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
                                                             ))}
                                                         </ul>
-                                                        <div style={{
-                                                            fontSize: 12,
-                                                            color: '#666',
-                                                            marginBottom: 12,
-                                                            lineHeight: '1.2',
-                                                            fontStyle: 'italic'
-                                                        }}>
-                                                            {voucher.weatherClause}
+                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
+                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{voucher.price}</div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
+                                                            <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                                                            <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
                                                         </div>
-                                                        <div style={{
-                                                            fontWeight: 600,
-                                                            fontSize: 15,
-                                                            marginBottom: 10,
-                                                            color: '#4a4a4a'
-                                                        }}>
-                                                            Price Per Person: £{voucher.price}
-                                                        </div>
-                                                        <div style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            marginBottom: 12,
-                                                            gap: '8px'
-                                                        }}>
-                                                            <label style={{
-                                                                fontSize: 13,
-                                                                color: '#666',
-                                                                fontWeight: 500
-                                                            }}>
-                                                                Passengers:
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={quantities[voucher.title]}
-                                                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)}
-                                                                style={{
-                                                                    width: '50px',
-                                                                    padding: '4px 6px',
-                                                                    border: '1px solid #ddd',
-                                                                    borderRadius: 4,
-                                                                    fontSize: 13,
-                                                                    textAlign: 'center'
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            style={{
-                                                                width: '100%',
-                                                                background: '#03a9f4',
-                                                                color: '#fff',
-                                                                border: 'none',
-                                                                borderRadius: 8,
-                                                                padding: '10px 0',
-                                                                fontSize: 15,
-                                                                fontWeight: 600,
-                                                                cursor: 'pointer',
-                                                                marginTop: 'auto',
-                                                                transition: 'background 0.2s',
-                                                            }}
-                                                            onMouseEnter={(e) => e.target.style.background = '#0288d1'}
-                                                            onMouseLeave={(e) => e.target.style.background = '#03a9f4'}
-                                                            onClick={() => handleSelectVoucher(voucher)}
-                                                        >
+                                                        <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
                                                             Select
                                                         </button>
                                                     </div>
@@ -505,146 +477,41 @@ const VoucherType = ({
                                 
                                 return (
                                     <div key={currentVoucher.id} style={{
-                                background: '#fff',
-                                borderRadius: 16,
-                                boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                                width: '320px',
-                                minWidth: '320px',
-                                flexShrink: 0,
-                                padding: 0,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                overflow: 'hidden',
-                                animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : 'slideInLeft 0.3s ease-in-out'
-                            }}>
-                                <img
-                                    src={currentVoucher.image}
-                                    alt={currentVoucher.title}
-                                    style={{
-                                        width: '100%',
-                                        height: 180,
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                                <div style={{
-                                    padding: '16px',
-                                    width: '100%',
-                                    boxSizing: 'border-box',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    height: '100%'
-                                }}>
-                                    <h3 style={{
-                                        fontSize: 18,
-                                        fontWeight: 300,
-                                        margin: 0,
-                                        marginBottom: 6,
-                                        color: '#4a4a4a'
-                                    }}>
-                                        {currentVoucher.title}
-                                    </h3>
-                                    <div style={{
-                                        fontSize: 14,
-                                        color: '#666',
-                                        marginBottom: 6,
-                                        fontWeight: 500
-                                    }}>
-                                        {currentVoucher.refundability}
-                                    </div>
-                                    <div style={{
-                                        fontSize: 14,
-                                        color: '#666',
-                                        marginBottom: 6
-                                    }}>
-                                        {currentVoucher.availability}
-                                    </div>
-                                    <div style={{
-                                        fontSize: 14,
-                                        color: '#666',
-                                        marginBottom: 10
-                                    }}>
-                                        {currentVoucher.validity}
-                                    </div>
-                                    <ul style={{
-                                        paddingLeft: 14,
-                                        margin: 0,
-                                        marginBottom: 10,
-                                        color: '#444',
-                                        fontSize: 14,
-                                        lineHeight: '1.3'
-                                    }}>
-                                        {currentVoucher.inclusions.map((inclusion, i) => (
-                                            <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
-                                        ))}
-                                    </ul>
-                                    <div style={{
-                                        fontSize: 12,
-                                        color: '#666',
-                                        marginBottom: 12,
-                                        lineHeight: '1.2',
-                                        fontStyle: 'italic'
-                                    }}>
-                                        {currentVoucher.weatherClause}
-                                    </div>
-                                    <div style={{
-                                        fontWeight: 600,
-                                        fontSize: 15,
-                                        marginBottom: 10,
-                                        color: '#4a4a4a'
-                                    }}>
-                                        Price Per Person: £{currentVoucher.price}
-                                    </div>
-                                    <div style={{
+                                        background: '#fff',
+                                        borderRadius: 16,
+                                        boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+                                        width: '320px',
+                                        minWidth: '320px',
+                                        flexShrink: 0,
+                                        padding: 0,
                                         display: 'flex',
-                                        alignItems: 'center',
-                                        marginBottom: 12,
-                                        gap: '8px'
+                                        flexDirection: 'column',
+                                        overflow: 'hidden',
+                                        animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : 'slideInLeft 0.3s ease-in-out'
                                     }}>
-                                        <label style={{
-                                            fontSize: 13,
-                                            color: '#666',
-                                            fontWeight: 500
-                                        }}>
-                                            Passengers:
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={quantities[currentVoucher.title]}
-                                            onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)}
-                                            style={{
-                                                width: '50px',
-                                                padding: '4px 6px',
-                                                border: '1px solid #ddd',
-                                                borderRadius: 4,
-                                                fontSize: 13,
-                                                textAlign: 'center'
-                                            }}
-                                        />
+                                        <img src={currentVoucher.image} alt={currentVoucher.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
+                                        <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                            <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{currentVoucher.title}</h3>
+                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{currentVoucher.refundability}</div>
+                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{currentVoucher.availability}</div>
+                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{currentVoucher.validity}</div>
+                                            <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
+                                                {currentVoucher.inclusions.map((inclusion, i) => (
+                                                    <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
+                                                ))}
+                                            </ul>
+                                            <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{currentVoucher.weatherClause}</div>
+                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{currentVoucher.price}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
+                                                <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                                                <input type="number" min="0" value={quantities[currentVoucher.title]} onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
+                                            </div>
+                                            <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(currentVoucher)}>
+                                                Select
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button
-                                        style={{
-                                            width: '100%',
-                                            background: '#03a9f4',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: 8,
-                                            padding: '10px 0',
-                                            fontSize: 15,
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            marginTop: 'auto',
-                                            transition: 'background 0.2s',
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.background = '#0288d1'}
-                                        onMouseLeave={(e) => e.target.style.background = '#03a9f4'}
-                                        onClick={() => handleSelectVoucher(currentVoucher)}
-                                    >
-                                        Select
-                                    </button>
-                                </div>
-                            </div>
-                            );
+                                );
                             })()
                         ) : (
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
@@ -652,8 +519,9 @@ const VoucherType = ({
                             </div>
                         )}
                         
-                        {/* Dot Navigation */}
+                        {/* Dot Navigation - hidden on mobile */}
                         {(() => {
+                            if (isMobile) return null;
                             const filteredVouchers = voucherTypes.filter(voucher => 
                                 availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                             );

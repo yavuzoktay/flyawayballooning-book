@@ -9,6 +9,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // For Buy Gift, always 1 passenger
   const passengerCount = activitySelect === 'Buy Gift' ? 1 : Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
   
+  // Mobile breakpoint
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 576);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  
   // Add console logs to debug
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);
   console.log("Passenger count:", passengerCount);
@@ -205,8 +214,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 )}
               </div>
               <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
-                  <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
+                  <div style={{ flex: 1, width: '100%' }}>
                     <label>First Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
@@ -220,7 +229,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     />
                     {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, width: '100%' }}>
                     <label>Last Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
@@ -236,8 +245,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   </div>
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '-10px' }}>
+                    <div style={{ flex: 1, width: '100%' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: isMobile ? '0' : '-10px' }}>
                         Weight (Kg)<span style={{ color: 'red' }}>*</span>
                         <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                           <div className="info-icon-container" style={{ position: 'relative' }}>
@@ -266,8 +275,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 </div>
                 {/* Mobile Number ve Email sadece ilk yolcu için, üstteki satırın ALTINDA yan yana gösterilecek */}
                 {index === 0 && (
-                  <div style={{ width: '100%', display: 'flex', gap: '15px', marginTop: '10px' }}>
-                    <div style={{ flex: 1 }}>
+                  <div style={{ width: '100%', display: 'flex', gap: isMobile ? '10px' : '15px', marginTop: '10px', flexDirection: isMobile ? 'column' : 'row' }}>
+                    <div style={{ flex: 1, width: '100%' }}>
                       <label>Mobile Number<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="tel"
@@ -283,7 +292,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, width: '100%' }}>
                       <label>Email<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="email"

@@ -116,10 +116,12 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     />
                                 </div>
                                 <div className="vouch-text">
-                                    <p>{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 500 }}>+£7.50</span>}</p>
-                                    <p>{item.name !== 'Weather Refundable' ? "£" : ""}{item.price}{item.name === 'Weather Refundable' ? "%" : ""}</p>
+                                    <div className="vouch-header">
+                                        <p className="vouch-title">{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 500 }}>+£7.50</span>}</p>
+                                        <p className="vouch-price">{item.name !== 'Weather Refundable' ? "£" : ""}{item.price}{item.name === 'Weather Refundable' ? "%" : ""}</p>
+                                    </div>
                                     {item.description && (
-                                        <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{item.description}</p>
+                                        <p className="vouch-desc">{item.description}</p>
                                     )}
                                 </div>
                                 <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`}></span>

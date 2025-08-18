@@ -21,6 +21,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const [experiences, setExperiences] = useState([]);
     const [experiencesLoading, setExperiencesLoading] = useState(false);
 
+    // Mobile breakpoint
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 576);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
     // Determine if Bristol pricing should be used
     const isBristol = chooseLocation === 'Bristol Fiesta';
 
@@ -255,9 +264,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             activeAccordion={activeAccordion}
             setActiveAccordion={setActiveAccordion}
         >
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
                 {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
-                    <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '320px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
+                    <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: isMobile ? '100%' : 'calc(50% - 10px)', minWidth: isMobile ? '0' : '260px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: isMobile ? '1 1 100%' : '1' }}>
                         <img 
                             src={experience.img || '/images/placeholder-experience.svg'} 
                             alt={experience.title} 
@@ -298,7 +307,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                         price: priceNumber,
                                         index: index
                                     });
-                                    handleSelectClick(experience.title, defaultPassengerCount, priceNumber, index);
+                                    handleSelectClick(
+                                        experience.title,
+                                        defaultPassengerCount,
+                                        priceNumber,
+                                        index
+                                    );
                                 }}
                             >
                                 Select
@@ -306,13 +320,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                         </div>
                     </div>
                 )) : (
-                    <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
-                        <p>Loading experiences...</p>
-                    </div>
+                    <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
                 )}
             </div>
-
-
         </Accordion>
     );
 };

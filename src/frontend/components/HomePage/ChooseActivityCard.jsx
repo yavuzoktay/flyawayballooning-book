@@ -218,17 +218,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     onClick={e => {
                                         // Sadece input veya button dışında bir yere tıklanırsa flip
                                         if (
-                                            e.target === cardBackRef.current ||
-                                            (!e.target.closest('input') && !e.target.closest('button'))
+                                            e.target === cardBackRef.current
                                         ) {
                                             setIsFlipped(false);
                                         }
                                     }}
                                     style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
                                 >
-                                    <RedeemVoucherCard 
+                                    <RedeemVoucherCard
                                         onSubmit={handleVoucherSubmit}
                                         voucherStatus={voucherStatus}
+                                        voucherCode={localVoucherCode}
                                         voucherData={voucherData}
                                         onValidate={onValidate}
                                     />
@@ -241,38 +241,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                         </div>
                     ) : (
-                        <label 
-                            htmlFor={`activity-${item.label}`} 
-                            className={`book_data_label ${activitySelect === item.label ? 'active_book_data_label' : ""}`}
-                            onClick={() => handleActivitySelect(item.label)}
-                            style={{ 
-                                height: '100%',
-                                width: '100%',
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                borderRadius: '20px',
-                                padding: '30px 15px',
-                                margin: '0',
-                                boxSizing: 'border-box',
-                                position: 'relative'
-                            }}
-                        >
-                            <input
-                                type="radio"
-                                id={`activity-${item.label}`}
-                                name="activity"
-                                value={item.label}
-                                checked={activitySelect === item.label}
-                                onChange={() => {}} // Handled by onClick
-                                style={{ display: 'none' }} // Hide input
-                            />
-                            <div style={{
-                                position: 'absolute',
-                                top: '15px',
-                                right: '15px',
-                            }}>
+                        <label htmlFor={`activity-${item.label}`} className={`book_data_label ${activitySelect === item.label ? 'active_book_data_label' : ""}`} style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderRadius: '20px', padding: '30px 15px', margin: '0', boxSizing: 'border-box', position: 'relative' }}>
+                            <input type="radio" id={`activity-${item.label}`} name="activity" value={item.label} checked={activitySelect === item.label} onChange={() => handleActivitySelect(item.label)} style={{ display: 'none' }} />
+                            <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
                                 <div style={activitySelect === item.label ? activeCheckStyle : checkStyle}>
                                     {activitySelect === item.label && (
                                         <span style={checkIconStyle}>✓</span>
@@ -281,38 +252,24 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                             <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                 {item.label}
-                                {(['Flight Voucher', 'Buy Gift'].includes(item.label)) && (
-                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
-                                        <BsInfoCircle size={14} color="#0070f3" />
-                                        <div className="hover-text">
-                                            {item.subText}
-                                        </div>
-                                    </span>
-                                )}
-                                {item.label === 'Book Flight' && (
-                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
-                                        <BsInfoCircle size={14} color="#0070f3" />
-                                        <div className="hover-text">
-                                            Book a Scheduled Balloon Flight
-                                        </div>
-                                    </span>
-                                )}
-                                {item.label === 'Redeem Voucher' && (
-                                    <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
-                                        <BsInfoCircle size={14} color="#0070f3" />
-                                        <div className="hover-text">
-                                            Redeem Flight or Gift Voucher
-                                        </div>
-                                    </span>
-                                )}
+                                <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                    <BsInfoCircle size={14} color="#0070f3" />
+                                    <div className="hover-text">
+                                        {item.label === 'Book Flight' ? 'Make a reservation' : item.label === 'Flight Voucher' ? 'Choose date later' : item.label === 'Buy Gift' ? 'Gift any location' : 'Redeem your code'}
+                                    </div>
+                                </span>
                             </h3>
-                            {(item.label === 'Flight Voucher' || item.label === 'Buy Gift' || item.label === 'Book Flight' || item.label === 'Redeem Voucher') ? null :
-                                item.subText && <p>{item.subText}</p>
-                            }
+                            {item.subText && <p>{item.subText}</p>}
                         </label>
                     )}
                 </div>
             ))}
+            <style>{`
+                @media (max-width: 576px) {
+                    .tab_box { gap: 16px !important; }
+                    .tab_box .book_data { width: 100% !important; min-height: 180px !important; height: auto !important; flex: 1 1 100% !important; }
+                }
+            `}</style>
         </div>
     );
 };

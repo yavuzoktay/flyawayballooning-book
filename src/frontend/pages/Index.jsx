@@ -46,6 +46,15 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
 
+    // NEW: viewport helper for mobile-specific inline tweaks
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 576);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Debug selectedVoucherType changes
     useEffect(() => {
         console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);
@@ -605,16 +614,16 @@ const Index = () => {
                 <div className="header-layout">
                     <Container>
                         <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '80px' }}>
-                            <div className="logo" style={{ marginRight: '32px', flexShrink: 0, minWidth: '200px' }}>
+                            <div className="logo" style={{ marginRight: isMobile ? '12px' : '32px', flexShrink: 0, minWidth: isMobile ? 'auto' : '200px' }}>
                                 <a href="/" onClick={e => { e.preventDefault(); window.location.reload(); }} style={{ display: 'inline-block' }}>
-                                    <img src={LOGO} alt="Fly Away Ballooning Logo" />
+                                    <img src={LOGO} alt="Fly Away Ballooning Logo" style={{ height: isMobile ? 35 : undefined, width: 'auto' }} />
                                 </a>
                             </div>
                             {showBookingHeader && (
                                 <BookingHeader location={chooseLocation} selectedDate={selectedDate} selectedTime={selectedTime} />
                             )}
-                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', height: '100%', minWidth: '180px', flexShrink: 0 }}>
-                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: '60px', width: '220px', objectFit: 'contain' }} />
+                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: isMobile ? 'none' : 'flex', alignItems: 'center', height: '100%', minWidth: isMobile ? 'auto' : '180px', flexShrink: isMobile ? 1 : 0 }}>
+                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: isMobile ? '40px' : '60px', width: isMobile ? '160px' : '220px', objectFit: 'contain' }} />
                             </div>
                         </div>
                     </Container>
