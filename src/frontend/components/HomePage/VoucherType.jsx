@@ -228,66 +228,9 @@ const VoucherType = ({
         };
         
         setSelectedVoucher(voucherWithQuantity);
-        
-        // Fetch terms and conditions for this voucher type
-        if (voucher.id) {
-            console.log('VoucherType: Fetching terms for voucher:', voucher);
-            fetchTermsForVoucher(voucher.id);
-        }
-        
-        setShowTerms(true); // Show modal
-    };
-
-    const confirmSelection = () => {
-        if (selectedVoucher) {
-            console.log('VoucherType: Setting selectedVoucherType to:', selectedVoucher);
-            setSelectedVoucherType(selectedVoucher);
-            setActiveAccordion(null); // Close this accordion after selection
-        }
-        setShowTerms(false); // Close modal
-    };
-
-    // Fetch terms and conditions from API
-    const [termsAndConditions, setTermsAndConditions] = useState([]);
-    const [termsLoading, setTermsLoading] = useState(false);
-
-    const fetchTermsForVoucher = async (voucherTypeId) => {
-        try {
-            setTermsLoading(true);
-            console.log('VoucherType: Fetching terms for voucher type ID:', voucherTypeId);
-            
-            const response = await axios.get(`/api/terms-and-conditions/voucher-type/${voucherTypeId}`);
-            console.log('VoucherType: Terms API response:', response.data);
-            
-            if (response.data.success) {
-                setTermsAndConditions(response.data.data);
-                console.log('VoucherType: Terms set to:', response.data.data);
-            }
-        } catch (error) {
-            console.error('VoucherType: Error fetching terms and conditions:', error);
-            setTermsAndConditions([]);
-        } finally {
-            setTermsLoading(false);
-        }
-    };
-
-    const getTermsForVoucher = (voucherTitle) => {
-        // Return terms from API if available, otherwise show loading or empty state
-        if (termsLoading) {
-            return ['Loading terms and conditions...'];
-        }
-        
-        if (termsAndConditions.length === 0) {
-            return ['Terms and conditions not available for this voucher type.'];
-        }
-        
-        // Return the content from the first available terms
-        const terms = termsAndConditions[0];
-        if (terms && terms.content) {
-            return terms.content.split('\n').filter(line => line.trim() !== '');
-        }
-        
-        return ['Terms and conditions not available for this voucher type.'];
+        // Directly select the voucher type without showing Terms & Conditions
+        setSelectedVoucherType(voucherWithQuantity);
+        setActiveAccordion(null);
     };
 
     // Hide VoucherType section if "Private Charter" is selected
@@ -759,44 +702,7 @@ const VoucherType = ({
                 </div>
             </Accordion>
 
-            {/* Terms & Conditions Modal */}
-            {showTerms && (
-                <>
-                    <div className="overlay"></div>
-                    <div className="popup">
-                        <div className="modal-content">
-                            <div className="popup-text">
-                                <h3>TERMS & CONDITIONS</h3>
-                                {selectedVoucher && (
-                                    <p style={{ fontSize: '16px', marginTop: '10px' }}>
-                                        {selectedVoucher.title} for {selectedVoucher.quantity} passengers: 
-                                        <strong> £{selectedVoucher.totalPrice}</strong> 
-                                        <span style={{ fontSize: '14px', display: 'block', marginTop: '5px' }}>
-                                            (£{selectedVoucher.price} per person)
-                                        </span>
-                                    </p>
-                                )}
-                            </div>
-                            <ul>
-                                {termsLoading ? (
-                                    <li>Loading terms and conditions...</li>
-                                ) : (
-                                    <>
-                                        {getTermsForVoucher(selectedVoucher?.title).map((item, idx) => (
-                                            <li key={idx}>{item}</li>
-                                        ))}
-                                        <li><a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#000000b5', fontSize: '18px', textDecoration: 'underline' }}>See full Terms & Conditions</a></li>
-                                    </>
-                                )}
-                            </ul>
-                            <div className="modal-buttons">
-                                <button className="confirm-btn" onClick={confirmSelection}>Confirm</button>
-                                <button className="cancel-btn" onClick={() => setShowTerms(false)}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
+            {/* Terms & Conditions Modal removed */}
         </>
     );
 };

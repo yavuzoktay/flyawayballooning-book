@@ -312,7 +312,15 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             flight_attempts: chooseFlightType?.flight_attempts || 0,
             preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
             preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+            // Include selected voucher type so backend can persist it correctly
+            selectedVoucherType: selectedVoucherType ? {
+                id: selectedVoucherType.id,
+                title: selectedVoucherType.title,
+                quantity: selectedVoucherType.quantity,
+                totalPrice: selectedVoucherType.totalPrice
+            } : null,
+            voucher_type: selectedVoucherType?.title || null
         };
         try {
             // Stripe Checkout Session başlat

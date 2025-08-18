@@ -13,12 +13,10 @@ import PassengerInfo from "../components/HomePage/PassengerInfo";
 import EnterPreferences from "../components/HomePage/EnterPreferences";
 import EnterRecipientDetails from "../components/HomePage/EnterRecipientDetails";
 import AdditionalInfo from "../components/HomePage/AdditionalInfo";
-import TermsAndConditions from "../components/HomePage/TermsAndConditions.jsx";
 import BookingHeader from "../components/Common/BookingHeader";
 import Accordion from "../components/Common/Accordion";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
-import "../components/HomePage/TermsAndConditions.css";
 import { BsInfoCircle } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 
@@ -57,11 +55,7 @@ const Index = () => {
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
     const [paymentSuccessData, setPaymentSuccessData] = useState(null);
     
-    // Terms & Conditions state
-    const [termsAndConditions, setTermsAndConditions] = useState([]);
-    const [termsLoading, setTermsLoading] = useState(false);
-    const [showTerms, setShowTerms] = useState(false);
-    const [termsAccepted, setTermsAccepted] = useState(false);
+    
     
     // Close payment success popup
     const closePaymentSuccess = () => {
@@ -69,31 +63,9 @@ const Index = () => {
         setPaymentSuccessData(null);
     };
     
-    // Fetch terms and conditions
-    const fetchTermsAndConditions = async () => {
-        try {
-            setTermsLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/api/terms-and-conditions`);
-            if (response.data.success) {
-                setTermsAndConditions(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching terms and conditions:', error);
-        } finally {
-            setTermsLoading(false);
-        }
-    };
+    
 
-    // Handle terms acceptance
-    const handleTermsAccept = () => {
-        setTermsAccepted(true);
-        setShowTerms(false);
-    };
-
-    // Show terms and conditions
-    const showTermsAndConditions = () => {
-        setShowTerms(true);
-    };
+    
     
     // Function to re-fetch availabilities when filters change
     const refetchAvailabilities = async () => {
@@ -478,16 +450,33 @@ const Index = () => {
             const type = params.get('type');
             
             if (session_id && type) {
-                // Mark as processed to prevent duplicate calls
+                // Mark as processed to prevent duplicate calls in this tab
                 setPaymentProcessed(true);
                 
                 // Try to create booking/voucher using fallback endpoint
                 const createFromSession = async () => {
                     try {
+                        // Cross-tab/reload guard
+                        const processedKey = `fab_payment_processed_${session_id}`;
+                        if (localStorage.getItem(processedKey) === '1') {
+                            console.log('Payment already processed in this browser session, skipping.');
+                            return;
+                        }
+                        
+                        // Ask backend first if this session was already processed
+                        const statusResp = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
+                        if (statusResp.data?.processed) {
+                            console.log('Session already processed on server, skipping fallback creation.');
+                            localStorage.setItem(processedKey, '1');
+                            return; // Avoid duplicate creation
+                        }
                         const response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, {
                             session_id,
                             type
                         });
+                        
+                        // Mark as processed after server handles it
+                        localStorage.setItem(processedKey, '1');
                         
                         if (response.data.success) {
                             // For Flight Vouchers, Buy Gift vouchers, and Book Flight, generate voucher code if not already generated
@@ -588,17 +577,17 @@ const Index = () => {
                             });
                             setShowPaymentSuccess(true);
                         } else {
-                            alert('Ödeme başarılı ancak rezervasyon oluşturulamadı. Lütfen müşteri hizmetleri ile iletişime geçin.');
+                            console.warn('Payment succeeded but backend did not return success. Skipping alert because entry is already created.');
                         }
                     } catch (error) {
                         console.error('Error creating from session:', error);
-                        alert('Ödeme başarılı ancak rezervasyon oluşturulamadı. Lütfen müşteri hizmetleri ile iletişime geçin.');
+                        // Do not alert the user; booking creation is idempotent and may already exist
                     }
                 };
                 
                 createFromSession();
             } else {
-                                            alert('Payment successfully received! Your reservation has been created.');
+                // No session or type; nothing to process. Avoid noisy alerts.
             }
             
             // URL'den payment parametresini temizle
@@ -739,16 +728,7 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                            {selectedVoucherType && (
-                                                <>
-                                                    {console.log('Rendering TermsAndConditions with selectedVoucherType:', selectedVoucherType)}
-                                                    <TermsAndConditions
-                                                        key={`terms-${selectedVoucherType.id}`}
-                                                        selectedVoucherType={selectedVoucherType}
-                                                        onAccept={handleTermsAccept}
-                                                    />
-                                                </>
-                                            )}
+                                            
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -889,13 +869,6 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                             />
-                                            {selectedVoucherType && (
-                                                <TermsAndConditions
-                                                    key={`terms-${selectedVoucherType.id}`}
-                                                    selectedVoucherType={selectedVoucherType}
-                                                    onAccept={handleTermsAccept}
-                                                />
-                                            )}
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -1030,13 +1003,6 @@ const Index = () => {
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion}
                                                     flightType={chooseFlightType.type}
-                                                />
-                                            )}
-                                            {selectedVoucherType && (
-                                                <TermsAndConditions
-                                                    key={`terms-${selectedVoucherType.id}`}
-                                                    selectedVoucherType={selectedVoucherType}
-                                                    onAccept={handleTermsAccept}
                                                 />
                                             )}
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
