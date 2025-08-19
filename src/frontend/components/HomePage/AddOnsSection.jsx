@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import AddOn1 from '../../../assets/images/addOn1.png';
-import AddOn2 from '../../../assets/images/addOn2.png';
 
 const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect }) => {
     const [addToBookingItems, setAddToBookingItems] = useState([]);
@@ -12,12 +11,21 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         const fetchAddToBookingItems = async () => {
             try {
                 setAddToBookingLoading(true);
-                const response = await fetch('http://localhost:3002/api/add-to-booking-items');
+                console.log('Fetching add-to-booking items...');
+                const response = await fetch('/api/add-to-booking-items');
+                console.log('API response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('API response data:', data);
                     if (data.success) {
                         setAddToBookingItems(data.data);
+                        console.log('Set addToBookingItems:', data.data);
+                    } else {
+                        console.error('API returned success: false:', data);
                     }
+                } else {
+                    console.error('API request failed with status:', response.status);
                 }
             } catch (error) {
                 console.error('Error fetching add to booking items:', error);
@@ -27,41 +35,62 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         };
 
         fetchAddToBookingItems();
-    }, []);
+    }, [activitySelect]); // Refetch when journey type changes
 
-    // Combine API items with hardcoded items based on conditions
-    var addOns = [];
-    
-    if (chooseLocation == 'Somerset' && chooseFlightType?.type == "Private Flight") {
-        addOns = [
-            { name: "Choose Launch Site", price: "165", image: AddOn2 }
-        ];
-    } else if (chooseFlightType?.type == "Private Flight" && chooseFlightType?.passengerCount == 2) {
-        addOns = [
-            { name: "Proposal Package", price: "155", image: AddOn1 }
-        ];
-    } else if (activitySelect == "Redeem Voucher" || activitySelect == "Buy Gift") {
-        addOns = [
-            { name: "Voucher Extension", price: "25", image: AddOn1 },
-            { name: "FAB Cap", price: "20", image: AddOn2 },
-        ];
-    } else if (chooseFlightType?.type == "Private Flight") {
-        addOns = [
-            { name: "FAB Cap", price: "20", image: AddOn2 },
-            { name: "Inflight Video", price: "50", image: AddOn1 },
-            { name: "Upgrade Field Drinks", price: "TBC", image: AddOn2 },
-            { name: "Weather Refundable", price: "10", image: AddOn1 }
-        ];
-    } else {
-        addOns = [
-            { name: "FAB Cap", price: "20", image: AddOn2 }
-        ];
-    }
-
-    // Add API items to the list
-    if (addToBookingItems.length > 0) {
+    // Get filtered API items based on journey type
+    const getFilteredItems = () => {
+        // Determine current journey type based on user selections
+        let currentJourneyType = 'Book Flight'; // Default
+        
+        if (activitySelect === 'Flight Voucher') {
+            currentJourneyType = 'Flight Voucher';
+        } else if (activitySelect === 'Redeem Voucher') {
+            currentJourneyType = 'Redeem Voucher';
+        } else if (activitySelect === 'Buy Gift') {
+            currentJourneyType = 'Buy Gift';
+        }
+        
+        console.log('Current journey type:', currentJourneyType);
+        console.log('Available add-to-booking items:', addToBookingItems);
+        
+        // Filter API items by journey type and active status
         const apiItems = addToBookingItems
-            .filter(item => item.is_active)
+            .filter(item => {
+                // Check if item is active
+                if (!item.is_active) return false;
+                
+                // Check if item has journey_types and if it includes the current journey type
+                if (item.journey_types) {
+                    try {
+                        let journeyTypes = [];
+                        if (Array.isArray(item.journey_types)) {
+                            journeyTypes = item.journey_types;
+                        } else if (typeof item.journey_types === 'string') {
+                            try {
+                                journeyTypes = JSON.parse(item.journey_types);
+                            } catch (parseError) {
+                                // If JSON parsing fails, try to split by comma
+                                if (item.journey_types.includes(',')) {
+                                    journeyTypes = item.journey_types.split(',').map(type => type.trim());
+                                } else {
+                                    journeyTypes = [item.journey_types.trim()];
+                                }
+                            }
+                        }
+                        
+                        console.log(`Item "${item.title}" journey types:`, journeyTypes);
+                        console.log(`Checking if "${currentJourneyType}" is in:`, journeyTypes);
+                        
+                        return journeyTypes.includes(currentJourneyType);
+                    } catch (error) {
+                        console.warn(`Error parsing journey_types for item "${item.title}":`, error);
+                        return false;
+                    }
+                }
+                
+                // If no journey_types specified, don't show the item
+                return false;
+            })
             .map(item => ({
                 name: item.title,
                 price: item.price.toString(),
@@ -72,15 +101,13 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                 priceUnit: item.price_unit
             }));
         
-        addOns = [...addOns, ...apiItems];
-    }
+        console.log('Filtered API items for journey type:', currentJourneyType, ':', apiItems);
+        return apiItems;
+    };
 
-    // Buy Gift seçiliyse sadece postal voucher göster
-    if (activitySelect === "Buy Gift") {
-        addOns = [
-            { name: "Postal vouchers", price: "7.50", image: AddOn1, isPostal: true }
-        ];
-    }
+    const filteredItems = getFilteredItems();
+    console.log('Final filtered items:', filteredItems);
+    console.log('Current activitySelect:', activitySelect);
 
     // Handle checkbox toggle when div is clicked
     function handleAddOnChange(name, price) {
@@ -101,7 +128,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                         <p>Loading add to booking items...</p>
                     </div>
                 ) : (
-                    addOns.map((item, index) => {
+                    filteredItems.map((item, index) => {
                         const isSelected = Array.isArray(chooseAddOn) && chooseAddOn.some(addOn => addOn.name === item.name);
                         return (
                             <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)}>
@@ -117,8 +144,8 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 </div>
                                 <div className="vouch-text">
                                     <div className="vouch-header">
-                                        <p className="vouch-title">{item.name} {item.isPostal && isSelected && <span style={{ color: '#4CAF50', fontWeight: 500 }}>+£7.50</span>}</p>
-                                        <p className="vouch-price">{item.name !== 'Weather Refundable' ? "£" : ""}{item.price}{item.name === 'Weather Refundable' ? "%" : ""}</p>
+                                        <p className="vouch-title">{item.name}</p>
+                                        <p className="vouch-price">£{item.price}</p>
                                     </div>
                                     {item.description && (
                                         <p className="vouch-desc">{item.description}</p>

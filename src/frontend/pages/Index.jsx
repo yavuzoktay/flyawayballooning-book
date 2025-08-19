@@ -34,7 +34,7 @@ const Index = () => {
     const [weatherRefund, setWeatherRefund] = useState(false);
     const [preference, setPreference] = useState({ location: {}, time: {}, day: {} });
     const [recipientDetails, setRecipientDetails] = useState({ name: "", email: "", phone: "", date: "" });
-    const [additionalInfo, setAdditionalInfo] = useState({ notes: "", hearAboutUs: "", reason: "", prefer: {} });
+    const [additionalInfo, setAdditionalInfo] = useState({ notes: "" });
     const [selectedDate, setSelectedDate] = useState(null);
     const [activityId, setActivityId] = useState(null);
     const [selectedActivity, setSelectedActivity]= useState([]);
@@ -340,7 +340,7 @@ const Index = () => {
         setWeatherRefund(false);
         setPreference({ location: {}, time: {}, day: {} });
         setRecipientDetails({ name: "", email: "", phone: "", date: "" });
-        setAdditionalInfo({ notes: "", hearAboutUs: "", reason: "", prefer: {} });
+        setAdditionalInfo({ notes: "" });
         setSelectedDate(null);
         setActivityId(null);
         setSelectedActivity([]);
@@ -438,7 +438,7 @@ const Index = () => {
             setWeatherRefund(false);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: '', email: '', phone: '', date: '' });
-            setAdditionalInfo({ notes: '', hearAboutUs: '', reason: '', prefer: {} });
+            setAdditionalInfo({ notes: '' });
             setSelectedDate(null);
             setActivityId(null);
             setSelectedActivity([]);
