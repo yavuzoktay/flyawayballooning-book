@@ -162,20 +162,25 @@ const VoucherType = ({
 
     // Update locationPricing when selectedActivity changes
     useEffect(() => {
+        console.log('VoucherType: selectedActivity changed:', selectedActivity);
         if (selectedActivity && selectedActivity.length > 0) {
             const activity = selectedActivity[0];
-            setLocationPricing({
+            const newPricing = {
                 weekday_morning_price: parseFloat(activity.weekday_morning_price) || 180,
                 flexible_weekday_price: parseFloat(activity.flexible_weekday_price) || 200,
                 any_day_flight_price: parseFloat(activity.any_day_flight_price) || 220
-            });
+            };
+            console.log('VoucherType: Setting locationPricing from activity:', newPricing);
+            setLocationPricing(newPricing);
         } else {
             // Fallback to default pricing
-            setLocationPricing({
+            const defaultPricing = {
                 weekday_morning_price: 180,
                 flexible_weekday_price: 200,
                 any_day_flight_price: 220
-            });
+            };
+            console.log('VoucherType: Using default pricing:', defaultPricing);
+            setLocationPricing(defaultPricing);
         }
     }, [selectedActivity]);
 
@@ -183,6 +188,8 @@ const VoucherType = ({
         if (allVoucherTypesLoading || allVoucherTypes.length === 0) {
             return [];
         }
+
+        console.log('VoucherType: Creating voucherTypes with locationPricing:', locationPricing);
 
         return allVoucherTypes.map(vt => {
             // Parse features from JSON string
@@ -192,6 +199,26 @@ const VoucherType = ({
             } catch (e) {
                 features = ['Around 1 Hour of Air Time', 'Complimentary Drink', 'Inflight Photos and 3D Flight Track'];
             }
+
+            // Get pricing from activity settings based on voucher type title
+            let price = 0;
+            if (locationPricing) {
+                if (vt.title.toLowerCase().includes('weekday morning')) {
+                    price = locationPricing.weekday_morning_price || 180;
+                } else if (vt.title.toLowerCase().includes('flexible weekday')) {
+                    price = locationPricing.flexible_weekday_price || 200;
+                } else if (vt.title.toLowerCase().includes('any day flight')) {
+                    price = locationPricing.any_day_flight_price || 220;
+                } else {
+                    // Fallback to API pricing if no match found
+                    price = parseFloat(vt.price_per_person) || 180;
+                }
+            } else {
+                // Fallback to API pricing if no location pricing available
+                price = parseFloat(vt.price_per_person) || 180;
+            }
+
+            console.log(`VoucherType: ${vt.title} - API price: ${vt.price_per_person}, Activity price: ${price}`);
 
             return {
                 id: vt.id,
@@ -203,10 +230,10 @@ const VoucherType = ({
                 validity: `Valid: ${vt.validity_months} Months`,
                 inclusions: features,
                 weatherClause: vt.terms || 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-                price: parseFloat(vt.price_per_person)
+                price: price
             };
         });
-    }, [allVoucherTypes, allVoucherTypesLoading]);
+    }, [allVoucherTypes, allVoucherTypesLoading, locationPricing]);
 
     const handleQuantityChange = (voucherTitle, value) => {
         setQuantities(prev => ({
@@ -385,7 +412,7 @@ const VoucherType = ({
                                                             ))}
                                                         </ul>
                                                         <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
-                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{voucher.price}</div>
+                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{voucher.price}</div>
                                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                             <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
                                                             <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
@@ -452,7 +479,7 @@ const VoucherType = ({
                                                             ))}
                                                         </ul>
                                                         <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
-                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{voucher.price}</div>
+                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{voucher.price}</div>
                                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                             <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
                                                             <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
@@ -501,7 +528,7 @@ const VoucherType = ({
                                                 ))}
                                             </ul>
                                             <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{currentVoucher.weatherClause}</div>
-                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>Price Per Person: £{currentVoucher.price}</div>
+                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{currentVoucher.price}</div>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                 <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
                                                 <input type="number" min="0" value={quantities[currentVoucher.title]} onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
