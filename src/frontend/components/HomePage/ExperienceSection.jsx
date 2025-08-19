@@ -37,6 +37,21 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const bristolSharedPrice = 305;
     const bristolPrivatePrices = { 2: 1200, 3: 1500 };
 
+    // Helper function to format price display
+    const formatPriceDisplay = (price) => {
+        // Remove unnecessary decimal zeros and format as integer if possible
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice)) return '0';
+        
+        // If it's a whole number, display without decimals
+        if (Number.isInteger(numPrice)) {
+            return numPrice.toString();
+        }
+        
+        // If it has decimals, remove trailing zeros
+        return numPrice.toFixed(2).replace(/\.?0+$/, '');
+    };
+
     // Debug: Log when isBristol changes
     useEffect(() => {
         console.log('ExperienceSection: isBristol changed to:', isBristol);
@@ -109,7 +124,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {
                 title: "Shared Flight",
                 img: sharedFlightImg,
-                price: `${sharedPrice}pp`,
+                price: formatPriceDisplay(sharedPrice),
                 priceValue: sharedPrice,
                 priceUnit: 'pp',
                 desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
@@ -121,8 +136,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 title: "Private Charter",
                 img: privateCharterImg,
                 price: isBristol 
-                    ? `${(bristolPrivatePrices[2] / 2)}pp` 
-                    : `${privatePrice || 900}`,
+                    ? formatPriceDisplay(bristolPrivatePrices[2] / 2)
+                    : formatPriceDisplay(privatePrice || 900),
                 priceValue: isBristol ? (bristolPrivatePrices[2] / 2) : (privatePrice || 900),
                 priceUnit: isBristol ? 'pp' : 'total',
                 desc: isBristol 
@@ -192,7 +207,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 return {
                     title: exp.title,
                     img: exp.image_url ? `${API_BASE_URL}${exp.image_url}` : (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
-                    price: `${price}${priceUnit === 'pp' ? 'pp' : ''}`,
+                    price: formatPriceDisplay(price),
                     desc: exp.description,
                     details: [],
                     maxFlight: `Max ${exp.max_passengers} per flight`,
