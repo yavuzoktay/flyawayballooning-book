@@ -181,8 +181,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         console.log('handleSelectClick called with:', { type, passengerCount, price, index });
         
         if (!passengerCount) {
-            console.error('No passenger count provided');
-            return; // Prevent selection without a valid passenger number
+            // If no passenger selected yet for Private Charter, default to minimum allowed
+            if (type === 'Private Charter') {
+                const defaultPax = isBristol ? 2 : 2;
+                passengerCount = defaultPax;
+                console.log('Defaulting Private Charter pax to', passengerCount);
+            } else {
+                console.error('No passenger count provided');
+                return;
+            }
         }
         
         // Safety check for experiences array
@@ -193,29 +200,43 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
         // Calculate the correct price
         let finalPrice, totalPrice;
-        if (isBristol && index === 0) {
+        const isPrivate = type === 'Private Charter';
+        const privateExp = filteredExperiences.find(exp => exp.title === 'Private Charter');
+        if (isBristol && !isPrivate) {
             // Shared Flight, Bristol pricing
             finalPrice = bristolSharedPrice;
             totalPrice = bristolSharedPrice * passengerCount;
-        } else if (isBristol && index === 1 && (passengerCount === 2 || passengerCount === 3)) {
+        } else if (isBristol && isPrivate && (passengerCount === 2 || passengerCount === 3)) {
             // Private Flight, Bristol pricing for 2 or 3
             finalPrice = bristolPrivatePrices[passengerCount];
             totalPrice = bristolPrivatePrices[passengerCount];
-        } else if (index === 1) {
-            // For Private Flight, calculate total price from specialPrices
-            if (!filteredExperiences[1] || !filteredExperiences[1].specialPrices) {
-                console.error('Private Charter pricing is not available');
-                return;
+        } else if (isPrivate) {
+            if (privateExp && privateExp.specialPrices) {
+                const totalForGroup = privateExp.specialPrices[passengerCount];
+                if (!totalForGroup) {
+                    console.error('Invalid passenger count or missing pricing for Private Charter');
+                    return;
+                }
+                totalPrice = totalForGroup;
+                finalPrice = totalForGroup;
+            } else {
+                // Fallback for API-driven experiences: use price and priceUnit
+                const unit = privateExp?.priceUnit || 'pp';
+                const basePrice = price || parseFloat(privateExp?.price || 0);
+                if (!basePrice || isNaN(basePrice)) {
+                    console.error('Private Charter pricing missing (API mode)');
+                    return;
+                }
+                if (unit === 'total') {
+                    totalPrice = basePrice; // already total
+                    finalPrice = basePrice;
+                } else {
+                    totalPrice = basePrice * passengerCount; // per person
+                    finalPrice = basePrice;
+                }
             }
-            const perPersonPrice = filteredExperiences[1].specialPrices[passengerCount];
-            if (!perPersonPrice) {
-                console.error('Invalid passenger count or missing pricing for Private Charter');
-                return;
-            }
-            totalPrice = perPersonPrice; // specialPrices now contains total price, not per-person
-            finalPrice = perPersonPrice; // Store the total price
         } else {
-            // For Shared Flight, calculate total from per person price
+            // Shared Flight
             finalPrice = price;
             totalPrice = price * passengerCount;
         }
@@ -228,8 +249,6 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         };
         console.log('Setting selected flight:', flightData);
         setSelectedFlight(flightData);
-        // Directly confirm selection without showing Terms & Conditions popup
-        console.log('Directly confirming selection');
         setChooseFlightType(flightData);
         getBookingDates(flightData.type);
     };
@@ -299,7 +318,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 }}
                                 onClick={() => {
                                     // Use the first valid passenger count for each experience type
-                                    const defaultPassengerCount = experience.max_passengers || 1;
+                                    const defaultPassengerCount = (Array.isArray(experience.passengerOptions) && experience.passengerOptions.length > 0)
+                                        ? experience.passengerOptions[0]
+                                        : (experience.max_passengers || 1);
                                     const priceNumber = parseFloat(experience.price);
                                     console.log('Button clicked:', {
                                         type: experience.title,
