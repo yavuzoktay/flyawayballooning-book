@@ -257,7 +257,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 // Başarılı ödeme sonrası voucher code generation ve createVoucher webhook ile tetiklenecek
             } catch (error) {
                 console.error('Stripe Checkout başlatılırken hata:', error);
-                alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');
+                const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
+                const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
+                const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
+                alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
             }
             return;
         }
@@ -392,7 +395,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 stack: error.stack,
                 response: error.response?.data
             });
-            alert('Ödeme başlatılırken hata oluştu. Lütfen tekrar deneyin.');
+            const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
+            const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
+            const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
+            alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
         }
     }
 
