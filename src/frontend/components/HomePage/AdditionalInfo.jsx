@@ -166,11 +166,21 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                         style={validationErrors[fieldName] ? { border: '1.5px solid red' } : {}}
                                     >
                                         <option value="">Please select</option>
-                                        {question.options && question.options !== '[]' && 
-                                            JSON.parse(question.options).map((option, index) => (
-                                                <option key={index} value={option}>{option}</option>
-                                            ))
-                                        }
+                                        {question.options && question.options !== '[]' && (() => {
+                                            try {
+                                                const parsedOptions = JSON.parse(question.options);
+                                                if (Array.isArray(parsedOptions)) {
+                                                    return parsedOptions.map((option, index) => (
+                                                        <option key={index} value={option}>{option}</option>
+                                                    ));
+                                                } else {
+                                                    return <option value="">Invalid options format</option>;
+                                                }
+                                            } catch (parseError) {
+                                                console.warn('Error parsing question options:', parseError, 'Raw value:', question.options);
+                                                return <option value="">Invalid options format</option>;
+                                            }
+                                        })()}
                                     </select>
                                 )}
                                 
@@ -189,56 +199,76 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                 
                                 {question.question_type === 'radio' && (
                                     <div className="mt-2">
-                                        {question.options && question.options !== '[]' && 
-                                            JSON.parse(question.options).map((option, index) => (
-                                                <label key={index} className="block mb-2">
-                                                    <input
-                                                        type="radio"
-                                                        name={fieldName}
-                                                        value={option}
-                                                        onChange={handleChange}
-                                                        checked={additionalInfo[fieldName] === option}
-                                                        required={isRequired}
-                                                        className="mr-2"
-                                                    />
-                                                    {option}
-                                                </label>
-                                            ))
-                                        }
+                                        {question.options && question.options !== '[]' && (() => {
+                                            try {
+                                                const parsedOptions = JSON.parse(question.options);
+                                                if (Array.isArray(parsedOptions)) {
+                                                    return parsedOptions.map((option, index) => (
+                                                        <label key={index} className="block mb-2">
+                                                            <input
+                                                                type="radio"
+                                                                name={fieldName}
+                                                                value={option}
+                                                                onChange={handleChange}
+                                                                checked={additionalInfo[fieldName] === option}
+                                                                required={isRequired}
+                                                                className="mr-2"
+                                                            />
+                                                            {option}
+                                                        </label>
+                                                    ));
+                                                } else {
+                                                    return <div className="text-red-500 text-sm">Invalid options format</div>;
+                                                }
+                                            } catch (parseError) {
+                                                console.warn('Error parsing question options:', parseError, 'Raw value:', question.options);
+                                                return <div className="text-red-500 text-sm">Invalid options format</div>;
+                                            }
+                                        })()}
                                     </div>
                                 )}
                                 
                                 {question.question_type === 'checkbox' && (
                                     <div className="mt-2">
-                                        {question.options && question.options !== '[]' && 
-                                            JSON.parse(question.options).map((option, index) => (
-                                                <label key={index} className="block mb-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        name={fieldName}
-                                                        value={option}
-                                                        onChange={(e) => {
-                                                            const currentValues = additionalInfo[fieldName] ? additionalInfo[fieldName].split(',').filter(v => v.trim()) : [];
-                                                            if (e.target.checked) {
-                                                                currentValues.push(option);
-                                                            } else {
-                                                                const index = currentValues.indexOf(option);
-                                                                if (index > -1) {
-                                                                    currentValues.splice(index, 1);
-                                                                }
-                                                            }
-                                                            setAdditionalInfo(prev => ({
-                                                                ...prev,
-                                                                [fieldName]: currentValues.join(', ')
-                                                            }));
-                                                        }}
-                                                        checked={additionalInfo[fieldName] ? additionalInfo[fieldName].split(',').map(v => v.trim()).includes(option) : false}
-                                                        className="mr-2"
-                                                    />
-                                                    {option}
-                                                </label>
-                                            ))
-                                        }
+                                        {question.options && question.options !== '[]' && (() => {
+                                            try {
+                                                const parsedOptions = JSON.parse(question.options);
+                                                if (Array.isArray(parsedOptions)) {
+                                                    return parsedOptions.map((option, index) => (
+                                                        <label key={index} className="block mb-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                name={fieldName}
+                                                                value={option}
+                                                                onChange={(e) => {
+                                                                    const currentValues = additionalInfo[fieldName] ? additionalInfo[fieldName].split(',').filter(v => v.trim()) : [];
+                                                                    if (e.target.checked) {
+                                                                        currentValues.push(option);
+                                                                    } else {
+                                                                        const index = currentValues.indexOf(option);
+                                                                        if (index > -1) {
+                                                                            currentValues.splice(index, 1);
+                                                                        }
+                                                                    }
+                                                                    setAdditionalInfo(prev => ({
+                                                                        ...prev,
+                                                                        [fieldName]: currentValues.join(', ')
+                                                                    }));
+                                                                }}
+                                                                checked={additionalInfo[fieldName] ? additionalInfo[fieldName].split(',').map(v => v.trim()).includes(option) : false}
+                                                                className="mr-2"
+                                                            />
+                                                            {option}
+                                                        </label>
+                                                    ));
+                                                } else {
+                                                    return <div className="text-red-500 text-sm">Invalid options format</div>;
+                                                }
+                                            } catch (parseError) {
+                                                console.warn('Error parsing question options:', parseError, 'Raw value:', question.options);
+                                                return <div className="text-red-500 text-sm">Invalid options format</div>;
+                                            }
+                                        })()}
                                     </div>
                                 )}
                                 
