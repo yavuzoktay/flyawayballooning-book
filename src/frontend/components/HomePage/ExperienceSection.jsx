@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Accordion from "../Common/Accordion";
 import { Link } from "react-router-dom";
 import axios from 'axios';
@@ -58,21 +58,27 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         console.log('ExperienceSection: chooseLocation is:', chooseLocation);
     }, [isBristol, chooseLocation]);
 
+    const lastFetchedLocationRef = useRef(null);
+
     // Fetch pricing data when location changes
     useEffect(() => {
-        if (chooseLocation) {
-            if (isBristol) {
-                // For Bristol, set specific pricing data
-                setLocationPricing({
-                    shared_flight_from_price: bristolSharedPrice,
-                    private_charter_from_price: bristolPrivatePrices[2], // Use 2-person price as base
-                    flight_type: 'Private,Shared'
-                });
-            } else {
-                fetchLocationPricing();
-            }
+        if (!chooseLocation) return;
+
+        // Prevent duplicate fetches for the same location
+        if (lastFetchedLocationRef.current === chooseLocation) return;
+        lastFetchedLocationRef.current = chooseLocation;
+
+        if (isBristol) {
+            // For Bristol, set specific pricing data
+            setLocationPricing({
+                shared_flight_from_price: bristolSharedPrice,
+                private_charter_from_price: bristolPrivatePrices[2], // Use 2-person price as base
+                flight_type: 'Private,Shared'
+            });
+        } else {
+            fetchLocationPricing();
         }
-    }, [chooseLocation, isBristol, bristolSharedPrice, bristolPrivatePrices]);
+    }, [chooseLocation, isBristol]);
 
     // Debug: Log when locationPricing changes
     useEffect(() => {
