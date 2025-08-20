@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import AddOn1 from '../../../assets/images/addOn1.png';
+import config from '../../../config';
 
 const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect }) => {
     const [addToBookingItems, setAddToBookingItems] = useState([]);
@@ -12,7 +13,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
             try {
                 setAddToBookingLoading(true);
                 console.log('Fetching add-to-booking items...');
-                const response = await fetch('/api/add-to-booking-items');
+                const response = await fetch(`${config.API_BASE_URL}/api/add-to-booking-items`);
                 console.log('API response status:', response.status);
                 
                 if (response.ok) {

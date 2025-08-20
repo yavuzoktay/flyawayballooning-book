@@ -1,5 +1,6 @@
 import React, { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Accordion from "../Common/Accordion";
+import config from '../../../config';
 
 const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
@@ -11,7 +12,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
         const fetchAdditionalInfoQuestions = async () => {
             try {
                 setAdditionalInfoLoading(true);
-                const response = await fetch('/api/additional-information-questions');
+                const response = await fetch(`${config.API_BASE_URL}/api/additional-information-questions`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
