@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
+import config from '../../../config';
 
 const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate }) => {
+    const API_BASE_URL = config.API_BASE_URL;
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
     const [voucherTypes, setVoucherTypes] = useState([]);
@@ -15,7 +17,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         const fetchVoucherTypes = async () => {
             try {
                 setVoucherTypesLoading(true);
-                const response = await fetch('http://localhost:3002/api/voucher-types');
+                const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {

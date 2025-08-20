@@ -4,8 +4,8 @@ const getApiBaseUrl = () => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3002';
   }
-  // Production environment
-  return process.env.REACT_APP_API_URL || 'https://flyawayballooning-system.com';
+  // Production environment - always use production URL for live site
+  return 'https://flyawayballooning-system.com';
 };
 
 // Use the complete publishable key from the same account as the secret key

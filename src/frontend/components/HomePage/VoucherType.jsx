@@ -7,6 +7,7 @@ import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
 import { useMemo } from 'react';
+import config from '../../../config';
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -71,6 +72,7 @@ const VoucherType = ({
     chooseLocation,
     selectedActivity
 }) => {
+    const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
@@ -107,7 +109,7 @@ const VoucherType = ({
         const fetchAllVoucherTypes = async () => {
             try {
                 setAllVoucherTypesLoading(true);
-                const response = await fetch('http://localhost:3002/api/voucher-types');
+                const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
