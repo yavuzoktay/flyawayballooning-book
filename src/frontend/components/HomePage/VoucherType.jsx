@@ -84,6 +84,8 @@ const VoucherType = ({
     const [slideDirection, setSlideDirection] = useState('right');
     const [allVoucherTypes, setAllVoucherTypes] = useState([]);
     const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
+    const [termsContent, setTermsContent] = useState('');
+    const [termsLoading, setTermsLoading] = useState(false);
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
@@ -231,7 +233,7 @@ const VoucherType = ({
                 availability: vt.flight_days,
                 validity: `Valid: ${vt.validity_months} Months`,
                 inclusions: features,
-                weatherClause: vt.terms || 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
+                weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
                 price: price
             };
         });
@@ -265,7 +267,7 @@ const VoucherType = ({
         }
     };
 
-    const handleSelectVoucher = (voucher) => {
+    const handleSelectVoucher = async (voucher) => {
         const quantity = quantities[voucher.title];
         const totalPrice = voucher.price * quantity;
         
@@ -276,9 +278,38 @@ const VoucherType = ({
         };
         
         setSelectedVoucher(voucherWithQuantity);
-        // Directly select the voucher type without showing Terms & Conditions
-        setSelectedVoucherType(voucherWithQuantity);
-        setActiveAccordion(null);
+        
+        // Fetch Terms & Conditions for this voucher type from backend Settings
+        try {
+            setTermsLoading(true);
+            const res = await fetch(`${API_BASE_URL}/api/terms-and-conditions`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data)) {
+                    // Find active terms mapped to this voucher type. Prefer lowest sort_order, then newest.
+                    const matches = json.data.filter(t => {
+                        try {
+                            if (t.voucher_type_id && Number(t.voucher_type_id) === Number(voucher.id)) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            const ids = t.voucher_type_ids ? JSON.parse(t.voucher_type_ids) : [];
+                            return Array.isArray(ids) && ids.map(Number).includes(Number(voucher.id)) && (t.is_active === 1 || t.is_active === true);
+                        } catch { return false; }
+                    }).sort((a,b) => {
+                        const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+                        if (so !== 0) return so;
+                        return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
+                    });
+                    const content = matches[0]?.content || '';
+                    setTermsContent(content);
+                }
+            }
+        } catch (e) {
+            setTermsContent(voucher.weatherClause || '');
+        } finally {
+            setTermsLoading(false);
+            setShowTerms(true);
+        }
     };
 
     // Hide VoucherType section if "Private Charter" is selected
@@ -295,6 +326,22 @@ const VoucherType = ({
                 activeAccordion={activeAccordion}
                 setActiveAccordion={setActiveAccordion}
             >
+                {showTerms && selectedVoucher && (
+                    <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                        <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
+                            <div style={{display:'flex',alignItems:'center',marginBottom:12}}>
+                                <h3 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827'}}>Terms & Conditions</h3>
+                            </div>
+                            <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
+                                {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
+                            </div>
+                            <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:16}}>
+                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Cancel</button>
+                                <button onClick={() => { setSelectedVoucherType(selectedVoucher); setActiveAccordion(null); setShowTerms(false); }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <div style={{ position: 'relative', width: '100%' }}>
                     {/* Navigation Arrows - hidden on mobile */}
                     {(() => {
