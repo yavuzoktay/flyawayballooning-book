@@ -51,6 +51,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [nameFormatError, setNameFormatError] = useState(false);
     const [phoneFormatError, setPhoneFormatError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
+    
+    // New state for time selection popup
+    const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
+    const [selectedDateForTime, setSelectedDateForTime] = useState(null);
+    const [tempSelectedTime, setTempSelectedTime] = useState(null);
 
     // Responsive calendar cell size for mobile
     const [daySize, setDaySize] = useState(80);
@@ -159,10 +164,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const todayStartOfDay = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
         
         if (dateStartOfDay >= todayStartOfDay) {
-            // Tarih değiştirildiğinde selectedTime'ı sıfırla
-            setSelectedTime(null);
-            const newDate = new Date(dateYear, dateMonth, dateDay, 0, 0, 0, 0); // Saat bilgisini sıfırla
-            setSelectedDate(newDate);
+            // Show time selection popup instead of directly setting the date
+            setSelectedDateForTime(date);
+            setTempSelectedTime(null); // Reset temporary time selection
+            setTimeSelectionModalOpen(true);
         }
     };
 
@@ -183,6 +188,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             newDate.setSeconds(0); // Saniyeyi sıfırla
             setSelectedDate(newDate);
         }
+    };
+
+    // Handle time selection from popup
+    const handleTimeSelection = (time) => {
+        setSelectedDate(selectedDateForTime);
+        setSelectedTime(time);
+        setTimeSelectionModalOpen(false);
+        setTempSelectedTime(null); // Reset temporary selection
     };
 
     // Check if form is valid for submission
@@ -424,6 +437,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     };
 
+
+
     return (
         <>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
@@ -448,7 +463,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <>
                                 <div>Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b></div>
                                 {selectedDate && selectedTime && (
-                                    <div>Current Selection: <b>{format(selectedDate, 'd/M/yyyy')}</b>, Meeting Time: <b>{selectedTime}</b></div>
+                                    <div style={{ marginTop: 8, padding: '8px 16px', background: '#e8f5e8', borderRadius: 6, border: '1px solid #28a745' }}>
+                                        ✅ <b>Selected:</b> {format(selectedDate, 'EEEE, MMMM d, yyyy')} at <b>{selectedTime}</b>
+                                    </div>
                                 )}
                             </>
                         ) : (
@@ -469,63 +486,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 2 }}>
                         <span style={{ fontSize: 14, color: '#888' }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                     </div>
-                    {/* Saatler: sadece seçili günün açık saatleri ve seçili AM/PM */}
-                    {selectedDate && isLocationAndExperienceSelected && (
-                        <div style={{ marginTop: 24, marginBottom: 8 }}>
-                            <div style={{ fontWeight: 500, marginBottom: 8 }}>Available Times for {format(selectedDate, 'MMMM d, yyyy')}</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {getSpacesForDate(selectedDate).slots.length === 0 && <div style={{color:'#888'}}>No available times</div>}
-                                {getSpacesForDate(selectedDate).slots.map(slot => {
-                                    // --- 8 saat kuralı ---
-                                    let slotDateTime = new Date(selectedDate);
-                                    if (slot.time) {
-                                        const [h, m, s] = slot.time.split(':');
-                                        slotDateTime.setHours(Number(h));
-                                        slotDateTime.setMinutes(Number(m || 0));
-                                        slotDateTime.setSeconds(Number(s || 0));
-                                    }
-                                    const now = new Date();
-                                    const diffMs = slotDateTime - now;
-                                    const diffHours = diffMs / (1000 * 60 * 60);
-                                    const isAvailable = slot.available > 0;
-                                    const isSelectable = isAvailable && diffHours >= 8;
-                                    return (
-                                        <Tooltip key={slot.id} title={!isSelectable ? 'Call/Text to book' : ''} arrow disableHoverListener={isSelectable}>
-                                            <span style={{ width: '100%' }}>
-                                                <button
-                                                    style={{
-                                                        background: '#56C1FF',
-                                                        color: '#fff',
-                                                        border: 'none',
-                                                        borderRadius: 16,
-                                                        padding: '8px 0',
-                                                        fontWeight: 700,
-                                                        fontSize: 22,
-                                                        marginBottom: 12,
-                                                        cursor: isSelectable ? 'pointer' : 'not-allowed',
-                                                        outline: selectedTime === slot.time ? '2px solid #56C1FF' : 'none',
-                                                        opacity: isAvailable ? 1 : 0.5,
-                                                        width: '100%',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: 18,
-                                                        letterSpacing: 1
-                                                    }}
-                                                    onClick={() => isSelectable && handleTimeClick(slot.time)}
-                                                    disabled={!isSelectable}
-                                                >
-                                                    <span style={{ marginRight: 8, fontSize: 24 }}>🕒</span>
-                                                    <span style={{ fontWeight: 700 }}>{slot.time}</span>
-                                                    <span style={{ marginLeft: 18, fontWeight: 700 }}>Available ({slot.available}/{slot.capacity})</span>
-                                                </button>
-                                            </span>
-                                        </Tooltip>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+
                     {/* Add request date section below calendar */}
                     {activitySelect === 'Book Flight' && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
@@ -637,6 +598,135 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     }
                 }}
             />
+            
+            {/* Time Selection Popup Modal */}
+            <Modal
+                isOpen={timeSelectionModalOpen}
+                onClose={() => setTimeSelectionModalOpen(false)}
+                title={`Select Time for ${selectedDateForTime ? format(selectedDateForTime, 'MMMM d, yyyy') : ''}`}
+                extraContent={
+                    <div style={{ minWidth: 400, width: '100%' }}>
+                        {selectedDateForTime && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <div style={{ textAlign: 'center', marginBottom: 16, color: '#666' }}>
+                                    Choose your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
+                                </div>
+                                {(() => {
+                                    const { slots } = getSpacesForDate(selectedDateForTime);
+                                    if (slots.length === 0) {
+                                        return (
+                                            <div style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                                                No available times for this date
+                                            </div>
+                                        );
+                                    }
+                                    return slots.map(slot => {
+                                        // 8 hour rule check
+                                        let slotDateTime = new Date(selectedDateForTime);
+                                        if (slot.time) {
+                                            const [h, m, s] = slot.time.split(':');
+                                            slotDateTime.setHours(Number(h));
+                                            slotDateTime.setMinutes(Number(m || 0));
+                                            slotDateTime.setSeconds(Number(s || 0));
+                                        }
+                                        const now = new Date();
+                                        const diffMs = slotDateTime - now;
+                                        const diffHours = diffMs / (1000 * 60 * 60);
+                                        const isAvailable = slot.available > 0;
+                                        const isSelectable = isAvailable && diffHours >= 8;
+                                        
+                                        return (
+                                            <button
+                                                key={slot.id}
+                                                style={{
+                                                    background: tempSelectedTime === slot.time ? '#28a745' : (isSelectable ? '#56C1FF' : '#ccc'),
+                                                    color: '#fff',
+                                                    border: tempSelectedTime === slot.time ? '2px solid #28a745' : 'none',
+                                                    borderRadius: 12,
+                                                    padding: '16px 20px',
+                                                    fontWeight: 600,
+                                                    fontSize: 18,
+                                                    cursor: isSelectable ? 'pointer' : 'not-allowed',
+                                                    opacity: isSelectable ? 1 : 0.6,
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    transition: 'all 0.2s ease',
+                                                    transform: tempSelectedTime === slot.time ? 'scale(1.02)' : 'scale(1)'
+                                                }}
+                                                onClick={() => isSelectable && setTempSelectedTime(slot.time)}
+                                                disabled={!isSelectable}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    <span style={{ fontSize: 24 }}>🕒</span>
+                                                    <span style={{ fontWeight: 700 }}>{slot.time}</span>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 600 }}>
+                                                        {slot.available} Space{slot.available > 1 ? 's' : ''} Available
+                                                    </div>
+                                                    <div style={{ fontSize: 14, opacity: 0.9 }}>
+                                                        Capacity: {slot.capacity}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    });
+                                })()}
+                                
+                                {/* Confirm and Cancel Buttons */}
+                                <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+                                    <button
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px 20px',
+                                            background: '#28a745',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: 8,
+                                            fontWeight: 600,
+                                            fontSize: 16,
+                                            cursor: 'pointer',
+                                            opacity: tempSelectedTime ? 1 : 0.5,
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onClick={() => {
+                                            if (tempSelectedTime) {
+                                                handleTimeSelection(tempSelectedTime);
+                                            }
+                                        }}
+                                        disabled={!tempSelectedTime}
+                                    >
+                                        Confirm
+                                    </button>
+                                    <button
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px 20px',
+                                            background: '#dc3545',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: 8,
+                                            fontWeight: 600,
+                                            fontSize: 16,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onClick={() => {
+                                            setTimeSelectionModalOpen(false);
+                                            setTempSelectedTime(null);
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                }
+            />
+            
             <style>{`
                 .days-grid { 
                     display: grid; 
