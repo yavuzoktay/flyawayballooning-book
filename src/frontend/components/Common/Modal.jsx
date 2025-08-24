@@ -1,22 +1,7 @@
 import React from "react";
 
-const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraContent, submitButtonProps = {} }) => {
+const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent }) => {
     if (!isOpen) return null;
-
-    const handleConfirm = () => {
-        // Önce submitButtonProps.onClick ile error gösterimini tetikle
-        if (typeof submitButtonProps.onClick === 'function') {
-            submitButtonProps.onClick();
-        }
-        // Sonra submitButtonProps.onSubmit varsa onu çağır (ör: form submit)
-        if (typeof submitButtonProps.onSubmit === 'function') {
-            submitButtonProps.onSubmit();
-        } else if (typeof onConfirm === 'function') {
-            onConfirm();
-        } else {
-            onClose();
-        }
-    };
 
     return (
         <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -33,22 +18,6 @@ const Modal = ({ isOpen, onClose, onConfirm, title, bulletPoints = [], extraCont
                     </ul>
                 )}
                 {bulletPoints.length === 0 && extraContent}
-                <div className="modal-buttons">
-                    <button 
-                        className="confirm-btn"
-                        style={{ backgroundColor: "#61D836" }}
-                        onClick={handleConfirm}
-                        disabled={submitButtonProps?.disabled}
-                    >
-                        {title === 'Request Date' ? 'Submit' : 'Confirm'}
-                    </button>
-                    <button 
-                        className="cancel-btn"
-                        onClick={onClose}
-                    >
-                        Cancel
-                    </button>
-                </div>
             </div>
         </div>
     );
