@@ -49,7 +49,7 @@ const Index = () => {
     // NEW: viewport helper for mobile-specific inline tweaks
     const [isMobile, setIsMobile] = useState(false);
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 576);
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
@@ -636,10 +636,18 @@ const Index = () => {
                     </div>
                     <div className="main_booking">
                         <div className="booking_data">
-                            <div className="accodien">
+                            <div className={`accodien ${isMobile ? 'mobile-optimized' : ''}`}>
                                 {/* What would you like to do? Accordion */}
-                                <div style={{ marginBottom: '30px' }}>
-                                    <h3 style={{ fontSize: '22px', textAlign: 'center', marginBottom: '20px' }}>What would you like to do?</h3>
+                                <div style={{ 
+                                    marginBottom: isMobile ? '15px' : '30px',
+                                    padding: isMobile ? '0 8px' : '0'
+                                }}>
+                                    <h3 style={{ 
+                                        fontSize: isMobile ? '18px' : '22px', 
+                                        textAlign: 'center', 
+                                        marginBottom: isMobile ? '10px' : '20px',
+                                        marginTop: isMobile ? '5px' : '0'
+                                    }}>What would you like to do?</h3>
                                     <ChooseActivityCard 
                                         activitySelect={activitySelect} 
                                         setActivitySelect={setActivitySelect} 
@@ -1259,6 +1267,54 @@ const Index = () => {
                     </div>
                 </div>
             )}
+            
+            {/* Mobile-specific CSS for better responsive design */}
+            <style>{`
+                .mobile-optimized {
+                    padding: 0 8px;
+                }
+                
+                @media (max-width: 768px) {
+                    .mobile-optimized .accodien > div {
+                        margin-bottom: 10px !important;
+                    }
+                    
+                    .mobile-optimized h3 {
+                        margin-top: 5px !important;
+                        margin-bottom: 10px !important;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .mobile-optimized {
+                        padding: 0 6px;
+                    }
+                    
+                    .mobile-optimized .accodien > div {
+                        margin-bottom: 8px !important;
+                    }
+                    
+                    .mobile-optimized h3 {
+                        margin-top: 3px !important;
+                        margin-bottom: 8px !important;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .mobile-optimized {
+                        padding: 0 4px;
+                    }
+                    
+                    .mobile-optimized .accodien > div {
+                        margin-bottom: 6px !important;
+                    }
+                    
+                    .mobile-optimized h3 {
+                        margin-top: 2px !important;
+                        margin-bottom: 6px !important;
+                    }
+                }
+            `}</style>
         </div>
     )
 }

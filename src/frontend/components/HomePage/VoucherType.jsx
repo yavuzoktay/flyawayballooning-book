@@ -17,19 +17,20 @@ const scrollbarStyles = `
         max-width: 100%;
         scrollbar-width: thin;
         scrollbar-color: #666 #f1f1f1;
+        -webkit-overflow-scrolling: touch;
     }
     .voucher-type-scroll-outer::-webkit-scrollbar {
-        height: 16px;
-        width: 16px;
+        height: 12px;
+        width: 12px;
     }
     .voucher-type-scroll-outer::-webkit-scrollbar-track {
         background: #f1f1f1;
-        border-radius: 8px;
-        margin: 0 4px;
+        border-radius: 6px;
+        margin: 0 2px;
     }
     .voucher-type-scroll-outer::-webkit-scrollbar-thumb {
         background: #666;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 2px solid #f1f1f1;
     }
     .voucher-type-scroll-outer::-webkit-scrollbar-thumb:hover {
@@ -37,6 +38,47 @@ const scrollbarStyles = `
     }
     .voucher-type-scroll-outer::-webkit-scrollbar-corner {
         background: #f1f1f1;
+    }
+    
+    /* Mobile-specific scrollbar styles */
+    @media (max-width: 768px) {
+        .voucher-type-scroll-outer::-webkit-scrollbar {
+            height: 6px;
+        }
+        .voucher-type-scroll-outer::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            margin: 0 1px;
+        }
+        .voucher-type-scroll-outer::-webkit-scrollbar-thumb {
+            background: #999;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .voucher-type-scroll-outer {
+            padding: 0 4px !important;
+            margin: 0 -4px !important;
+        }
+        
+        .voucher-type-scroll-outer > div {
+            gap: 8px !important;
+            padding: 0 4px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .voucher-type-scroll-outer::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .voucher-type-scroll-outer {
+            padding: 0 2px !important;
+            margin: 0 -2px !important;
+        }
+        
+        .voucher-type-scroll-outer > div {
+            gap: 6px !important;
+            padding: 0 2px !important;
+        }
     }
     
     @keyframes slideInRight {
@@ -428,50 +470,62 @@ const VoucherType = ({
                                     availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                                 );
                                 
-                                // Mobile: stack cards vertically to fit screen
+                                // Mobile: horizontal layout with horizontal scrolling
                                 if (isMobile) {
                                     return (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                                            {filteredVouchers.map((voucher) => (
-                                                <div key={voucher.id} style={{
-                                                    background: '#fff',
-                                                    borderRadius: 16,
-                                                    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                                                    width: '100%',
-                                                    minWidth: '0',
-                                                    padding: 0,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    overflow: 'hidden'
-                                                }}>
-                                                    <img
-                                                        src={voucher.image}
-                                                        alt={voucher.title}
-                                                        style={{ width: '100%', height: 160, objectFit: 'cover' }}
-                                                    />
-                                                    <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                                        <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{voucher.refundability}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
-                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
-                                                            {voucher.inclusions.map((inclusion, i) => (
-                                                                <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
-                                                            ))}
-                                                        </ul>
-                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
-                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{voucher.price}</div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
-                                                            <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                            <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
+                                        <div className="voucher-type-scroll-outer" style={{ 
+                                            width: '100%', 
+                                            padding: '0 8px',
+                                            margin: '0 -8px'
+                                        }}>
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                gap: '12px', 
+                                                width: 'max-content',
+                                                padding: '0 8px'
+                                            }}>
+                                                {filteredVouchers.map((voucher) => (
+                                                    <div key={voucher.id} style={{
+                                                        background: '#fff',
+                                                        borderRadius: 12,
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                        width: '260px',
+                                                        minWidth: '260px',
+                                                        flexShrink: 0,
+                                                        padding: 0,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        <img
+                                                            src={voucher.image}
+                                                            alt={voucher.title}
+                                                            style={{ width: '100%', height: 120, objectFit: 'cover' }}
+                                                        />
+                                                        <div style={{ padding: '10px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                                            <h3 style={{ fontSize: 15, fontWeight: 300, margin: 0, marginBottom: 3, color: '#4a4a4a' }}>{voucher.title}</h3>
+                                                            <div style={{ fontSize: 10, color: '#666', marginBottom: 4, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.description}</div>
+                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3, fontWeight: 500 }}>{voucher.refundability}</div>
+                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3 }}>{voucher.availability}</div>
+                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{voucher.validity}</div>
+                                                            <ul style={{ paddingLeft: 10, margin: 0, marginBottom: 6, color: '#444', fontSize: 11, lineHeight: '1.2' }}>
+                                                                {voucher.inclusions.map((inclusion, i) => (
+                                                                    <li key={i} style={{ marginBottom: 1 }}>{inclusion}</li>
+                                                                ))}
+                                                            </ul>
+                                                            <div style={{ fontSize: 10, color: '#666', marginBottom: 6, lineHeight: '1.1', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
+                                                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>From £{voucher.price}</div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6, gap: '4px' }}>
+                                                                <label style={{ fontSize: 11, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                                                                <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} />
+                                                            </div>
+                                                            <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
+                                                                Select
+                                                            </button>
                                                         </div>
-                                                        <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
-                                                            Select
-                                                        </button>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     );
                                 }

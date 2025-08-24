@@ -24,7 +24,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
     useEffect(() => {
-        const onResize = () => setIsMobile(window.innerWidth <= 576);
+        const onResize = () => setIsMobile(window.innerWidth <= 768);
         onResize();
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
@@ -370,28 +370,131 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     }
     
     return (
-        <Accordion
-            title="Select Experience"
-            id="select-experience"
-            activeAccordion={activeAccordion}
-            setActiveAccordion={setActiveAccordion}
-        >
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
-                {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
-                    <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: isMobile ? '100%' : 'calc(50% - 10px)', minWidth: isMobile ? '0' : '260px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: isMobile ? '1 1 100%' : '1' }}>
+        <>
+            <style>
+                {`
+                    .experience-scroll-outer {
+                        overflow-x: auto;
+                        width: 100%;
+                        max-width: 100%;
+                        scrollbar-width: thin;
+                        scrollbar-color: #666 #f1f1f1;
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    
+                    .experience-scroll-outer::-webkit-scrollbar {
+                        height: 8px;
+                        width: 8px;
+                    }
+                    
+                    .experience-scroll-outer::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 4px;
+                        margin: 0 1px;
+                    }
+                    
+                    .experience-scroll-outer::-webkit-scrollbar-thumb {
+                        background: #666;
+                        border-radius: 4px;
+                        border: 1px solid #f1f1f1;
+                    }
+                    
+                    .experience-scroll-outer::-webkit-scrollbar-thumb:hover {
+                        background: #444;
+                    }
+                    
+                    .experience-scroll-outer::-webkit-scrollbar-corner {
+                        background: #f1f1f1;
+                    }
+                    
+                    @media (max-width: 768px) {
+                        .experience-scroll-outer::-webkit-scrollbar {
+                            height: 6px;
+                        }
+                        
+                        .experience-scroll-outer::-webkit-scrollbar-track {
+                            background: #e0e0e0;
+                            margin: 0 1px;
+                        }
+                        
+                        .experience-scroll-outer::-webkit-scrollbar-thumb {
+                            background: #999;
+                            border: 1px solid #e0e0e0;
+                        }
+                        
+                        .experience-scroll-outer {
+                            padding: 0 4px !important;
+                            margin: 0 -4px !important;
+                        }
+                        
+                        .experience-scroll-outer > div {
+                            gap: 8px !important;
+                            padding: 0 4px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .experience-scroll-outer::-webkit-scrollbar {
+                            height: 4px;
+                        }
+                        
+                        .experience-scroll-outer {
+                            padding: 0 2px !important;
+                            margin: 0 -2px !important;
+                        }
+                        
+                        .experience-scroll-outer > div {
+                            gap: 6px !important;
+                            padding: 0 2px !important;
+                        }
+                    }
+                `}
+            </style>
+            <Accordion
+                title="Select Experience"
+                id="select-experience"
+                activeAccordion={activeAccordion}
+                setActiveAccordion={setActiveAccordion}
+            >
+            {isMobile ? (
+                // Mobile: horizontal layout with horizontal scrolling
+                <div className="experience-scroll-outer" style={{ 
+                    width: '100%', 
+                    padding: '0 8px',
+                    margin: '0 -8px'
+                }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: '12px', 
+                        width: 'max-content',
+                        padding: '0 8px'
+                    }}>
+                        {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
+                            <div key={index} style={{ 
+                                background: '#fff', 
+                                borderRadius: 12, 
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)', 
+                                width: '260px',
+                                minWidth: '260px',
+                                flexShrink: 0,
+                                padding: 0, 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                overflow: 'hidden'
+                            }}>
                         <img 
                             src={experience.img || '/images/placeholder-experience.svg'} 
                             alt={experience.title} 
-                            style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                            style={{ width: '100%', height: 120, objectFit: 'cover' }}
                             onError={(e) => {
                                 e.target.src = '/images/placeholder-experience.svg';
                             }}
                         />
-                        <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
-                            <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
-                            <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
-                            <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
+                        <div style={{ padding: '12px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <h2 style={{ fontSize: 15, fontWeight: 300, margin: 0, marginBottom: 4, color: '#4a4a4a' }}>{experience.title}</h2>
+                            <div style={{ borderBottom: '1px solid #e0e0e0', margin: '4px 0 8px 0' }} />
+                            <div style={{ fontSize: 12, color: '#444', marginBottom: 8, lineHeight: '1.3', flex: '1' }}>{experience.desc}</div>
+                            <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 8 }}>
                                 From £{experience.price}
                             </div>
                             <button
@@ -400,12 +503,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                     background: '#03a9f4',
                                     color: '#fff',
                                     border: 'none',
-                                    borderRadius: 8,
-                                    padding: '10px 0',
-                                    fontSize: 16,
+                                    borderRadius: 6,
+                                    padding: '8px 0',
+                                    fontSize: 14,
                                     fontWeight: 300,
                                     cursor: 'pointer',
-                                    marginTop: 6,
+                                    marginTop: 4,
                                     marginBottom: 0,
                                     transition: 'background 0.2s',
                                 }}
@@ -436,8 +539,74 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 )) : (
                     <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
                 )}
-            </div>
+                    </div>
+                </div>
+            ) : (
+                // Desktop: original flexbox layout
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
+                    {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
+                        <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '260px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
+                            <img 
+                                src={experience.img || '/images/placeholder-experience.svg'} 
+                                alt={experience.title} 
+                                style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                                onError={(e) => {
+                                    e.target.src = '/images/placeholder-experience.svg';
+                                }}
+                            />
+                            <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
+                                <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
+                                <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
+                                <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
+                                    From £{experience.price}
+                                </div>
+                                <button
+                                    style={{
+                                        width: '100%',
+                                        background: '#03a9f4',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: 8,
+                                        padding: '10px 0',
+                                        fontSize: 16,
+                                        fontWeight: 300,
+                                        cursor: 'pointer',
+                                        marginTop: 6,
+                                        marginBottom: 0,
+                                        transition: 'background 0.2s',
+                                    }}
+                                    onClick={() => {
+                                        // Use the first valid passenger count for each experience type
+                                        const defaultPassengerCount = (Array.isArray(experience.passengerOptions) && experience.passengerOptions.length > 0)
+                                            ? experience.passengerOptions[0]
+                                            : (experience.max_passengers || 1);
+                                        const priceNumber = parseFloat(experience.priceValue);
+                                        console.log('Button clicked:', {
+                                            type: experience.title,
+                                            passengerCount: defaultPassengerCount,
+                                            price: priceNumber,
+                                            index: index
+                                        });
+                                        handleSelectClick(
+                                            experience.title,
+                                            defaultPassengerCount,
+                                            priceNumber,
+                                            index
+                                        );
+                                    }}
+                                >
+                                    Select
+                                </button>
+                            </div>
+                        </div>
+                    )) : (
+                        <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
+                    )}
+                </div>
+            )}
         </Accordion>
+        </>
     );
 };
 

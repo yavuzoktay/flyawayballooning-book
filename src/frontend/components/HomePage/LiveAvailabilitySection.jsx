@@ -63,13 +63,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     useEffect(() => {
         const computeSizes = () => {
             const w = window.innerWidth;
-            setIsMobile(w <= 576);
+            setIsMobile(w <= 768);
             // 7 columns must fit within container padding; pick safe sizes
-            if (w <= 360) setDaySize(42);
-            else if (w <= 420) setDaySize(46);
-            else if (w <= 480) setDaySize(50);
-            else if (w <= 576) setDaySize(54);
-            else if (w <= 768) setDaySize(60);
+            if (w <= 360) setDaySize(38);
+            else if (w <= 420) setDaySize(42);
+            else if (w <= 480) setDaySize(46);
+            else if (w <= 576) setDaySize(50);
+            else if (w <= 768) setDaySize(58);
             else setDaySize(80);
         };
         computeSizes();
@@ -356,9 +356,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
                             background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#61D836' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
-                            borderRadius: 8,
-                            margin: 2,
-                            padding: 2,
+                            borderRadius: isMobile ? 6 : 8,
+                            margin: isMobile ? 1 : 2,
+                            padding: isMobile ? 1 : 2,
                             minHeight: daySize,
                             minWidth: daySize,
                             maxWidth: daySize,
@@ -375,14 +375,33 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             justifyContent: 'center',
                         }}
                     >
-                        <div style={{ fontSize: 18, fontWeight: 600 }}>{format(dateCopy, 'd')}</div>
+                        <div style={{ 
+                            fontSize: isMobile ? 14 : 18, 
+                            fontWeight: 600,
+                            lineHeight: 1
+                        }}>
+                            {format(dateCopy, 'd')}
+                        </div>
                         {isAvailable && !isPastDate && (
-                            <div style={{ fontSize: 11, marginTop: 4, fontWeight: 500 }}>
+                            <div style={{ 
+                                fontSize: isMobile ? 9 : 11, 
+                                marginTop: isMobile ? 2 : 4, 
+                                fontWeight: 500,
+                                lineHeight: 1,
+                                textAlign: 'center'
+                            }}>
                                 {`${total} Space${total > 1 ? 's' : ''}`}
                             </div>
                         )}
                         {soldOut && !isPastDate && (
-                            <div style={{ fontSize: 11, marginTop: 4, color: '#fff', fontWeight: 600 }}>
+                            <div style={{ 
+                                fontSize: isMobile ? 9 : 11, 
+                                marginTop: isMobile ? 2 : 4, 
+                                color: '#fff', 
+                                fontWeight: 600,
+                                lineHeight: 1,
+                                textAlign: 'center'
+                            }}>
                                 Sold Out
                             </div>
                         )}
@@ -441,35 +460,131 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     return (
         <>
+            <style>
+                {`
+                    @media (max-width: 768px) {
+                        .calendar .days-grid {
+                            gap: 2px !important;
+                            padding: 0 4px !important;
+                        }
+                        
+                        .calendar .day {
+                            margin: 1px !important;
+                            padding: 1px !important;
+                        }
+                        
+                        .calendar .weekday-label {
+                            font-size: 11px !important;
+                            margin-bottom: 4px !important;
+                            padding: 2px !important;
+                        }
+                        
+                        .calendar .header {
+                            flex-direction: column !important;
+                            gap: 12px !important;
+                        }
+                        
+                        .calendar .realtime-badge {
+                            font-size: 12px !important;
+                            padding: 6px 10px !important;
+                        }
+                        
+                        .calendar .realtime-badge svg {
+                            font-size: 16px !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .calendar .days-grid {
+                            gap: 1px !important;
+                            padding: 0 2px !important;
+                        }
+                        
+                        .calendar .day {
+                            margin: 0.5px !important;
+                            padding: 0.5px !important;
+                        }
+                        
+                        .calendar .weekday-label {
+                            font-size: 10px !important;
+                            margin-bottom: 2px !important;
+                            padding: 1px !important;
+                        }
+                    }
+                `}
+            </style>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`}>
                 <div className="calendar">
-                    <div className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="header" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        position: 'relative', 
+                        width: '100%',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        gap: isMobile ? '12px' : '0'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8 }}>
                             <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
-                            <h2 style={{ margin: '0 4px', fontWeight: 500, color: '#222', fontSize: isMobile ? 20 : 24, letterSpacing: 1 }}>{format(currentDate, 'MMMM yyyy')}</h2>
+                            <h2 style={{ 
+                                margin: '0 4px', 
+                                fontWeight: 500, 
+                                color: '#222', 
+                                fontSize: isMobile ? 18 : 24, 
+                                letterSpacing: 1 
+                            }}>
+                                {format(currentDate, 'MMMM yyyy')}
+                            </h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
                         {/* Real-time availability badge - responsive */}
                         <div className="realtime-badge-wrap">
-                            <div className="realtime-badge">
-                                <CheckIcon style={{ fontSize: 20, marginRight: 4 }} />
+                            <div className="realtime-badge" style={{
+                                fontSize: isMobile ? 12 : 14,
+                                padding: isMobile ? '6px 10px' : '8px 12px'
+                            }}>
+                                <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
                                 <span className="realtime-badge-text">Real-time availability</span>
                             </div>
                         </div>
                     </div>
                     {/* Centered currently viewing info under the heading */}
-                    <div style={{ margin: '18px 0 0 0', fontSize: 16, color: '#222', borderRadius: 8, padding: 12, textAlign: 'center', fontWeight: 500, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                    <div style={{ 
+                        margin: isMobile ? '12px 0 0 0' : '18px 0 0 0', 
+                        fontSize: isMobile ? 14 : 16, 
+                        color: '#222', 
+                        borderRadius: 8, 
+                        padding: isMobile ? '8px' : '12px', 
+                        textAlign: 'center', 
+                        fontWeight: 500, 
+                        maxWidth: 600, 
+                        marginLeft: 'auto', 
+                        marginRight: 'auto' 
+                    }}>
                         {isLocationAndExperienceSelected ? (
                             <>
-                                <div>Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b></div>
+                                <div style={{ fontSize: isMobile ? 13 : 16 }}>
+                                    Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b>
+                                </div>
                                 {selectedDate && selectedTime && (
-                                    <div style={{ marginTop: 8, padding: '8px 16px', background: '#e8f5e8', borderRadius: 6, border: '1px solid #28a745' }}>
+                                    <div style={{ 
+                                        marginTop: isMobile ? 6 : 8, 
+                                        padding: isMobile ? '6px 12px' : '8px 16px', 
+                                        background: '#e8f5e8', 
+                                        borderRadius: 6, 
+                                        border: '1px solid #28a745',
+                                        fontSize: isMobile ? 12 : 14
+                                    }}>
                                         ✅ <b>Selected:</b> {format(selectedDate, 'EEEE, MMMM d, yyyy')} at <b>{selectedTime}</b>
                                     </div>
                                 )}
                             </>
                         ) : (
-                            <div style={{ color: '#666' }}>
+                            <div style={{ 
+                                color: '#666',
+                                fontSize: isMobile ? 13 : 16,
+                                lineHeight: isMobile ? 1.3 : 1.4
+                            }}>
                                 {activitySelect === 'Redeem Voucher' ? 
                                     'Please select a Flight Location and Experience to view available dates and times' :
                                     'Please select a Flight Location, Experience, and Voucher Type to view available dates and times'
@@ -478,13 +593,44 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                     </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', marginBottom: 0, width: '100%', maxWidth: '100%', margin: '0 auto', padding: '0 6px', boxSizing: 'border-box' }}>
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <div key={d} className="weekday-label" style={{ textAlign: 'center', fontWeight: 600, color: '#888', fontSize: isMobile ? 13 : 15, marginBottom: 8 }}>{d}</div>)}
+                    <div className="days-grid" style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(7, 1fr)', 
+                        gap: isMobile ? '2px' : '4px', 
+                        marginBottom: 0, 
+                        width: '100%', 
+                        maxWidth: '100%', 
+                        margin: '0 auto', 
+                        padding: isMobile ? '0 4px' : '0 6px', 
+                        boxSizing: 'border-box' 
+                    }}>
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
+                            <div key={d} className="weekday-label" style={{ 
+                                textAlign: 'center', 
+                                fontWeight: 600, 
+                                color: '#888', 
+                                fontSize: isMobile ? 11 : 15, 
+                                marginBottom: isMobile ? 4 : 8,
+                                padding: isMobile ? '2px' : '4px'
+                            }}>
+                                {d}
+                            </div>
+                        ))}
                         {renderDays()}
                     </div>
                     {/* Reschedule text below calendar */}
-                    <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 2 }}>
-                        <span style={{ fontSize: 14, color: '#888' }}>Reschedule your flight for free up to 5 days before your scheduled date.</span>
+                    <div style={{ 
+                        textAlign: 'center', 
+                        marginTop: isMobile ? 16 : 20, 
+                        marginBottom: 2 
+                    }}>
+                        <span style={{ 
+                            fontSize: isMobile ? 12 : 14, 
+                            color: '#888',
+                            lineHeight: isMobile ? 1.3 : 1.4
+                        }}>
+                            Reschedule your flight for free up to 5 days before your scheduled date.
+                        </span>
                     </div>
 
                     {/* Add request date section below calendar */}
@@ -497,9 +643,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
-                                    padding: '8px 18px',
+                                    padding: isMobile ? '6px 14px' : '8px 18px',
                                     fontWeight: 600,
-                                    fontSize: 16,
+                                    fontSize: isMobile ? 14 : 16,
                                     cursor: 'pointer',
                                     boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>

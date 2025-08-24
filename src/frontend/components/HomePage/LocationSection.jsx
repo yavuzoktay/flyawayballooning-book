@@ -21,6 +21,22 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    // Handle window resize for responsive design
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth <= 768;
+            console.log('LocationSection resize:', window.innerWidth, 'isMobile:', mobile);
+            setIsMobile(mobile);
+        };
+
+        // Set initial state
+        handleResize();
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         axios.get(`${API_BASE_URL}/api/activeLocations`)
@@ -139,34 +155,158 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
         <>
             <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`}>
                 <div className="tab_box scroll-box">
-                    {Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
-                        <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
-                            {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => {
-                                const isDisabled = isRedeemVoucher && loc.name === "Bristol Fiesta";
-                                return (
-                                    <div 
-                                        className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
-                                        key={loc.name} 
-                                        onClick={() => handleLocationSelect(loc.name)}
-                                        style={{
-                                            opacity: isDisabled ? 0.5 : 1,
-                                            cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                            filter: isDisabled ? 'grayscale(100%)' : 'none'
-                                        }}
-                                    >
-                                        <img src={loc.image} alt={loc.name} width="100%" />
-                                        <h3>{loc.name}</h3>
-                                        <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ))}
+
+                    
+                    {isMobile ? (
+                        // Mobile: Single column layout
+                        locations.map((loc) => {
+                            const isDisabled = isRedeemVoucher && loc.name === "Bristol Fiesta";
+                            return (
+                                <div 
+                                    className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
+                                    key={loc.name} 
+                                    onClick={() => handleLocationSelect(loc.name)}
+                                    style={{
+                                        opacity: isDisabled ? 0.5 : 1,
+                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                        filter: isDisabled ? 'grayscale(100%)' : 'none',
+                                        width: '100%',
+                                        marginBottom: '16px',
+                                        minHeight: '180px',
+                                        height: 'auto'
+                                    }}
+                                >
+                                    <img src={loc.image} alt={loc.name} width="100%" style={{ height: '120px', objectFit: 'cover' }} />
+                                    <h3>{loc.name}</h3>
+                                    <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`} style={{ 
+                                        position: 'absolute', 
+                                        top: '10px', 
+                                        right: '10px',
+                                        width: '20px',
+                                        height: '20px',
+                                        borderRadius: '50%',
+                                        border: chooseLocation == loc.name ? '2px solid #0070f3' : '2px solid #ccc',
+                                        backgroundColor: chooseLocation == loc.name ? '#0070f3' : 'transparent',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        {chooseLocation == loc.name && (
+                                            <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
+                                        )}
+                                    </span>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        // Desktop: Two column layout
+                        Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
+                            <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
+                                {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => {
+                                    const isDisabled = isRedeemVoucher && loc.name === "Bristol Fiesta";
+                                    return (
+                                        <div 
+                                            className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
+                                            key={loc.name} 
+                                            onClick={() => handleLocationSelect(loc.name)}
+                                            style={{
+                                                opacity: isDisabled ? 0.5 : 1,
+                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                filter: isDisabled ? 'grayscale(100%)' : 'none'
+                                            }}
+                                        >
+                                            <img src={loc.image} alt={loc.name} width="100%" />
+                                            <h3>{loc.name}</h3>
+                                            <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))
+                    )}
                 </div>
             </Accordion>
 
             {/* Modal for Bristol Fiesta */}
             {/* Modal removed as per new requirements */}
+            
+            {/* Mobile-specific CSS for better responsive design */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .tab_box.scroll-box {
+                        padding: 0 8px;
+                    }
+                    
+                    .tab_box .loc_data.location_data {
+                        margin-bottom: 16px !important;
+                        border-radius: 12px !important;
+                        min-height: 180px !important;
+                        height: auto !important;
+                        padding: 12px !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data h3 {
+                        font-size: 16px !important;
+                        margin: 12px 0 8px 0 !important;
+                        text-align: center !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data img {
+                        border-radius: 8px 8px 0 0 !important;
+                        height: 120px !important;
+                        object-fit: cover !important;
+                        width: 100% !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data .location-radio {
+                        margin-top: 8px !important;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .tab_box.scroll-box {
+                        padding: 0 6px;
+                    }
+                    
+                    .tab_box .loc_data.location_data {
+                        margin-bottom: 14px !important;
+                        min-height: 160px !important;
+                        padding: 10px !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data h3 {
+                        font-size: 15px !important;
+                        margin: 10px 0 6px 0 !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data img {
+                        height: 100px !important;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .tab_box.scroll-box {
+                        padding: 0 4px;
+                    }
+                    
+                    .tab_box .loc_data.location_data {
+                        margin-bottom: 12px !important;
+                        min-height: 150px !important;
+                        padding: 8px !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data h3 {
+                        font-size: 14px !important;
+                        margin: 8px 0 5px 0 !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data img {
+                        height: 90px !important;
+                    }
+                }
+            `}</style>
         </>
     );
 };
