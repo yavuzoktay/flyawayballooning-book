@@ -139,6 +139,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             activitySelect &&
             chooseLocation &&
             chooseFlightType &&
+            selectedVoucherType &&
             selectedDate &&
             selectedTime &&
             isPassengerInfoComplete &&
@@ -148,6 +149,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         : isFlightVoucher
         ? !(
             chooseFlightType &&
+            selectedVoucherType &&
             isPassengerInfoComplete &&
             isNonEmptyObject(additionalInfo)
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
@@ -223,12 +225,26 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
         }
         if (isFlightVoucher || isGiftVoucher) {
+            // Debug: Log the selectedVoucherType
+            console.log('=== VOUCHER DATA PREPARATION DEBUG ===');
+            console.log('selectedVoucherType:', selectedVoucherType);
+            console.log('selectedVoucherType?.title:', selectedVoucherType?.title);
+            console.log('isFlightVoucher:', isFlightVoucher);
+            console.log('isGiftVoucher:', isGiftVoucher);
+            
+            // Validate that selectedVoucherType is set
+            if (!selectedVoucherType || !selectedVoucherType.title) {
+                alert('Please select a voucher type before proceeding with payment.');
+                return;
+            }
+            
             // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
             const voucherData = {
                 name: (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
                 voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
+                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
                 email: (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
                 phone: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 mobile: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
@@ -244,6 +260,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
             };
+            
+            // Debug: Log the voucher data being sent
+            console.log('=== VOUCHER DATA BEING SENT ===');
+            console.log('voucherData:', voucherData);
+            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
             
             try {
                 // Stripe Checkout Session başlat - VOUCHER için
@@ -275,12 +296,24 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         // REDEEM VOUCHER FLOW (Stripe ödeme olmadan direkt createVoucher)
         if (isRedeemVoucher) {
+            // Debug: Log the selectedVoucherType
+            console.log('=== REDEEM VOUCHER DEBUG ===');
+            console.log('selectedVoucherType:', selectedVoucherType);
+            console.log('selectedVoucherType?.title:', selectedVoucherType?.title);
+            
+            // Validate that selectedVoucherType is set
+            if (!selectedVoucherType || !selectedVoucherType.title) {
+                alert('Please select a voucher type before proceeding.');
+                return;
+            }
+            
             // Voucher data preparation for Redeem Voucher
             const voucherData = {
                 name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
                 voucher_type: "Redeem Voucher",
+                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
                 email: passengerData?.[0]?.email || "",
                 phone: passengerData?.[0]?.phone || "",
                 mobile: passengerData?.[0]?.phone || "",
@@ -296,6 +329,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
             };
+            
+            // Debug: Log the voucher data being sent
+            console.log('=== REDEEM VOUCHER DATA BEING SENT ===');
+            console.log('voucherData:', voucherData);
+            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
             
             try {
                 // Direkt createVoucher endpoint'ini çağır
