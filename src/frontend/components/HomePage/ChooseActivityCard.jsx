@@ -65,9 +65,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
 
     const selectActivityData = [
         { value: 0, label: "Book Flight", subText: "" },
-        { value: 1, label: "Flight Voucher", subText: "Choose Date & Location Later" },
+        { value: 1, label: "Flight Voucher", subText: "" },
         { value: 2, label: "Redeem Voucher", subText: "" },
-        { value: 3, label: "Buy Gift", subText: "Any Location" }
+        { value: 3, label: "Buy Gift", subText: "" }
     ];
 
     const handleActivitySelect = (label) => {
@@ -193,7 +193,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                             <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                                 <BsInfoCircle size={14} color="#0070f3" />
                                                 <div className="hover-text">
-                                                    Redeem Flight or Gift Voucher
+                                                    Redeem flight or gift voucher
                                                 </div>
                                             </span>
                                         </h3>
@@ -257,7 +257,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                     <BsInfoCircle size={14} color="#0070f3" />
                                     <div className="hover-text">
-                                        {item.label === 'Book Flight' ? 'Make a reservation' : item.label === 'Flight Voucher' ? 'Choose date later' : item.label === 'Buy Gift' ? 'Gift any location' : 'Redeem your code'}
+                                        {item.label === 'Book Flight' ? 'Pick a date, live availability' : item.label === 'Flight Voucher' ? 'Choose date and location later' : item.label === 'Buy Gift' ? 'Valid in any location' : 'Redeem your code'}
                                     </div>
                                 </span>
                             </h3>
