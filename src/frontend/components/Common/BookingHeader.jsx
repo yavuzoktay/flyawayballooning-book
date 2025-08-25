@@ -6,7 +6,7 @@ import LOGO from '../../../assets/images/FAB_Logo_DarkBlue.png';
  * BookingHeader component to display selected location, date, and countdown timer
  * Timer starts from 5 minutes when both location and date are selected
  */
-const BookingHeader = ({ location, selectedDate, selectedTime }) => {
+const BookingHeader = ({ location, selectedDate, selectedTime, countdownSeconds, onTimeout }) => {
   const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
@@ -17,8 +17,10 @@ const BookingHeader = ({ location, selectedDate, selectedTime }) => {
   };
 
   // Format the date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString, timeString) => {
     if (!dateString) return '';
+
+    console.log('formatDate called with:', { dateString, timeString });
 
     const date = new Date(dateString);
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -30,15 +32,45 @@ const BookingHeader = ({ location, selectedDate, selectedTime }) => {
     const dayOfWeek = days[date.getDay()];
     const dayOfMonth = date.getDate();
     const month = months[date.getMonth()];
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
     
-    // Format time to 12-hour format with AM/PM
-    const formattedHours = hours % 12 || 12;
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    // Use the selectedTime prop for accurate time display
+    let formattedTime = '';
+    if (timeString) {
+      console.log('Processing timeString:', timeString);
+      // Parse the time string (e.g., "17:00:00" or "17:00")
+      const timeParts = timeString.split(':');
+      console.log('Time parts:', timeParts);
+      if (timeParts.length >= 2) {
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+        
+        console.log('Parsed hours and minutes:', { hours, minutes });
+        
+        // Format time to 12-hour format with AM/PM
+        const formattedHours = hours % 12 || 12;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+        
+        formattedTime = `${formattedHours}:${formattedMinutes} ${ampm}`;
+        console.log('Formatted time from timeString:', formattedTime);
+      }
+    }
+    
+    // Fallback to date object time if timeString is not available
+    if (!formattedTime) {
+      console.log('Using fallback time from date object');
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const formattedHours = hours % 12 || 12;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+      formattedTime = `${formattedHours}:${formattedMinutes} ${ampm}`;
+      console.log('Fallback formatted time:', formattedTime);
+    }
 
-    return `${dayOfWeek}, ${month} ${dayOfMonth}${getDaySuffix(dayOfMonth)} - ${formattedHours}:${formattedMinutes} ${ampm}`;
+    const result = `${dayOfWeek}, ${month} ${dayOfMonth}${getDaySuffix(dayOfMonth)} - ${formattedTime}`;
+    console.log('Final formatted result:', result);
+    return result;
   };
 
   // Get the correct suffix for the day (1st, 2nd, 3rd, etc.)
@@ -58,34 +90,24 @@ const BookingHeader = ({ location, selectedDate, selectedTime }) => {
     return "timer-value normal";
   };
 
-  // Set up the countdown timer
+  // Set up the countdown timer using countdownSeconds from props
   useEffect(() => {
-    // Only start timer when both location and date are selected
-    if (location && selectedDate && !timerActive) {
+    if (countdownSeconds !== null && countdownSeconds !== undefined) {
+      const mins = Math.floor(countdownSeconds / 60);
+      const secs = countdownSeconds % 60;
+      setMinutes(mins);
+      setSeconds(secs);
       setTimerActive(true);
+    } else {
+      setTimerActive(false);
       setMinutes(5);
       setSeconds(0);
     }
+  }, [countdownSeconds]);
 
-    // If timer is active, start countdown
-    if (timerActive) {
-      const interval = setInterval(() => {
-        if (seconds > 0) {
-          setSeconds(seconds - 1);
-        } else if (minutes > 0) {
-          setMinutes(minutes - 1);
-          setSeconds(59);
-        } else {
-          // Timer has reached 0:00
-          clearInterval(interval);
-          // Handle timer completion (e.g., redirect, show message)
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [location, selectedDate, minutes, seconds, timerActive]);
-
+  // Debug logging
+  console.log('BookingHeader props:', { location, selectedDate, selectedTime, countdownSeconds });
+  
   // If no location or date is selected, don't render the header
   if (!location || !selectedDate || !selectedTime) {
     return null;
@@ -101,7 +123,7 @@ const BookingHeader = ({ location, selectedDate, selectedTime }) => {
           <div className="booking-header-location">{locationName}</div>
         </div>
         <div className="booking-header-center">
-          <div className="booking-header-date">{formatDate(selectedDate)}</div>
+          <div className="booking-header-date">{formatDate(selectedDate, selectedTime)}</div>
         </div>
         <div className="booking-header-timer">
           <span className="timer-label">Time Remaining:</span>

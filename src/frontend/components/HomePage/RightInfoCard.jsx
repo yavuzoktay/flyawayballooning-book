@@ -68,8 +68,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0); // Opsiyonel - boş array ise 0 döner
     
-    // Weather Refundable price is now calculated separately from passengerData
-    const weatherRefundPrice = passengerData && passengerData.some(p => p.weatherRefund) ? 47.50 : 0;
+    // Weather Refundable price is now calculated per passenger
+    const weatherRefundPrice = Array.isArray(passengerData)
+        ? (passengerData.reduce((sum, p) => sum + (p && p.weatherRefund ? 1 : 0), 0) * 47.50)
+        : 0;
     
     // Calculate total price based on activity type and selections
     let totalPrice = 0;
@@ -118,15 +120,68 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const hasPassenger = Array.isArray(passengerData) && passengerData.some(p => p.firstName && p.firstName.trim() !== '');
     
     // Enhanced passenger validation for Book Flight
-    const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every(passenger => {
-        return passenger.firstName && passenger.firstName.trim() !== '' &&
+    // Validation rules:
+    // - Passenger 1 (index 0): firstName, lastName, weight, phone, email (all required)
+    // - Passenger 2+ (index 1+): firstName, lastName, weight (phone and email not required)
+    const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isFirstPassenger = index === 0;
+        
+        // All passengers need: firstName, lastName, weight
+        const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
                passenger.lastName && passenger.lastName.trim() !== '' &&
-               passenger.weight && passenger.weight.trim() !== '' &&
-               passenger.phone && passenger.phone.trim() !== '' &&
-               passenger.email && passenger.email.trim() !== '';
+               (passenger.weight && (typeof passenger.weight === 'string' ? passenger.weight.trim() !== '' : passenger.weight !== null && passenger.weight !== undefined));
+        
+        // Only first passenger needs: phone and email
+        const contactInfoValid = isFirstPassenger ? 
+            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            true;
+        
+        const isValid = basicInfoValid && contactInfoValid;
+        
+        // Debug logging for passenger validation
+        if (!isValid) {
+            console.log(`Passenger ${index + 1} validation failed:`, {
+                isFirstPassenger,
+                firstName: passenger.firstName,
+                lastName: passenger.lastName,
+                weight: passenger.weight,
+                weightType: typeof passenger.weight,
+                phone: passenger.phone,
+                email: passenger.email,
+                basicInfoValid,
+                contactInfoValid,
+                passenger: passenger
+            });
+        }
+        
+        return isValid;
     });
     
-    // Special validation for Buy Gift (no weight required)
+    // Debug logging for passenger validation
+    console.log('Passenger validation debug:', {
+        passengerData: passengerData,
+        isPassengerInfoComplete,
+        passengerCount: Array.isArray(passengerData) ? passengerData.length : 0,
+        passengerDetails: Array.isArray(passengerData) ? passengerData.map((p, index) => ({
+            passengerNumber: index + 1,
+            isFirstPassenger: index === 0,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            weight: p.weight,
+            weightType: typeof p.weight,
+            phone: p.phone,
+            email: p.email,
+            hasFirstName: !!(p.firstName && p.firstName.trim() !== ''),
+            hasLastName: !!(p.lastName && p.lastName.trim() !== ''),
+            hasWeight: !!(p.weight && (typeof p.weight === 'string' ? p.weight.trim() !== '' : p.weight !== null && p.weight !== undefined)),
+            hasPhone: !!(p.phone && p.phone.trim() !== ''),
+            hasEmail: !!(p.email && p.email.trim() !== ''),
+            contactInfoRequired: index === 0,
+            contactInfoValid: index === 0 ? !!(p.phone && p.phone.trim() !== '' && p.email && p.email.trim() !== '') : true
+        })) : []
+    });
+    
+    // Special validation for Buy Gift (no weight required, but contact info required for all)
     const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every(passenger => {
         return passenger.firstName && passenger.firstName.trim() !== '' &&
                passenger.lastName && passenger.lastName.trim() !== '' &&
@@ -142,8 +197,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedVoucherType &&
             selectedDate &&
             selectedTime &&
-            isPassengerInfoComplete &&
-            isNonEmptyObject(additionalInfo)
+            isPassengerInfoComplete
+            // additionalInfo is optional for Redeem Voucher
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isFlightVoucher
@@ -151,7 +206,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseFlightType &&
             selectedVoucherType &&
             isPassengerInfoComplete &&
-            isNonEmptyObject(additionalInfo)
+            isAdditionalInfoFilled(additionalInfo)
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
@@ -160,7 +215,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedVoucherType &&
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isBuyGiftPassengerComplete &&
-            isNonEmptyObject(additionalInfo) &&
+            isAdditionalInfoFilled(additionalInfo) &&
             isNonEmptyObject(recipientDetails)
         )
         : !(
@@ -170,11 +225,51 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedVoucherType &&
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
-            isNonEmptyObject(additionalInfo) &&
-            isNonEmptyObject(recipientDetails) &&
+            // additionalInfo is optional for Book Flight
             selectedDate &&
             selectedTime
         );
+
+    // Debug logging for Book Flight validation
+    if (activitySelect === 'Book Flight') {
+        console.log('Book Flight validation debug:', {
+            activitySelect: !!activitySelect,
+            chooseLocation: !!chooseLocation,
+            chooseFlightType: !!chooseFlightType,
+            selectedVoucherType: !!selectedVoucherType,
+            selectedDate: !!selectedDate,
+            selectedTime: !!selectedTime,
+            isPassengerInfoComplete,
+            additionalInfo: isAdditionalInfoFilled(additionalInfo),
+            additionalInfoRaw: additionalInfo,
+            additionalInfoKeys: additionalInfo ? Object.keys(additionalInfo) : [],
+            additionalInfoValues: additionalInfo ? Object.values(additionalInfo) : [],
+            recipientDetails: isNonEmptyObject(recipientDetails),
+            isBookDisabled
+        });
+        
+        // Check each validation condition separately
+        console.log('Book Flight individual conditions:', {
+            condition1: !!activitySelect,
+            condition2: !!chooseLocation,
+            condition3: !!chooseFlightType,
+            condition4: !!selectedVoucherType,
+            condition5: !!selectedDate,
+            condition6: !!selectedTime,
+            condition7: isPassengerInfoComplete,
+            condition8: 'additionalInfo is now optional'
+        });
+        
+        // Debug date and time specifically
+        console.log('Date and Time debug:', {
+            selectedDate: selectedDate,
+            selectedTime: selectedTime,
+            selectedDateType: typeof selectedDate,
+            selectedTimeType: typeof selectedTime,
+            selectedDateValid: !!selectedDate,
+            selectedTimeValid: !!selectedTime
+        });
+    }
 
     // Debug logging for Buy Gift
     if (isGiftVoucher) {

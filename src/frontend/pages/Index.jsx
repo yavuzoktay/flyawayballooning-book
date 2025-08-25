@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LOGO from '../../assets/images/FAB_Logo_DarkBlue.png';
-import RATINGS_BAR from '../../assets/images/ratings-bar.png';
+
 import { Container } from "@mui/material";
 import ChooseActivityCard from "../components/HomePage/ChooseActivityCard";
 import RightInfoCard from "../components/HomePage/RightInfoCard";
@@ -45,6 +45,7 @@ const Index = () => {
     const [selectedTime, setSelectedTime] = useState(null);
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
+    const [countdownSeconds, setCountdownSeconds] = useState(null);
 
     // NEW: viewport helper for mobile-specific inline tweaks
     const [isMobile, setIsMobile] = useState(false);
@@ -70,6 +71,13 @@ const Index = () => {
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
+    };
+    
+    // Handle countdown timeout
+    const handleCountdownTimeout = () => {
+        setSelectedDate(null);
+        setSelectedTime(null);
+        setCountdownSeconds(null);
     };
     
     
@@ -620,11 +628,15 @@ const Index = () => {
                                 </a>
                             </div>
                             {showBookingHeader && (
-                                <BookingHeader location={chooseLocation} selectedDate={selectedDate} selectedTime={selectedTime} />
+                                <BookingHeader 
+                                    location={chooseLocation} 
+                                    selectedDate={selectedDate} 
+                                    selectedTime={selectedTime} 
+                                    countdownSeconds={countdownSeconds}
+                                    onTimeout={handleCountdownTimeout}
+                                />
                             )}
-                            <div className="header-ratings-bar" style={{ marginLeft: 'auto', display: isMobile ? 'none' : 'flex', alignItems: 'center', height: '100%', minWidth: isMobile ? 'auto' : '180px', flexShrink: isMobile ? 1 : 0 }}>
-                                <img src={RATINGS_BAR} alt="Ratings Bar" style={{ height: isMobile ? '40px' : '60px', width: isMobile ? '160px' : '220px', objectFit: 'contain' }} />
-                            </div>
+
                         </div>
                     </Container>
                 </div>
@@ -643,7 +655,7 @@ const Index = () => {
                                     padding: isMobile ? '0 8px' : '0'
                                 }}>
                                     <h3 style={{ 
-                                        fontSize: isMobile ? '18px' : '22px', 
+                                        fontSize: isMobile ? '18px' : '20px', 
                                         textAlign: 'center', 
                                         marginBottom: isMobile ? '10px' : '20px',
                                         marginTop: isMobile ? '5px' : '0'
@@ -719,6 +731,9 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
+                                                countdownSeconds={countdownSeconds}
+                                                setCountdownSeconds={setCountdownSeconds}
+                                                onTimeout={handleCountdownTimeout}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -792,6 +807,9 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
+                                                countdownSeconds={countdownSeconds}
+                                                setCountdownSeconds={setCountdownSeconds}
+                                                onTimeout={handleCountdownTimeout}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
