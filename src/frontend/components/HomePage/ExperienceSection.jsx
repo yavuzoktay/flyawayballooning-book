@@ -14,12 +14,24 @@ const weatherRefundableHoverTexts = {
 
 const API_BASE_URL = config.API_BASE_URL;
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, activityId, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
+    // Safety check for required props - log error but don't return early to avoid hook violations
+    const hasRequiredProps = setChooseFlightType && setAddPassenger && setActiveAccordion && setAvailableSeats;
+    if (!hasRequiredProps) {
+        console.error('ExperienceSection: Missing required props', {
+            setChooseFlightType: !!setChooseFlightType,
+            setAddPassenger: !!setAddPassenger,
+            setActiveAccordion: !!setActiveAccordion,
+            setAvailableSeats: !!setAvailableSeats
+        });
+    }
+
     const [selectedFlight, setSelectedFlight] = useState(null);
     const [locationPricing, setLocationPricing] = useState(null);
     const [loading, setLoading] = useState(false);
     const [experiences, setExperiences] = useState([]);
     const [experiencesLoading, setExperiencesLoading] = useState(false);
+    const [activitiesWithFlightTypes, setActivitiesWithFlightTypes] = useState([]);
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
@@ -60,6 +72,31 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     const lastFetchedLocationRef = useRef(null);
 
+    // Fetch activities with flight types when location changes
+    useEffect(() => {
+        const fetchActivitiesWithFlightTypes = async () => {
+            if (!chooseLocation) return;
+            
+            try {
+                console.log('Fetching activities with flight types for location:', chooseLocation);
+                const response = await axios.get(`${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}`);
+                
+                if (response.data.success) {
+                    setActivitiesWithFlightTypes(response.data.data);
+                    console.log('Activities with flight types:', response.data.data);
+                } else {
+                    console.error('Failed to fetch activities with flight types');
+                    setActivitiesWithFlightTypes([]);
+                }
+            } catch (error) {
+                console.error('Error fetching activities with flight types:', error);
+                setActivitiesWithFlightTypes([]);
+            }
+        };
+
+        fetchActivitiesWithFlightTypes();
+    }, [chooseLocation, API_BASE_URL]);
+
     // Fetch pricing data when location changes
     useEffect(() => {
         if (!chooseLocation) return;
@@ -73,7 +110,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             setLocationPricing({
                 shared_flight_from_price: bristolSharedPrice,
                 private_charter_from_price: bristolPrivatePrices[2], // Use 2-person price as base
-                flight_type: 'Private,Shared'
+                flight_type: ['Private', 'Shared'], // Use array format for consistency
+                experiences: ['Private Charter', 'Shared Flight'] // Map to experience names
             });
         } else {
             fetchLocationPricing();
@@ -108,8 +146,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         }
     };
 
-    // Create dynamic experiences based on location pricing
+    // Create dynamic experiences based on location pricing and activity flight types
     const getExperiences = useMemo(() => {
+        // Define experiencesArray first
         const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_flight_from_price || 180);
         const privatePrice = isBristol ? null : (locationPricing?.private_charter_from_price || 900);
 
@@ -163,8 +202,38 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 }
             }
         ];
-        return experiencesArray;
-    }, [locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices]);
+
+        // If no locationPricing, return the basic experiences array
+        if (!locationPricing) return experiencesArray;
+
+        // Get allowed flight types from activities for this location
+        let allowedFlightTypes = [];
+        if (activitiesWithFlightTypes && Array.isArray(activitiesWithFlightTypes)) {
+            allowedFlightTypes = activitiesWithFlightTypes
+                .filter(activity => activity && activity.location === chooseLocation)
+                .flatMap(activity => (activity.experiences || []))
+                .filter((type, index, arr) => arr.indexOf(type) === index); // Remove duplicates
+        }
+
+        // If no flight types from activities, try to get from locationPricing
+        if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
+            allowedFlightTypes = locationPricing.experiences;
+        }
+
+        console.log('ExperienceSection: Allowed flight types from activities:', allowedFlightTypes);
+        console.log('ExperienceSection: Activities for location:', activitiesWithFlightTypes?.filter(a => a?.location === chooseLocation) || []);
+        console.log('ExperienceSection: Location pricing experiences:', locationPricing?.experiences);
+
+        // Filter experiences based on allowed flight types
+        const filteredExperiences = experiencesArray.filter(experience => {
+            const isAllowed = allowedFlightTypes.length === 0 || allowedFlightTypes.includes(experience.title);
+            console.log(`ExperienceSection: ${experience.title} - Allowed: ${isAllowed}`);
+            return isAllowed;
+        });
+
+        console.log('ExperienceSection: Filtered experiences:', filteredExperiences);
+        return filteredExperiences;
+    }, [locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation]);
 
     // Fetch experiences from API
     const fetchExperiences = async () => {
@@ -183,68 +252,76 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         }
     };
 
-    // Use API experiences if available, otherwise fallback to default
-    const getExperiencesFromAPI = useMemo(() => {
-        if (experiences.length > 0) {
-            return experiences.map(exp => {
-                // Get pricing from selected activity based on experience type
-                let price = '';
-                let priceUnit = 'pp';
-                
-                if (locationPricing) {
-                    if (exp.title.toLowerCase().includes('shared')) {
-                        price = locationPricing.shared_flight_from_price || 180;
-                        priceUnit = 'pp';
-                    } else if (exp.title.toLowerCase().includes('private')) {
-                        price = locationPricing.private_charter_from_price || 900;
-                        priceUnit = 'total';
-                    }
-                } else {
-                    // Fallback to default pricing
-                    if (exp.title.toLowerCase().includes('shared')) {
-                        price = isBristol ? bristolSharedPrice : 180;
-                        priceUnit = 'pp';
-                    } else if (exp.title.toLowerCase().includes('private')) {
-                        price = isBristol ? (bristolPrivatePrices[2] / 2) : 900;
-                        priceUnit = isBristol ? 'pp' : 'total';
-                    }
-                }
-                
-                return {
-                    title: exp.title,
-                    img: exp.image_url ? `${API_BASE_URL}${exp.image_url}` : (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
-                    price: formatPriceDisplay(price),
-                    desc: exp.description,
-                    details: [],
-                    maxFlight: `Max ${exp.max_passengers} per flight`,
-                    passengerOptions: Array.from({ length: exp.max_passengers }, (_, i) => i + 1),
-                    max_passengers: exp.max_passengers,
-                    isFromAPI: true,
-                    priceValue: price,
-                    priceUnit: priceUnit
-                };
-            });
-        }
-        return getExperiences;
-    }, [experiences, locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, getExperiences]);
+    // Final experiences array - use API experiences if available, otherwise fallback to default
+    const finalExperiences = useMemo(() => {
+        // Check if we have API experiences first
+        if (experiences && experiences.length > 0) {
+            // Get allowed flight types from activities for this location
+            let allowedFlightTypes = [];
+            if (activitiesWithFlightTypes && Array.isArray(activitiesWithFlightTypes)) {
+                allowedFlightTypes = activitiesWithFlightTypes
+                    .filter(activity => activity && activity.location === chooseLocation)
+                    .flatMap(activity => (activity.experiences || []))
+                    .filter((type, index, arr) => arr.indexOf(type) === index);
+            }
 
-    // --- FLIGHT TYPE FILTERING ---
-    // locationPricing.flight_type ör: "Private,Shared"
-    let allowedTypes = (locationPricing?.flight_type || '').split(',').map(t => t.trim()).filter(Boolean);
-    
-    // If no allowed types are specified (e.g., when locationPricing is not loaded yet), 
-    // or if it's a voucher type, show all experiences
-    if (allowedTypes.length === 0 || isFlightVoucher || isGiftVoucher) {
-        allowedTypes = ['Shared', 'Private'];
-    }
-    
-    const filteredExperiences = useMemo(() => {
-        return getExperiencesFromAPI.filter(exp => {
-            if (exp.title === "Shared Flight") return allowedTypes.includes("Shared");
-            if (exp.title === "Private Charter") return allowedTypes.includes("Private");
-            return false;
-        });
-    }, [getExperiencesFromAPI, allowedTypes, isFlightVoucher, isGiftVoucher]);
+            // If no flight types from activities, try to get from locationPricing
+            if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
+                allowedFlightTypes = locationPricing.experiences;
+            }
+
+            // Filter API experiences based on allowed flight types
+            const filteredExperiences = experiences.filter(exp => {
+                const isAllowed = allowedFlightTypes.length === 0 || allowedFlightTypes.includes(exp.title);
+                return isAllowed;
+            });
+
+            if (filteredExperiences.length > 0) {
+                return filteredExperiences.map(exp => {
+                    // Get pricing from selected activity based on experience type
+                    let price = '';
+                    let priceUnit = 'pp';
+                    
+                    if (locationPricing) {
+                        if (exp.title.toLowerCase().includes('shared')) {
+                            price = locationPricing.shared_flight_from_price || 180;
+                            priceUnit = 'pp';
+                        } else if (exp.title.toLowerCase().includes('private')) {
+                            price = locationPricing.private_charter_from_price || 900;
+                            priceUnit = 'total';
+                        }
+                    } else {
+                        // Fallback to default pricing
+                        if (exp.title.toLowerCase().includes('shared')) {
+                            price = isBristol ? bristolSharedPrice : 180;
+                            priceUnit = 'pp';
+                        } else if (exp.title.toLowerCase().includes('private')) {
+                            price = isBristol ? (bristolPrivatePrices[2] / 2) : 900;
+                            priceUnit = isBristol ? 'pp' : 'total';
+                        }
+                    }
+                    
+                    return {
+                        title: exp.title,
+                        img: exp.image_url || (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
+                        price: formatPriceDisplay(price),
+                        priceValue: price,
+                        priceUnit: priceUnit,
+                        desc: exp.description || 'No description available',
+                        details: [],
+                        maxFlight: exp.max_passengers ? `Max ${exp.max_passengers} per flight` : "Max 8 per flight",
+                        passengerOptions: Array.from({ length: exp.max_passengers || 8 }, (_, i) => i + 1)
+                    };
+                });
+            }
+        }
+        
+        // Fallback to default experiences
+        return getExperiences;
+    }, [experiences, locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation, getExperiences]);
+
+    // Use finalExperiences instead of the old logic
+    const filteredExperiences = finalExperiences || [];
     
     // Debug: Log experiences data
     console.log('Experiences after filtering:', filteredExperiences);
@@ -252,6 +329,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
 
     const handlePassengerChange = (index, value) => {
+        if (!setAddPassenger) {
+            console.error('setAddPassenger is not available');
+            return;
+        }
+        
+        if (!filteredExperiences || !Array.isArray(filteredExperiences)) {
+            console.error('filteredExperiences is not available or not an array');
+            return;
+        }
+        
         setAddPassenger((prev) => {
             const updatedPassengers = Array(filteredExperiences.length).fill(null); // Reset all selections
             updatedPassengers[index] = value ? parseInt(value) : null;
@@ -342,31 +429,32 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         };
         console.log('Setting selected flight:', flightData);
         setSelectedFlight(flightData);
-        setChooseFlightType(flightData);
-        getBookingDates(flightData.type);
+        
+        if (setChooseFlightType) {
+            setChooseFlightType(flightData);
+        } else {
+            console.error('setChooseFlightType is not available');
+        }
     };
 
 
 
-    // Get Booking Dates
-    async function getBookingDates(type) {
-        const response = await axios.post(`${API_BASE_URL}/api/getAvailableSeats`, {
-            flight_type: type,
-            activity_id: activityId
-        });
 
-        if (response.status === 200) {
-            const data = response?.data?.result;
-            setAvailableSeats(data);
-            console.log('Available seats:', data);
-        }
-    }
 
     // Debug logging for troubleshooting
     if (filteredExperiences.length === 0) {
         console.log('WARNING: Experiences array is empty!');
         console.log('Location pricing:', locationPricing);
-        console.log('Allowed types:', allowedTypes);
+        console.log('Activities with flight types:', activitiesWithFlightTypes);
+        console.log('Allowed flight types:', activitiesWithFlightTypes && Array.isArray(activitiesWithFlightTypes) 
+            ? activitiesWithFlightTypes
+                .filter(activity => activity && activity.location === chooseLocation)
+                .flatMap(activity => (activity.experiences || []))
+                .filter((type, index, arr) => arr.indexOf(type) === index)
+            : []);
+        console.log('Location pricing experiences:', locationPricing?.experiences);
+    } else {
+        console.log('Experiences available:', filteredExperiences.map(exp => exp.title));
     }
     
     return (
@@ -396,65 +484,37 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     .experience-scroll-outer::-webkit-scrollbar-thumb {
                         background: #666;
                         border-radius: 4px;
-                        border: 1px solid #f1f1f1;
                     }
                     
                     .experience-scroll-outer::-webkit-scrollbar-thumb:hover {
-                        background: #444;
-                    }
-                    
-                    .experience-scroll-outer::-webkit-scrollbar-corner {
-                        background: #f1f1f1;
-                    }
-                    
-                    @media (max-width: 768px) {
-                        .experience-scroll-outer::-webkit-scrollbar {
-                            height: 6px;
-                        }
-                        
-                        .experience-scroll-outer::-webkit-scrollbar-track {
-                            background: #e0e0e0;
-                            margin: 0 1px;
-                        }
-                        
-                        .experience-scroll-outer::-webkit-scrollbar-thumb {
-                            background: #999;
-                            border: 1px solid #e0e0e0;
-                        }
-                        
-                        .experience-scroll-outer {
-                            padding: 0 4px !important;
-                            margin: 0 -4px !important;
-                        }
-                        
-                        .experience-scroll-outer > div {
-                            gap: 8px !important;
-                            padding: 0 4px !important;
-                        }
-                    }
-                    
-                    @media (max-width: 480px) {
-                        .experience-scroll-outer::-webkit-scrollbar {
-                            height: 4px;
-                        }
-                        
-                        .experience-scroll-outer {
-                            padding: 0 2px !important;
-                            margin: 0 -2px !important;
-                        }
-                        
-                        .experience-scroll-outer > div {
-                            gap: 6px !important;
-                            padding: 0 2px !important;
-                        }
+                        background: #555;
                     }
                 `}
             </style>
+            
+            {!hasRequiredProps && (
+                <div style={{ 
+                    padding: '20px', 
+                    backgroundColor: '#ffebee', 
+                    color: '#c62828', 
+                    borderRadius: '8px', 
+                    margin: '20px',
+                    textAlign: 'center'
+                }}>
+                    <strong>Error:</strong> ExperienceSection is missing required props. Please check the console for details.
+                </div>
+            )}
+            
             <Accordion
                 title="Select Experience"
-                id="select-experience"
-                activeAccordion={activeAccordion}
-                setActiveAccordion={setActiveAccordion}
+                isOpen={activeAccordion === "experience"}
+                onToggle={() => {
+                    if (setActiveAccordion) {
+                        setActiveAccordion(activeAccordion === "experience" ? null : "experience");
+                    } else {
+                        console.error('setActiveAccordion is not available');
+                    }
+                }}
             >
             {isMobile ? (
                 // Mobile: horizontal layout with horizontal scrolling

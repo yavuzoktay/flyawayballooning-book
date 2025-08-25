@@ -32,6 +32,7 @@ const Index = () => {
     const [chooseAddOn, setChooseAddOn] = useState([]);
     const [passengerData, setPassengerData] = useState([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
     const [weatherRefund, setWeatherRefund] = useState(false);
+    const [privateCharterWeatherRefund, setPrivateCharterWeatherRefund] = useState(false);
     const [preference, setPreference] = useState({ location: {}, time: {}, day: {} });
     const [recipientDetails, setRecipientDetails] = useState({ name: "", email: "", phone: "", date: "" });
     const [additionalInfo, setAdditionalInfo] = useState({ notes: "" });
@@ -346,6 +347,7 @@ const Index = () => {
         setChooseAddOn([]);
         setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
         setWeatherRefund(false);
+        setPrivateCharterWeatherRefund(false);
         setPreference({ location: {}, time: {}, day: {} });
         setRecipientDetails({ name: "", email: "", phone: "", date: "" });
         setAdditionalInfo({ notes: "" });
@@ -442,8 +444,9 @@ const Index = () => {
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
             setAddPassenger([1, 2]);
             setChooseAddOn([]);
-            setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
-            setWeatherRefund(false);
+                    setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
+        setWeatherRefund(false);
+        setPrivateCharterWeatherRefund(false);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: '', email: '', phone: '', date: '' });
             setAdditionalInfo({ notes: '' });
@@ -695,7 +698,6 @@ const Index = () => {
                                                 setAddPassenger={setAddPassenger} 
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion} 
-                                                activityId={activityId} 
                                                 setAvailableSeats={setAvailableSeats}
                                                 voucherCode={voucherCode}
                                                 chooseLocation={chooseLocation}
@@ -748,6 +750,9 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                                selectedVoucherType={selectedVoucherType}
+                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -824,6 +829,9 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                                selectedVoucherType={selectedVoucherType}
+                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -858,7 +866,6 @@ const Index = () => {
                                                 setAddPassenger={setAddPassenger} 
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion} 
-                                                activityId={activityId} 
                                                 setAvailableSeats={setAvailableSeats}
                                                 voucherCode={voucherCode}
                                                 chooseLocation={chooseLocation}
@@ -943,7 +950,6 @@ const Index = () => {
                                                     setAddPassenger={setAddPassenger} 
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion} 
-                                                    activityId={activityId} 
                                                     setAvailableSeats={setAvailableSeats}
                                                     voucherCode={voucherCode}
                                                     chooseLocation={chooseLocation}
@@ -1024,6 +1030,9 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                                selectedVoucherType={selectedVoucherType}
+                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                             />
 
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && chooseLocation !== "Bristol Fiesta" && (
@@ -1079,6 +1088,7 @@ const Index = () => {
                                 selectedVoucherType={selectedVoucherType}
                                 voucherStatus={voucherStatus}
                                 voucherData={voucherData}
+                                privateCharterWeatherRefund={privateCharterWeatherRefund}
                             />
                         </div>
                     </div>

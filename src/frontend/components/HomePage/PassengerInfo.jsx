@@ -4,13 +4,14 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation }, ref) => {
+const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund }, ref) => {
   // Parse passengerCount from chooseFlightType and ensure it's at least 1
   // For Buy Gift, always 1 passenger
   const passengerCount = activitySelect === 'Buy Gift' ? 1 : Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
   
   // Mobile breakpoint
   const [isMobile, setIsMobile] = useState(false);
+  
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
     onResize();
@@ -22,6 +23,10 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);
   console.log("Passenger count:", passengerCount);
   console.log("Current passengerData length:", passengerData.length);
+  console.log("selectedVoucherType in PassengerInfo:", selectedVoucherType);
+  console.log("Should show Private Charter weather refundable:", chooseFlightType?.type === "Private Charter");
+  console.log("Flight type check:", chooseFlightType?.type);
+  console.log("Is Private Charter:", chooseFlightType?.type === "Private Charter");
 
   // Sync passengerData with passenger count whenever chooseFlightType changes
   useEffect(() => {
@@ -73,13 +78,37 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     }
   };
 
-  // Handle weather refund toggle
+  // Handle weather refund toggle for regular passengers
   const handleWeatherRefundChange = (index) => {
     setPassengerData((prevData) => {
       const updatedData = [...prevData];
       updatedData[index] = { ...updatedData[index], weatherRefund: !updatedData[index].weatherRefund };
       return updatedData;
     });
+  };
+
+  // Handle weather refund toggle for Private Charter (one-time charge)
+  const handlePrivateCharterWeatherRefundChange = () => {
+    setPrivateCharterWeatherRefund(!privateCharterWeatherRefund);
+  };
+
+  // Calculate weather refundable price for Private Charter (10% of voucher type price)
+  const getPrivateCharterWeatherRefundPrice = () => {
+    console.log("getPrivateCharterWeatherRefundPrice called with:", selectedVoucherType);
+    
+    // If we have selectedVoucherType with price, use it
+    if (selectedVoucherType && selectedVoucherType.price) {
+      const price = (selectedVoucherType.price * 0.1).toFixed(2);
+      console.log(`Private Charter weather refundable price calculated: ${selectedVoucherType.price} * 0.1 = £${price}`);
+      return price;
+    }
+    
+    // Fallback: If no voucher type but we know it's Private Charter, use a default calculation
+    // This assumes the voucher price is around £150-300 based on the Group Pricing
+    const fallbackPrice = 150; // Default to £150 as fallback
+    const price = (fallbackPrice * 0.1).toFixed(2);
+    console.log(`Using fallback price calculation: ${fallbackPrice} * 0.1 = £${price}`);
+    return price;
   };
 
   // Validation function for all activity types
@@ -174,8 +203,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
-                {/* Weather Refundable alanı sadece Flight Voucher seçili DEĞİLSE gösterilecek */}
-                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta") || activitySelect === "Flight Voucher") && (
+                {/* Weather Refundable alanı sadece Flight Voucher seçili DEĞİLSE ve Private Charter DEĞİLSE gösterilecek */}
+                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta") || activitySelect === "Flight Voucher" || chooseFlightType?.type === "Private Charter") && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span
@@ -206,6 +235,56 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
                         <div className="hover-text">
                           <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
+                        </div>
+                      </div>
+                    </span>
+                  </label>
+                </div>
+                )}
+                
+                {/* Private Charter Weather Refundable - One-time charge for entire booking */}
+                {chooseFlightType?.type === "Private Charter" && (
+                <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                  <label className="passenger_weather-refund" htmlFor="privateCharterWeatherRefund" style={{ cursor: "pointer", display: 'flex', alignItems: 'center', gap: '8px', margin: '0' }}>
+                    <span
+                      style={privateCharterWeatherRefund ? activeCheckStyle : checkStyle}
+                      onClick={handlePrivateCharterWeatherRefundChange}
+                      tabIndex={0}
+                      role="checkbox"
+                      aria-checked={privateCharterWeatherRefund}
+                    >
+                      {privateCharterWeatherRefund && (
+                        <span style={checkIconStyle}>✓</span>
+                      )}
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <p style={{ margin: 0 }}>Weather Refundable (Private Charter)</p>
+                      {privateCharterWeatherRefund && (
+                        <span style={{
+                          background: "#61D836",
+                          padding: "6px 12px",
+                          borderRadius: "15px",
+                          color: "#fff",
+                          fontFamily: 'Gilroy',
+                          fontSize: "14px",
+                          fontWeight: "500"
+                        }}>+£{getPrivateCharterWeatherRefundPrice()}</span>
+                      )}
+                      {!privateCharterWeatherRefund && (
+                        <span style={{
+                          background: "#f3f4f6",
+                          padding: "6px 12px",
+                          borderRadius: "15px",
+                          color: "#6b7280",
+                          fontFamily: 'Gilroy',
+                          fontSize: "14px",
+                          fontWeight: "500"
+                        }}>+£{getPrivateCharterWeatherRefundPrice()}</span>
+                      )}
+                      <div className="info-icon-container" style={{ position: 'relative' }}>
+                        <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                        <div className="hover-text">
+                          <p>Private Charter Weather Refundable: One-time charge for the entire booking (10% of voucher type price). Recommended for overseas travellers. Without this option your voucher is non-refundable under any circumstances.</p>
                         </div>
                       </div>
                     </span>

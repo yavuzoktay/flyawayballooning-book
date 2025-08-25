@@ -126,8 +126,12 @@ const VoucherType = ({
     const [slideDirection, setSlideDirection] = useState('right');
     const [allVoucherTypes, setAllVoucherTypes] = useState([]);
     const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
+    const [privateCharterVoucherTypes, setPrivateCharterVoucherTypes] = useState([]);
+    const [privateCharterVoucherTypesLoading, setPrivateCharterVoucherTypesLoading] = useState(true);
     const [termsContent, setTermsContent] = useState('');
     const [termsLoading, setTermsLoading] = useState(false);
+    const [activityData, setActivityData] = useState(null);
+    const [activityDataLoading, setActivityDataLoading] = useState(false);
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
@@ -153,9 +157,15 @@ const VoucherType = ({
         const fetchAllVoucherTypes = async () => {
             try {
                 setAllVoucherTypesLoading(true);
+                console.log('Fetching regular voucher types from:', `${API_BASE_URL}/api/voucher-types`);
+                
                 const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
+                console.log('Regular voucher types response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Regular voucher types data:', data);
+                    
                     if (data.success) {
                         setAllVoucherTypes(data.data);
                         
@@ -170,17 +180,64 @@ const VoucherType = ({
                         
                         setQuantities(newQuantities);
                         setLocationPricing(newPricing);
+                        
+                        console.log('Regular voucher types loaded successfully:', data.data.length, 'types');
+                    } else {
+                        console.error('Regular voucher types API returned success: false:', data);
                     }
+                } else {
+                    console.error('Failed to fetch regular voucher types. Status:', response.status);
                 }
             } catch (error) {
-                console.error('Error fetching voucher types:', error);
+                console.error('Error fetching regular voucher types:', error);
             } finally {
                 setAllVoucherTypesLoading(false);
             }
         };
 
         fetchAllVoucherTypes();
-    }, []);
+    }, [API_BASE_URL]);
+
+    // Fetch private charter voucher types from API
+    useEffect(() => {
+        const fetchPrivateCharterVoucherTypes = async () => {
+            try {
+                setPrivateCharterVoucherTypesLoading(true);
+                console.log('Fetching private charter voucher types from:', `${API_BASE_URL}/api/private-charter-voucher-types`);
+                
+                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types`);
+                console.log('Private charter voucher types response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Private charter voucher types data:', data);
+                    
+                    if (data.success) {
+                        setPrivateCharterVoucherTypes(data.data);
+                        
+                        // Initialize quantities for private charter voucher types
+                        const newQuantities = { ...quantities };
+                        data.data.forEach(vt => {
+                            newQuantities[vt.title] = 1;
+                        });
+                        setQuantities(newQuantities);
+                        
+                        console.log('Private charter voucher types loaded successfully:', data.data.length, 'types');
+                    } else {
+                        console.error('Private charter voucher types API returned success: false:', data);
+                    }
+                } else {
+                    console.error('Failed to fetch private charter voucher types. Status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching private charter voucher types:', error);
+            } finally {
+                setPrivateCharterVoucherTypesLoading(false);
+            }
+        };
+
+        fetchPrivateCharterVoucherTypes();
+    }, [API_BASE_URL]);
 
     // Fetch available voucher types for the selected location
     useEffect(() => {
@@ -230,61 +287,245 @@ const VoucherType = ({
         }
     }, [selectedActivity]);
 
-    const voucherTypes = useMemo(() => {
-        if (allVoucherTypesLoading || allVoucherTypes.length === 0) {
-            return [];
-        }
-
-        console.log('VoucherType: Creating voucherTypes with locationPricing:', locationPricing);
-
-        return allVoucherTypes.map(vt => {
-            // Parse features from JSON string
-            let features = [];
+    // Fetch activity data to get individual pricing for private charter voucher types
+    useEffect(() => {
+        const fetchActivityData = async () => {
+            if (!chooseLocation) {
+                setActivityData(null);
+                return;
+            }
+            
+            setActivityDataLoading(true);
             try {
-                features = JSON.parse(vt.features || '[]');
-            } catch (e) {
-                features = ['Around 1 Hour of Air Time', 'Complimentary Drink', 'Inflight Photos and 3D Flight Track'];
-            }
-
-            // Get pricing from activity settings based on voucher type title
-            let price = 0;
-            if (locationPricing) {
-                if (vt.title.toLowerCase().includes('weekday morning')) {
-                    price = locationPricing.weekday_morning_price || 180;
-                } else if (vt.title.toLowerCase().includes('flexible weekday')) {
-                    price = locationPricing.flexible_weekday_price || 200;
-                } else if (vt.title.toLowerCase().includes('any day flight')) {
-                    price = locationPricing.any_day_flight_price || 220;
+                const response = await axios.get(`${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}`);
+                if (response.data.success && response.data.data.length > 0) {
+                    // Get the first activity for this location
+                    const activity = response.data.data[0];
+                    setActivityData(activity);
+                    console.log('VoucherType: Activity data loaded:', activity);
+                    console.log('VoucherType: Private charter pricing field:', activity.private_charter_pricing);
+                    console.log('VoucherType: Private charter pricing type:', typeof activity.private_charter_pricing);
+                    console.log('VoucherType: Shared flight pricing fields:', {
+                        weekday_morning_price: activity.weekday_morning_price,
+                        flexible_weekday_price: activity.flexible_weekday_price,
+                        any_day_flight_price: activity.any_day_flight_price,
+                        shared_flight_from_price: activity.shared_flight_from_price
+                    });
                 } else {
-                    // Fallback to API pricing if no match found
-                    price = parseFloat(vt.price_per_person) || 180;
+                    console.log('VoucherType: No activity data found for location:', chooseLocation);
                 }
-            } else {
-                // Fallback to API pricing if no location pricing available
-                price = parseFloat(vt.price_per_person) || 180;
+            } catch (error) {
+                console.error('Error fetching activity data:', error);
+            } finally {
+                setActivityDataLoading(false);
+            }
+        };
+
+        fetchActivityData();
+    }, [chooseLocation]);
+
+    const voucherTypes = useMemo(() => {
+        // Determine which voucher types to show based on selected experience
+        const isPrivateCharter = chooseFlightType?.type === "Private Charter";
+        
+        console.log('VoucherType: voucherTypes useMemo triggered');
+        console.log('VoucherType: chooseFlightType:', chooseFlightType);
+        console.log('VoucherType: isPrivateCharter:', isPrivateCharter);
+        console.log('VoucherType: allVoucherTypes count:', allVoucherTypes.length);
+        console.log('VoucherType: privateCharterVoucherTypes count:', privateCharterVoucherTypes.length);
+        
+        if (isPrivateCharter) {
+            // For Private Charter, show private charter voucher types
+            if (privateCharterVoucherTypesLoading || privateCharterVoucherTypes.length === 0) {
+                console.log('VoucherType: Private Charter - no voucher types available yet');
+                return [];
+            }
+            
+            console.log('VoucherType: Creating private charter voucher types with locationPricing:', locationPricing);
+            
+            const privateVouchers = privateCharterVoucherTypes.map(vt => {
+                console.log(`VoucherType: Processing voucher type: ${vt.title} (ID: ${vt.id})`);
+                
+                // Parse features from JSON string
+                let features = [];
+                try {
+                    features = JSON.parse(vt.features || '[]');
+                } catch (e) {
+                    // Default features for private charter
+                    features = ['Private Balloon', 'Flexible Timing', 'Personalized Experience', 'Complimentary Drinks', 'Professional Photos', '3D Flight Track'];
+                }
+
+                // For private charter, use the individual pricing from activity data
+                let price = 300; // Default fallback
+                let priceUnit = 'total'; // Default to total price
+                
+                console.log(`VoucherType: Processing pricing for ${vt.title} (ID: ${vt.id})`);
+                console.log(`VoucherType: Activity data available:`, !!activityData);
+                console.log(`VoucherType: Private charter pricing available:`, !!(activityData && activityData.private_charter_pricing));
+                
+                if (activityData && activityData.private_charter_pricing) {
+                    try {
+                        let pricingData = activityData.private_charter_pricing;
+                        if (typeof pricingData === 'string') {
+                            pricingData = JSON.parse(pricingData);
+                        }
+                        
+                        console.log(`VoucherType: Parsed pricing data:`, pricingData);
+                        console.log(`VoucherType: Looking for pricing for voucher ID: ${vt.id}`);
+                        
+                        // Try both string and number keys for the voucher type ID
+                        const voucherId = vt.id;
+                        const stringId = voucherId.toString();
+                        
+                        if (pricingData && (pricingData[voucherId] || pricingData[stringId])) {
+                            price = parseFloat(pricingData[voucherId] || pricingData[stringId]);
+                            console.log(`VoucherType: Using individual pricing for ${vt.title}: £${price}`);
+                        } else {
+                            console.log(`VoucherType: No individual pricing found for ${vt.title} (ID: ${voucherId}), using default: £${price}`);
+                            console.log(`VoucherType: Available pricing keys:`, Object.keys(pricingData || {}));
+                        }
+                    } catch (e) {
+                        console.error('Error parsing private charter pricing:', e);
+                        console.log(`VoucherType: Using default pricing due to parsing error: £${price}`);
+                    }
+                } else {
+                    console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${price}`);
+                }
+
+                // Handle image URL properly - check if it's a full URL or relative path
+                let imageUrl = weekdayMorningImg; // Default fallback
+                if (vt.image_url) {
+                    if (vt.image_url.startsWith('http')) {
+                        imageUrl = vt.image_url;
+                    } else if (vt.image_url.startsWith('/uploads/')) {
+                        imageUrl = `${API_BASE_URL}${vt.image_url}`;
+                    } else {
+                        imageUrl = `${API_BASE_URL}/uploads/experiences/${vt.image_url}`;
+                    }
+                }
+
+                console.log(`VoucherType: Private Charter ${vt.title} - API price: ${vt.price_per_person}, Price unit: ${priceUnit}, Image: ${imageUrl}`);
+
+                return {
+                    id: vt.id,
+                    title: vt.title,
+                    description: vt.description || 'Exclusive private balloon experience for your group. Perfect for special occasions and intimate groups.',
+                    image: imageUrl,
+                    refundability: 'Non-Refundable',
+                    availability: vt.flight_days || 'Any Day',
+                    validity: `Valid: ${vt.validity_months || 18} Months`,
+                    inclusions: features,
+                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Private charters subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
+                    price: price,
+                    priceUnit: priceUnit,
+                    maxPassengers: vt.max_passengers || 8,
+                    flightTime: vt.flight_time || 'AM & PM'
+                };
+            });
+            
+            console.log('VoucherType: Private Charter voucher types created:', privateVouchers.length);
+            console.log('VoucherType: Final Private Charter pricing:', privateVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
+            console.log('VoucherType: Private Charter voucher types for selection:', privateVouchers);
+            return privateVouchers;
+        } else {
+            // For Shared Flight, show regular voucher types
+            if (allVoucherTypesLoading || allVoucherTypes.length === 0) {
+                console.log('VoucherType: Shared Flight - no voucher types available yet');
+                return [];
             }
 
-            console.log(`VoucherType: ${vt.title} - API price: ${vt.price_per_person}, Activity price: ${price}`);
+            console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
+            console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
 
-            return {
-                id: vt.id,
-                title: vt.title,
-                description: vt.description || 'No description available',
-                image: vt.image_url ? (vt.image_url.startsWith('/uploads/') ? vt.image_url : vt.image_url) : weekdayMorningImg, // Fallback to default image
-                refundability: 'Non-Refundable',
-                availability: vt.flight_days,
-                validity: `Valid: ${vt.validity_months} Months`,
-                inclusions: features,
-                weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-                price: price
-            };
-        });
-    }, [allVoucherTypes, allVoucherTypesLoading, locationPricing]);
+            const regularVouchers = allVoucherTypes.map(vt => {
+                // Parse features from JSON string
+                let features = [];
+                try {
+                    features = JSON.parse(vt.features || '[]');
+                } catch (e) {
+                    features = ['Around 1 Hour of Air Time', 'Complimentary Drink', 'Inflight Photos and 3D Flight Track'];
+                }
+
+                // Get pricing from activity data (activity popup) based on voucher type title
+                let price = 0;
+                if (activityData) {
+                    console.log(`VoucherType: Shared Flight - Using activity data for ${vt.title}:`, {
+                        weekday_morning_price: activityData.weekday_morning_price,
+                        flexible_weekday_price: activityData.flexible_weekday_price,
+                        any_day_flight_price: activityData.any_day_flight_price
+                    });
+                    
+                    if (vt.title.toLowerCase().includes('weekday morning')) {
+                        price = parseFloat(activityData.weekday_morning_price) || 180;
+                    } else if (vt.title.toLowerCase().includes('flexible weekday')) {
+                        price = parseFloat(activityData.flexible_weekday_price) || 200;
+                    } else if (vt.title.toLowerCase().includes('any day flight')) {
+                        price = parseFloat(activityData.any_day_flight_price) || 220;
+                    } else {
+                        // Fallback to API pricing if no match found
+                        price = parseFloat(vt.price_per_person) || 180;
+                    }
+                } else {
+                    // Fallback to locationPricing if no activity data available
+                    if (locationPricing) {
+                        if (vt.title.toLowerCase().includes('weekday morning')) {
+                            price = locationPricing.weekday_morning_price || 180;
+                        } else if (vt.title.toLowerCase().includes('flexible weekday')) {
+                            price = locationPricing.flexible_weekday_price || 200;
+                        } else if (vt.title.toLowerCase().includes('any day flight')) {
+                            price = locationPricing.any_day_flight_price || 220;
+                        } else {
+                            price = parseFloat(vt.price_per_person) || 180;
+                        }
+                    } else {
+                        // Final fallback to API pricing
+                        price = parseFloat(vt.price_per_person) || 180;
+                    }
+                }
+
+                // Handle image URL properly - check if it's a full URL or relative path
+                let imageUrl = weekdayMorningImg; // Default fallback
+                if (vt.image_url) {
+                    if (vt.image_url.startsWith('http')) {
+                        imageUrl = vt.image_url;
+                    } else if (vt.image_url.startsWith('/uploads/')) {
+                        imageUrl = `${API_BASE_URL}${vt.image_url}`;
+                    } else {
+                        imageUrl = `${API_BASE_URL}/uploads/experiences/${vt.image_url}`;
+                    }
+                }
+
+                console.log(`VoucherType: Regular ${vt.title} - API price: ${vt.price_per_person}, Activity price: ${price}, Image: ${imageUrl}`);
+
+                return {
+                    id: vt.id,
+                    title: vt.title,
+                    description: vt.description || 'No description available',
+                    image: imageUrl,
+                    refundability: 'Non-Refundable',
+                    availability: vt.flight_days || 'Monday - Friday',
+                    validity: `Valid: ${vt.validity_months || 18} Months`,
+                    inclusions: features,
+                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
+                    price: price,
+                    priceUnit: 'pp',
+                    maxPassengers: vt.max_passengers || 8,
+                    flightTime: vt.flight_time || 'AM'
+                };
+            });
+            
+            console.log('VoucherType: Regular voucher types created:', regularVouchers.length);
+            console.log('VoucherType: Final Shared Flight pricing:', regularVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
+            return regularVouchers;
+        }
+    }, [allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, locationPricing, chooseFlightType?.type, activityData]);
+
+    // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
     const handleQuantityChange = (voucherTitle, value) => {
         setQuantities(prev => ({
             ...prev,
-            [voucherTitle]: Math.max(0, parseInt(value) || 0)
+            [voucherTitle]: Math.max(1, parseInt(value) || 1)
         }));
     };
 
@@ -311,7 +552,21 @@ const VoucherType = ({
 
     const handleSelectVoucher = async (voucher) => {
         const quantity = quantities[voucher.title];
-        const totalPrice = voucher.price * quantity;
+        
+        console.log('VoucherType: handleSelectVoucher called with:', voucher);
+        console.log('VoucherType: Quantity for', voucher.title, ':', quantity);
+        
+        // Calculate total price based on price unit
+        let totalPrice;
+        if (voucher.priceUnit === 'total') {
+            // For total pricing, the price is already the total for the group
+            totalPrice = voucher.price;
+            console.log('VoucherType: Using total pricing:', totalPrice);
+        } else {
+            // For per-person pricing, multiply by quantity
+            totalPrice = voucher.price * quantity;
+            console.log('VoucherType: Using per-person pricing:', voucher.price, '×', quantity, '=', totalPrice);
+        }
         
         const voucherWithQuantity = {
             ...voucher,
@@ -319,6 +574,7 @@ const VoucherType = ({
             totalPrice: totalPrice
         };
         
+        console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
         
         // Fetch Terms & Conditions for this voucher type from backend Settings
@@ -354,10 +610,8 @@ const VoucherType = ({
         }
     };
 
-    // Hide VoucherType section if "Private Charter" is selected
-    if (chooseFlightType?.type === "Private Charter") {
-        return null;
-    }
+    // Remove the condition that hides VoucherType for Private Charter
+    // Both Shared Flight and Private Charter should be able to access voucher types
 
     return (
         <>
@@ -379,7 +633,12 @@ const VoucherType = ({
                             </div>
                             <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:16}}>
                                 <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Cancel</button>
-                                <button onClick={() => { setSelectedVoucherType(selectedVoucher); setActiveAccordion(null); setShowTerms(false); }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
+                                <button onClick={() => { 
+                                    console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
+                                    setSelectedVoucherType(selectedVoucher); 
+                                    setActiveAccordion(null); 
+                                    setShowTerms(false); 
+                                }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -458,17 +717,34 @@ const VoucherType = ({
                             width: '100%'
                         }}
                     >
-                        {loading || allVoucherTypesLoading ? (
+                        {loading || allVoucherTypesLoading || (chooseFlightType?.type === "Private Charter" && privateCharterVoucherTypesLoading) ? (
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
                                 <p>Loading voucher types...</p>
                             </div>
                         ) : voucherTypes
-                            .filter(voucher => availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title))
+                            .filter(voucher => {
+                                // For Private Charter, don't apply location filtering since they're generally available everywhere
+                                if (chooseFlightType?.type === "Private Charter") {
+                                    return true; // Show all private charter voucher types
+                                }
+                                // For Shared Flight, apply location filtering
+                                return availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title);
+                            })
                             .length > 0 ? (
                             (() => {
-                                const filteredVouchers = voucherTypes.filter(voucher => 
-                                    availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
-                                );
+                                const filteredVouchers = voucherTypes.filter(voucher => {
+                                    // For Private Charter, don't apply location filtering since they're generally available everywhere
+                                    if (chooseFlightType?.type === "Private Charter") {
+                                        return true; // Show all private charter voucher types
+                                    }
+                                    // For Shared Flight, apply location filtering
+                                    return availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title);
+                                });
+                                
+                                console.log('VoucherType: Available voucher types for location:', availableVoucherTypes);
+                                console.log('VoucherType: All voucher types:', voucherTypes.map(v => v.title));
+                                console.log('VoucherType: Filtered voucher types:', filteredVouchers.map(v => v.title));
+                                console.log('VoucherType: Experience type:', chooseFlightType?.type);
                                 
                                 // Mobile: horizontal layout with horizontal scrolling
                                 if (isMobile) {
@@ -507,6 +783,7 @@ const VoucherType = ({
                                                             <div style={{ fontSize: 10, color: '#666', marginBottom: 4, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.description}</div>
                                                             <div style={{ fontSize: 11, color: '#666', marginBottom: 3, fontWeight: 500 }}>{voucher.refundability}</div>
                                                             <div style={{ fontSize: 11, color: '#666', marginBottom: 3 }}>{voucher.availability}</div>
+                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3 }}>{voucher.flightTime}</div>
                                                             <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{voucher.validity}</div>
                                                             <ul style={{ paddingLeft: 10, margin: 0, marginBottom: 6, color: '#444', fontSize: 11, lineHeight: '1.2' }}>
                                                                 {voucher.inclusions.map((inclusion, i) => (
@@ -514,10 +791,19 @@ const VoucherType = ({
                                                                 ))}
                                                             </ul>
                                                             <div style={{ fontSize: 10, color: '#666', marginBottom: 6, lineHeight: '1.1', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
-                                                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>From £{voucher.price}</div>
                                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6, gap: '4px' }}>
                                                                 <label style={{ fontSize: 11, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                                <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} />
+                                                                <input 
+                                                                    type="number" 
+                                                                    min="1" 
+                                                                    max={voucher.maxPassengers || 8}
+                                                                    value={quantities[voucher.title]} 
+                                                                    onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                                                    style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} 
+                                                                />
+                                                            </div>
+                                                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>
+                                                                {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
                                                             </div>
                                                             <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
                                                                 Select
@@ -575,6 +861,7 @@ const VoucherType = ({
                                                         <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
                                                         <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{voucher.refundability}</div>
                                                         <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
+                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.flightTime}</div>
                                                         <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
                                                         <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
                                                             {voucher.inclusions.map((inclusion, i) => (
@@ -582,10 +869,19 @@ const VoucherType = ({
                                                             ))}
                                                         </ul>
                                                         <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
-                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{voucher.price}</div>
                                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                             <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                            <input type="number" min="0" value={quantities[voucher.title]} onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
+                                                            <input 
+                                                                type="number" 
+                                                                min="1" 
+                                                                max={voucher.maxPassengers || 8}
+                                                                value={quantities[voucher.title]} 
+                                                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                                                style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                                            />
+                                                        </div>
+                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
+                                                            {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
                                                         </div>
                                                         <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
                                                             Select
@@ -624,6 +920,7 @@ const VoucherType = ({
                                             <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{currentVoucher.title}</h3>
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{currentVoucher.refundability}</div>
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{currentVoucher.availability}</div>
+                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{currentVoucher.flightTime}</div>
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{currentVoucher.validity}</div>
                                             <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
                                                 {currentVoucher.inclusions.map((inclusion, i) => (
@@ -631,10 +928,19 @@ const VoucherType = ({
                                                 ))}
                                             </ul>
                                             <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{currentVoucher.weatherClause}</div>
-                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>From £{currentVoucher.price}</div>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                 <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                <input type="number" min="0" value={quantities[currentVoucher.title]} onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} />
+                                                <input 
+                                                    type="number" 
+                                                    min="1" 
+                                                    max={currentVoucher.maxPassengers || 8}
+                                                    value={quantities[currentVoucher.title]} 
+                                                    onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
+                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                                />
+                                            </div>
+                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
+                                                {currentVoucher.priceUnit === 'total' ? `£${currentVoucher.price} total` : `From £${currentVoucher.price} pp`}
                                             </div>
                                             <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(currentVoucher)}>
                                                 Select
@@ -645,7 +951,16 @@ const VoucherType = ({
                             })()
                         ) : (
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
-                                <p>No voucher types available for this location.</p>
+                                {chooseFlightType?.type === "Private Charter" ? (
+                                    <div>
+                                        <p>No private charter voucher types available for this location.</p>
+                                        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+                                            Please check with our team for private charter availability.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p>No voucher types available for this location.</p>
+                                )}
                             </div>
                         )}
                         
@@ -705,4 +1020,4 @@ const VoucherType = ({
     );
 };
 
-export default VoucherType; 
+export default VoucherType;  
