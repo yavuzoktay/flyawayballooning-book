@@ -203,8 +203,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
-                {/* Weather Refundable alanı sadece Flight Voucher seçili DEĞİLSE ve Private Charter DEĞİLSE gösterilecek */}
-                {!(activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift" || chooseFlightType?.type === "Private Flight" || (activitySelect === "Redeem Voucher" && chooseLocation === "Bristol Fiesta") || activitySelect === "Flight Voucher" || chooseFlightType?.type === "Private Charter") && (
+                {/* Weather Refundable alanı sadece "Any Day Flight" voucher type seçili olduğunda gösterilecek */}
+                {selectedVoucherType?.title === "Any Day Flight" && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span
@@ -242,8 +242,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 </div>
                 )}
                 
-                {/* Private Charter Weather Refundable - One-time charge for entire booking */}
-                {chooseFlightType?.type === "Private Charter" && (
+                {/* Private Charter Weather Refundable - One-time charge for entire booking, only for Any Day Flight */}
+                {chooseFlightType?.type === "Private Charter" && selectedVoucherType?.title === "Any Day Flight" && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor="privateCharterWeatherRefund" style={{ cursor: "pointer", display: 'flex', alignItems: 'center', gap: '8px', margin: '0' }}>
                     <span

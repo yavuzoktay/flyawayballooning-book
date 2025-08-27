@@ -658,7 +658,7 @@ const Index = () => {
                                     padding: isMobile ? '0 8px' : '0'
                                 }}>
                                     <h3 style={{ 
-                                        fontSize: isMobile ? '18px' : '20px', 
+                                        fontSize: isMobile ? '16px' : '17px', 
                                         textAlign: 'center', 
                                         marginBottom: isMobile ? '10px' : '20px',
                                         marginTop: isMobile ? '5px' : '0'

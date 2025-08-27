@@ -749,6 +749,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 isOpen={requestModalOpen}
                 onClose={() => setRequestModalOpen(false)}
                 title="Request Date"
+                showCloseButton={true}
                 extraContent={
                     <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 400, alignItems: 'stretch' }} onSubmit={e => {
                         e.preventDefault();
@@ -816,13 +817,47 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         {requestError && <div style={{ color: 'red', textAlign: 'center' }}>{requestError}</div>}
                     </form>
                 }
-                submitButtonProps={{
-                    disabled: !isFormValid,
-                    onClick: handleShowAllErrors,
-                    onSubmit: () => {
-                        if (isFormValid) handleRequestSubmit();
-                    }
-                }}
+                actionButtons={
+                    <>
+                        <button
+                            type="submit"
+                            disabled={!isFormValid}
+                            onClick={() => {
+                                if (isFormValid) handleRequestSubmit();
+                            }}
+                            style={{
+                                padding: '10px 20px',
+                                border: 'none',
+                                borderRadius: '6px',
+                                background: isFormValid ? '#10b981' : '#ccc',
+                                color: '#fff',
+                                cursor: isFormValid ? 'pointer' : 'not-allowed',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                minWidth: '80px'
+                            }}
+                        >
+                            Submit
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setRequestModalOpen(false)}
+                            style={{
+                                padding: '10px 20px',
+                                border: '1px solid #ccc',
+                                borderRadius: '6px',
+                                background: '#fff',
+                                color: '#333',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                minWidth: '80px'
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </>
+                }
             />
             
             {/* Time Selection Popup Modal */}
@@ -946,6 +981,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     >
                                         Cancel
                                     </button>
+                                </div>
+                                
+                                {/* Informational Text */}
+                                <div style={{ 
+                                    textAlign: 'center', 
+                                    marginTop: 16, 
+                                    color: '#666', 
+                                    fontSize: '12px',
+                                    lineHeight: '1.4',
+                                    fontStyle: 'italic'
+                                }}>
+                                    Hot air balloons can only fly twice a day – around sunrise and sunset. Meeting times are set according to these times.
                                 </div>
                             </div>
                         )}

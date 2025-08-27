@@ -626,13 +626,13 @@ const VoucherType = ({
                     <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
                         <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
                             <div style={{display:'flex',alignItems:'center',marginBottom:12}}>
-                                <h3 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827'}}>Terms & Conditions</h3>
+                                <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827'}}>Terms & Conditions</h4>
                             </div>
                             <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
                                 {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
                             </div>
                             <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:16}}>
-                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Cancel</button>
+                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Choose Different Voucher</button>
                                 <button onClick={() => { 
                                     console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
                                     setSelectedVoucherType(selectedVoucher); 
@@ -714,7 +714,10 @@ const VoucherType = ({
                             padding: isMobile ? '16px' : '40px 60px',
                             minHeight: isMobile ? 'auto' : '400px',
                             position: 'relative',
-                            width: '100%'
+                            width: '100%',
+                            maxWidth: 1080,
+                            margin: '0 auto',
+                            boxSizing: 'border-box'
                         }}
                     >
                         {loading || allVoucherTypesLoading || (chooseFlightType?.type === "Private Charter" && privateCharterVoucherTypesLoading) ? (

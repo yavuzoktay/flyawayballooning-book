@@ -131,11 +131,12 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                     <label className="block mb-2 text-base font-semibold">Additional Notes:</label>
                     <textarea
                         name="notes"
-                        rows="4"
+                        rows="3"
                         cols="50"
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
                         value={additionalInfo.notes || ""}
+                        style={{ height: 90, resize: 'vertical' }}
                     ></textarea>
                 </div>
 
