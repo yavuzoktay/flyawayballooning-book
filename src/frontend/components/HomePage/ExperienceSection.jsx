@@ -524,14 +524,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             
             <Accordion
                 title="Select Experience"
-                isOpen={activeAccordion === "experience"}
-                onToggle={() => {
-                    if (setActiveAccordion) {
-                        setActiveAccordion(activeAccordion === "experience" ? null : "experience");
-                    } else {
-                        console.error('setActiveAccordion is not available');
-                    }
-                }}
+                id="experience"
+                activeAccordion={activeAccordion}
+                setActiveAccordion={setActiveAccordion}
             >
             {isMobile ? (
                 // Mobile: horizontal layout with horizontal scrolling

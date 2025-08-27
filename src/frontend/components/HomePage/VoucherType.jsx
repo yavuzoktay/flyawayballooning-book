@@ -783,27 +783,43 @@ const VoucherType = ({
                                                         />
                                                         <div style={{ padding: '10px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
                                                             <h3 style={{ fontSize: 15, fontWeight: 300, margin: 0, marginBottom: 3, color: '#4a4a4a' }}>{voucher.title}</h3>
-                                                            <div style={{ fontSize: 10, color: '#666', marginBottom: 4, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.description}</div>
-                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3, fontWeight: 500 }}>{voucher.refundability}</div>
-                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3 }}>{voucher.availability}</div>
-                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 3 }}>{voucher.flightTime}</div>
-                                                            <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{voucher.validity}</div>
-                                                            <ul style={{ paddingLeft: 10, margin: 0, marginBottom: 6, color: '#444', fontSize: 11, lineHeight: '1.2' }}>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 4, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.description}</div>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3 }}>{voucher.refundability}</div>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3 }}>{voucher.availability}</div>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3 }}>{voucher.flightTime}</div>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>{voucher.validity}</div>
+                                                            <ul style={{ paddingLeft: 10, margin: 0, marginBottom: 6, color: '#666', fontSize: 13, lineHeight: '1.2' }}>
                                                                 {voucher.inclusions.map((inclusion, i) => (
                                                                     <li key={i} style={{ marginBottom: 1 }}>{inclusion}</li>
                                                                 ))}
                                                             </ul>
-                                                            <div style={{ fontSize: 10, color: '#666', marginBottom: 6, lineHeight: '1.1', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
+                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: '1.1' }}>{voucher.weatherClause}</div>
                                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6, gap: '4px' }}>
                                                                 <label style={{ fontSize: 11, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                                <input 
-                                                                    type="number" 
-                                                                    min="1" 
-                                                                    max={voucher.maxPassengers || 8}
-                                                                    value={quantities[voucher.title]} 
-                                                                    onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                                                    style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} 
-                                                                />
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleQuantityChange(voucher.title, Math.max(1, (parseInt(quantities[voucher.title] || 1, 10) - 1)))}
+                                                                        style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
+                                                                    >
+                                                                        −
+                                                                    </button>
+                                                                    <input 
+                                                                        type="number" 
+                                                                        min="1" 
+                                                                        max={voucher.maxPassengers || 8}
+                                                                        value={quantities[voucher.title] || 1} 
+                                                                        onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                                                        style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} 
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleQuantityChange(voucher.title, Math.min(voucher.maxPassengers || 8, (parseInt(quantities[voucher.title] || 1, 10) + 1)))}
+                                                                        style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
+                                                                    >
+                                                                        +
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>
                                                                 {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
@@ -861,27 +877,43 @@ const VoucherType = ({
                                                         height: '100%'
                                                     }}>
                                                         <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 500 }}>{voucher.refundability}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{voucher.flightTime}</div>
-                                                        <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
-                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>{voucher.refundability}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>{voucher.availability}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>{voucher.flightTime}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
+                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
                                                             {voucher.inclusions.map((inclusion, i) => (
                                                                 <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
                                                             ))}
                                                         </ul>
-                                                        <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.weatherClause}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                             <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                            <input 
-                                                                type="number" 
-                                                                min="1" 
-                                                                max={voucher.maxPassengers || 8}
-                                                                value={quantities[voucher.title]} 
-                                                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                                                style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
-                                                            />
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleQuantityChange(voucher.title, Math.max(1, (parseInt(quantities[voucher.title] || 1, 10) - 1)))}
+                                                                    style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                                                >
+                                                                    −
+                                                                </button>
+                                                                <input 
+                                                                    type="number" 
+                                                                    min="1" 
+                                                                    max={voucher.maxPassengers || 8}
+                                                                    value={quantities[voucher.title] || 1} 
+                                                                    onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleQuantityChange(voucher.title, Math.min(voucher.maxPassengers || 8, (parseInt(quantities[voucher.title] || 1, 10) + 1)))}
+                                                                    style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
                                                             {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
@@ -925,22 +957,38 @@ const VoucherType = ({
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{currentVoucher.availability}</div>
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 6 }}>{currentVoucher.flightTime}</div>
                                             <div style={{ fontSize: 14, color: '#666', marginBottom: 10 }}>{currentVoucher.validity}</div>
-                                            <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#444', fontSize: 14, lineHeight: '1.3' }}>
+                                            <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
                                                 {currentVoucher.inclusions.map((inclusion, i) => (
                                                     <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
                                                 ))}
                                             </ul>
-                                            <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.2', fontStyle: 'italic' }}>{currentVoucher.weatherClause}</div>
+                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{currentVoucher.weatherClause}</div>
                                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                                                 <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                <input 
-                                                    type="number" 
-                                                    min="1" 
-                                                    max={currentVoucher.maxPassengers || 8}
-                                                    value={quantities[currentVoucher.title]} 
-                                                    onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
-                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
-                                                />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleQuantityChange(currentVoucher.title, Math.max(1, (parseInt(quantities[currentVoucher.title] || 1, 10) - 1)))}
+                                                        style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                                    >
+                                                        −
+                                                    </button>
+                                                    <input 
+                                                        type="number" 
+                                                        min="1" 
+                                                        max={currentVoucher.maxPassengers || 8}
+                                                        value={quantities[currentVoucher.title] || 1} 
+                                                        onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
+                                                        style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleQuantityChange(currentVoucher.title, Math.min(currentVoucher.maxPassengers || 8, (parseInt(quantities[currentVoucher.title] || 1, 10) + 1)))}
+                                                        style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
                                                 {currentVoucher.priceUnit === 'total' ? `£${currentVoucher.price} total` : `From £${currentVoucher.price} pp`}

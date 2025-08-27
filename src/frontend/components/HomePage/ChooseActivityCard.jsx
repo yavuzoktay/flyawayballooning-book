@@ -233,22 +233,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                                 </div>
                                             </span>
                                         </h3>
-                                        {/* Debug counter */}
-                                        {isMobile && (
-                                            <div style={{ 
-                                                position: 'absolute', 
-                                                top: '5px', 
-                                                left: '5px', 
-                                                backgroundColor: '#ff6b6b', 
-                                                color: 'white', 
-                                                fontSize: '10px', 
-                                                padding: '2px 4px', 
-                                                borderRadius: '3px',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                {index + 1}
-                                            </div>
-                                        )}
                                         {item.subText && <p>{item.subText}</p>}
                                         {localVoucherCode && (
                                             <div style={{ 
@@ -325,22 +309,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     </div>
                                 </span>
                             </h3>
-                            {/* Debug counter */}
-                            {isMobile && (
-                                <div style={{ 
-                                    position: 'absolute', 
-                                    top: '5px', 
-                                    left: '5px', 
-                                    backgroundColor: '#ff6b6b', 
-                                    color: 'white', 
-                                    fontSize: '10px', 
-                                    padding: '2px 4px', 
-                                    borderRadius: '3px',
-                                    fontWeight: 'bold'
-                                }}>
-                                    {index + 1}
-                                </div>
-                            )}
                             {item.subText && <p>{item.subText}</p>}
                         </label>
                     )}
