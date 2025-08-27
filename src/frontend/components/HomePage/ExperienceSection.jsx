@@ -14,6 +14,23 @@ const weatherRefundableHoverTexts = {
 
 const API_BASE_URL = config.API_BASE_URL;
 
+// Normalize image url coming from API (supports different field names and relative paths)
+const getNormalizedImageUrl = (exp) => {
+    const raw = exp?.image_url || exp?.image || exp?.imagePath || exp?.image_path || '';
+    if (!raw) return '';
+    try {
+        const trimmed = String(raw).trim();
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+        if (trimmed.startsWith('/uploads/')) return `${API_BASE_URL}${trimmed}`;
+        if (trimmed.startsWith('uploads/')) return `${API_BASE_URL}/${trimmed}`;
+        if (trimmed.startsWith('/')) return `${API_BASE_URL}${trimmed}`;
+        return `${API_BASE_URL}/${trimmed}`;
+    } catch (e) {
+        console.warn('Failed to normalize experience image url:', raw, e);
+        return '';
+    }
+};
+
 const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
     // Safety check for required props - log error but don't return early to avoid hook violations
     const hasRequiredProps = setChooseFlightType && setAddPassenger && setActiveAccordion && setAvailableSeats;
@@ -303,7 +320,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     
                     return {
                         title: exp.title,
-                        img: exp.image_url || (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
+                        img: getNormalizedImageUrl(exp) || (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
                         price: formatPriceDisplay(price),
                         priceValue: price,
                         priceUnit: priceUnit,
