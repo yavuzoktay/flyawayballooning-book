@@ -2,7 +2,7 @@ import React, { useState, forwardRef, useImperativeHandle, useEffect } from "rea
 import Accordion from "../Common/Accordion";
 import config from '../../../config';
 
-const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, errors = {} }, ref) => {
+const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {} }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [additionalInfoQuestions, setAdditionalInfoQuestions] = useState([]);
     const [additionalInfoLoading, setAdditionalInfoLoading] = useState(true);
@@ -27,7 +27,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
         };
 
         fetchAdditionalInfoQuestions();
-    }, [isBookFlight, isFlightVoucher, isRedeemVoucher, isGiftVoucher]); // Refetch when journey type changes
+    }, [isBookFlight, isFlightVoucher, isRedeemVoucher, isGiftVoucher, location, flightType]); // Refetch when journey type, location, or flight type changes
 
     // Determine current journey type based on props
     const getCurrentJourneyType = () => {
@@ -38,18 +38,43 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
         return 'Book Flight'; // Default
     };
 
-    // Filter questions by journey type
+    // Filter questions by journey type, location, and experience type
     const getFilteredQuestions = () => {
         const currentJourneyType = getCurrentJourneyType();
+        const currentLocation = location;
+        const currentFlightType = flightType;
+        
+        console.log('=== FILTERING ADDITIONAL INFO QUESTIONS ===');
         console.log('Current journey type:', currentJourneyType);
-        console.log('Available questions:', additionalInfoQuestions);
+        console.log('Current location:', currentLocation);
+        console.log('Current flight type:', currentFlightType);
+        console.log('Total questions available:', additionalInfoQuestions.length);
+        console.log('Raw questions data:', additionalInfoQuestions);
         
         return additionalInfoQuestions
             .filter(question => {
-                // Check if question is active
-                if (!question.is_active) return false;
+                console.log(`\n--- Processing Question: "${question.question_text}" ---`);
+                console.log('Question data:', {
+                    is_active: question.is_active,
+                    journey_types: question.journey_types,
+                    journey_types_type: typeof question.journey_types,
+                    journey_types_isArray: Array.isArray(question.journey_types),
+                    locations: question.locations,
+                    locations_type: typeof question.locations,
+                    locations_isArray: Array.isArray(question.locations),
+                    experience_types: question.experience_types,
+                    experience_types_type: typeof question.experience_types,
+                    experience_types_isArray: Array.isArray(question.experience_types)
+                });
                 
-                // Check if question has journey_types and if it includes the current journey type
+                // Check if question is active
+                if (!question.is_active) {
+                    console.log('❌ Question is not active');
+                    return false;
+                }
+                
+                // Check journey types
+                let journeyTypeMatch = false;
                 if (question.journey_types) {
                     try {
                         let journeyTypes = [];
@@ -59,7 +84,6 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                             try {
                                 journeyTypes = JSON.parse(question.journey_types);
                             } catch (parseError) {
-                                // If JSON parsing fails, try to split by comma
                                 if (question.journey_types.includes(',')) {
                                     journeyTypes = question.journey_types.split(',').map(type => type.trim());
                                 } else {
@@ -68,18 +92,130 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                             }
                         }
                         
-                        console.log(`Question "${question.question_text}" journey types:`, journeyTypes);
-                        console.log(`Checking if "${currentJourneyType}" is in:`, journeyTypes);
+                        // Ensure journeyTypes is always an array
+                        if (!Array.isArray(journeyTypes)) {
+                            journeyTypes = [journeyTypes];
+                        }
                         
-                        return journeyTypes.includes(currentJourneyType);
+                        journeyTypeMatch = journeyTypes.includes(currentJourneyType);
+                        console.log(`🔍 Journey types:`, journeyTypes, 'Current:', currentJourneyType, 'Match:', journeyTypeMatch);
                     } catch (error) {
-                        console.warn(`Error parsing journey_types for question "${question.question_text}":`, error);
+                        console.warn(`❌ Error parsing journey_types for question "${question.question_text}":`, error);
                         return false;
                     }
+                } else {
+                    console.log('❌ No journey types specified');
+                    return false;
                 }
                 
-                // If no journey_types specified, don't show the question
-                return false;
+                // Check locations
+                let locationMatch = false;
+                if (question.locations && currentLocation) {
+                    try {
+                        let locations = [];
+                        if (Array.isArray(question.locations)) {
+                            locations = question.locations;
+                        } else if (typeof question.locations === 'string') {
+                            try {
+                                locations = JSON.parse(question.locations);
+                            } catch (parseError) {
+                                if (question.locations.includes(',')) {
+                                    locations = question.locations.split(',').map(loc => loc.trim());
+                                } else {
+                                    locations = [question.locations.trim()];
+                                }
+                            }
+                        }
+                        
+                        // Ensure locations is always an array
+                        if (!Array.isArray(locations)) {
+                            locations = [locations];
+                        }
+                        
+                        locationMatch = locations.includes(currentLocation);
+                        console.log('📍 Locations:', locations, 'Current:', currentLocation, 'Match:', locationMatch);
+                    } catch (error) {
+                        console.warn(`❌ Error parsing locations for question "${question.question_text}":`, error);
+                        locationMatch = false;
+                    }
+                } else if (!question.locations) {
+                    // If no locations specified, assume it applies to all locations
+                    locationMatch = true;
+                    console.log(`📍 No locations specified, assuming all locations (Match: true)`);
+                } else if (!currentLocation) {
+                    // If no location is selected, show all questions
+                    locationMatch = true;
+                    console.log(`📍 No location selected, showing all questions (Match: true)`);
+                }
+                
+                // Check experience types
+                let experienceTypeMatch = false;
+                if (question.experience_types && currentFlightType) {
+                    try {
+                        let experienceTypes = [];
+                        if (Array.isArray(question.experience_types)) {
+                            experienceTypes = question.experience_types;
+                        } else if (typeof question.experience_types === 'string') {
+                            try {
+                                experienceTypes = JSON.parse(question.experience_types);
+                            } catch (parseError) {
+                                if (question.experience_types.includes(',')) {
+                                    experienceTypes = question.experience_types.split(',').map(exp => exp.trim());
+                                } else {
+                                    experienceTypes = [question.experience_types.trim()];
+                                }
+                            }
+                        }
+                        
+                        // Ensure experienceTypes is always an array
+                        if (!Array.isArray(experienceTypes)) {
+                            experienceTypes = [experienceTypes];
+                        }
+                        
+                        // Map flight type to experience type - FIXED LOGIC
+                        let mappedFlightType = '';
+                        if (currentFlightType && typeof currentFlightType === 'string') {
+                            if (currentFlightType.toLowerCase().includes('shared')) {
+                                mappedFlightType = 'Shared Flight';
+                            } else if (currentFlightType.toLowerCase().includes('private')) {
+                                mappedFlightType = 'Private Charter';
+                            }
+                        }
+                        
+                        // If we have a mapped flight type, check if it's in the experience types
+                        if (mappedFlightType) {
+                            experienceTypeMatch = experienceTypes.includes(mappedFlightType);
+                        } else {
+                            // If no flight type is selected or can't be mapped, show all questions
+                            experienceTypeMatch = true;
+                        }
+                        
+                        console.log('✈️ Experience types:', experienceTypes, 'Mapped flight type:', mappedFlightType, 'Current flight type:', currentFlightType, 'Match:', experienceTypeMatch);
+                    } catch (error) {
+                        console.warn(`❌ Error parsing experience_types for question "${question.question_text}":`, error);
+                        experienceTypeMatch = false;
+                    }
+                } else if (!question.experience_types) {
+                    // If no experience types specified, assume it applies to all experience types
+                    experienceTypeMatch = true;
+                    console.log(`✈️ No experience types specified, assuming all experience types (Match: true)`);
+                } else if (!currentFlightType) {
+                    // If no flight type is selected, show all questions
+                    experienceTypeMatch = true;
+                    console.log(`✈️ No flight type selected, showing all questions (Match: true)`);
+                }
+                
+                // All three conditions must be met
+                const finalMatch = journeyTypeMatch && locationMatch && experienceTypeMatch;
+                console.log(`🎯 Final result:`, finalMatch, '(Journey:', journeyTypeMatch, 'Location:', locationMatch, 'Experience:', experienceTypeMatch, ')');
+                
+                if (finalMatch) {
+                    console.log(`✅ Question "${question.question_text}" PASSED all filters`);
+                } else {
+                    console.log(`❌ Question "${question.question_text}" FAILED filters`);
+                }
+                
+                return finalMatch;
             })
             .sort((a, b) => a.sort_order - b.sort_order);
     };

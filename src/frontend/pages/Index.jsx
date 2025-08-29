@@ -910,6 +910,7 @@ const Index = () => {
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
+                                                location={chooseLocation}
                                             />
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
@@ -1047,6 +1048,7 @@ const Index = () => {
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion}
                                                     flightType={chooseFlightType.type}
+                                                    location={chooseLocation}
                                                 />
                                             )}
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
