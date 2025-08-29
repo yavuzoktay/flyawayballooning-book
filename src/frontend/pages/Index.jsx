@@ -777,8 +777,17 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
+                                                flightType={chooseFlightType.type}
                                                 disabled={false}
                                             />
+                                            {console.log('🔍 AddOnsSection called with:', {
+                                                activitySelect,
+                                                chooseLocation,
+                                                flightType: chooseFlightType.type,
+                                                isGiftVoucher,
+                                                isRedeemVoucher,
+                                                isFlightVoucher
+                                            })}
                                         </>
                                     ) : activitySelect === "Redeem Voucher" ? (
                                         <>
@@ -855,7 +864,16 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
+                                                flightType={chooseFlightType.type}
                                             />
+                                            {console.log('🔍 AddOnsSection (Redeem Voucher) called with:', {
+                                                activitySelect,
+                                                chooseLocation,
+                                                flightType: chooseFlightType.type,
+                                                isGiftVoucher,
+                                                isRedeemVoucher,
+                                                isFlightVoucher
+                                            })}
                                         </>
                                     ) : activitySelect === "Flight Voucher" ? (
                                         <>
@@ -924,7 +942,16 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
+                                                flightType={chooseFlightType.type}
                                             />
+                                            {console.log('🔍 AddOnsSection (Flight Voucher) called with:', {
+                                                activitySelect,
+                                                chooseLocation,
+                                                flightType: chooseFlightType.type,
+                                                isGiftVoucher,
+                                                isRedeemVoucher,
+                                                isFlightVoucher
+                                            })}
                                         </>
                                     ) : (
                                         <>
@@ -1002,8 +1029,17 @@ const Index = () => {
                                                     chooseLocation={chooseLocation} 
                                                     chooseFlightType={chooseFlightType} 
                                                     activitySelect={activitySelect}
+                                                    flightType={chooseFlightType.type}
                                                 />
                                             )}
+                                            {console.log('🔍 AddOnsSection (Buy Gift/Redeem Voucher) called with:', {
+                                                activitySelect,
+                                                chooseLocation,
+                                                flightType: chooseFlightType.type,
+                                                isGiftVoucher,
+                                                isRedeemVoucher,
+                                                isFlightVoucher
+                                            })}
                                             {activitySelect === "Buy Gift" && (
                                                 <EnterRecipientDetails 
                                                     ref={recipientDetailsRef}
