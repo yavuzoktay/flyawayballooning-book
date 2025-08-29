@@ -142,15 +142,45 @@ const VoucherType = ({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Keep layout sensible per device
+    // Keep layout sensible per device and experience type
     useEffect(() => {
         if (isMobile) {
             setShowTwoVouchers(false);
         } else {
-            setShowTwoVouchers(true);
-            setCurrentViewIndex(0);
+            // For Private Charter, show two vouchers if available
+            if (chooseFlightType?.type === "Private Charter") {
+                // Check if we have active private charter voucher types available
+                const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
+                if (activePrivateCharterVoucherTypes && activePrivateCharterVoucherTypes.length >= 2) {
+                    // Always start with two vouchers view for Private Charter
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0);
+                    console.log('VoucherType: Setting Private Charter to show two vouchers (active count:', activePrivateCharterVoucherTypes.length, ')');
+                    console.log('VoucherType: Available voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
+                    
+                    // If there are more than 2 voucher types, we'll show navigation arrows and dots
+                    if (activePrivateCharterVoucherTypes.length > 2) {
+                        console.log('VoucherType: Private Charter has more than 2 voucher types, navigation arrows and dots will be shown');
+                        console.log('VoucherType: Total available:', activePrivateCharterVoucherTypes.length);
+                        console.log('VoucherType: Will show first 2 initially, then allow navigation to others');
+                    }
+                } else if (activePrivateCharterVoucherTypes && activePrivateCharterVoucherTypes.length === 1) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(0);
+                    console.log('VoucherType: Setting Private Charter to show single voucher (active count:', activePrivateCharterVoucherTypes.length, ')');
+                } else {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(0);
+                    console.log('VoucherType: Setting Private Charter to show no vouchers (active count:', activePrivateCharterVoucherTypes.length, ')');
+                }
+            } else {
+                // For Shared Flight, default to two vouchers
+                setShowTwoVouchers(true);
+                setCurrentViewIndex(0);
+                console.log('VoucherType: Setting Shared Flight to show two vouchers');
+            }
         }
-    }, [isMobile]);
+    }, [isMobile, chooseFlightType?.type, privateCharterVoucherTypes, availableVoucherTypes]);
 
     // Fetch all voucher types from API
     useEffect(() => {
@@ -205,7 +235,8 @@ const VoucherType = ({
                 setPrivateCharterVoucherTypesLoading(true);
                 console.log('Fetching private charter voucher types from:', `${API_BASE_URL}/api/private-charter-voucher-types`);
                 
-                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types`);
+                // Get only active private charter voucher types for frontend display
+                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true`);
                 console.log('Private charter voucher types response status:', response.status);
                 
                 if (response.ok) {
@@ -335,15 +366,26 @@ const VoucherType = ({
         console.log('VoucherType: privateCharterVoucherTypes count:', privateCharterVoucherTypes.length);
         
         if (isPrivateCharter) {
-            // For Private Charter, show private charter voucher types
+            // For Private Charter, show only active private charter voucher types
             if (privateCharterVoucherTypesLoading || privateCharterVoucherTypes.length === 0) {
                 console.log('VoucherType: Private Charter - no voucher types available yet');
                 return [];
             }
             
-            console.log('VoucherType: Creating private charter voucher types with locationPricing:', locationPricing);
+            // Filter only active private charter voucher types
+            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
             
-            const privateVouchers = privateCharterVoucherTypes.map(vt => {
+            if (activePrivateCharterVoucherTypes.length === 0) {
+                console.log('VoucherType: Private Charter - no active voucher types available');
+                return [];
+            }
+            
+            console.log('VoucherType: Creating private charter voucher types with locationPricing:', locationPricing);
+            console.log('VoucherType: All Private Charter voucher types count:', privateCharterVoucherTypes.length);
+            console.log('VoucherType: Active Private Charter voucher types count:', activePrivateCharterVoucherTypes.length);
+            console.log('VoucherType: Active Private Charter voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
+            
+            const privateVouchers = activePrivateCharterVoucherTypes.map(vt => {
                 console.log(`VoucherType: Processing voucher type: ${vt.title} (ID: ${vt.id})`);
                 
                 // Parse features from JSON string
@@ -356,8 +398,8 @@ const VoucherType = ({
                 }
 
                 // For private charter, use the individual pricing from activity data
-                let price = 300; // Default fallback
-                let priceUnit = 'total'; // Default to total price
+                let basePrice = 300; // Default fallback base price per person
+                let priceUnit = 'pp'; // Default to per person pricing
                 
                 console.log(`VoucherType: Processing pricing for ${vt.title} (ID: ${vt.id})`);
                 console.log(`VoucherType: Activity data available:`, !!activityData);
@@ -378,19 +420,24 @@ const VoucherType = ({
                         const stringId = voucherId.toString();
                         
                         if (pricingData && (pricingData[voucherId] || pricingData[stringId])) {
-                            price = parseFloat(pricingData[voucherId] || pricingData[stringId]);
-                            console.log(`VoucherType: Using individual pricing for ${vt.title}: £${price}`);
+                            basePrice = parseFloat(pricingData[voucherId] || pricingData[stringId]);
+                            priceUnit = 'pp'; // This is base price per person
+                            console.log(`VoucherType: Using individual pricing for ${vt.title}: £${basePrice} per person`);
                         } else {
-                            console.log(`VoucherType: No individual pricing found for ${vt.title} (ID: ${voucherId}), using default: £${price}`);
+                            console.log(`VoucherType: No individual pricing found for ${vt.title} (ID: ${voucherId}), using default: £${basePrice} per person`);
                             console.log(`VoucherType: Available pricing keys:`, Object.keys(pricingData || {}));
                         }
                     } catch (e) {
                         console.error('Error parsing private charter pricing:', e);
-                        console.log(`VoucherType: Using default pricing due to parsing error: £${price}`);
+                        console.log(`VoucherType: Using default pricing due to parsing error: £${basePrice} per person`);
                     }
                 } else {
-                    console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${price}`);
+                    console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${basePrice} per person`);
                 }
+                
+                // Calculate total price for 2 passengers (default) to show in the card
+                const defaultPassengers = 2;
+                const totalPrice = basePrice * defaultPassengers;
 
                 // Handle image URL properly - check if it's a full URL or relative path
                 let imageUrl = weekdayMorningImg; // Default fallback
@@ -416,7 +463,8 @@ const VoucherType = ({
                     validity: `Valid: ${vt.validity_months || 18} Months`,
                     inclusions: features,
                     weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Private charters subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
-                    price: price,
+                    price: totalPrice, // Show total price for default passengers
+                    basePrice: basePrice, // Store base price per person for calculations
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
                     flightTime: vt.flight_time || 'AM & PM'
@@ -426,6 +474,7 @@ const VoucherType = ({
             console.log('VoucherType: Private Charter voucher types created:', privateVouchers.length);
             console.log('VoucherType: Final Private Charter pricing:', privateVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
             console.log('VoucherType: Private Charter voucher types for selection:', privateVouchers);
+            console.log('VoucherType: Private Charter - returning voucher types for display');
             return privateVouchers;
         } else {
             // For Shared Flight, show regular voucher types
@@ -436,6 +485,8 @@ const VoucherType = ({
 
             console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
             console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
+            console.log('VoucherType: Shared Flight voucher types count:', allVoucherTypes.length);
+            console.log('VoucherType: Shared Flight voucher types:', allVoucherTypes.map(vt => vt.title));
 
             const regularVouchers = allVoucherTypes.map(vt => {
                 // Parse features from JSON string
@@ -516,6 +567,7 @@ const VoucherType = ({
             
             console.log('VoucherType: Regular voucher types created:', regularVouchers.length);
             console.log('VoucherType: Final Shared Flight pricing:', regularVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
+            console.log('VoucherType: Shared Flight - returning voucher types for display');
             return regularVouchers;
         }
     }, [allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, locationPricing, chooseFlightType?.type, activityData]);
@@ -544,6 +596,8 @@ const VoucherType = ({
                 }
                 newValue = closest;
             }
+            
+            console.log(`Private Charter quantity change for ${voucherTitle}: ${newValue} passengers`);
             
             setQuantities(prev => ({
                 ...prev,
@@ -584,22 +638,110 @@ const VoucherType = ({
 
     const handlePrevVoucher = () => {
         setSlideDirection('left');
-        setShowTwoVouchers(true);
-        setCurrentViewIndex(0);
+        if (chooseFlightType?.type === "Private Charter") {
+            // For Private Charter, cycle through available voucher types
+            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
+            console.log('Private Charter Prev - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
+            
+            if (activePrivateCharterVoucherTypes.length >= 4) {
+                // 4 or more voucher types - cycle through them
+                if (showTwoVouchers) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(2); // Move to third voucher
+                    console.log('Moving to third voucher (index 2)');
+                } else if (currentViewIndex === 2) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(3); // Move to fourth voucher
+                    console.log('Moving to fourth voucher (index 3)');
+                } else if (currentViewIndex === 3) {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0); // Back to first two vouchers
+                    console.log('Moving back to first two vouchers (index 0)');
+                } else {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0);
+                    console.log('Moving back to first two vouchers (index 0)');
+                }
+            } else if (activePrivateCharterVoucherTypes.length >= 3) {
+                // 3 voucher types - cycle through them
+                if (showTwoVouchers) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(2); // Move to third voucher
+                    console.log('Moving to third voucher (index 2)');
+                } else {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0); // Back to first two vouchers
+                    console.log('Moving back to first two vouchers (index 0)');
+                }
+            } else if (activePrivateCharterVoucherTypes.length > 1) {
+                // Only 2 voucher types, just toggle between single and two-voucher view
+                setShowTwoVouchers(!showTwoVouchers);
+                setCurrentViewIndex(0);
+                console.log('Toggling between single and two-voucher view');
+            }
+        } else {
+            // For Shared Flight, use original logic
+            setShowTwoVouchers(true);
+            setCurrentViewIndex(0);
+        }
     };
 
     const handleNextVoucher = () => {
         setSlideDirection('right');
-        const filteredVouchers = voucherTypes.filter(voucher => 
-            availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
-        );
-        
-        if (showTwoVouchers) {
-            setShowTwoVouchers(false);
-            setCurrentViewIndex(2); // Move to third voucher (Any Day Flight)
+        if (chooseFlightType?.type === "Private Charter") {
+            // For Private Charter, cycle through available voucher types
+            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
+            console.log('Private Charter Next - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
+            
+            if (activePrivateCharterVoucherTypes.length >= 4) {
+                // 4 or more voucher types - cycle through them
+                if (showTwoVouchers) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(2); // Move to third voucher
+                    console.log('Moving to third voucher (index 2)');
+                } else if (currentViewIndex === 2) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(3); // Move to fourth voucher
+                    console.log('Moving to fourth voucher (index 3)');
+                } else if (currentViewIndex === 3) {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0); // Back to first two vouchers
+                    console.log('Moving back to first two vouchers (index 0)');
+                } else {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0);
+                    console.log('Moving back to first two vouchers (index 0)');
+                }
+            } else if (activePrivateCharterVoucherTypes.length >= 3) {
+                // 3 voucher types - cycle through them
+                if (showTwoVouchers) {
+                    setShowTwoVouchers(false);
+                    setCurrentViewIndex(2); // Move to third voucher
+                    console.log('Moving to third voucher (index 2)');
+                } else {
+                    setShowTwoVouchers(true);
+                    setCurrentViewIndex(0); // Back to first two vouchers
+                    console.log('Moving back to first two vouchers (index 0)');
+                }
+            } else if (activePrivateCharterVoucherTypes.length > 1) {
+                // Only 2 voucher types, just toggle between single and two-voucher view
+                setShowTwoVouchers(!showTwoVouchers);
+                setCurrentViewIndex(0);
+                console.log('Toggling between single and two-voucher view');
+            }
         } else {
-            setShowTwoVouchers(true);
-            setCurrentViewIndex(0);
+            // For Shared Flight, use original logic
+            const filteredVouchers = voucherTypes.filter(voucher => 
+                availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
+            );
+            
+            if (showTwoVouchers) {
+                setShowTwoVouchers(false);
+                setCurrentViewIndex(2); // Move to third voucher (Any Day Flight)
+            } else {
+                setShowTwoVouchers(true);
+                setCurrentViewIndex(0);
+            }
         }
     };
 
@@ -609,9 +751,13 @@ const VoucherType = ({
         console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Quantity for', voucher.title, ':', quantity);
         
-        // Calculate total price based on price unit
+        // Calculate total price based on price unit and experience type
         let totalPrice;
-        if (voucher.priceUnit === 'total') {
+        if (chooseFlightType?.type === "Private Charter" && voucher.basePrice) {
+            // For Private Charter, use basePrice per person
+            totalPrice = voucher.basePrice * quantity;
+            console.log('VoucherType: Private Charter pricing:', voucher.basePrice, '×', quantity, '=', totalPrice);
+        } else if (voucher.priceUnit === 'total') {
             // For total pricing, the price is already the total for the group
             totalPrice = voucher.price;
             console.log('VoucherType: Using total pricing:', totalPrice);
@@ -678,13 +824,13 @@ const VoucherType = ({
                 {showTerms && selectedVoucher && (
                     <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
                         <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
-                            <div style={{display:'flex',alignItems:'center',marginBottom:12}}>
-                                <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827'}}>Terms & Conditions</h4>
+                            <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
+                                <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827',textAlign:'center'}}>Terms & Conditions</h4>
                             </div>
                             <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
                                 {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
                             </div>
-                            <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:16}}>
+                            <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
                                 <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Choose Different Voucher</button>
                                 <button onClick={() => { 
                                     console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
@@ -703,10 +849,25 @@ const VoucherType = ({
                         const filteredVouchers = voucherTypes.filter(voucher => 
                             availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                         );
+                        
+                                                        // For Private Charter, show navigation if there are multiple active voucher types
+                        const shouldShowNavigation = chooseFlightType?.type === "Private Charter" ? 
+                            (filteredVouchers.length > 1) : 
+                            (filteredVouchers.length > 1);
+                        
+                        console.log('VoucherType: Navigation visibility check:', {
+                            experienceType: chooseFlightType?.type,
+                            filteredVouchersLength: filteredVouchers.length,
+                            shouldShowNavigation: shouldShowNavigation,
+                            filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
+                        });
+                        
+                        if (!shouldShowNavigation) return null;
+                        
                         return (
                             <>
-                                {/* Show left arrow if not in two-voucher view */}
-                                {!showTwoVouchers && (
+                                {/* Show left arrow if not in two-voucher view or for Private Charter with multiple options */}
+                                {(!showTwoVouchers || (chooseFlightType?.type === "Private Charter" && filteredVouchers.length > 2)) && (
                                     <div style={{ 
                                         position: 'absolute', 
                                         left: 20, 
@@ -732,8 +893,9 @@ const VoucherType = ({
                                         }} />
                                     </div>
                                 )}
-                                {/* Show right arrow if in two-voucher view and there's a third voucher */}
-                                {(showTwoVouchers && filteredVouchers.length >= 3) && (
+                                {/* Show right arrow if there are more voucher types to show */}
+                                {((showTwoVouchers && filteredVouchers.length > 2) || 
+                                  (chooseFlightType?.type === "Private Charter" && filteredVouchers.length > 2)) && (
                                     <div style={{ 
                                         position: 'absolute', 
                                         right: 20, 
@@ -790,17 +952,21 @@ const VoucherType = ({
                             (() => {
                                 const filteredVouchers = voucherTypes.filter(voucher => {
                                     // For Private Charter, don't apply location filtering since they're generally available everywhere
+                                    // But ensure we only show active voucher types
                                     if (chooseFlightType?.type === "Private Charter") {
-                                        return true; // Show all private charter voucher types
+                                        const isActive = voucher.is_active !== false;
+                                        console.log(`Private Charter voucher ${voucher.title} (ID: ${voucher.id}) - is_active:`, voucher.is_active, 'Filtered:', isActive);
+                                        return isActive; // Show active private charter voucher types
                                     }
                                     // For Shared Flight, apply location filtering
                                     return availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title);
                                 });
                                 
                                 console.log('VoucherType: Available voucher types for location:', availableVoucherTypes);
-                                console.log('VoucherType: All voucher types:', voucherTypes.map(v => v.title));
-                                console.log('VoucherType: Filtered voucher types:', filteredVouchers.map(v => v.title));
+                                console.log('VoucherType: All voucher types:', voucherTypes.map(v => ({ title: v.title, id: v.id, is_active: v.is_active })));
+                                console.log('VoucherType: Filtered voucher types:', filteredVouchers.map(v => ({ title: v.title, id: v.id, is_active: v.is_active })));
                                 console.log('VoucherType: Experience type:', chooseFlightType?.type);
+                                console.log('VoucherType: Private Charter voucher types from API:', privateCharterVoucherTypes.map(vt => ({ title: vt.title, id: vt.id, is_active: vt.is_active })));
                                 
                                 // Mobile: horizontal layout with horizontal scrolling
                                 if (isMobile) {
@@ -875,7 +1041,10 @@ const VoucherType = ({
                                                                 </div>
                                                             </div>
                                                             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>
-                                                                {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
+                                                                {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
+                                                                    `From £${voucher.basePrice} pp` : 
+                                                                    (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
+                                                                }
                                                             </div>
                                                             <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
                                                                 Select
@@ -890,7 +1059,46 @@ const VoucherType = ({
 
                                 // Desktop / tablet: original layout
                                 // Show two vouchers side by side (Weekday Morning and Flexible Weekday)
-                                if (showTwoVouchers && filteredVouchers.length >= 2) {
+                                // For Private Charter, also show two vouchers side by side if available
+                                const shouldShowTwoVouchers = (showTwoVouchers && filteredVouchers.length >= 2) || 
+                                    (chooseFlightType?.type === "Private Charter" && filteredVouchers.length >= 2);
+                                
+                                console.log('VoucherType: Two vouchers layout check:', {
+                                    experienceType: chooseFlightType?.type,
+                                    showTwoVouchers: showTwoVouchers,
+                                    filteredVouchersLength: filteredVouchers.length,
+                                    shouldShowTwoVouchers: shouldShowTwoVouchers,
+                                    filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
+                                });
+                                
+                                if (shouldShowTwoVouchers) {
+                                    // For Private Charter, show current view based on showTwoVouchers state
+                                    // If showTwoVouchers is true, show first 2 vouchers
+                                    // If showTwoVouchers is false, show single voucher at currentViewIndex
+                                    let vouchersToShow;
+                                    if (chooseFlightType?.type === "Private Charter") {
+                                        if (showTwoVouchers) {
+                                            // Show first 2 vouchers when in two-voucher view
+                                            vouchersToShow = filteredVouchers.slice(0, 2);
+                                            console.log('Private Charter: Showing first 2 vouchers:', vouchersToShow.map(v => v.title));
+                                        } else {
+                                            // Show single voucher at current index when in single-voucher view
+                                            vouchersToShow = [filteredVouchers[currentViewIndex]];
+                                            console.log('Private Charter: Showing single voucher at index', currentViewIndex, ':', vouchersToShow.map(v => v.title));
+                                        }
+                                    } else {
+                                        // For Shared Flight, always show first 2 vouchers
+                                        vouchersToShow = filteredVouchers.slice(0, 2);
+                                    }
+                                    
+                                    console.log('VoucherType: Vouchers to show:', {
+                                        experienceType: chooseFlightType?.type,
+                                        showTwoVouchers: showTwoVouchers,
+                                        currentViewIndex: currentViewIndex,
+                                        vouchersToShow: vouchersToShow.map(v => v.title),
+                                        totalFilteredVouchers: filteredVouchers.map(v => v.title)
+                                    });
+                                    
                                     return (
                                         <div style={{
                                             display: 'flex',
@@ -899,7 +1107,7 @@ const VoucherType = ({
                                             alignItems: 'flex-start',
                                             transition: 'transform 0.3s ease-in-out'
                                         }}>
-                                            {filteredVouchers.slice(0, 2).map((voucher, index) => (
+                                            {vouchersToShow.map((voucher, index) => (
                                                 <div key={voucher.id} style={{
                                                     background: '#fff',
                                                     borderRadius: 16,
@@ -969,7 +1177,10 @@ const VoucherType = ({
                                                             </div>
                                                         </div>
                                                         <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                                                            {voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`}
+                                                            {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
+                                                                `From £${voucher.basePrice} pp` : 
+                                                                (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
+                                                            }
                                                         </div>
                                                         <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
                                                             Select
@@ -1044,7 +1255,10 @@ const VoucherType = ({
                                                 </div>
                                             </div>
                                             <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                                                {currentVoucher.priceUnit === 'total' ? `£${currentVoucher.price} total` : `From £${currentVoucher.price} pp`}
+                                                {chooseFlightType?.type === "Private Charter" && currentVoucher.basePrice ? 
+                                                    `From £${currentVoucher.basePrice} pp` : 
+                                                    (currentVoucher.priceUnit === 'total' ? `£${currentVoucher.price} total` : `From £${currentVoucher.price} pp`)
+                                                }
                                             </div>
                                             <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(currentVoucher)}>
                                                 Select
@@ -1057,9 +1271,15 @@ const VoucherType = ({
                             <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
                                 {chooseFlightType?.type === "Private Charter" ? (
                                     <div>
-                                        <p>No private charter voucher types available for this location.</p>
+                                        <p>No active private charter voucher types available.</p>
                                         <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-                                            Please check with our team for private charter availability.
+                                            Please check with our team for private charter availability or contact support to activate voucher types.
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
+                                            Total voucher types: {privateCharterVoucherTypes.length} | Active: {privateCharterVoucherTypes.filter(vt => vt.is_active === 1).length}
+                                        </p>
+                                        <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
+                                            Available voucher types: {privateCharterVoucherTypes.filter(vt => vt.is_active === 1).map(vt => vt.title).join(', ')}
                                         </p>
                                     </div>
                                 ) : (
@@ -1075,7 +1295,19 @@ const VoucherType = ({
                                 availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                             );
                             
-                            if (filteredVouchers.length > 1) {
+                            // For Private Charter, always show dots if there are multiple active voucher types
+                            const shouldShowDots = chooseFlightType?.type === "Private Charter" ? 
+                                (filteredVouchers.length > 1) : 
+                                (filteredVouchers.length > 1);
+                            
+                            console.log('VoucherType: Dot navigation visibility check:', {
+                                experienceType: chooseFlightType?.type,
+                                filteredVouchersLength: filteredVouchers.length,
+                                shouldShowDots: shouldShowDots,
+                                filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
+                            });
+                            
+                            if (shouldShowDots) {
                                 return (
                                     <div style={{
                                         display: 'flex',
@@ -1092,12 +1324,66 @@ const VoucherType = ({
                                             <div
                                                 key={index}
                                                 onClick={() => {
-                                                    if (index === 0 || index === 1) {
-                                                        setShowTwoVouchers(true);
-                                                        setCurrentViewIndex(0);
+                                                    if (chooseFlightType?.type === "Private Charter") {
+                                                        // For Private Charter, handle navigation based on available voucher types
+                                                        const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
+                                                        console.log('Private Charter dot click - Index:', index, 'Active count:', activePrivateCharterVoucherTypes.length);
+                                                        
+                                                        if (activePrivateCharterVoucherTypes.length >= 4) {
+                                                            // 4 or more voucher types - show first two together, then individual ones
+                                                            if (index === 0 || index === 1) {
+                                                                setShowTwoVouchers(true);
+                                                                setCurrentViewIndex(0);
+                                                                console.log('Showing first two vouchers together (index 0-1)');
+                                                            } else if (index === 2) {
+                                                                setShowTwoVouchers(false);
+                                                                setCurrentViewIndex(2);
+                                                                console.log('Showing third voucher (index 2)');
+                                                            } else if (index === 3) {
+                                                                setShowTwoVouchers(false);
+                                                                setCurrentViewIndex(3);
+                                                                console.log('Showing fourth voucher (index 3)');
+                                                            } else {
+                                                                setShowTwoVouchers(false);
+                                                                setCurrentViewIndex(index);
+                                                                console.log('Showing voucher at index:', index);
+                                                            }
+                                                        } else if (activePrivateCharterVoucherTypes.length >= 3) {
+                                                            // 3 voucher types - show first two together, then individual one
+                                                            if (index === 0 || index === 1) {
+                                                                setShowTwoVouchers(true);
+                                                                setCurrentViewIndex(0);
+                                                                console.log('Showing first two vouchers together');
+                                                            } else {
+                                                                setShowTwoVouchers(false);
+                                                                setCurrentViewIndex(index);
+                                                                console.log('Showing single voucher at index:', index);
+                                                            }
+                                                        } else if (activePrivateCharterVoucherTypes.length >= 2) {
+                                                            // Only 2 voucher types - toggle between single and two-voucher view
+                                                            if (index === 0 || index === 1) {
+                                                                setShowTwoVouchers(true);
+                                                                setCurrentViewIndex(0);
+                                                                console.log('Showing two vouchers together');
+                                                            } else {
+                                                                setShowTwoVouchers(false);
+                                                                setCurrentViewIndex(index);
+                                                                console.log('Showing single voucher at index:', index);
+                                                            }
+                                                        } else {
+                                                            // Single voucher type, just update index
+                                                            setCurrentViewIndex(index);
+                                                            console.log('Single voucher type, updating index to:', index);
+                                                        }
                                                     } else {
-                                                        setShowTwoVouchers(false);
-                                                        setCurrentViewIndex(index);
+                                                        // For Shared Flight, use original logic
+                                                        if (index === 0 || index === 1) {
+                                                            setShowTwoVouchers(true);
+                                                            setCurrentViewIndex(0);
+                                                        } else {
+                                                            setShowTwoVouchers(false);
+                                                            setCurrentViewIndex(index);
+                                                        }
                                                     }
                                                 }}
                                                 style={{
@@ -1106,7 +1392,7 @@ const VoucherType = ({
                                                     borderRadius: '50%',
                                                     backgroundColor: (showTwoVouchers && (index === 0 || index === 1)) || (!showTwoVouchers && index === currentViewIndex) ? '#03a9f4' : '#ddd',
                                                     cursor: 'pointer',
-                                                    transition: 'background-color 0.3s ease'
+                                                    transition: 'background-color 0.2s ease'
                                                 }}
                                             />
                                         ))}
