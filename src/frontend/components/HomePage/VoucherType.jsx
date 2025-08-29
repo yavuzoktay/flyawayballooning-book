@@ -523,10 +523,63 @@ const VoucherType = ({
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
     const handleQuantityChange = (voucherTitle, value) => {
-        setQuantities(prev => ({
-            ...prev,
-            [voucherTitle]: Math.max(1, parseInt(value) || 1)
-        }));
+        // For Private Charter, only allow specific passenger counts: 2, 3, 4, 8
+        if (chooseFlightType?.type === "Private Charter") {
+            const allowedPassengers = [2, 3, 4, 8];
+            let newValue = parseInt(value) || 2;
+            
+            // If it's a manual input, find the closest allowed value
+            if (typeof value === 'string' || typeof value === 'number') {
+                newValue = parseInt(value) || 2;
+                // Find the closest allowed passenger count
+                let closest = allowedPassengers[0];
+                let minDiff = Math.abs(newValue - closest);
+                
+                for (let allowed of allowedPassengers) {
+                    const diff = Math.abs(newValue - allowed);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closest = allowed;
+                    }
+                }
+                newValue = closest;
+            }
+            
+            setQuantities(prev => ({
+                ...prev,
+                [voucherTitle]: newValue
+            }));
+        } else {
+            // For other flight types, use the original logic
+            setQuantities(prev => ({
+                ...prev,
+                [voucherTitle]: Math.max(1, parseInt(value) || 1)
+            }));
+        }
+    };
+
+    // Helper function to get next/previous allowed passenger count for Private Charter
+    const getNextAllowedPassenger = (currentValue, direction) => {
+        if (chooseFlightType?.type !== "Private Charter") {
+            return direction === 'next' ? currentValue + 1 : currentValue - 1;
+        }
+        
+        const allowedPassengers = [2, 3, 4, 8];
+        const currentIndex = allowedPassengers.indexOf(currentValue);
+        
+        if (direction === 'next') {
+            // Find next allowed value, wrap around to first if at end
+            if (currentIndex === -1 || currentIndex === allowedPassengers.length - 1) {
+                return allowedPassengers[0];
+            }
+            return allowedPassengers[currentIndex + 1];
+        } else {
+            // Find previous allowed value, wrap around to last if at beginning
+            if (currentIndex === -1 || currentIndex === 0) {
+                return allowedPassengers[allowedPassengers.length - 1];
+            }
+            return allowedPassengers[currentIndex - 1];
+        }
     };
 
     const handlePrevVoucher = () => {
@@ -799,22 +852,22 @@ const VoucherType = ({
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handleQuantityChange(voucher.title, Math.max(1, (parseInt(quantities[voucher.title] || 2, 10) - 1)))}
+                                                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
                                                                         style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
                                                                     >
                                                                         −
                                                                     </button>
                                                                     <input 
                                                                         type="number" 
-                                                                        min="1" 
-                                                                        max={voucher.maxPassengers || 8}
+                                                                        min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
+                                                                        max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
                                                                         value={quantities[voucher.title] || 2} 
                                                                         onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
                                                                         style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} 
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handleQuantityChange(voucher.title, Math.min(voucher.maxPassengers || 8, (parseInt(quantities[voucher.title] || 2, 10) + 1)))}
+                                                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
                                                                         style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
                                                                     >
                                                                         +
@@ -881,7 +934,7 @@ const VoucherType = ({
                                                         <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.refundability}</div>
                                                         <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
                                                         <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>{voucher.validity}</div>
+                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
                                                         <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
                                                             {voucher.inclusions.map((inclusion, i) => (
                                                                 <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
@@ -893,22 +946,22 @@ const VoucherType = ({
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => handleQuantityChange(voucher.title, Math.max(1, (parseInt(quantities[voucher.title] || 2, 10) - 1)))}
+                                                                    onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
                                                                     style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
                                                                 >
                                                                     −
                                                                 </button>
                                                                 <input 
                                                                     type="number" 
-                                                                    min="1" 
-                                                                    max={voucher.maxPassengers || 8}
+                                                                    min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
+                                                                    max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
                                                                     value={quantities[voucher.title] || 2} 
                                                                     onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
                                                                     style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
                                                                 />
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => handleQuantityChange(voucher.title, Math.min(voucher.maxPassengers || 8, (parseInt(quantities[voucher.title] || 2, 10) + 1)))}
+                                                                    onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
                                                                     style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
                                                                 >
                                                                     +
@@ -968,22 +1021,22 @@ const VoucherType = ({
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleQuantityChange(currentVoucher.title, Math.max(1, (parseInt(quantities[currentVoucher.title] || 2, 10) - 1)))}
+                                                        onClick={() => handleQuantityChange(currentVoucher.title, getNextAllowedPassenger(parseInt(quantities[currentVoucher.title] || 2, 10), 'prev'))}
                                                         style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
                                                     >
                                                         −
                                                     </button>
-                                                    <input 
-                                                        type="number" 
-                                                        min="1" 
-                                                        max={currentVoucher.maxPassengers || 8}
-                                                        value={quantities[currentVoucher.title] || 2} 
-                                                        onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
-                                                        style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
-                                                    />
+                                                                                                    <input 
+                                                    type="number" 
+                                                    min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
+                                                    max={chooseFlightType?.type === "Private Charter" ? 8 : (currentVoucher.maxPassengers || 8)}
+                                                    value={quantities[currentVoucher.title] || 2} 
+                                                    onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
+                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                                />
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleQuantityChange(currentVoucher.title, Math.min(currentVoucher.maxPassengers || 8, (parseInt(quantities[currentVoucher.title] || 2, 10) + 1)))}
+                                                        onClick={() => handleQuantityChange(currentVoucher.title, getNextAllowedPassenger(parseInt(quantities[currentVoucher.title] || 2, 10), 'next'))}
                                                         style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
                                                     >
                                                         +
