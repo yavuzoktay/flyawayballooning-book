@@ -4,16 +4,33 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-            <div className="common-modal" style={title === 'Request Date' ? { maxWidth: 420, minWidth: 340, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '32px 0' } : {}}>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', background: 'rgba(0,0,0,0.35)', zIndex: 1000 }}>
+            <div
+                className="common-modal"
+                style={{
+                    width: 'calc(100vw - 24px)', // ensure we never exceed viewport
+                    maxWidth: '600px',
+                    background: '#fff',
+                    borderRadius: 12,
+                    padding: '20px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    justifyContent: 'flex-start',
+                    maxHeight: 'calc(100vh - 24px)',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    boxSizing: 'border-box'
+                }}
+            >
                 {/* Close Button (X) */}
                 {showCloseButton && (
                     <button
                         onClick={onClose}
                         style={{
                             position: 'absolute',
-                            top: '15px',
-                            right: '20px',
+                            top: '12px',
+                            right: '16px',
                             background: 'none',
                             border: 'none',
                             fontSize: '24px',
@@ -33,29 +50,37 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
                         ×
                     </button>
                 )}
-                
-                <h2 className="text-xl font-semibold mb-4" style={{ textAlign: 'center' }}>{title}</h2>
+
+                <h2 className="text-xl font-semibold mb-4" style={{ textAlign: 'center', margin: 0, width: '100%', boxSizing: 'border-box' }}>{title}</h2>
+
                 {bulletPoints.length > 0 && (
-                    <ul className="list-disc pl-5 space-y-2">
+                    <ul className="list-disc pl-5 space-y-2" style={{ width: '100%', padding: 0, margin: '12px 0', boxSizing: 'border-box', overflowX: 'hidden' }}>
                         {bulletPoints.map((point, index) => (
-                            <li key={index}>{point}</li>
+                            <li key={index} style={{ marginLeft: '18px', wordBreak: 'break-word' }}>{point}</li>
                         ))}
                         {extraContent && (
-                            <li className="mt-4">{extraContent}</li>
+                            <li className="mt-4" style={{ listStyle: 'none' }}>{extraContent}</li>
                         )}
                     </ul>
                 )}
-                {bulletPoints.length === 0 && extraContent}
-                
+
+                {bulletPoints.length === 0 && (
+                    <div style={{ width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>{extraContent}</div>
+                )}
+
                 {/* Action Buttons */}
                 {actionButtons && (
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '12px', 
-                        marginTop: '24px',
-                        justifyContent: 'center',
-                        width: '100%'
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '12px',
+                            marginTop: '16px',
+                            justifyContent: 'center',
+                            width: '100%',
+                            flexWrap: 'wrap',
+                            boxSizing: 'border-box'
+                        }}
+                    >
                         {actionButtons}
                     </div>
                 )}

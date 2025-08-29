@@ -370,3 +370,36 @@
     border-color: transparent transparent #333 transparent;
 } 
 */ 
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #root, .main-content, .main_booking, .booking_data, .tab_box, .accordion-section, .panel, .accordion {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .accordion {
+    display: block;
+    width: 100% !important;
+  }
+  .accordion + .panel {
+    width: 100% !important;
+  }
+  .tab_box.scroll-box {
+    overflow-x: hidden !important;
+  }
+  /* Ensure any full-bleed backgrounds don't push viewport */
+  .header-bg {
+    width: 100% !important;
+    left: auto !important;
+    right: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+} 

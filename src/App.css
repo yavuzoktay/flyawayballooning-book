@@ -84,3 +84,39 @@
   display: block;
 }
 */
+
+/* Global mobile layout fixes */
+@media (max-width: 768px) {
+  html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #root {
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  /* Clamp common containers to viewport */
+  .container, .Container, .main-content, .main_booking, .booking_data, .accordion-section, .panel, .accordion, .tab_box {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  /* Prevent media from overflowing */
+  img, video, canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
+  /* Ensure card labels fill available width */
+  .book_data, .book_data_label {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}

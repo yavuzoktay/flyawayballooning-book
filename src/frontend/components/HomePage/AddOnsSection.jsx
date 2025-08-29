@@ -36,9 +36,9 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         };
 
         fetchAddToBookingItems();
-    }, [activitySelect]); // Refetch when journey type changes
+    }, [activitySelect, chooseLocation]); // Refetch when journey type or location changes
 
-    // Get filtered API items based on journey type
+    // Get filtered API items based on journey type and location
     const getFilteredItems = () => {
         // Determine current journey type based on user selections
         let currentJourneyType = 'Book Flight'; // Default
@@ -52,15 +52,17 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
         }
         
         console.log('Current journey type:', currentJourneyType);
+        console.log('Current location:', chooseLocation);
         console.log('Available add-to-booking items:', addToBookingItems);
         
-        // Filter API items by journey type and active status
+        // Filter API items by journey type, location, and active status
         const apiItems = addToBookingItems
             .filter(item => {
                 // Check if item is active
                 if (!item.is_active) return false;
                 
                 // Check if item has journey_types and if it includes the current journey type
+                let journeyTypeMatch = false;
                 if (item.journey_types) {
                     try {
                         let journeyTypes = [];
@@ -82,15 +84,51 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                         console.log(`Item "${item.title}" journey types:`, journeyTypes);
                         console.log(`Checking if "${currentJourneyType}" is in:`, journeyTypes);
                         
-                        return journeyTypes.includes(currentJourneyType);
+                        journeyTypeMatch = journeyTypes.includes(currentJourneyType);
                     } catch (error) {
                         console.warn(`Error parsing journey_types for item "${item.title}":`, error);
                         return false;
                     }
                 }
                 
-                // If no journey_types specified, don't show the item
-                return false;
+                // If journey type doesn't match, don't show the item
+                if (!journeyTypeMatch) return false;
+                
+                // Check if item has locations and if it includes the current location
+                let locationMatch = false;
+                if (item.locations) {
+                    try {
+                        let locations = [];
+                        if (Array.isArray(item.locations)) {
+                            locations = item.locations;
+                        } else if (typeof item.locations === 'string') {
+                            try {
+                                locations = JSON.parse(item.locations);
+                            } catch (parseError) {
+                                // If JSON parsing fails, try to split by comma
+                                if (item.locations.includes(',')) {
+                                    locations = item.locations.split(',').map(loc => loc.trim());
+                                } else {
+                                    locations = [item.locations.trim()];
+                                }
+                            }
+                        }
+                        
+                        console.log(`Item "${item.title}" locations:`, locations);
+                        console.log(`Checking if "${chooseLocation}" is in:`, locations);
+                        
+                        locationMatch = locations.includes(chooseLocation);
+                    } catch (error) {
+                        console.warn(`Error parsing locations for item "${item.title}":`, error);
+                        return false;
+                    }
+                } else {
+                    // If no locations specified, assume it applies to all locations
+                    locationMatch = true;
+                }
+                
+                // Both journey type and location must match
+                return journeyTypeMatch && locationMatch;
             })
             .map(item => ({
                 name: item.title,
@@ -102,13 +140,16 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                 priceUnit: item.price_unit
             }));
         
-        console.log('Filtered API items for journey type:', currentJourneyType, ':', apiItems);
+        console.log('Filtered API items for journey type:', currentJourneyType, 'and location:', chooseLocation, ':', apiItems);
         return apiItems;
     };
 
     const filteredItems = getFilteredItems();
     console.log('Final filtered items:', filteredItems);
     console.log('Current activitySelect:', activitySelect);
+    console.log('Current chooseLocation:', chooseLocation);
+    console.log('Total add-to-booking items:', addToBookingItems.length);
+    console.log('Filtered items count:', filteredItems.length);
 
     // Handle checkbox toggle when div is clicked
     function handleAddOnChange(name, price) {
@@ -121,12 +162,22 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
     console.log('chooseAddOn?', chooseAddOn);
 
 
+    // If no items to show, don't render the section at all
+    if (!addToBookingLoading && filteredItems.length === 0) {
+        console.log('No add to booking items to display, hiding section');
+        return null;
+    }
+
     return (
         <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
             <div className="tab_box add-on-card scroll-box vouch">
                 {addToBookingLoading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>
                         <p>Loading add to booking items...</p>
+                    </div>
+                ) : filteredItems.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                        <p>No items available for the selected journey type and location.</p>
                     </div>
                 ) : (
                     filteredItems.map((item, index) => {
