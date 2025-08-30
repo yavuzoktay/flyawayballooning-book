@@ -305,14 +305,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             isPassengerInfoComplete: isPassengerInfoComplete
         });
         
-        // Check each condition separately
+        // Check each condition separately for Buy Gift
         console.log('Buy Gift Conditions Check:', {
-            condition1: !!chooseFlightType,
-            condition2: !!selectedVoucherType,
-            condition3: 'chooseAddOn is now optional', // Opsiyonel olduğu belirtildi
-            condition4: isPassengerInfoComplete,
-            condition5: isNonEmptyObject(additionalInfo),
-            condition6: isNonEmptyObject(recipientDetails)
+            condition1_chooseFlightType: !!chooseFlightType,
+            condition2_selectedVoucherType: !!selectedVoucherType,
+            condition3_isBuyGiftPassengerComplete: isBuyGiftPassengerComplete,
+            condition4_additionalInfo: isAdditionalInfoFilled(additionalInfo),
+            condition5_recipientDetails: isNonEmptyObject(recipientDetails),
+            SHOULD_BE_ENABLED: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isAdditionalInfoFilled(additionalInfo) && isNonEmptyObject(recipientDetails))
         });
     }
 
