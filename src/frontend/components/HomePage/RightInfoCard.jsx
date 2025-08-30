@@ -336,7 +336,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseFlightType &&
             selectedVoucherType &&
             isPassengerInfoComplete &&
-            isAdditionalInfoFilled(additionalInfo)
+            isAdditionalInfoValid(additionalInfo)
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
@@ -346,8 +346,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // All other fields are now optional for Buy Gift
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             // isBuyGiftPassengerComplete - now optional
-            // isAdditionalInfoFilled(additionalInfo) - now optional 
-            // isRecipientDetailsComplete(recipientDetails) - now optional
+            // isAdditionalInfoValid(additionalInfo) - now optional 
+            // isRecipientDetailsValid(recipientDetails) - now optional
         )
         : !(
             activitySelect &&
@@ -479,11 +479,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate: !!selectedDate,
             selectedTime: !!selectedTime,
             isPassengerInfoComplete,
-            additionalInfo: isAdditionalInfoFilled(additionalInfo),
+            additionalInfo: isAdditionalInfoValid(additionalInfo),
             additionalInfoRaw: additionalInfo,
             additionalInfoKeys: additionalInfo ? Object.keys(additionalInfo) : [],
             additionalInfoValues: additionalInfo ? Object.values(additionalInfo) : [],
-            recipientDetails: isRecipientDetailsComplete(recipientDetails),
+            recipientDetails: isRecipientDetailsValid(recipientDetails),
             isBookDisabled
         });
         
@@ -526,7 +526,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseAddOn: isNonEmptyArray(chooseAddOn), // Opsiyonel - sadece bilgi amaçlı
             isPassengerInfoComplete,
             additionalInfo: isNonEmptyObject(additionalInfo),
-            recipientDetails: isRecipientDetailsComplete(recipientDetails),
+            recipientDetails: isRecipientDetailsValid(recipientDetails),
             isBookDisabled
         });
         
@@ -602,14 +602,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         console.log('4. additionalInfo:', {
             value: additionalInfo,
-            valid: isAdditionalInfoFilled(additionalInfo),
+            valid: isAdditionalInfoValid(additionalInfo),
             keys: additionalInfo ? Object.keys(additionalInfo) : [],
             values: additionalInfo ? Object.values(additionalInfo) : []
         });
         
         console.log('5. recipientDetails:', {
             value: recipientDetails,
-            valid: isRecipientDetailsComplete(recipientDetails),
+            valid: isRecipientDetailsValid(recipientDetails),
             keys: recipientDetails ? Object.keys(recipientDetails) : [],
             values: recipientDetails ? Object.values(recipientDetails) : [],
             validationDetails: {
@@ -873,21 +873,21 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             ...(chooseLocation !== 'Bristol Fiesta' ? [{ id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType }] : []),
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
             { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
         ] : []),
         ...(activitySelect === 'Redeem Voucher' ? [
             { id: 'location', title: 'Location', value: chooseLocation || 'Not Selected', completed: !!chooseLocation },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
             { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
         ] : []),
         ...(activitySelect === 'Flight Voucher' ? [
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoFilled(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoFilled(additionalInfo) },
+            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
             { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
         ] : []),
         ...(activitySelect === 'Buy Gift' ? [
@@ -943,7 +943,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 )}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDateWithTime(selectedDate, selectedTime) : "Not Selected"}</p></div></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
                                 {/* Preferences only for non-Book Flight and non-Redeem Voucher */}
                                 {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
                                     <div className="book_data_active" onClick={() => setActiveAccordion("select-preferences")}> <div className={`row-1 ${(activeAccordion === 'select-preferences' || activeAccordion === 'preference') ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Preferences</h3>{(preference && ((preference.location && Object.values(preference.location).some(Boolean)) || (preference.time && Object.values(preference.time).some(Boolean)) || (preference.day && Object.values(preference.day).some(Boolean)))) ? null : <p>Not Provided</p>}</div></div></div></div>
@@ -956,7 +956,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDateWithTime(selectedDate, selectedTime) : "Not Selected"}</p></div></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
                                 {/* Preferences REMOVED for Redeem Voucher */}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
@@ -987,7 +987,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     <div className="book_data_active"> <div className="row-1 active-card-val"> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Weather Refundable (Private Charter)</h3><p>One-time charge for entire booking</p></div><div className="book-right"><p>£{(selectedVoucherType?.price * 0.1).toFixed(2)}</p></div></div></div></div>
                                 )}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoFilled(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoFilled(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
                                 {/* Preferences removed for Flight Voucher */}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
