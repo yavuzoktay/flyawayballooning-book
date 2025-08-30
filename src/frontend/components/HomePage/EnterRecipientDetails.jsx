@@ -33,10 +33,10 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         if (!isGiftVoucher) return true;
         
         const errors = {};
-        if (!recipientDetails.name.trim()) errors.name = true;
-        if (!recipientDetails.email.trim()) errors.email = true;
-        if (!recipientDetails.phone.trim()) errors.phone = true;
-        if (!recipientDetails.date) errors.date = true;
+        if (!recipientDetails.name || !recipientDetails.name.trim()) errors.name = true;
+        if (!recipientDetails.email || !recipientDetails.email.trim()) errors.email = true;
+        if (!recipientDetails.phone || !recipientDetails.phone.trim()) errors.phone = true;
+        if (!recipientDetails.date || !recipientDetails.date.trim()) errors.date = true;
         
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
@@ -115,8 +115,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     <input
                         type="date"
                         name="date"
-                        value={recipientDetails.date}
+                        value={recipientDetails.date || ''}
                         onChange={handleChange}
+                        required={isGiftVoucher}
                         style={validationErrors.date ? { border: '1.5px solid red' } : {}}
                     />
                     {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}

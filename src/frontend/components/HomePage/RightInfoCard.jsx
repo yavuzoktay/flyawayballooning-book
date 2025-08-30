@@ -8,6 +8,27 @@ const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund }) => {
+    
+    // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
+    console.log('🔥 RightInfoCard component rendered!', { 
+        activitySelect, 
+        isGiftVoucher,
+        timestamp: new Date().getTime(),
+        version: 'v2.0'
+    });
+    
+    // Force immediate debug for Buy Gift
+    if (activitySelect === 'Buy Gift') {
+        console.log('🎁 BUY GIFT DETECTED!', { 
+            activitySelect, 
+            isGiftVoucher,
+            chooseFlightType,
+            selectedVoucherType,
+            passengerData,
+            additionalInfo,
+            recipientDetails
+        });
+    }
 
     // Mobile breakpoint + drawer state
     const [isMobile, setIsMobile] = React.useState(false);
@@ -102,6 +123,19 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
+    
+    // Helper to check if recipient details are complete for Buy Gift
+    const isRecipientDetailsComplete = (details) => {
+        if (!details || typeof details !== 'object') return false;
+        
+        // Check each field individually with proper null/undefined checks
+        const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
+        const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
+        const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
+        const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
+        
+        return hasName && hasEmail && hasPhone && hasDate;
+    };
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
     console.log("additionalInfo:", additionalInfo);
@@ -192,12 +226,20 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         })) : []
     });
     
-    // Special validation for Buy Gift (no weight required, but contact info required for all)
-    const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every(passenger => {
-        return passenger.firstName && passenger.firstName.trim() !== '' &&
-               passenger.lastName && passenger.lastName.trim() !== '' &&
-               passenger.phone && passenger.phone.trim() !== '' &&
-               passenger.email && passenger.email.trim() !== '';
+    // Special validation for Buy Gift (no weight required, contact info only required for first passenger)
+    const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isFirstPassenger = index === 0;
+        
+        // All passengers need: firstName, lastName (no weight for Buy Gift)
+        const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
+               passenger.lastName && passenger.lastName.trim() !== '';
+        
+        // Only first passenger needs: phone and email (matching UI behavior)
+        const contactInfoValid = isFirstPassenger ? 
+            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            true;
+        
+        return basicInfoValid && contactInfoValid;
     });
     
     const isBookDisabled = isRedeemVoucher
@@ -227,7 +269,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isBuyGiftPassengerComplete &&
             isAdditionalInfoFilled(additionalInfo) &&
-            isNonEmptyObject(recipientDetails)
+            isRecipientDetailsComplete(recipientDetails)
         )
         : !(
             activitySelect &&
@@ -240,6 +282,65 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate &&
             selectedTime
         );
+
+    // IMMEDIATE DEBUG FOR BOOK DISABLED STATUS
+    console.log('📊 BOOK DISABLED CALCULATION:', {
+        activitySelect,
+        isGiftVoucher,
+        isBookDisabled,
+        timestamp: new Date().toLocaleTimeString()
+    });
+
+    // IMMEDIATE BUY GIFT CONDITIONS CHECK
+    if (isGiftVoucher) {
+        const condition1 = !!chooseFlightType;
+        const condition2 = !!selectedVoucherType;
+        const condition3 = isBuyGiftPassengerComplete;
+        const condition4 = isAdditionalInfoFilled(additionalInfo);
+        const condition5 = isRecipientDetailsComplete(recipientDetails);
+        
+        const buyGiftShouldBeEnabled = !!(
+            condition1 &&
+            condition2 &&
+            condition3 &&
+            condition4 &&
+            condition5
+        );
+        
+        console.log('🚨 BUY GIFT IMMEDIATE CONDITIONS CHECK:', {
+            condition1_chooseFlightType: condition1,
+            condition2_selectedVoucherType: condition2,
+            condition3_isBuyGiftPassengerComplete: condition3,
+            condition4_additionalInfo: condition4,
+            condition5_recipientDetails: condition5,
+            recipientDetailsRaw: recipientDetails,
+            ALL_CONDITIONS_MET: buyGiftShouldBeEnabled,
+            CURRENT_isBookDisabled: isBookDisabled,
+            EXPECTED_isBookDisabled: !buyGiftShouldBeEnabled
+        });
+        
+        // Show which conditions are failing
+        const failingConditions = [];
+        if (!condition1) failingConditions.push('1. Flight Type not selected');
+        if (!condition2) failingConditions.push('2. Voucher Type not selected');
+        if (!condition3) failingConditions.push('3. Passenger info incomplete');
+        if (!condition4) failingConditions.push('4. Additional info not filled');
+        if (!condition5) failingConditions.push('5. Recipient details incomplete');
+        
+        if (failingConditions.length > 0) {
+            console.log('❌ FAILING CONDITIONS:', failingConditions);
+        } else {
+            console.log('✅ ALL CONDITIONS PASSED - BOOK SHOULD BE ENABLED!');
+        }
+
+        // Individual detailed check
+        console.log('🔍 DETAILED CONDITIONS:');
+        console.log('1. chooseFlightType:', chooseFlightType);
+        console.log('2. selectedVoucherType:', selectedVoucherType);
+        console.log('3. passengerData:', passengerData);
+        console.log('4. additionalInfo:', additionalInfo);
+        console.log('5. recipientDetails:', recipientDetails);
+    }
 
     // Debug logging for Book Flight validation
     if (activitySelect === 'Book Flight') {
@@ -255,7 +356,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             additionalInfoRaw: additionalInfo,
             additionalInfoKeys: additionalInfo ? Object.keys(additionalInfo) : [],
             additionalInfoValues: additionalInfo ? Object.values(additionalInfo) : [],
-            recipientDetails: isNonEmptyObject(recipientDetails),
+            recipientDetails: isRecipientDetailsComplete(recipientDetails),
             isBookDisabled
         });
         
@@ -282,6 +383,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         });
     }
 
+    // ALWAYS LOG ACTIVITY SELECT AND GIFT VOUCHER STATUS
+    console.log('=== ACTIVITY DEBUG ===', {
+        activitySelect,
+        isGiftVoucher,
+        isFlightVoucher,
+        isRedeemVoucher
+    });
+
     // Debug logging for Buy Gift
     if (isGiftVoucher) {
         console.log('Buy Gift Debug:', {
@@ -290,7 +399,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseAddOn: isNonEmptyArray(chooseAddOn), // Opsiyonel - sadece bilgi amaçlı
             isPassengerInfoComplete,
             additionalInfo: isNonEmptyObject(additionalInfo),
-            recipientDetails: isNonEmptyObject(recipientDetails),
+            recipientDetails: isRecipientDetailsComplete(recipientDetails),
             isBookDisabled
         });
         
@@ -312,8 +421,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             condition2_selectedVoucherType: !!selectedVoucherType,
             condition3_isBuyGiftPassengerComplete: isBuyGiftPassengerComplete,
             condition4_additionalInfo: isAdditionalInfoFilled(additionalInfo),
-            condition5_recipientDetails: isNonEmptyObject(recipientDetails),
-            SHOULD_BE_ENABLED: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isAdditionalInfoFilled(additionalInfo) && isNonEmptyObject(recipientDetails)),
+            condition5_recipientDetails: isRecipientDetailsComplete(recipientDetails),
+            SHOULD_BE_ENABLED: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isAdditionalInfoFilled(additionalInfo) && isRecipientDetailsComplete(recipientDetails)),
             CURRENT_isBookDisabled: isBookDisabled
         });
         
@@ -336,7 +445,18 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         console.log('3. isBuyGiftPassengerComplete:', {
             value: isBuyGiftPassengerComplete,
             passengerDataLength: Array.isArray(passengerData) ? passengerData.length : 'Not array',
-            passengerData: passengerData
+            passengerData: passengerData,
+            passengerValidationDetails: Array.isArray(passengerData) ? passengerData.map((p, index) => ({
+                passengerNumber: index + 1,
+                isFirstPassenger: index === 0,
+                firstName: p.firstName,
+                lastName: p.lastName,
+                phone: p.phone,
+                email: p.email,
+                basicInfoValid: !!(p.firstName && p.firstName.trim() !== '' && p.lastName && p.lastName.trim() !== ''),
+                contactInfoValid: index === 0 ? !!(p.phone && p.phone.trim() !== '' && p.email && p.email.trim() !== '') : true,
+                overallValid: !!(p.firstName && p.firstName.trim() !== '' && p.lastName && p.lastName.trim() !== '' && (index === 0 ? (p.phone && p.phone.trim() !== '' && p.email && p.email.trim() !== '') : true))
+            })) : []
         });
         
         if (Array.isArray(passengerData)) {
@@ -363,9 +483,15 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         console.log('5. recipientDetails:', {
             value: recipientDetails,
-            valid: isNonEmptyObject(recipientDetails),
+            valid: isRecipientDetailsComplete(recipientDetails),
             keys: recipientDetails ? Object.keys(recipientDetails) : [],
-            values: recipientDetails ? Object.values(recipientDetails) : []
+            values: recipientDetails ? Object.values(recipientDetails) : [],
+            validationDetails: {
+                hasName: !!(recipientDetails && recipientDetails.name && recipientDetails.name.trim()),
+                hasEmail: !!(recipientDetails && recipientDetails.email && recipientDetails.email.trim()),
+                hasPhone: !!(recipientDetails && recipientDetails.phone && recipientDetails.phone.trim()),
+                hasDate: !!(recipientDetails && recipientDetails.date && recipientDetails.date.trim())
+            }
         });
     }
 
@@ -853,6 +979,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                             className="summary-sticky-book"
                             disabled={isBookDisabled}
                             onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) handleBookData(); }}
+                            onMouseEnter={() => {
+                                console.log('=== BOOK BUTTON HOVER DEBUG ===', {
+                                    isBookDisabled,
+                                    activitySelect,
+                                    isGiftVoucher,
+                                    buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
+                                });
+                            }}
                         >
                             Book
                         </button>
