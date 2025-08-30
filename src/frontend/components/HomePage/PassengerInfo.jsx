@@ -124,19 +124,41 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       console.log(`👤 Validating passenger ${index + 1}:`, passenger);
       
       if (activitySelect === 'Buy Gift') {
-        // For Buy Gift: All fields are optional, only validate format if provided
-        console.log(`✨ Buy Gift validation - all fields optional for passenger ${index + 1}`);
+        // For Buy Gift: All fields are required again (only first passenger needs phone/email)
+        console.log(`🎁 Buy Gift validation - all fields required for passenger ${index + 1}`);
         
-        // Only validate email format if provided
-        if (passenger.email?.trim()) {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(passenger.email.trim())) {
-            passengerErrors.email = true;
-            console.log(`❌ Passenger ${index + 1} email format failed:`, passenger.email);
-          }
+        // First Name validation
+        if (!passenger.firstName?.trim()) {
+          passengerErrors.firstName = true;
+          console.log(`❌ Passenger ${index + 1} firstName failed:`, passenger.firstName);
         }
         
-        // No other validations for Buy Gift - all fields optional
+        // Last Name validation
+        if (!passenger.lastName?.trim()) {
+          passengerErrors.lastName = true;
+          console.log(`❌ Passenger ${index + 1} lastName failed:`, passenger.lastName);
+        }
+        
+        // Phone and Email validation (only for first passenger - purchaser)
+        if (index === 0) {
+          // Phone validation for first passenger
+          if (!passenger.phone?.trim()) {
+            passengerErrors.phone = true;
+            console.log(`❌ First passenger phone failed:`, passenger.phone);
+          }
+          
+          // Email validation for first passenger (format + required)
+          if (!passenger.email?.trim()) {
+            passengerErrors.email = true;
+            console.log(`❌ First passenger email failed (empty):`, passenger.email);
+          } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(passenger.email.trim())) {
+              passengerErrors.email = true;
+              console.log(`❌ First passenger email failed (format):`, passenger.email);
+            }
+          }
+        }
         
       } else if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher') {
         // For other activity types: All fields required
@@ -351,7 +373,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
                   <div style={{ flex: 1, width: '100%' }}>
-                    <label>First Name{activitySelect === 'Buy Gift' ? <span style={{ color: 'gray' }}> (optional)</span> : <span style={{ color: 'red' }}>*</span>}</label>
+                    <label>First Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
