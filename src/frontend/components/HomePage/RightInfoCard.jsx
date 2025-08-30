@@ -126,7 +126,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     
     // Helper to check if recipient details are complete for Buy Gift
     const isRecipientDetailsComplete = (details) => {
-        if (!details || typeof details !== 'object') return false;
+        if (!details || typeof details !== 'object') {
+            console.log('❌ recipientDetails is null/undefined or not object:', details);
+            return false;
+        }
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
@@ -134,26 +137,55 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
         const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
         
-        return hasName && hasEmail && hasPhone && hasDate;
+        const isComplete = hasName && hasEmail && hasPhone && hasDate;
+        
+        console.log('🎁 recipientDetails validation:', {
+            details,
+            hasName: { value: details.name, valid: hasName },
+            hasEmail: { value: details.email, valid: hasEmail },
+            hasPhone: { value: details.phone, valid: hasPhone },
+            hasDate: { value: details.date, valid: hasDate },
+            isComplete
+        });
+        
+        return isComplete;
     };
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
     console.log("additionalInfo:", additionalInfo);
     // Helper to check if additionalInfo has at least one filled value
     const isAdditionalInfoFilled = (info) => {
-      if (!info || typeof info !== 'object') return false;
-      return Object.values(info).some(val => {
+      if (!info || typeof info !== 'object') {
+        console.log('❌ additionalInfo is null/undefined or not object:', info);
+        return false;
+      }
+      
+      const hasFilledValue = Object.values(info).some(val => {
         if (typeof val === 'string') {
-          return val.trim() !== '';
+          const trimmed = val.trim();
+          console.log('📝 Checking string value:', { original: val, trimmed, isEmpty: trimmed === '' });
+          return trimmed !== '';
         }
         if (typeof val === 'object' && val !== null) {
           // Eğer obje ise ve en az bir anahtarı varsa ve o anahtarın değeri doluysa true
-          return Object.values(val).some(
+          const objHasValue = Object.values(val).some(
             v => typeof v === 'string' ? v.trim() !== '' : !!v
           );
+          console.log('📦 Checking object value:', { val, hasValue: objHasValue });
+          return objHasValue;
         }
+        console.log('🔧 Checking other value:', { val, truthiness: !!val });
         return !!val;
       });
+      
+      console.log('🎯 additionalInfo validation result:', { 
+        info, 
+        hasFilledValue,
+        values: Object.values(info),
+        keys: Object.keys(info)
+      });
+      
+      return hasFilledValue;
     };
 
     // Book button enable logic:
@@ -227,20 +259,56 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     });
     
     // Special validation for Buy Gift (no weight required, contact info only required for first passenger)
-    const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
-        const isFirstPassenger = index === 0;
+    const isBuyGiftPassengerComplete = (() => {
+        if (!Array.isArray(passengerData)) {
+            console.log('❌ passengerData is not an array:', passengerData);
+            return false;
+        }
         
-        // All passengers need: firstName, lastName (no weight for Buy Gift)
-        const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
-               passenger.lastName && passenger.lastName.trim() !== '';
+        if (passengerData.length === 0) {
+            console.log('❌ passengerData is empty array');
+            return false;
+        }
         
-        // Only first passenger needs: phone and email (matching UI behavior)
-        const contactInfoValid = isFirstPassenger ? 
-            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
-            true;
+        const isComplete = passengerData.every((passenger, index) => {
+            const isFirstPassenger = index === 0;
+            
+            // All passengers need: firstName, lastName (no weight for Buy Gift)
+            const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
+                   passenger.lastName && passenger.lastName.trim() !== '';
+            
+            // Only first passenger needs: phone and email (matching UI behavior)
+            const contactInfoValid = isFirstPassenger ? 
+                (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+                true;
+            
+            const passengerValid = basicInfoValid && contactInfoValid;
+            
+            console.log(`👤 Passenger ${index + 1} validation:`, {
+                passenger,
+                isFirstPassenger,
+                basicInfoValid: { 
+                    firstName: { value: passenger.firstName, valid: !!(passenger.firstName && passenger.firstName.trim()) },
+                    lastName: { value: passenger.lastName, valid: !!(passenger.lastName && passenger.lastName.trim()) }
+                },
+                contactInfoValid: isFirstPassenger ? {
+                    phone: { value: passenger.phone, valid: !!(passenger.phone && passenger.phone.trim()) },
+                    email: { value: passenger.email, valid: !!(passenger.email && passenger.email.trim()) }
+                } : 'Not required (not first passenger)',
+                passengerValid
+            });
+            
+            return passengerValid;
+        });
         
-        return basicInfoValid && contactInfoValid;
-    });
+        console.log('👥 isBuyGiftPassengerComplete result:', {
+            passengerData,
+            passengerCount: passengerData.length,
+            isComplete
+        });
+        
+        return isComplete;
+    })();
     
     const isBookDisabled = isRedeemVoucher
         ? !(
