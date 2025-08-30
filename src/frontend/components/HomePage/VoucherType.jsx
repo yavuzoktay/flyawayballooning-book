@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Accordion from '../Common/Accordion';
 import axios from 'axios';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -6,8 +6,39 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
-import { useMemo } from 'react';
 import config from '../../../config';
+
+// Add CSS animations for slide effects
+const slideAnimations = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+
+// Inject the CSS animations
+if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.textContent = slideAnimations;
+    document.head.appendChild(style);
+}
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -80,28 +111,6 @@ const scrollbarStyles = `
             padding: 0 2px !important;
         }
     }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideInLeft {
-        from {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
 `;
 
 const VoucherType = ({ 
@@ -147,7 +156,7 @@ const VoucherType = ({
         if (isMobile) {
             setShowTwoVouchers(false);
         } else {
-            // For Private Charter, show two vouchers if available
+            // For Private Charter, always show two vouchers if available
             if (chooseFlightType?.type === "Private Charter") {
                 // Check if we have active private charter voucher types available
                 const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
@@ -236,7 +245,9 @@ const VoucherType = ({
                 console.log('Fetching private charter voucher types from:', `${API_BASE_URL}/api/private-charter-voucher-types`);
                 
                 // Get only active private charter voucher types for frontend display
-                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true`);
+                // Include location to get activity-specific pricing
+                const locationParam = chooseLocation ? `&location=${encodeURIComponent(chooseLocation)}` : '';
+                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}`);
                 console.log('Private charter voucher types response status:', response.status);
                 
                 if (response.ok) {
@@ -268,7 +279,7 @@ const VoucherType = ({
         };
 
         fetchPrivateCharterVoucherTypes();
-    }, [API_BASE_URL]);
+    }, [API_BASE_URL, chooseLocation]);
 
     // Fetch available voucher types for the selected location
     useEffect(() => {
@@ -397,42 +408,48 @@ const VoucherType = ({
                     features = ['Private Balloon', 'Flexible Timing', 'Personalized Experience', 'Complimentary Drinks', 'Professional Photos', '3D Flight Track'];
                 }
 
-                // For private charter, use the individual pricing from activity data
+                // For private charter, use the enhanced pricing from the API (which includes activity-specific pricing)
                 let basePrice = 300; // Default fallback base price per person
                 let priceUnit = 'pp'; // Default to per person pricing
                 
                 console.log(`VoucherType: Processing pricing for ${vt.title} (ID: ${vt.id})`);
+                console.log(`VoucherType: Voucher type price_per_person: ${vt.price_per_person}, price_unit: ${vt.price_unit}`);
                 console.log(`VoucherType: Activity data available:`, !!activityData);
                 console.log(`VoucherType: Private charter pricing available:`, !!(activityData && activityData.private_charter_pricing));
                 
-                if (activityData && activityData.private_charter_pricing) {
-                    try {
-                        let pricingData = activityData.private_charter_pricing;
-                        if (typeof pricingData === 'string') {
-                            pricingData = JSON.parse(pricingData);
-                        }
-                        
-                        console.log(`VoucherType: Parsed pricing data:`, pricingData);
-                        console.log(`VoucherType: Looking for pricing for voucher ID: ${vt.id}`);
-                        
-                        // Try both string and number keys for the voucher type ID
-                        const voucherId = vt.id;
-                        const stringId = voucherId.toString();
-                        
-                        if (pricingData && (pricingData[voucherId] || pricingData[stringId])) {
-                            basePrice = parseFloat(pricingData[voucherId] || pricingData[stringId]);
-                            priceUnit = 'pp'; // This is base price per person
-                            console.log(`VoucherType: Using individual pricing for ${vt.title}: £${basePrice} per person`);
-                        } else {
-                            console.log(`VoucherType: No individual pricing found for ${vt.title} (ID: ${voucherId}), using default: £${basePrice} per person`);
-                            console.log(`VoucherType: Available pricing keys:`, Object.keys(pricingData || {}));
-                        }
-                    } catch (e) {
-                        console.error('Error parsing private charter pricing:', e);
-                        console.log(`VoucherType: Using default pricing due to parsing error: £${basePrice} per person`);
-                    }
+                // Use the enhanced pricing from the API (which includes activity-specific pricing)
+                if (vt.price_per_person && vt.price_per_person !== "0.00") {
+                    basePrice = parseFloat(vt.price_per_person);
+                    priceUnit = vt.price_unit || 'pp';
+                    console.log(`VoucherType: Using enhanced API pricing for ${vt.title}: £${basePrice} per person`);
                 } else {
-                    console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${basePrice} per person`);
+                    // Fallback to activity data pricing if API doesn't have it
+                    if (activityData && activityData.private_charter_pricing) {
+                        try {
+                            let pricingData = activityData.private_charter_pricing;
+                            if (typeof pricingData === 'string') {
+                                pricingData = JSON.parse(pricingData);
+                            }
+                            
+                            console.log(`VoucherType: Parsed pricing data:`, pricingData);
+                            console.log(`VoucherType: Looking for pricing for voucher title: ${vt.title}`);
+                            
+                            // Look for pricing by voucher title (as shown in the admin interface Group Pricing section)
+                            if (pricingData && pricingData[vt.title]) {
+                                basePrice = parseFloat(pricingData[vt.title]);
+                                priceUnit = 'pp'; // This is base price per person
+                                console.log(`VoucherType: Using group pricing for ${vt.title}: £${basePrice} per person`);
+                            } else {
+                                console.log(`VoucherType: No group pricing found for ${vt.title}, using default: £${basePrice} per person`);
+                                console.log(`VoucherType: Available pricing keys:`, Object.keys(pricingData || {}));
+                            }
+                        } catch (e) {
+                            console.error('Error parsing private charter pricing:', e);
+                            console.log(`VoucherType: Using default pricing due to parsing error: £${basePrice} per person`);
+                        }
+                    } else {
+                        console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${basePrice} per person`);
+                    }
                 }
                 
                 // Calculate total price for 2 passengers (default) to show in the card
@@ -467,7 +484,8 @@ const VoucherType = ({
                     basePrice: basePrice, // Store base price per person for calculations
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
-                    flightTime: vt.flight_time || 'AM & PM'
+                    flightTime: vt.flight_time || 'AM & PM',
+                    is_active: vt.is_active // Add is_active to the voucher object
                 };
             });
             
@@ -485,56 +503,38 @@ const VoucherType = ({
 
             console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
             console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
-            console.log('VoucherType: Shared Flight voucher types count:', allVoucherTypes.length);
-            console.log('VoucherType: Shared Flight voucher types:', allVoucherTypes.map(vt => vt.title));
-
-            const regularVouchers = allVoucherTypes.map(vt => {
-                // Parse features from JSON string
-                let features = [];
-                try {
-                    features = JSON.parse(vt.features || '[]');
-                } catch (e) {
-                    features = ['Around 1 Hour of Air Time', 'Complimentary Drink', 'Inflight Photos and 3D Flight Track'];
-                }
-
-                // Get pricing from activity data (activity popup) based on voucher type title
-                let price = 0;
+            
+            // Create voucher types for Shared Flight
+            const sharedFlightVouchers = allVoucherTypes.map(vt => {
+                // Get pricing from location-specific activity data
+                let basePrice = 180; // Default fallback
+                let priceUnit = 'pp';
+                
                 if (activityData) {
-                    console.log(`VoucherType: Shared Flight - Using activity data for ${vt.title}:`, {
-                        weekday_morning_price: activityData.weekday_morning_price,
-                        flexible_weekday_price: activityData.flexible_weekday_price,
-                        any_day_flight_price: activityData.any_day_flight_price
-                    });
-                    
-                    if (vt.title.toLowerCase().includes('weekday morning')) {
-                        price = parseFloat(activityData.weekday_morning_price) || 180;
-                    } else if (vt.title.toLowerCase().includes('flexible weekday')) {
-                        price = parseFloat(activityData.flexible_weekday_price) || 200;
-                    } else if (vt.title.toLowerCase().includes('any day flight')) {
-                        price = parseFloat(activityData.any_day_flight_price) || 220;
-                    } else {
-                        // Fallback to API pricing if no match found
-                        price = parseFloat(vt.price_per_person) || 180;
+                    // Use activity-specific pricing if available
+                    if (vt.title === 'Weekday Morning' && activityData.weekday_morning_price) {
+                        basePrice = parseFloat(activityData.weekday_morning_price);
+                    } else if (vt.title === 'Flexible Weekday' && activityData.flexible_weekday_price) {
+                        basePrice = parseFloat(activityData.flexible_weekday_price);
+                    } else if (vt.title === 'Any Day Flight' && activityData.any_day_flight_price) {
+                        basePrice = parseFloat(activityData.any_day_flight_price);
                     }
                 } else {
-                    // Fallback to locationPricing if no activity data available
-                    if (locationPricing) {
-                        if (vt.title.toLowerCase().includes('weekday morning')) {
-                            price = locationPricing.weekday_morning_price || 180;
-                        } else if (vt.title.toLowerCase().includes('flexible weekday')) {
-                            price = locationPricing.flexible_weekday_price || 200;
-                        } else if (vt.title.toLowerCase().includes('any day flight')) {
-                            price = locationPricing.any_day_flight_price || 220;
-                        } else {
-                            price = parseFloat(vt.price_per_person) || 180;
-                        }
-                    } else {
-                        // Final fallback to API pricing
-                        price = parseFloat(vt.price_per_person) || 180;
+                    // Fallback to locationPricing
+                    if (vt.title === 'Weekday Morning') {
+                        basePrice = locationPricing.weekday_morning_price;
+                    } else if (vt.title === 'Flexible Weekday') {
+                        basePrice = locationPricing.flexible_weekday_price;
+                    } else if (vt.title === 'Any Day Flight') {
+                        basePrice = locationPricing.any_day_flight_price;
                     }
                 }
 
-                // Handle image URL properly - check if it's a full URL or relative path
+                // Calculate total price for 2 passengers (default)
+                const defaultPassengers = 2;
+                const totalPrice = basePrice * defaultPassengers;
+
+                // Handle image URL properly
                 let imageUrl = weekdayMorningImg; // Default fallback
                 if (vt.image_url) {
                     if (vt.image_url.startsWith('http')) {
@@ -546,31 +546,29 @@ const VoucherType = ({
                     }
                 }
 
-                console.log(`VoucherType: Regular ${vt.title} - API price: ${vt.price_per_person}, Activity price: ${price}, Image: ${imageUrl}`);
-
                 return {
                     id: vt.id,
                     title: vt.title,
-                    description: vt.description || 'No description available',
+                    description: vt.description || 'Shared balloon experience with other passengers. Perfect for individuals and small groups.',
                     image: imageUrl,
                     refundability: 'Non-Refundable',
-                    availability: vt.flight_days || 'Monday - Friday',
+                    availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
-                    inclusions: features,
-                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Flights subject to weather – your voucher will remain valid and re-bookable within its validity period if cancelled due to weather.',
-                    price: price,
-                    priceUnit: 'pp',
+                    inclusions: ['Shared Balloon', 'Professional Pilot', 'Safety Briefing', 'Flight Certificate'],
+                    weatherClause: 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
+                    price: totalPrice,
+                    basePrice: basePrice,
+                    priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
-                    flightTime: vt.flight_time || 'AM'
+                    flightTime: vt.flight_time || 'AM & PM',
+                    is_active: vt.is_active // Add is_active to the voucher object
                 };
             });
-            
-            console.log('VoucherType: Regular voucher types created:', regularVouchers.length);
-            console.log('VoucherType: Final Shared Flight pricing:', regularVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
-            console.log('VoucherType: Shared Flight - returning voucher types for display');
-            return regularVouchers;
+
+            console.log('VoucherType: Shared Flight voucher types created:', sharedFlightVouchers.length);
+            return sharedFlightVouchers;
         }
-    }, [allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, locationPricing, chooseFlightType?.type, activityData]);
+    }, [chooseFlightType?.type, allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
@@ -612,29 +610,123 @@ const VoucherType = ({
         }
     };
 
-    // Helper function to get next/previous allowed passenger count for Private Charter
-    const getNextAllowedPassenger = (currentValue, direction) => {
-        if (chooseFlightType?.type !== "Private Charter") {
-            return direction === 'next' ? currentValue + 1 : currentValue - 1;
-        }
-        
-        const allowedPassengers = [2, 3, 4, 8];
-        const currentIndex = allowedPassengers.indexOf(currentValue);
+    // Helper function to get next allowed passenger count
+    const getNextAllowedPassenger = (current, direction) => {
+        const allowedPassengers = [1, 2, 3, 4, 5, 6, 7, 8];
+        const currentIndex = allowedPassengers.indexOf(current);
         
         if (direction === 'next') {
-            // Find next allowed value, wrap around to first if at end
-            if (currentIndex === -1 || currentIndex === allowedPassengers.length - 1) {
-                return allowedPassengers[0];
-            }
-            return allowedPassengers[currentIndex + 1];
+            return allowedPassengers[Math.min(currentIndex + 1, allowedPassengers.length - 1)];
         } else {
-            // Find previous allowed value, wrap around to last if at beginning
-            if (currentIndex === -1 || currentIndex === 0) {
-                return allowedPassengers[allowedPassengers.length - 1];
-            }
-            return allowedPassengers[currentIndex - 1];
+            return allowedPassengers[Math.max(currentIndex - 1, 0)];
         }
     };
+
+    // VoucherCard component for displaying individual voucher cards
+    const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers }) => {
+        return (
+            <div style={{
+                background: '#fff',
+                borderRadius: 16,
+                boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+                width: '320px',
+                minWidth: '320px',
+                flexShrink: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none',
+                border: isSelected ? '2px solid #03a9f4' : 'none'
+            }}>
+                <img
+                    src={voucher.image}
+                    alt={voucher.title}
+                    style={{
+                        width: '100%',
+                        height: 180,
+                        objectFit: 'cover',
+                    }}
+                />
+                <div style={{ 
+                    padding: '16px', 
+                    width: '100%', 
+                    boxSizing: 'border-box', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    height: '100%' 
+                }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.refundability}</div>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
+                    <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
+                        {voucher.inclusions.map((inclusion, i) => (
+                            <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
+                        ))}
+                    </ul>
+                    <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
+                        <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                type="button"
+                                onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
+                                style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                            >
+                                −
+                            </button>
+                            <input 
+                                type="number" 
+                                min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
+                                max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
+                                value={quantities[voucher.title] || 2} 
+                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                            />
+                            <button
+                                type="button"
+                                onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
+                                style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
+                        {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
+                            `From £${voucher.basePrice} pp` : 
+                            (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
+                        }
+                    </div>
+                    <button 
+                        style={{ 
+                            width: '100%', 
+                            background: isSelected ? '#0288d1' : '#03a9f4', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: 8, 
+                            padding: '10px 0', 
+                            fontSize: 15, 
+                            fontWeight: 600, 
+                            cursor: 'pointer', 
+                            marginTop: 'auto', 
+                            transition: 'background 0.2s' 
+                        }} 
+                        onMouseEnter={(e) => e.target.style.background = '#0288d1'} 
+                        onMouseLeave={(e) => e.target.style.background = isSelected ? '#0288d1' : '#03a9f4'} 
+                        onClick={() => onSelect(voucher)}
+                    >
+                        {isSelected ? 'Selected' : 'Select'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    // Keep layout sensible per device and experience type
 
     const handlePrevVoucher = () => {
         setSlideDirection('left');
@@ -644,34 +736,35 @@ const VoucherType = ({
             console.log('Private Charter Prev - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
             
             if (activePrivateCharterVoucherTypes.length >= 4) {
-                // 4 or more voucher types - cycle through them
-                if (showTwoVouchers) {
-                    setShowTwoVouchers(false);
-                    setCurrentViewIndex(2); // Move to third voucher
-                    console.log('Moving to third voucher (index 2)');
+                // 4 or more voucher types - show two at a time
+                if (currentViewIndex === 0) {
+                    // Currently showing first two vouchers, move to last two
+                    setCurrentViewIndex(2);
+                    setShowTwoVouchers(true);
+                    console.log('Moving to last two vouchers (index 2-3)');
                 } else if (currentViewIndex === 2) {
-                    setShowTwoVouchers(false);
-                    setCurrentViewIndex(3); // Move to fourth voucher
-                    console.log('Moving to fourth voucher (index 3)');
-                } else if (currentViewIndex === 3) {
-                    setShowTwoVouchers(true);
-                    setCurrentViewIndex(0); // Back to first two vouchers
-                    console.log('Moving back to first two vouchers (index 0)');
-                } else {
-                    setShowTwoVouchers(true);
+                    // Currently showing second two vouchers, back to first two
                     setCurrentViewIndex(0);
-                    console.log('Moving back to first two vouchers (index 0)');
+                    setShowTwoVouchers(true);
+                    console.log('Moving back to first two vouchers (index 0-1)');
+                } else {
+                    // Fallback to first two
+                    setCurrentViewIndex(0);
+                    setShowTwoVouchers(true);
+                    console.log('Moving to first two vouchers (index 0-1)');
                 }
             } else if (activePrivateCharterVoucherTypes.length >= 3) {
-                // 3 voucher types - cycle through them
-                if (showTwoVouchers) {
+                // 3 voucher types - show first two, then last one with a placeholder
+                if (currentViewIndex === 0) {
+                    // Currently showing first two vouchers, move to last one
+                    setCurrentViewIndex(2);
                     setShowTwoVouchers(false);
-                    setCurrentViewIndex(2); // Move to third voucher
-                    console.log('Moving to third voucher (index 2)');
+                    console.log('Moving to last voucher (index 2)');
                 } else {
+                    // Back to first two vouchers
+                    setCurrentViewIndex(0);
                     setShowTwoVouchers(true);
-                    setCurrentViewIndex(0); // Back to first two vouchers
-                    console.log('Moving back to first two vouchers (index 0)');
+                    console.log('Moving back to first two vouchers (index 0-1)');
                 }
             } else if (activePrivateCharterVoucherTypes.length > 1) {
                 // Only 2 voucher types, just toggle between single and two-voucher view
@@ -694,34 +787,35 @@ const VoucherType = ({
             console.log('Private Charter Next - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
             
             if (activePrivateCharterVoucherTypes.length >= 4) {
-                // 4 or more voucher types - cycle through them
-                if (showTwoVouchers) {
-                    setShowTwoVouchers(false);
-                    setCurrentViewIndex(2); // Move to third voucher
-                    console.log('Moving to third voucher (index 2)');
+                // 4 or more voucher types - show two at a time
+                if (currentViewIndex === 0) {
+                    // Currently showing first two vouchers, move to next two
+                    setCurrentViewIndex(2);
+                    setShowTwoVouchers(true);
+                    console.log('Moving to next two vouchers (index 2-3)');
                 } else if (currentViewIndex === 2) {
-                    setShowTwoVouchers(false);
-                    setCurrentViewIndex(3); // Move to fourth voucher
-                    console.log('Moving to fourth voucher (index 3)');
-                } else if (currentViewIndex === 3) {
-                    setShowTwoVouchers(true);
-                    setCurrentViewIndex(0); // Back to first two vouchers
-                    console.log('Moving back to first two vouchers (index 0)');
-                } else {
-                    setShowTwoVouchers(true);
+                    // Currently showing second two vouchers, back to first two
                     setCurrentViewIndex(0);
-                    console.log('Moving back to first two vouchers (index 0)');
+                    setShowTwoVouchers(true);
+                    console.log('Moving back to first two vouchers (index 0-1)');
+                } else {
+                    // Fallback to first two
+                    setCurrentViewIndex(0);
+                    setShowTwoVouchers(true);
+                    console.log('Moving to first two vouchers (index 0-1)');
                 }
             } else if (activePrivateCharterVoucherTypes.length >= 3) {
-                // 3 voucher types - cycle through them
-                if (showTwoVouchers) {
+                // 3 voucher types - show first two, then last one with a placeholder
+                if (currentViewIndex === 0) {
+                    // Currently showing first two vouchers, move to last one
+                    setCurrentViewIndex(2);
                     setShowTwoVouchers(false);
-                    setCurrentViewIndex(2); // Move to third voucher
-                    console.log('Moving to third voucher (index 2)');
+                    console.log('Moving to last voucher (index 2)');
                 } else {
+                    // Back to first two vouchers
+                    setCurrentViewIndex(0);
                     setShowTwoVouchers(true);
-                    setCurrentViewIndex(0); // Back to first two vouchers
-                    console.log('Moving back to first two vouchers (index 0)');
+                    console.log('Moving back to first two vouchers (index 0-1)');
                 }
             } else if (activePrivateCharterVoucherTypes.length > 1) {
                 // Only 2 voucher types, just toggle between single and two-voucher view
@@ -730,7 +824,7 @@ const VoucherType = ({
                 console.log('Toggling between single and two-voucher view');
             }
         } else {
-            // For Shared Flight, use original logic
+            // For Shared Flight, use existing logic
             const filteredVouchers = voucherTypes.filter(voucher => 
                 availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
             );
@@ -842,566 +936,430 @@ const VoucherType = ({
                         </div>
                     </div>
                 )}
-                <div style={{ position: 'relative', width: '100%' }}>
-                    {/* Navigation Arrows - hidden on mobile */}
+                {/* Voucher Type Selection */}
+                <div style={{ 
+                    display: 'flex', 
+                    flexDirection: isMobile ? 'column' : 'row', 
+                    gap: '20px', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                    minHeight: '400px'
+                }}>
                     {(() => {
-                        if (isMobile) return null;
-                        const filteredVouchers = voucherTypes.filter(voucher => 
-                            availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
-                        );
-                        
-                                                        // For Private Charter, show navigation if there are multiple active voucher types
-                        const shouldShowNavigation = chooseFlightType?.type === "Private Charter" ? 
-                            (filteredVouchers.length > 1) : 
-                            (filteredVouchers.length > 1);
-                        
-                        console.log('VoucherType: Navigation visibility check:', {
-                            experienceType: chooseFlightType?.type,
-                            filteredVouchersLength: filteredVouchers.length,
-                            shouldShowNavigation: shouldShowNavigation,
-                            filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
-                        });
-                        
-                        if (!shouldShowNavigation) return null;
-                        
-                        return (
-                            <>
-                                {/* Show left arrow if not in two-voucher view or for Private Charter with multiple options */}
-                                {(!showTwoVouchers || (chooseFlightType?.type === "Private Charter" && filteredVouchers.length > 2)) && (
-                                    <div style={{ 
-                                        position: 'absolute', 
-                                        left: 20, 
-                                        top: '50%', 
-                                        transform: 'translateY(-50%)', 
-                                        zIndex: 10,
-                                        background: 'rgba(255,255,255,0.9)',
-                                        borderRadius: '50%',
-                                        width: 40,
-                                        height: 40,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        border: '1px solid #ddd',
-                                        transition: 'all 0.2s ease'
-                                    }} onClick={handlePrevVoucher}>
-                                        <ArrowBackIosIcon style={{ 
-                                            fontSize: 20, 
-                                            color: '#666',
-                                            marginLeft: 5 // optical centering to match forward button
-                                        }} />
-                                    </div>
-                                )}
-                                {/* Show right arrow if there are more voucher types to show */}
-                                {((showTwoVouchers && filteredVouchers.length > 2) || 
-                                  (chooseFlightType?.type === "Private Charter" && filteredVouchers.length > 2)) && (
-                                    <div style={{ 
-                                        position: 'absolute', 
-                                        right: 20, 
-                                        top: '50%', 
-                                        transform: 'translateY(-50%)', 
-                                        zIndex: 10,
-                                        background: 'rgba(255,255,255,0.9)',
-                                        borderRadius: '50%',
-                                        width: 40,
-                                        height: 40,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        border: '1px solid #ddd',
-                                        transition: 'all 0.2s ease'
-                                    }} onClick={handleNextVoucher}>
-                                        <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
-                                    </div>
-                                )}
-                            </>
-                        );
-                    })()}
-                    
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            padding: isMobile ? '16px' : '40px 60px',
-                            minHeight: isMobile ? 'auto' : '400px',
-                            position: 'relative',
-                            width: '100%',
-                            maxWidth: 1080,
-                            margin: '0 auto',
-                            boxSizing: 'border-box'
-                        }}
-                    >
-                        {loading || allVoucherTypesLoading || (chooseFlightType?.type === "Private Charter" && privateCharterVoucherTypesLoading) ? (
-                            <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
-                                <p>Loading voucher types...</p>
-                            </div>
-                        ) : voucherTypes
-                            .filter(voucher => {
-                                // For Private Charter, don't apply location filtering since they're generally available everywhere
-                                if (chooseFlightType?.type === "Private Charter") {
-                                    return true; // Show all private charter voucher types
-                                }
-                                // For Shared Flight, apply location filtering
-                                return availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title);
-                            })
-                            .length > 0 ? (
-                            (() => {
-                                const filteredVouchers = voucherTypes.filter(voucher => {
-                                    // For Private Charter, don't apply location filtering since they're generally available everywhere
-                                    // But ensure we only show active voucher types
-                                    if (chooseFlightType?.type === "Private Charter") {
-                                        const isActive = voucher.is_active !== false;
-                                        console.log(`Private Charter voucher ${voucher.title} (ID: ${voucher.id}) - is_active:`, voucher.is_active, 'Filtered:', isActive);
-                                        return isActive; // Show active private charter voucher types
-                                    }
-                                    // For Shared Flight, apply location filtering
-                                    return availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title);
-                                });
-                                
-                                console.log('VoucherType: Available voucher types for location:', availableVoucherTypes);
-                                console.log('VoucherType: All voucher types:', voucherTypes.map(v => ({ title: v.title, id: v.id, is_active: v.is_active })));
-                                console.log('VoucherType: Filtered voucher types:', filteredVouchers.map(v => ({ title: v.title, id: v.id, is_active: v.is_active })));
-                                console.log('VoucherType: Experience type:', chooseFlightType?.type);
-                                console.log('VoucherType: Private Charter voucher types from API:', privateCharterVoucherTypes.map(vt => ({ title: vt.title, id: vt.id, is_active: vt.is_active })));
-                                
-                                // Mobile: horizontal layout with horizontal scrolling
-                                if (isMobile) {
-                                    return (
-                                        <div className="voucher-type-scroll-outer" style={{ 
-                                            width: '100%', 
-                                            padding: '0 8px',
-                                            margin: '0 -8px'
-                                        }}>
-                                            <div style={{ 
-                                                display: 'flex', 
-                                                gap: '12px', 
-                                                width: 'max-content',
-                                                padding: '0 8px'
-                                            }}>
-                                                {filteredVouchers.map((voucher) => (
-                                                    <div key={voucher.id} style={{
-                                                        background: '#fff',
-                                                        borderRadius: 12,
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                        width: '260px',
-                                                        minWidth: '260px',
-                                                        flexShrink: 0,
-                                                        padding: 0,
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        overflow: 'hidden'
-                                                    }}>
-                                                        <img
-                                                            src={voucher.image}
-                                                            alt={voucher.title}
-                                                            style={{ width: '100%', height: 120, objectFit: 'cover' }}
-                                                        />
-                                                        <div style={{ padding: '10px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                                            <h3 style={{ fontSize: 15, fontWeight: 300, margin: 0, marginBottom: 3, color: '#4a4a4a' }}>{voucher.title}</h3>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 4, lineHeight: '1.2', fontStyle: 'italic' }}>{voucher.description}</div>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3, fontWeight: 600 }}>{voucher.refundability}</div>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3, fontWeight: 600 }}>{voucher.availability}</div>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 3, fontWeight: 600 }}>{voucher.flightTime}</div>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.validity}</div>
-                                                            <ul style={{ paddingLeft: 10, margin: 0, marginBottom: 6, color: '#666', fontSize: 13, lineHeight: '1.2' }}>
-                                                                {voucher.inclusions.map((inclusion, i) => (
-                                                                    <li key={i} style={{ marginBottom: 1 }}>{inclusion}</li>
-                                                                ))}
-                                                            </ul>
-                                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: '1.1' }}>{voucher.weatherClause}</div>
-                                                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6, gap: '4px' }}>
-                                                                <label style={{ fontSize: 11, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
-                                                                        style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
-                                                                    >
-                                                                        −
-                                                                    </button>
-                                                                    <input 
-                                                                        type="number" 
-                                                                        min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                                                        max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
-                                                                        value={quantities[voucher.title] || 2} 
-                                                                        onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                                                        style={{ width: '40px', padding: '2px 4px', border: '1px solid #ddd', borderRadius: 3, fontSize: 11, textAlign: 'center' }} 
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
-                                                                        style={{ padding: '2px 6px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 3, cursor: 'pointer' }}
-                                                                    >
-                                                                        +
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#4a4a4a' }}>
-                                                                {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
-                                                                    `From £${voucher.basePrice} pp` : 
-                                                                    (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
-                                                                }
-                                                            </div>
-                                                            <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
-                                                                Select
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                }
+                        if (privateCharterVoucherTypesLoading || allVoucherTypesLoading) {
+                            return (
+                                <div style={{ textAlign: 'center', padding: '40px' }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+                                    <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>Loading Voucher Types...</h3>
+                                    <p style={{ color: '#9ca3af' }}>Please wait while we fetch available options</p>
+                                </div>
+                            );
+                        }
 
-                                // Desktop / tablet: original layout
-                                // Show two vouchers side by side (Weekday Morning and Flexible Weekday)
-                                // For Private Charter, also show two vouchers side by side if available
-                                const shouldShowTwoVouchers = (showTwoVouchers && filteredVouchers.length >= 2) || 
-                                    (chooseFlightType?.type === "Private Charter" && filteredVouchers.length >= 2);
-                                
-                                console.log('VoucherType: Two vouchers layout check:', {
-                                    experienceType: chooseFlightType?.type,
-                                    showTwoVouchers: showTwoVouchers,
-                                    filteredVouchersLength: filteredVouchers.length,
-                                    shouldShowTwoVouchers: shouldShowTwoVouchers,
-                                    filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
-                                });
-                                
-                                if (shouldShowTwoVouchers) {
-                                    // For Private Charter, show current view based on showTwoVouchers state
-                                    // If showTwoVouchers is true, show first 2 vouchers
-                                    // If showTwoVouchers is false, show single voucher at currentViewIndex
-                                    let vouchersToShow;
-                                    if (chooseFlightType?.type === "Private Charter") {
-                                        if (showTwoVouchers) {
-                                            // Show first 2 vouchers when in two-voucher view
-                                            vouchersToShow = filteredVouchers.slice(0, 2);
-                                            console.log('Private Charter: Showing first 2 vouchers:', vouchersToShow.map(v => v.title));
-                                        } else {
-                                            // Show single voucher at current index when in single-voucher view
-                                            vouchersToShow = [filteredVouchers[currentViewIndex]];
-                                            console.log('Private Charter: Showing single voucher at index', currentViewIndex, ':', vouchersToShow.map(v => v.title));
+                        if (voucherTypes.length === 0) {
+                            return (
+                                <div style={{ textAlign: 'center', padding: '40px' }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎈</div>
+                                    <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>No Voucher Types Available</h3>
+                                    <p style={{ color: '#9ca3af' }}>
+                                        {chooseFlightType?.type === "Private Charter" 
+                                            ? "No private charter voucher types are currently available for this location."
+                                            : "No shared flight voucher types are currently available for this location."
                                         }
-                                    } else {
-                                        // For Shared Flight, always show first 2 vouchers
-                                        vouchersToShow = filteredVouchers.slice(0, 2);
-                                    }
-                                    
-                                    console.log('VoucherType: Vouchers to show:', {
-                                        experienceType: chooseFlightType?.type,
-                                        showTwoVouchers: showTwoVouchers,
-                                        currentViewIndex: currentViewIndex,
-                                        vouchersToShow: vouchersToShow.map(v => v.title),
-                                        totalFilteredVouchers: filteredVouchers.map(v => v.title)
-                                    });
-                                    
-                                    return (
-                                        <div style={{
-                                            display: 'flex',
-                                            gap: '20px',
-                                            justifyContent: 'center',
-                                            alignItems: 'flex-start',
-                                            transition: 'transform 0.3s ease-in-out'
-                                        }}>
-                                            {vouchersToShow.map((voucher, index) => (
-                                                <div key={voucher.id} style={{
-                                                    background: '#fff',
-                                                    borderRadius: 16,
-                                                    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                                                    width: '320px',
-                                                    minWidth: '320px',
-                                                    flexShrink: 0,
-                                                    padding: 0,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    overflow: 'hidden'
-                                                }}>
-                                                    <img
-                                                        src={voucher.image}
-                                                        alt={voucher.title}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: 180,
-                                                            objectFit: 'cover',
-                                                        }}
-                                                    />
-                                                    <div style={{
-                                                        padding: '16px',
-                                                        width: '100%',
-                                                        boxSizing: 'border-box',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        height: '100%'
-                                                    }}>
-                                                        <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 8, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.refundability}</div>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
-                                                        <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
-                                                            {voucher.inclusions.map((inclusion, i) => (
-                                                                <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
-                                                            ))}
-                                                        </ul>
-                                                        <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
-                                                            <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
-                                                                    style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
-                                                                >
-                                                                    −
-                                                                </button>
-                                                                <input 
-                                                                    type="number" 
-                                                                    min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                                                    max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
-                                                                    value={quantities[voucher.title] || 2} 
-                                                                    onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
-                                                                    style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                                                            {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
-                                                                `From £${voucher.basePrice} pp` : 
-                                                                (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
-                                                            }
-                                                        </div>
-                                                        <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(voucher)}>
-                                                            Select
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                }
-                                
-                                // Show single voucher (Any Day Flight) when not in two-voucher view
-                                const currentVoucher = filteredVouchers[currentViewIndex];
-                                
-                                if (!currentVoucher) {
-                                    setCurrentViewIndex(0);
-                                    return null;
-                                }
-                                
+                                    </p>
+                                </div>
+                            );
+                        }
+
+                        // For Private Charter, show navigation and all voucher types
+                        if (chooseFlightType?.type === "Private Charter") {
+                            const activeVouchers = voucherTypes.filter(vt => vt.is_active !== false);
+                            
+                            if (activeVouchers.length === 0) {
                                 return (
-                                    <div key={currentVoucher.id} style={{
-                                        background: '#fff',
-                                        borderRadius: 16,
-                                        boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                                        width: '320px',
-                                        minWidth: '320px',
-                                        flexShrink: 0,
-                                        padding: 0,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        overflow: 'hidden',
-                                        animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : 'slideInLeft 0.3s ease-in-out'
-                                    }}>
-                                        <img src={currentVoucher.image} alt={currentVoucher.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
-                                        <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                            <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{currentVoucher.title}</h3>
-                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 600 }}>{currentVoucher.refundability}</div>
-                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 600 }}>{currentVoucher.availability}</div>
-                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 6, fontWeight: 600 }}>{currentVoucher.flightTime}</div>
-                                            <div style={{ fontSize: 14, color: '#666', marginBottom: 10, fontWeight: 600 }}>{currentVoucher.validity}</div>
-                                            <ul style={{ paddingLeft: 14, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
-                                                {currentVoucher.inclusions.map((inclusion, i) => (
-                                                    <li key={i} style={{ marginBottom: 3 }}>{inclusion}</li>
-                                                ))}
-                                            </ul>
-                                            <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{currentVoucher.weatherClause}</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
-                                                <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleQuantityChange(currentVoucher.title, getNextAllowedPassenger(parseInt(quantities[currentVoucher.title] || 2, 10), 'prev'))}
-                                                        style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
-                                                    >
-                                                        −
-                                                    </button>
-                                                                                                    <input 
-                                                    type="number" 
-                                                    min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                                    max={chooseFlightType?.type === "Private Charter" ? 8 : (currentVoucher.maxPassengers || 8)}
-                                                    value={quantities[currentVoucher.title] || 2} 
-                                                    onChange={(e) => handleQuantityChange(currentVoucher.title, e.target.value)} 
-                                                    style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
-                                                />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleQuantityChange(currentVoucher.title, getNextAllowedPassenger(parseInt(quantities[currentVoucher.title] || 2, 10), 'next'))}
-                                                        style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                                                {chooseFlightType?.type === "Private Charter" && currentVoucher.basePrice ? 
-                                                    `From £${currentVoucher.basePrice} pp` : 
-                                                    (currentVoucher.priceUnit === 'total' ? `£${currentVoucher.price} total` : `From £${currentVoucher.price} pp`)
-                                                }
-                                            </div>
-                                            <button style={{ width: '100%', background: '#03a9f4', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }} onMouseEnter={(e) => e.target.style.background = '#0288d1'} onMouseLeave={(e) => e.target.style.background = '#03a9f4'} onClick={() => handleSelectVoucher(currentVoucher)}>
-                                                Select
-                                            </button>
-                                        </div>
+                                    <div style={{ textAlign: 'center', padding: '40px' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎈</div>
+                                        <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>No Active Voucher Types</h3>
+                                        <p style={{ color: '#9ca3af' }}>All private charter voucher types are currently inactive.</p>
                                     </div>
                                 );
-                            })()
-                        ) : (
-                            <div style={{ textAlign: 'center', width: '100%', padding: '20px' }}>
-                                {chooseFlightType?.type === "Private Charter" ? (
-                                    <div>
-                                        <p>No active private charter voucher types available.</p>
-                                        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-                                            Please check with our team for private charter availability or contact support to activate voucher types.
-                                        </p>
-                                        <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
-                                            Total voucher types: {privateCharterVoucherTypes.length} | Active: {privateCharterVoucherTypes.filter(vt => vt.is_active === 1).length}
-                                        </p>
-                                        <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
-                                            Available voucher types: {privateCharterVoucherTypes.filter(vt => vt.is_active === 1).map(vt => vt.title).join(', ')}
-                                        </p>
+                            }
+
+                            // Show current view based on pagination - always show two vouchers when possible
+                            let vouchersToShow = [];
+                            if (activeVouchers.length >= 4) {
+                                // 4 or more voucher types - show two at a time
+                                if (currentViewIndex === 0) {
+                                    // Show first two vouchers
+                                    vouchersToShow = activeVouchers.slice(0, 2);
+                                } else if (currentViewIndex === 2) {
+                                    // Show next two vouchers
+                                    vouchersToShow = activeVouchers.slice(2, 4);
+                                } else {
+                                    // Fallback to first two
+                                    vouchersToShow = activeVouchers.slice(0, 2);
+                                }
+                            } else if (activeVouchers.length === 3) {
+                                // 3 voucher types - show first two, then last one
+                                if (currentViewIndex === 0) {
+                                    // Show first two vouchers
+                                    vouchersToShow = activeVouchers.slice(0, 2);
+                                } else {
+                                    // Show last voucher
+                                    vouchersToShow = [activeVouchers[2]];
+                                }
+                            } else if (activeVouchers.length === 2) {
+                                // 2 voucher types - always show both
+                                vouchersToShow = activeVouchers;
+                            } else {
+                                // 1 voucher type - show single
+                                vouchersToShow = activeVouchers;
+                            }
+
+                            return (
+                                <>
+                                    {/* Navigation Arrows */}
+                                    {activeVouchers.length > 2 && (
+                                        <>
+                                            {/* Left Arrow */}
+                                            <div style={{ 
+                                                position: 'absolute', 
+                                                left: 20, 
+                                                top: '50%', 
+                                                transform: 'translateY(-50%)', 
+                                                zIndex: 10,
+                                                background: 'rgba(255,255,255,0.9)',
+                                                borderRadius: '50%',
+                                                width: 40,
+                                                height: 40,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                border: '1px solid #ddd',
+                                                transition: 'all 0.2s ease'
+                                            }} onClick={handlePrevVoucher}>
+                                                <ArrowBackIosIcon style={{ 
+                                                    fontSize: 20, 
+                                                    color: '#666',
+                                                    marginLeft: 5
+                                                }} />
+                                            </div>
+                                            
+                                            {/* Right Arrow */}
+                                            <div style={{ 
+                                                position: 'absolute', 
+                                                right: 20, 
+                                                top: '50%', 
+                                                transform: 'translateY(-50%)', 
+                                                zIndex: 10,
+                                                background: 'rgba(255,255,255,0.9)',
+                                                borderRadius: '50%',
+                                                width: 40,
+                                                height: 40,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                border: '1px solid #ddd',
+                                                transition: 'all 0.2s ease'
+                                            }} onClick={handleNextVoucher}>
+                                                <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* Voucher Cards */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        flexDirection: isMobile ? 'column' : 'row', 
+                                        gap: '20px', 
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        width: '100%'
+                                    }}>
+                                        {vouchersToShow.map((voucher, index) => (
+                                            <VoucherCard
+                                                key={`${voucher.id}-${currentViewIndex}-${index}`}
+                                                voucher={voucher}
+                                                onSelect={handleSelectVoucher}
+                                                quantities={quantities}
+                                                setQuantities={setQuantities}
+                                                isSelected={selectedVoucher?.id === voucher.id}
+                                                slideDirection={slideDirection}
+                                                showTwoVouchers={vouchersToShow.length > 1}
+                                            />
+                                        ))}
                                     </div>
-                                ) : (
-                                    <p>No voucher types available for this location.</p>
-                                )}
-                            </div>
-                        )}
-                        
-                        {/* Dot Navigation - hidden on mobile */}
-                        {(() => {
-                            if (isMobile) return null;
+
+                                    {/* Dot Navigation */}
+                                    {activeVouchers.length > 1 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginTop: '20px',
+                                            position: 'absolute',
+                                            bottom: '10px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)'
+                                        }}>
+                                            {(() => {
+                                                // Create dots based on how many voucher types we have
+                                                const totalDots = activeVouchers.length >= 4 ? 2 : activeVouchers.length;
+                                                const dots = [];
+                                                
+                                                for (let i = 0; i < totalDots; i++) {
+                                                    let isActive = false;
+                                                    
+                                                    if (activeVouchers.length >= 4) {
+                                                        // For 4+ voucher types, show 2 dots representing the two groups
+                                                        if (i === 0) {
+                                                            // First dot represents first two vouchers
+                                                            isActive = (currentViewIndex === 0);
+                                                        } else if (i === 1) {
+                                                            // Second dot represents next two vouchers
+                                                            isActive = (currentViewIndex === 2);
+                                                        }
+                                                    } else {
+                                                        // For 2-3 voucher types, show individual dots
+                                                        if (activeVouchers.length === 2) {
+                                                            // Always show both as active
+                                                            isActive = true;
+                                                        } else if (activeVouchers.length === 3) {
+                                                            // Show first dot for first two, second dot for last one
+                                                            if (i === 0) {
+                                                                isActive = (currentViewIndex === 0);
+                                                            } else {
+                                                                isActive = (currentViewIndex === 2);
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    dots.push(
+                                                        <div
+                                                            key={i}
+                                                            onClick={() => {
+                                                                if (activeVouchers.length >= 4) {
+                                                                    // For 4+ voucher types, navigate between groups
+                                                                    if (i === 0) {
+                                                                        setCurrentViewIndex(0);
+                                                                    } else {
+                                                                        setCurrentViewIndex(2);
+                                                                    }
+                                                                } else if (activeVouchers.length === 3) {
+                                                                    // For 3 voucher types, navigate between first two and last one
+                                                                    if (i === 0) {
+                                                                        setCurrentViewIndex(0);
+                                                                    } else {
+                                                                        setCurrentViewIndex(2);
+                                                                    }
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                width: '10px',
+                                                                height: '10px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: isActive ? '#03a9f4' : '#ddd',
+                                                                cursor: 'pointer',
+                                                                transition: 'background-color 0.2s ease'
+                                                            }}
+                                                        />
+                                                    );
+                                                }
+                                                
+                                                return dots;
+                                            })()}
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        } else {
+                            // For Shared Flight, use existing logic
                             const filteredVouchers = voucherTypes.filter(voucher => 
                                 availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
                             );
                             
-                            // For Private Charter, always show dots if there are multiple active voucher types
-                            const shouldShowDots = chooseFlightType?.type === "Private Charter" ? 
-                                (filteredVouchers.length > 1) : 
-                                (filteredVouchers.length > 1);
-                            
-                            console.log('VoucherType: Dot navigation visibility check:', {
-                                experienceType: chooseFlightType?.type,
-                                filteredVouchersLength: filteredVouchers.length,
-                                shouldShowDots: shouldShowDots,
-                                filteredVouchers: filteredVouchers.map(v => ({ title: v.title, is_active: v.is_active }))
-                            });
-                            
-                            if (shouldShowDots) {
+                            if (filteredVouchers.length === 0) {
                                 return (
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        marginTop: '20px',
-                                        position: 'absolute',
-                                        bottom: '10px',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)'
-                                    }}>
-                                        {filteredVouchers.map((_, index) => (
-                                            <div
-                                                key={index}
-                                                onClick={() => {
-                                                    if (chooseFlightType?.type === "Private Charter") {
-                                                        // For Private Charter, handle navigation based on available voucher types
-                                                        const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
-                                                        console.log('Private Charter dot click - Index:', index, 'Active count:', activePrivateCharterVoucherTypes.length);
-                                                        
-                                                        if (activePrivateCharterVoucherTypes.length >= 4) {
-                                                            // 4 or more voucher types - show first two together, then individual ones
-                                                            if (index === 0 || index === 1) {
-                                                                setShowTwoVouchers(true);
-                                                                setCurrentViewIndex(0);
-                                                                console.log('Showing first two vouchers together (index 0-1)');
-                                                            } else if (index === 2) {
-                                                                setShowTwoVouchers(false);
-                                                                setCurrentViewIndex(2);
-                                                                console.log('Showing third voucher (index 2)');
-                                                            } else if (index === 3) {
-                                                                setShowTwoVouchers(false);
-                                                                setCurrentViewIndex(3);
-                                                                console.log('Showing fourth voucher (index 3)');
-                                                            } else {
-                                                                setShowTwoVouchers(false);
-                                                                setCurrentViewIndex(index);
-                                                                console.log('Showing voucher at index:', index);
-                                                            }
-                                                        } else if (activePrivateCharterVoucherTypes.length >= 3) {
-                                                            // 3 voucher types - show first two together, then individual one
-                                                            if (index === 0 || index === 1) {
-                                                                setShowTwoVouchers(true);
-                                                                setCurrentViewIndex(0);
-                                                                console.log('Showing first two vouchers together');
-                                                            } else {
-                                                                setShowTwoVouchers(false);
-                                                                setCurrentViewIndex(index);
-                                                                console.log('Showing single voucher at index:', index);
-                                                            }
-                                                        } else if (activePrivateCharterVoucherTypes.length >= 2) {
-                                                            // Only 2 voucher types - toggle between single and two-voucher view
-                                                            if (index === 0 || index === 1) {
-                                                                setShowTwoVouchers(true);
-                                                                setCurrentViewIndex(0);
-                                                                console.log('Showing two vouchers together');
-                                                            } else {
-                                                                setShowTwoVouchers(false);
-                                                                setCurrentViewIndex(index);
-                                                                console.log('Showing single voucher at index:', index);
-                                                            }
-                                                        } else {
-                                                            // Single voucher type, just update index
-                                                            setCurrentViewIndex(index);
-                                                            console.log('Single voucher type, updating index to:', index);
-                                                        }
-                                                    } else {
-                                                        // For Shared Flight, use original logic
-                                                        if (index === 0 || index === 1) {
-                                                            setShowTwoVouchers(true);
-                                                            setCurrentViewIndex(0);
-                                                        } else {
-                                                            setShowTwoVouchers(false);
-                                                            setCurrentViewIndex(index);
-                                                        }
-                                                    }
-                                                }}
-                                                style={{
-                                                    width: '10px',
-                                                    height: '10px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: (showTwoVouchers && (index === 0 || index === 1)) || (!showTwoVouchers && index === currentViewIndex) ? '#03a9f4' : '#ddd',
-                                                    cursor: 'pointer',
-                                                    transition: 'background-color 0.2s ease'
-                                                }}
-                                            />
-                                        ))}
+                                    <div style={{ textAlign: 'center', padding: '40px' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎈</div>
+                                        <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>No Available Voucher Types</h3>
+                                        <p style={{ color: '#9ca3af' }}>No voucher types are currently available for the selected location.</p>
                                     </div>
                                 );
                             }
-                            return null;
-                        })()}
-                    </div>
+
+                            // Show current view based on pagination - show two vouchers when possible
+                            let vouchersToShow = [];
+                            if (filteredVouchers.length >= 3) {
+                                // 3 or more voucher types - show two at a time
+                                if (currentViewIndex === 0) {
+                                    // Show first two vouchers
+                                    vouchersToShow = filteredVouchers.slice(0, 2);
+                                } else {
+                                    // Show remaining vouchers
+                                    vouchersToShow = filteredVouchers.slice(2);
+                                }
+                            } else {
+                                // 1-2 voucher types - show all
+                                vouchersToShow = filteredVouchers;
+                            }
+
+                            return (
+                                <>
+                                    {/* Navigation Arrows */}
+                                    {filteredVouchers.length > 2 && (
+                                        <>
+                                            {/* Left Arrow */}
+                                            {currentViewIndex > 0 && (
+                                                <div style={{ 
+                                                    position: 'absolute', 
+                                                    left: 20, 
+                                                    top: '50%', 
+                                                    transform: 'translateY(-50%)', 
+                                                    zIndex: 10,
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    borderRadius: '50%',
+                                                    width: 40,
+                                                    height: 40,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                    border: '1px solid #ddd',
+                                                    transition: 'all 0.2s ease'
+                                                }} onClick={handlePrevVoucher}>
+                                                    <ArrowBackIosIcon style={{ 
+                                                        fontSize: 20, 
+                                                        color: '#666',
+                                                        marginLeft: 5
+                                                    }} />
+                                                </div>
+                                            )}
+                                            
+                                            {/* Right Arrow */}
+                                            {currentViewIndex === 0 && (
+                                                <div style={{ 
+                                                    position: 'absolute', 
+                                                    right: 20, 
+                                                    top: '50%', 
+                                                    transform: 'translateY(-50%)', 
+                                                    zIndex: 10,
+                                                    background: 'rgba(255,255,255,0.9)',
+                                                    borderRadius: '50%',
+                                                    width: 40,
+                                                    height: 40,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                    border: '1px solid #ddd',
+                                                    transition: 'all 0.2s ease'
+                                                }} onClick={handleNextVoucher}>
+                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Voucher Cards */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        flexDirection: isMobile ? 'column' : 'row', 
+                                        gap: '20px', 
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        width: '100%'
+                                    }}>
+                                        {vouchersToShow.map((voucher, index) => (
+                                            <VoucherCard
+                                                key={`${voucher.id}-${currentViewIndex}-${index}`}
+                                                voucher={voucher}
+                                                onSelect={handleSelectVoucher}
+                                                quantities={quantities}
+                                                setQuantities={setQuantities}
+                                                isSelected={selectedVoucher?.id === voucher.id}
+                                                slideDirection={slideDirection}
+                                                showTwoVouchers={vouchersToShow.length > 1}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Dot Navigation */}
+                                    {filteredVouchers.length > 1 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            marginTop: '20px',
+                                            position: 'absolute',
+                                            bottom: '10px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)'
+                                        }}>
+                                            {(() => {
+                                                // Create dots based on how many voucher types we have
+                                                const totalDots = filteredVouchers.length >= 3 ? 2 : filteredVouchers.length;
+                                                const dots = [];
+                                                
+                                                for (let i = 0; i < totalDots; i++) {
+                                                    let isActive = false;
+                                                    
+                                                    if (filteredVouchers.length >= 3) {
+                                                        // For 3+ voucher types, show 2 dots representing the groups
+                                                        if (i === 0) {
+                                                            // First dot represents first two vouchers
+                                                            isActive = (currentViewIndex === 0);
+                                                        } else if (i === 1) {
+                                                            // Second dot represents remaining vouchers
+                                                            isActive = (currentViewIndex > 0);
+                                                        }
+                                                    } else {
+                                                        // For 1-2 voucher types, show individual dots
+                                                        isActive = true;
+                                                    }
+                                                    
+                                                    dots.push(
+                                                        <div
+                                                            key={i}
+                                                            onClick={() => {
+                                                                if (filteredVouchers.length >= 3) {
+                                                                    // For 3+ voucher types, navigate between groups
+                                                                    if (i === 0) {
+                                                                        setCurrentViewIndex(0);
+                                                                    } else {
+                                                                        setCurrentViewIndex(2);
+                                                                    }
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                width: '10px',
+                                                                height: '10px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: isActive ? '#03a9f4' : '#ddd',
+                                                                cursor: 'pointer',
+                                                                transition: 'background-color 0.2s ease'
+                                                            }}
+                                                        />
+                                                    );
+                                                }
+                                                
+                                                return dots;
+                                            })()}
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        }
+                    })()}
                 </div>
             </Accordion>
 
