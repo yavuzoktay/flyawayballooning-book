@@ -28,15 +28,54 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         }));
     };
 
-    // Validation function for Buy Gift
+    // Enhanced validation function for Buy Gift
     const validateFields = () => {
         if (!isGiftVoucher) return true;
         
         const errors = {};
-        if (!recipientDetails.name || !recipientDetails.name.trim()) errors.name = true;
-        if (!recipientDetails.email || !recipientDetails.email.trim()) errors.email = true;
-        if (!recipientDetails.phone || !recipientDetails.phone.trim()) errors.phone = true;
-        if (!recipientDetails.date || !recipientDetails.date.trim()) errors.date = true;
+        
+        // Name validation
+        if (!recipientDetails.name || !recipientDetails.name.trim()) {
+            errors.name = true;
+            console.log('❌ Recipient name validation failed:', recipientDetails.name);
+        }
+        
+        // Email validation (format + required)
+        if (!recipientDetails.email || !recipientDetails.email.trim()) {
+            errors.email = true;
+            console.log('❌ Recipient email validation failed (empty):', recipientDetails.email);
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(recipientDetails.email.trim())) {
+                errors.email = true;
+                console.log('❌ Recipient email validation failed (format):', recipientDetails.email);
+            }
+        }
+        
+        // Phone validation  
+        if (!recipientDetails.phone || !recipientDetails.phone.trim()) {
+            errors.phone = true;
+            console.log('❌ Recipient phone validation failed:', recipientDetails.phone);
+        }
+        
+        // Date validation
+        if (!recipientDetails.date || !recipientDetails.date.trim()) {
+            errors.date = true;
+            console.log('❌ Recipient date validation failed:', recipientDetails.date);
+        } else {
+            // Additional date format validation
+            const dateValue = new Date(recipientDetails.date);
+            if (isNaN(dateValue.getTime())) {
+                errors.date = true;
+                console.log('❌ Recipient date validation failed (invalid date):', recipientDetails.date);
+            }
+        }
+        
+        console.log('🎁 Recipient Details validation result:', {
+            recipientDetails,
+            errors,
+            isValid: Object.keys(errors).length === 0
+        });
         
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;

@@ -111,21 +111,73 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     return price;
   };
 
-  // Validation function for all activity types
+  // Enhanced validation function for all activity types
   const validateFields = () => {
     const errors = [];
+    
+    console.log('👥 Starting passenger validation for:', activitySelect);
+    console.log('👥 Passenger data:', passengerData);
+    
     passengerData.forEach((passenger, index) => {
       const passengerErrors = {};
       
+      console.log(`👤 Validating passenger ${index + 1}:`, passenger);
+      
       // All fields are required for Book Flight, Redeem Voucher, Flight Voucher, and Buy Gift
       if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
-        if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
-        if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
-        if (!passenger.phone?.trim()) passengerErrors.phone = true;
-        if (!passenger.email?.trim()) passengerErrors.email = true;
+        
+        // First Name validation
+        if (!passenger.firstName?.trim()) {
+          passengerErrors.firstName = true;
+          console.log(`❌ Passenger ${index + 1} firstName failed:`, passenger.firstName);
+        }
+        
+        // Last Name validation
+        if (!passenger.lastName?.trim()) {
+          passengerErrors.lastName = true;
+          console.log(`❌ Passenger ${index + 1} lastName failed:`, passenger.lastName);
+        }
+        
+        // For Buy Gift, only first passenger needs phone and email (matching UI)
+        if (activitySelect === 'Buy Gift') {
+          if (index === 0) {
+            // Phone validation for first passenger
+            if (!passenger.phone?.trim()) {
+              passengerErrors.phone = true;
+              console.log(`❌ First passenger phone failed:`, passenger.phone);
+            }
+            
+            // Email validation for first passenger (format + required)
+            if (!passenger.email?.trim()) {
+              passengerErrors.email = true;
+              console.log(`❌ First passenger email failed (empty):`, passenger.email);
+            } else {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRegex.test(passenger.email.trim())) {
+                passengerErrors.email = true;
+                console.log(`❌ First passenger email failed (format):`, passenger.email);
+              }
+            }
+          }
+          // Other passengers don't need phone/email for Buy Gift
+        } else {
+          // For other activity types, all passengers need phone and email
+          if (!passenger.phone?.trim()) {
+            passengerErrors.phone = true;
+            console.log(`❌ Passenger ${index + 1} phone failed:`, passenger.phone);
+          }
+          
+          if (!passenger.email?.trim()) {
+            passengerErrors.email = true;
+            console.log(`❌ Passenger ${index + 1} email failed:`, passenger.email);
+          }
+        }
         
         // Weight is required for Book Flight, Redeem Voucher, and Flight Voucher but not for Buy Gift
-        if (activitySelect !== 'Buy Gift' && !passenger.weight?.trim()) passengerErrors.weight = true;
+        if (activitySelect !== 'Buy Gift' && !passenger.weight?.trim()) {
+          passengerErrors.weight = true;
+          console.log(`❌ Passenger ${index + 1} weight failed:`, passenger.weight);
+        }
       } else {
         // For other activity types, basic validation
         if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
@@ -139,11 +191,22 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       
       if (Object.keys(passengerErrors).length > 0) {
         errors[index] = passengerErrors;
+        console.log(`❌ Passenger ${index + 1} has errors:`, passengerErrors);
+      } else {
+        console.log(`✅ Passenger ${index + 1} validation passed`);
       }
     });
     
+    const isValid = errors.length === 0;
+    console.log('👥 Final passenger validation result:', {
+      activitySelect,
+      passengerCount: passengerData.length,
+      errors,
+      isValid
+    });
+    
     setValidationErrors(errors);
-    return errors.length === 0;
+    return isValid;
   };
 
   // Expose validation function to parent
