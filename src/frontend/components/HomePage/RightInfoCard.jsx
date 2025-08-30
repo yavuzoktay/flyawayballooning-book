@@ -360,6 +360,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     });
 
     // IMMEDIATE BUY GIFT CONDITIONS CHECK
+    // Define variables outside the if block for proper scope
+    let strictValidation = false;
+    let buyGiftShouldBeEnabled = false;
+    
     if (isGiftVoucher) {
         const condition1 = !!chooseFlightType;
         const condition2 = !!selectedVoucherType;
@@ -368,7 +372,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         const condition5 = isRecipientDetailsComplete(recipientDetails);
         
         // Additional strict validation for Buy Gift
-        const strictValidation = (() => {
+        strictValidation = (() => {
             // Verify all conditions are met with more detailed checks
             if (!chooseFlightType?.type) return false;
             if (!selectedVoucherType?.title) return false;
@@ -412,7 +416,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             return true;
         })();
         
-        const buyGiftShouldBeEnabled = !!(
+        buyGiftShouldBeEnabled = !!(
             condition1 &&
             condition2 &&
             condition3 &&
