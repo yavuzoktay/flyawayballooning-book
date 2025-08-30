@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import Accordion from '../Common/Accordion';
 import axios from 'axios';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -133,6 +133,7 @@ const VoucherType = ({
     const [currentViewIndex, setCurrentViewIndex] = useState(0);
     const [showTwoVouchers, setShowTwoVouchers] = useState(true);
     const [slideDirection, setSlideDirection] = useState('right');
+    const [shouldAnimate, setShouldAnimate] = useState(false);
     const [allVoucherTypes, setAllVoucherTypes] = useState([]);
     const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
     const [privateCharterVoucherTypes, setPrivateCharterVoucherTypes] = useState([]);
@@ -150,6 +151,16 @@ const VoucherType = ({
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, []);
+
+    // Reset animation flag after animation completes
+    useEffect(() => {
+        if (shouldAnimate) {
+            const timer = setTimeout(() => {
+                setShouldAnimate(false);
+            }, 300); // Match animation duration
+            return () => clearTimeout(timer);
+        }
+    }, [shouldAnimate]);
 
     // Keep layout sensible per device and experience type
     useEffect(() => {
@@ -623,7 +634,7 @@ const VoucherType = ({
     };
 
     // VoucherCard component for displaying individual voucher cards
-    const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers }) => {
+    const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers, shouldAnimate }) => {
         return (
             <div style={{
                 background: '#fff',
@@ -636,7 +647,7 @@ const VoucherType = ({
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
-                animation: slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none',
+                animation: shouldAnimate ? (slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none') : 'none',
                 border: isSelected ? '2px solid #03a9f4' : 'none'
             }}>
                 <img
@@ -730,6 +741,7 @@ const VoucherType = ({
 
     const handlePrevVoucher = () => {
         setSlideDirection('left');
+        setShouldAnimate(true);
         if (chooseFlightType?.type === "Private Charter") {
             // For Private Charter, cycle through available voucher types
             const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
@@ -781,6 +793,7 @@ const VoucherType = ({
 
     const handleNextVoucher = () => {
         setSlideDirection('right');
+        setShouldAnimate(true);
         if (chooseFlightType?.type === "Private Charter") {
             // For Private Charter, cycle through available voucher types
             const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
@@ -1091,6 +1104,7 @@ const VoucherType = ({
                                                 isSelected={selectedVoucher?.id === voucher.id}
                                                 slideDirection={slideDirection}
                                                 showTwoVouchers={vouchersToShow.length > 1}
+                                                shouldAnimate={shouldAnimate}
                                             />
                                         ))}
                                     </div>
@@ -1288,6 +1302,7 @@ const VoucherType = ({
                                                 isSelected={selectedVoucher?.id === voucher.id}
                                                 slideDirection={slideDirection}
                                                 showTwoVouchers={vouchersToShow.length > 1}
+                                                shouldAnimate={shouldAnimate}
                                             />
                                         ))}
                                     </div>
@@ -1368,4 +1383,28 @@ const VoucherType = ({
     );
 };
 
-export default VoucherType;  
+// Custom comparison function to prevent re-render when only passengerCount changes
+const areEqual = (prevProps, nextProps) => {
+    // Compare all props except for chooseFlightType.passengerCount
+    const prevFlightType = prevProps.chooseFlightType?.type;
+    const nextFlightType = nextProps.chooseFlightType?.type;
+    
+    // Check if flight type changed (this should trigger re-render)
+    if (prevFlightType !== nextFlightType) {
+        return false;
+    }
+    
+    // Check other props that should trigger re-render
+    if (prevProps.activeAccordion !== nextProps.activeAccordion ||
+        prevProps.selectedVoucherType !== nextProps.selectedVoucherType ||
+        prevProps.activitySelect !== nextProps.activitySelect ||
+        prevProps.chooseLocation !== nextProps.chooseLocation ||
+        prevProps.selectedActivity !== nextProps.selectedActivity) {
+        return false;
+    }
+    
+    // If none of the important props changed, don't re-render
+    return true;
+};
+
+export default memo(VoucherType, areEqual);  
