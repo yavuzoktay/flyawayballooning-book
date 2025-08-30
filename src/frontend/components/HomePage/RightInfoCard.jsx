@@ -124,68 +124,77 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
     
-    // Helper to check if recipient details are complete for Buy Gift
-    const isRecipientDetailsComplete = (details) => {
+    // Helper to check recipient details format validation (optional for Buy Gift)
+    const isRecipientDetailsValid = (details) => {
         if (!details || typeof details !== 'object') {
-            console.log('❌ recipientDetails is null/undefined or not object:', details);
-            return false;
+            console.log('✅ recipientDetails is empty/null - this is OK for Buy Gift:', details);
+            return true; // Empty is valid for Buy Gift
         }
         
-        // Check each field individually with proper null/undefined checks
-        const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
-        const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
-        const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
-        const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
+        // Only validate format if fields are provided
+        let formatValid = true;
+        const issues = [];
         
-        const isComplete = hasName && hasEmail && hasPhone && hasDate;
+        // Email format validation (only if provided)
+        if (details.email && details.email.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(details.email.trim())) {
+                formatValid = false;
+                issues.push('Invalid email format');
+            }
+        }
         
-        console.log('🎁 recipientDetails validation:', {
+        // Date format validation (only if provided)
+        if (details.date && details.date.trim()) {
+            const dateValue = new Date(details.date);
+            if (isNaN(dateValue.getTime())) {
+                formatValid = false;
+                issues.push('Invalid date format');
+            }
+        }
+        
+        console.log('🎁 recipientDetails optional validation:', {
             details,
-            hasName: { value: details.name, valid: hasName },
-            hasEmail: { value: details.email, valid: hasEmail },
-            hasPhone: { value: details.phone, valid: hasPhone },
-            hasDate: { value: details.date, valid: hasDate },
-            isComplete
+            formatValid,
+            issues,
+            note: 'All fields optional - only format validation applied'
         });
         
-        return isComplete;
+        return formatValid;
     };
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
     console.log("additionalInfo:", additionalInfo);
-    // Helper to check if additionalInfo has at least one filled value
-    const isAdditionalInfoFilled = (info) => {
+    // Helper to check additionalInfo (optional for Buy Gift)
+    const isAdditionalInfoValid = (info) => {
       if (!info || typeof info !== 'object') {
-        console.log('❌ additionalInfo is null/undefined or not object:', info);
-        return false;
+        console.log('✅ additionalInfo is empty/null - this is OK for Buy Gift:', info);
+        return true; // Empty is valid for Buy Gift
       }
       
+      // All additional info is optional for Buy Gift - just log what's there
       const hasFilledValue = Object.values(info).some(val => {
         if (typeof val === 'string') {
           const trimmed = val.trim();
-          console.log('📝 Checking string value:', { original: val, trimmed, isEmpty: trimmed === '' });
           return trimmed !== '';
         }
         if (typeof val === 'object' && val !== null) {
-          // Eğer obje ise ve en az bir anahtarı varsa ve o anahtarın değeri doluysa true
-          const objHasValue = Object.values(val).some(
+          return Object.values(val).some(
             v => typeof v === 'string' ? v.trim() !== '' : !!v
           );
-          console.log('📦 Checking object value:', { val, hasValue: objHasValue });
-          return objHasValue;
         }
-        console.log('🔧 Checking other value:', { val, truthiness: !!val });
         return !!val;
       });
       
-      console.log('🎯 additionalInfo validation result:', { 
+      console.log('🎯 additionalInfo optional validation:', { 
         info, 
         hasFilledValue,
         values: Object.values(info),
-        keys: Object.keys(info)
+        keys: Object.keys(info),
+        note: 'Additional info is now optional for Buy Gift'
       });
       
-      return hasFilledValue;
+      return true; // Always valid for Buy Gift
     };
 
     // Book button enable logic:
@@ -333,11 +342,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         : isGiftVoucher
         ? !(
             chooseFlightType &&
-            selectedVoucherType &&
+            selectedVoucherType
+            // All other fields are now optional for Buy Gift
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
-            isBuyGiftPassengerComplete &&
-            isAdditionalInfoFilled(additionalInfo) &&
-            isRecipientDetailsComplete(recipientDetails)
+            // isBuyGiftPassengerComplete - now optional
+            // isAdditionalInfoFilled(additionalInfo) - now optional 
+            // isRecipientDetailsComplete(recipientDetails) - now optional
         )
         : !(
             activitySelect &&
@@ -367,51 +377,35 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     if (isGiftVoucher) {
         const condition1 = !!chooseFlightType;
         const condition2 = !!selectedVoucherType;
-        const condition3 = isBuyGiftPassengerComplete;
-        const condition4 = isAdditionalInfoFilled(additionalInfo);
-        const condition5 = isRecipientDetailsComplete(recipientDetails);
+        // Conditions 3, 4, 5 are now optional - removing from required checks
         
-        // Additional strict validation for Buy Gift
+        // Simplified validation for Buy Gift - only Flight Type and Voucher Type required
         strictValidation = (() => {
-            // Verify all conditions are met with more detailed checks
+            // Only verify the essential conditions
             if (!chooseFlightType?.type) return false;
             if (!selectedVoucherType?.title) return false;
-            if (!Array.isArray(passengerData) || passengerData.length === 0) return false;
             
-            // Check first passenger (purchaser) has all required fields
-            const firstPassenger = passengerData[0];
-            if (!firstPassenger?.firstName?.trim()) return false;
-            if (!firstPassenger?.lastName?.trim()) return false;
-            if (!firstPassenger?.phone?.trim()) return false;
-            if (!firstPassenger?.email?.trim()) return false;
-            
-            // Email format validation for first passenger
+            // Optional format validation (only if fields are filled)
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(firstPassenger.email.trim())) return false;
             
-            // Recipient details validation
-            if (!recipientDetails?.name?.trim()) return false;
-            if (!recipientDetails?.email?.trim()) return false;
-            if (!recipientDetails?.phone?.trim()) return false;
-            if (!recipientDetails?.date?.trim()) return false;
-            
-            // Recipient email format validation
-            if (!emailRegex.test(recipientDetails.email.trim())) return false;
-            
-            // Date format validation
-            const dateValue = new Date(recipientDetails.date);
-            if (isNaN(dateValue.getTime())) return false;
-            
-            // Additional info validation (if required)
-            if (!additionalInfo || typeof additionalInfo !== 'object') return false;
-            const hasAdditionalInfo = Object.values(additionalInfo).some(val => {
-                if (typeof val === 'string') return val.trim() !== '';
-                if (typeof val === 'object' && val !== null) {
-                    return Object.values(val).some(v => typeof v === 'string' ? v.trim() !== '' : !!v);
+            // Validate passenger email format if provided
+            if (Array.isArray(passengerData) && passengerData.length > 0) {
+                const firstPassenger = passengerData[0];
+                if (firstPassenger?.email?.trim()) {
+                    if (!emailRegex.test(firstPassenger.email.trim())) return false;
                 }
-                return !!val;
-            });
-            if (!hasAdditionalInfo) return false;
+            }
+            
+            // Validate recipient email format if provided
+            if (recipientDetails?.email?.trim()) {
+                if (!emailRegex.test(recipientDetails.email.trim())) return false;
+            }
+            
+            // Validate recipient date format if provided
+            if (recipientDetails?.date?.trim()) {
+                const dateValue = new Date(recipientDetails.date);
+                if (isNaN(dateValue.getTime())) return false;
+            }
             
             return true;
         })();
@@ -419,9 +413,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         buyGiftShouldBeEnabled = !!(
             condition1 &&
             condition2 &&
-            condition3 &&
-            condition4 &&
-            condition5 &&
             strictValidation
         );
         
@@ -444,27 +435,24 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
         });
         
-        console.log('🚨 BUY GIFT IMMEDIATE CONDITIONS CHECK:', {
+        console.log('🚨 BUY GIFT SIMPLIFIED CONDITIONS CHECK:', {
             condition1_chooseFlightType: condition1,
             condition2_selectedVoucherType: condition2,
-            condition3_isBuyGiftPassengerComplete: condition3,
-            condition4_additionalInfo: condition4,
-            condition5_recipientDetails: condition5,
-            condition6_strictValidation: strictValidation,
+            strictValidation: strictValidation,
             recipientDetailsRaw: recipientDetails,
+            passengerDataRaw: passengerData,
+            additionalInfoRaw: additionalInfo,
             ALL_CONDITIONS_MET: buyGiftShouldBeEnabled,
             CURRENT_isBookDisabled: isBookDisabled,
-            EXPECTED_isBookDisabled: !buyGiftShouldBeEnabled
+            EXPECTED_isBookDisabled: !buyGiftShouldBeEnabled,
+            note: 'Only Flight Type and Voucher Type required - all other fields optional'
         });
         
-        // Show which conditions are failing
+        // Show which conditions are failing (simplified for Buy Gift)
         const failingConditions = [];
         if (!condition1) failingConditions.push('1. Flight Type not selected');
         if (!condition2) failingConditions.push('2. Voucher Type not selected');
-        if (!condition3) failingConditions.push('3. Passenger info incomplete');
-        if (!condition4) failingConditions.push('4. Additional info not filled');
-        if (!condition5) failingConditions.push('5. Recipient details incomplete');
-        if (!strictValidation) failingConditions.push('6. Strict validation failed (check format/completeness)');
+        if (!strictValidation) failingConditions.push('3. Format validation failed (check email/date formats if filled)');
         
         if (failingConditions.length > 0) {
             console.log('❌ FAILING CONDITIONS:', failingConditions);
@@ -555,15 +543,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         // Check each condition separately for Buy Gift
         console.log('=== BUY GIFT DETAILED VALIDATION DEBUG ===');
-        console.log('Buy Gift Conditions Check:', {
+        console.log('Buy Gift Simplified Conditions Check:', {
             condition1_chooseFlightType: !!chooseFlightType,
             condition2_selectedVoucherType: !!selectedVoucherType,
-            condition3_isBuyGiftPassengerComplete: isBuyGiftPassengerComplete,
-            condition4_additionalInfo: isAdditionalInfoFilled(additionalInfo),
-            condition5_recipientDetails: isRecipientDetailsComplete(recipientDetails),
-            condition6_strictValidation: strictValidation,
+            strictValidation: strictValidation,
             SHOULD_BE_ENABLED: buyGiftShouldBeEnabled,
-            CURRENT_isBookDisabled: isBookDisabled
+            CURRENT_isBookDisabled: isBookDisabled,
+            note: 'Passenger info, additional info, and recipient details are now OPTIONAL'
         });
         
         // Enhanced debugging for each individual condition

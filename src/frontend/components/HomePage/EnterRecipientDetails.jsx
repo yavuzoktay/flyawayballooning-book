@@ -28,53 +28,37 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         }));
     };
 
-    // Enhanced validation function for Buy Gift
+    // Optional validation function for Buy Gift (only validates if filled)
     const validateFields = () => {
         if (!isGiftVoucher) return true;
         
         const errors = {};
         
-        // Name validation
-        if (!recipientDetails.name || !recipientDetails.name.trim()) {
-            errors.name = true;
-            console.log('❌ Recipient name validation failed:', recipientDetails.name);
-        }
+        // Only validate format if fields are filled (not required anymore)
         
-        // Email validation (format + required)
-        if (!recipientDetails.email || !recipientDetails.email.trim()) {
-            errors.email = true;
-            console.log('❌ Recipient email validation failed (empty):', recipientDetails.email);
-        } else {
+        // Email format validation (only if email is provided)
+        if (recipientDetails.email && recipientDetails.email.trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(recipientDetails.email.trim())) {
                 errors.email = true;
-                console.log('❌ Recipient email validation failed (format):', recipientDetails.email);
+                console.log('❌ Recipient email format validation failed:', recipientDetails.email);
             }
         }
         
-        // Phone validation  
-        if (!recipientDetails.phone || !recipientDetails.phone.trim()) {
-            errors.phone = true;
-            console.log('❌ Recipient phone validation failed:', recipientDetails.phone);
-        }
-        
-        // Date validation
-        if (!recipientDetails.date || !recipientDetails.date.trim()) {
-            errors.date = true;
-            console.log('❌ Recipient date validation failed:', recipientDetails.date);
-        } else {
-            // Additional date format validation
+        // Date format validation (only if date is provided)
+        if (recipientDetails.date && recipientDetails.date.trim()) {
             const dateValue = new Date(recipientDetails.date);
             if (isNaN(dateValue.getTime())) {
                 errors.date = true;
-                console.log('❌ Recipient date validation failed (invalid date):', recipientDetails.date);
+                console.log('❌ Recipient date format validation failed:', recipientDetails.date);
             }
         }
         
-        console.log('🎁 Recipient Details validation result:', {
+        console.log('🎁 Recipient Details optional validation result:', {
             recipientDetails,
             errors,
-            isValid: Object.keys(errors).length === 0
+            isValid: Object.keys(errors).length === 0,
+            message: 'Fields are now optional - only format validation applied'
         });
         
         setValidationErrors(errors);
@@ -98,7 +82,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             <div className="Recipient">
                 <form action="/submit" method="post">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        <label>Recipient Name{isGiftVoucher && <span style={{ color: 'gray' }}> (optional)</span>}</label>
                         <div className="info-icon-container recipient-tooltip">
                             <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
                             <div className="hover-text recipient-hover-text">
@@ -111,55 +95,55 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         type="text"
                         onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                         name="name"
-                        required={isGiftVoucher}
+                        required={false}
                         value={recipientDetails.name}
                         onChange={handleChange}
                         placeholder="Recipient Name"
                         style={validationErrors.name ? { border: '1.5px solid red' } : {}}
                     />
-                    {validationErrors.name && <span style={{ color: 'red', fontSize: 12 }}>Recipient name is required</span>}
+                    {validationErrors.name && <span style={{ color: 'red', fontSize: 12 }}>Invalid name format</span>}
                     <br /><br />
 
-                    <label>Recipient Email{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
+                    <label>Recipient Email{isGiftVoucher && <span style={{ color: 'gray' }}> (optional)</span>}</label><br />
                     <input
                         type="email"
                         name="email"
-                        required={isGiftVoucher}
+                        required={false}
                         value={recipientDetails.email}
                         onChange={handleChange}
                         placeholder="Recipient Email"
                         style={(emailError || validationErrors.email) ? { border: '1.5px solid red' } : {}}
                     />
                     {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
-                    {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Recipient email is required</span>}
+                    {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
                     <br /><br />
 
-                    <label>Recipient Phone Number{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
+                    <label>Recipient Phone Number{isGiftVoucher && <span style={{ color: 'gray' }}> (optional)</span>}</label><br />
                     <input
                         type="tel"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                         name="phone"
-                        required={isGiftVoucher}
+                        required={false}
                         value={recipientDetails.phone}
                         onChange={handleChange}
                         placeholder="Recipient Phone Number"
                         style={validationErrors.phone ? { border: '1.5px solid red' } : {}}
                     />
-                    {validationErrors.phone && <span style={{ color: 'red', fontSize: 12 }}>Recipient phone number is required</span>}
+                    {validationErrors.phone && <span style={{ color: 'red', fontSize: 12 }}>Invalid phone format</span>}
                     <br /><br />
 
-                    <label>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
+                    <label>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'gray' }}> (optional)</span>}</label><br />
                     <input
                         type="date"
                         name="date"
                         value={recipientDetails.date || ''}
                         onChange={handleChange}
-                        required={isGiftVoucher}
+                        required={false}
                         style={validationErrors.date ? { border: '1.5px solid red' } : {}}
                     />
-                    {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
+                    {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Invalid date format</span>}
                 </form>
             </div>
         </Accordion>
