@@ -306,13 +306,66 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         });
         
         // Check each condition separately for Buy Gift
+        console.log('=== BUY GIFT DETAILED VALIDATION DEBUG ===');
         console.log('Buy Gift Conditions Check:', {
             condition1_chooseFlightType: !!chooseFlightType,
             condition2_selectedVoucherType: !!selectedVoucherType,
             condition3_isBuyGiftPassengerComplete: isBuyGiftPassengerComplete,
             condition4_additionalInfo: isAdditionalInfoFilled(additionalInfo),
             condition5_recipientDetails: isNonEmptyObject(recipientDetails),
-            SHOULD_BE_ENABLED: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isAdditionalInfoFilled(additionalInfo) && isNonEmptyObject(recipientDetails))
+            SHOULD_BE_ENABLED: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isAdditionalInfoFilled(additionalInfo) && isNonEmptyObject(recipientDetails)),
+            CURRENT_isBookDisabled: isBookDisabled
+        });
+        
+        // Enhanced debugging for each individual condition
+        console.log('=== INDIVIDUAL CONDITION ANALYSIS ===');
+        console.log('1. chooseFlightType:', {
+            value: chooseFlightType,
+            valid: !!chooseFlightType,
+            type: chooseFlightType?.type,
+            passengerCount: chooseFlightType?.passengerCount
+        });
+        
+        console.log('2. selectedVoucherType:', {
+            value: selectedVoucherType,
+            valid: !!selectedVoucherType,
+            title: selectedVoucherType?.title,
+            price: selectedVoucherType?.price_per_person
+        });
+        
+        console.log('3. isBuyGiftPassengerComplete:', {
+            value: isBuyGiftPassengerComplete,
+            passengerDataLength: Array.isArray(passengerData) ? passengerData.length : 'Not array',
+            passengerData: passengerData
+        });
+        
+        if (Array.isArray(passengerData)) {
+            passengerData.forEach((passenger, index) => {
+                console.log(`Passenger ${index + 1} validation:`, {
+                    firstName: {value: passenger.firstName, valid: !!(passenger.firstName && passenger.firstName.trim() !== '')},
+                    lastName: {value: passenger.lastName, valid: !!(passenger.lastName && passenger.lastName.trim() !== '')},
+                    phone: {value: passenger.phone, valid: !!(passenger.phone && passenger.phone.trim() !== '')},
+                    email: {value: passenger.email, valid: !!(passenger.email && passenger.email.trim() !== '')},
+                    overallValid: !!(passenger.firstName && passenger.firstName.trim() !== '' &&
+                                   passenger.lastName && passenger.lastName.trim() !== '' &&
+                                   passenger.phone && passenger.phone.trim() !== '' &&
+                                   passenger.email && passenger.email.trim() !== '')
+                });
+            });
+        }
+        
+        console.log('4. additionalInfo:', {
+            value: additionalInfo,
+            valid: isAdditionalInfoFilled(additionalInfo),
+            keys: additionalInfo ? Object.keys(additionalInfo) : [],
+            values: additionalInfo ? Object.values(additionalInfo) : []
+        });
+        
+        console.log('5. recipientDetails:', {
+            value: recipientDetails,
+            valid: isNonEmptyObject(recipientDetails),
+            keys: recipientDetails ? Object.keys(recipientDetails) : [],
+            values: recipientDetails ? Object.values(recipientDetails) : []
         });
     }
 
