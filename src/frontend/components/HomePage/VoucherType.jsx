@@ -121,7 +121,10 @@ const VoucherType = ({
     activitySelect,
     chooseFlightType,
     chooseLocation,
-    selectedActivity
+    selectedActivity,
+    availableCapacity,
+    selectedDate,
+    selectedTime
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -142,6 +145,7 @@ const VoucherType = ({
     const [termsLoading, setTermsLoading] = useState(false);
     const [activityData, setActivityData] = useState(null);
     const [activityDataLoading, setActivityDataLoading] = useState(false);
+    const [showCapacityWarning, setShowCapacityWarning] = useState(false);
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
@@ -584,39 +588,64 @@ const VoucherType = ({
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
     const handleQuantityChange = (voucherTitle, value) => {
+        const newValue = parseInt(value) || 2;
+        
+        // Check if Live Availability capacity limit is exceeded
+        if (selectedDate && selectedTime && availableCapacity !== null && newValue > availableCapacity) {
+            console.log(`Capacity warning: Trying to select ${newValue} passengers but only ${availableCapacity} available`);
+            setShowCapacityWarning(true);
+            return; // Don't update quantity
+        }
+        
         // For Private Charter, only allow specific passenger counts: 2, 3, 4, 8
         if (chooseFlightType?.type === "Private Charter") {
             const allowedPassengers = [2, 3, 4, 8];
-            let newValue = parseInt(value) || 2;
+            let finalValue = newValue;
             
             // If it's a manual input, find the closest allowed value
             if (typeof value === 'string' || typeof value === 'number') {
-                newValue = parseInt(value) || 2;
+                finalValue = parseInt(value) || 2;
                 // Find the closest allowed passenger count
                 let closest = allowedPassengers[0];
-                let minDiff = Math.abs(newValue - closest);
+                let minDiff = Math.abs(finalValue - closest);
                 
                 for (let allowed of allowedPassengers) {
-                    const diff = Math.abs(newValue - allowed);
+                    const diff = Math.abs(finalValue - allowed);
                     if (diff < minDiff) {
                         minDiff = diff;
                         closest = allowed;
                     }
                 }
-                newValue = closest;
+                finalValue = closest;
             }
             
-            console.log(`Private Charter quantity change for ${voucherTitle}: ${newValue} passengers`);
+            // Additional check for capacity limit
+            if (selectedDate && selectedTime && availableCapacity !== null && finalValue > availableCapacity) {
+                console.log(`Private Charter capacity warning: Trying to select ${finalValue} passengers but only ${availableCapacity} available`);
+                setShowCapacityWarning(true);
+                return; // Don't update quantity
+            }
+            
+            console.log(`Private Charter quantity change for ${voucherTitle}: ${finalValue} passengers`);
             
             setQuantities(prev => ({
                 ...prev,
-                [voucherTitle]: newValue
+                [voucherTitle]: finalValue
             }));
         } else {
             // For other flight types, use the original logic
+            const finalValue = Math.max(1, parseInt(value) || 1);
+            
+            // Additional check for capacity limit
+            if (selectedDate && selectedTime && availableCapacity !== null && finalValue > availableCapacity) {
+                console.log(`Shared Flight capacity warning: Trying to select ${finalValue} passengers but only ${availableCapacity} available`);
+                setShowCapacityWarning(true);
+                return; // Don't update quantity
+            }
+            
             setQuantities(prev => ({
                 ...prev,
-                [voucherTitle]: Math.max(1, parseInt(value) || 1)
+                [voucherTitle]: finalValue
             }));
         }
     };
@@ -692,7 +721,13 @@ const VoucherType = ({
                             <input 
                                 type="number" 
                                 min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                max={chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)}
+                                max={availableCapacity !== null && selectedDate && selectedTime ? 
+                                    Math.min(
+                                        availableCapacity, 
+                                        chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)
+                                    ) : 
+                                    (chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8))
+                                }
                                 value={quantities[voucher.title] || 2} 
                                 onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
                                 style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
@@ -1377,6 +1412,40 @@ const VoucherType = ({
                     })()}
                 </div>
             </Accordion>
+
+            {/* Capacity Warning Modal */}
+            {showCapacityWarning && (
+                <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:420,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)',textAlign:'center'}}>
+                        <div style={{fontSize:'48px',marginBottom:'16px'}}>⚠️</div>
+                        <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#dc3545',marginBottom:'12px'}}>Insufficient Capacity</h4>
+                        <p style={{color:'#374151',lineHeight:1.5,fontSize:16,marginBottom:'20px'}}>
+                            {availableCapacity === 1 ? 
+                                `Only ${availableCapacity} space is available for this date and time.` :
+                                `Only ${availableCapacity} spaces are available for this date and time.`
+                            }
+                        </p>
+                        <p style={{color:'#6b7280',lineHeight:1.4,fontSize:14,marginBottom:'20px'}}>
+                            Please select a different number of passengers or choose another date and time.
+                        </p>
+                        <button 
+                            onClick={() => setShowCapacityWarning(false)} 
+                            style={{
+                                background:'#dc3545',
+                                color:'#fff',
+                                padding:'10px 20px',
+                                borderRadius:8,
+                                cursor:'pointer',
+                                border:'none',
+                                fontSize:16,
+                                fontWeight:600
+                            }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Terms & Conditions Modal removed */}
         </>

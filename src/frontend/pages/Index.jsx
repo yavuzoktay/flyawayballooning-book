@@ -81,6 +81,33 @@ const Index = () => {
         setCountdownSeconds(null);
     };
     
+    // Calculate available capacity for selected date and time
+    const getAvailableCapacityForSelection = () => {
+        if (!selectedDate || !selectedTime || !availabilities || availabilities.length === 0) {
+            return null;
+        }
+        
+        // Create date string manually to avoid timezone issues
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
+        // Find the matching availability slot for selected date and time
+        const matchingSlot = availabilities.find(slot => 
+            slot.date === dateStr && slot.time === selectedTime
+        );
+        
+        if (matchingSlot) {
+            const capacity = matchingSlot.available || matchingSlot.capacity || 0;
+            console.log(`Available capacity for ${dateStr} at ${selectedTime}: ${capacity}`);
+            return capacity;
+        }
+        
+        console.log(`No matching slot found for ${dateStr} at ${selectedTime}`);
+        return null;
+    };
+    
     
 
     
@@ -708,6 +735,9 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
                                                     selectedActivity={selectedActivity}
+                                                    availableCapacity={getAvailableCapacityForSelection()}
+                                                    selectedDate={selectedDate}
+                                                    selectedTime={selectedTime}
                                                 />
                                             )}
                                             <LiveAvailabilitySection 
@@ -894,6 +924,9 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
                                                     selectedActivity={selectedActivity}
+                                                    availableCapacity={getAvailableCapacityForSelection()}
+                                                    selectedDate={selectedDate}
+                                                    selectedTime={selectedTime}
                                                 />
                                             )}
                                             <PassengerInfo
@@ -989,6 +1022,9 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType}
                                                     chooseLocation={chooseLocation}
                                                     selectedActivity={selectedActivity}
+                                                    availableCapacity={getAvailableCapacityForSelection()}
+                                                    selectedDate={selectedDate}
+                                                    selectedTime={selectedTime}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (

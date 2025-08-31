@@ -260,7 +260,11 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
             .map(item => ({
                 name: item.title,
                 price: item.price.toString(),
-                image: item.image_url ? item.image_url : AddOn1,
+                image: item.image_url ? 
+                    (item.image_url.startsWith('http') ? 
+                        item.image_url : 
+                        `${config.API_BASE_URL}${item.image_url}`) 
+                    : AddOn1,
                 description: item.description,
                 category: item.category,
                 isPhysicalItem: item.is_physical_item,

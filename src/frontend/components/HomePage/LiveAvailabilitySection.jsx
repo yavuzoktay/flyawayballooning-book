@@ -60,6 +60,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Countdown timer state
     const [countdownTimer, setCountdownTimer] = useState(null);
     const [showTimeoutModal, setShowTimeoutModal] = useState(false);
+    
+    // Capacity warning state
+    const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+    const [capacityWarningMessage, setCapacityWarningMessage] = useState('');
+    
+    // Get selected passenger count from voucher type
+    const getSelectedPassengerCount = () => {
+        if (!selectedVoucherType?.quantity) {
+            return 2; // Default passenger count
+        }
+        return selectedVoucherType.quantity;
+    };
 
     // Responsive calendar cell size for mobile
     const [daySize, setDaySize] = useState(80);
@@ -156,6 +168,25 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             return;
         }
         
+        // Check if voucher type is selected (required for capacity check)
+        if (!selectedVoucherType) {
+            console.log('No voucher type selected, allowing date selection');
+            // Continue with normal flow
+        } else {
+            // Check capacity for this date against selected passenger count
+            const selectedPassengers = getSelectedPassengerCount();
+            const { total } = getSpacesForDate(date);
+            
+            console.log(`Date click capacity check: ${selectedPassengers} passengers selected, ${total} spaces available`);
+            
+            if (total > 0 && selectedPassengers > total) {
+                // Show capacity warning and prevent date selection
+                setCapacityWarningMessage(`You have selected ${selectedPassengers} passenger${selectedPassengers > 1 ? 's' : ''} but only ${total} space${total > 1 ? 's are' : ' is'} available on this date. Please select a different number of passengers or choose another date.`);
+                setShowCapacityWarning(true);
+                return; // Don't proceed with date selection
+            }
+        }
+        
         // Create date strings manually to avoid timezone issues
         const dateYear = date.getFullYear();
         const dateMonth = date.getMonth();
@@ -196,6 +227,35 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Handle time selection from popup
     const handleTimeSelection = (time) => {
+        // Check capacity for the specific time slot if voucher type is selected
+        if (selectedVoucherType && selectedDateForTime) {
+            const selectedPassengers = getSelectedPassengerCount();
+            
+            // Create date string manually to avoid timezone issues
+            const year = selectedDateForTime.getFullYear();
+            const month = String(selectedDateForTime.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDateForTime.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            // Find the specific time slot
+            const timeSlot = availabilities.find(slot => 
+                slot.date === dateStr && slot.time === time
+            );
+            
+            if (timeSlot) {
+                const availableCapacity = timeSlot.available || timeSlot.capacity || 0;
+                console.log(`Time selection capacity check: ${selectedPassengers} passengers selected, ${availableCapacity} capacity available for ${time}`);
+                
+                if (selectedPassengers > availableCapacity) {
+                    // Show capacity warning and prevent time selection
+                    setCapacityWarningMessage(`You have selected ${selectedPassengers} passenger${selectedPassengers > 1 ? 's' : ''} but only ${availableCapacity} space${availableCapacity > 1 ? 's are' : ' is'} available at ${time}. Please select a different number of passengers or choose another time.`);
+                    setShowCapacityWarning(true);
+                    setTimeSelectionModalOpen(false); // Close time selection modal
+                    return; // Don't proceed with time selection
+                }
+            }
+        }
+        
         setSelectedDate(selectedDateForTime);
         setSelectedTime(time);
         setTimeSelectionModalOpen(false);
@@ -1108,6 +1168,34 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
   font-weight: 600;
 }
             `}</style>
+            
+            {/* Capacity Warning Modal */}
+            {showCapacityWarning && (
+                <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:460,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)',textAlign:'center'}}>
+                        <div style={{fontSize:'48px',marginBottom:'16px'}}>⚠️</div>
+                        <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#dc3545',marginBottom:'12px'}}>Insufficient Capacity</h4>
+                        <p style={{color:'#374151',lineHeight:1.5,fontSize:16,marginBottom:'20px'}}>
+                            {capacityWarningMessage}
+                        </p>
+                        <button 
+                            onClick={() => setShowCapacityWarning(false)} 
+                            style={{
+                                background:'#dc3545',
+                                color:'#fff',
+                                padding:'12px 24px',
+                                borderRadius:8,
+                                cursor:'pointer',
+                                border:'none',
+                                fontSize:16,
+                                fontWeight:600
+                            }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             
             {/* Timeout Modal */}
             <Modal
