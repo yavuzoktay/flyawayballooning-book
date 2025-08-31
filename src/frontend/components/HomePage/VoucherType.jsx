@@ -207,92 +207,110 @@ const VoucherType = ({
     }, [isMobile, chooseFlightType?.type, privateCharterVoucherTypes, availableVoucherTypes]);
 
     // Fetch all voucher types from API
-    useEffect(() => {
-        const fetchAllVoucherTypes = async () => {
-            try {
-                setAllVoucherTypesLoading(true);
-                console.log('Fetching regular voucher types from:', `${API_BASE_URL}/api/voucher-types`);
+    const fetchAllVoucherTypes = async () => {
+        try {
+            setAllVoucherTypesLoading(true);
+            console.log('Fetching regular voucher types from:', `${API_BASE_URL}/api/voucher-types`);
+            
+            const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
+            console.log('Regular voucher types response status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Regular voucher types data:', data);
                 
-                const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
-                console.log('Regular voucher types response status:', response.status);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Regular voucher types data:', data);
+                if (data.success) {
+                    setAllVoucherTypes(data.data);
                     
-                    if (data.success) {
-                        setAllVoucherTypes(data.data);
-                        
-                        // Initialize quantities and pricing from API data
-                        const newQuantities = {};
-                        const newPricing = {};
-                        
-                        data.data.forEach(vt => {
-                            newQuantities[vt.title] = 2;
-                            newPricing[vt.title.toLowerCase().replace(/\s+/g, '_') + '_price'] = parseFloat(vt.price_per_person);
-                        });
-                        
-                        setQuantities(newQuantities);
-                        setLocationPricing(newPricing);
-                        
-                        console.log('Regular voucher types loaded successfully:', data.data.length, 'types');
-                    } else {
-                        console.error('Regular voucher types API returned success: false:', data);
-                    }
+                    // Initialize quantities and pricing from API data
+                    const newQuantities = {};
+                    const newPricing = {};
+                    
+                    data.data.forEach(vt => {
+                        newQuantities[vt.title] = 2;
+                        newPricing[vt.title.toLowerCase().replace(/\s+/g, '_') + '_price'] = parseFloat(vt.price_per_person);
+                    });
+                    
+                    setQuantities(newQuantities);
+                    setLocationPricing(newPricing);
+                    
+                    console.log('Regular voucher types loaded successfully:', data.data.length, 'types');
                 } else {
-                    console.error('Failed to fetch regular voucher types. Status:', response.status);
+                    console.error('Regular voucher types API returned success: false:', data);
                 }
-            } catch (error) {
-                console.error('Error fetching regular voucher types:', error);
-            } finally {
-                setAllVoucherTypesLoading(false);
+            } else {
+                console.error('Failed to fetch regular voucher types. Status:', response.status);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching regular voucher types:', error);
+        } finally {
+            setAllVoucherTypesLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchAllVoucherTypes();
-    }, [API_BASE_URL]);
+    }, [API_BASE_URL, chooseLocation]); // Auto-refresh when location changes
+
+    // Auto-refresh when component mounts or when dependencies change
+    useEffect(() => {
+        // Initial fetch
+        fetchAllVoucherTypes();
+        
+        // Set up interval for periodic refresh (every 5 minutes)
+        const interval = setInterval(() => {
+            console.log('VoucherType: Auto-refreshing voucher types...');
+            fetchAllVoucherTypes();
+        }, 5 * 60 * 1000); // 5 minutes
+
+        return () => clearInterval(interval);
+    }, [chooseLocation]); // Re-run when location changes
+
+
+
+
 
     // Fetch private charter voucher types from API
-    useEffect(() => {
-        const fetchPrivateCharterVoucherTypes = async () => {
-            try {
-                setPrivateCharterVoucherTypesLoading(true);
-                console.log('Fetching private charter voucher types from:', `${API_BASE_URL}/api/private-charter-voucher-types`);
+    const fetchPrivateCharterVoucherTypes = async () => {
+        try {
+            setPrivateCharterVoucherTypesLoading(true);
+            console.log('Fetching private charter voucher types from:', `${API_BASE_URL}/api/private-charter-voucher-types`);
+            
+            // Get only active private charter voucher types for frontend display
+            // Include location to get activity-specific pricing
+            const locationParam = chooseLocation ? `&location=${encodeURIComponent(chooseLocation)}` : '';
+            const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}`);
+            console.log('Private charter voucher types response status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Private charter voucher types data:', data);
                 
-                // Get only active private charter voucher types for frontend display
-                // Include location to get activity-specific pricing
-                const locationParam = chooseLocation ? `&location=${encodeURIComponent(chooseLocation)}` : '';
-                const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}`);
-                console.log('Private charter voucher types response status:', response.status);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Private charter voucher types data:', data);
+                if (data.success) {
+                    setPrivateCharterVoucherTypes(data.data);
                     
-                    if (data.success) {
-                        setPrivateCharterVoucherTypes(data.data);
-                        
-                        // Initialize quantities for private charter voucher types
-                        const newQuantities = { ...quantities };
-                        data.data.forEach(vt => {
-                            newQuantities[vt.title] = 2;
-                        });
-                        setQuantities(newQuantities);
-                        
-                        console.log('Private charter voucher types loaded successfully:', data.data.length, 'types');
-                    } else {
-                        console.error('Private charter voucher types API returned success: false:', data);
-                    }
+                    // Initialize quantities for private charter voucher types
+                    const newQuantities = { ...quantities };
+                    data.data.forEach(vt => {
+                        newQuantities[vt.title] = 2;
+                    });
+                    setQuantities(newQuantities);
+                    
+                    console.log('Private charter voucher types loaded successfully:', data.data.length, 'types');
                 } else {
-                    console.error('Failed to fetch private charter voucher types. Status:', response.status);
+                    console.error('Private charter voucher types API returned success: false:', data);
                 }
-            } catch (error) {
-                console.error('Error fetching private charter voucher types:', error);
-            } finally {
-                setPrivateCharterVoucherTypesLoading(false);
+            } else {
+                console.error('Failed to fetch private charter voucher types. Status:', response.status);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching private charter voucher types:', error);
+        } finally {
+            setPrivateCharterVoucherTypesLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchPrivateCharterVoucherTypes();
     }, [API_BASE_URL, chooseLocation]);
 
@@ -561,6 +579,15 @@ const VoucherType = ({
                     }
                 }
 
+                // Parse features from JSON string
+                let features = [];
+                try {
+                    features = JSON.parse(vt.features || '[]');
+                } catch (e) {
+                    // Default features for shared flight
+                    features = ['Shared Balloon', 'Professional Pilot', 'Safety Briefing', 'Flight Certificate'];
+                }
+
                 return {
                     id: vt.id,
                     title: vt.title,
@@ -569,7 +596,7 @@ const VoucherType = ({
                     refundability: 'Non-Refundable',
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
-                    inclusions: ['Shared Balloon', 'Professional Pilot', 'Safety Briefing', 'Flight Certificate'],
+                    inclusions: features,
                     weatherClause: 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
                     price: totalPrice,
                     basePrice: basePrice,
@@ -958,7 +985,11 @@ const VoucherType = ({
         <>
             <style>{scrollbarStyles}</style>
             <Accordion
-                title="Voucher Type"
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                        <span>Voucher Type</span>
+                    </div>
+                }
                 id="voucher-type"
                 activeAccordion={activeAccordion}
                 setActiveAccordion={setActiveAccordion}

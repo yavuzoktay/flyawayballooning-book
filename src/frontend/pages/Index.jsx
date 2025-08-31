@@ -464,6 +464,8 @@ const Index = () => {
         }
     }, [selectedVoucherType]);
 
+
+
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
         if (activitySelect !== null) {
