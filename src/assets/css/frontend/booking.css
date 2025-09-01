@@ -1090,13 +1090,16 @@ label {
     box-sizing: border-box;
     display: flex;
     gap: 20px;
-    padding: 10px;
+    padding: 15px;
     width: 100%;
     background: #fff;
+    position: relative;
 }
 
 .add-on-card .vouch-text {
     text-align: left;
+    flex: 1;
+    margin-right: 40px;
 }
 
 /* Voucher text inner layout */
@@ -1104,18 +1107,21 @@ label {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 15px;
+    margin-bottom: 8px;
 }
 .vouch-title {
     margin: 0;
-    font-weight: 600;
+    font-weight: 500;
     color: #333;
+    flex: 1;
 }
 .vouch-price {
     margin: 0;
     white-space: nowrap;
-    font-weight: 600;
+    font-weight: 500;
     color: #222;
+    margin-left: 10px;
 }
 .vouch-desc {
     font-size: 12px;
@@ -1129,8 +1135,8 @@ label {
     height: 20px;
     border: 2px solid #bbb4b4;
     border-radius: 50%;
-    right: 20px;
-    top: 20px;
+    right: 15px;
+    top: 15px;
 }
 
 .add-on-input.active-add-on {

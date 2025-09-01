@@ -694,22 +694,38 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             
             // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
             const voucherData = {
-                name: (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
+                // For Gift Vouchers: name/email/phone/mobile should be PURCHASER info (from PassengerInfo form)
+                // For Flight Vouchers: name/email/phone/mobile should be the main contact info
+                name: isGiftVoucher ? 
+                    ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() :
+                    (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
                 voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
                 voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
-                email: (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
-                phone: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
-                mobile: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                email: isGiftVoucher ? 
+                    (passengerData?.[0]?.email || "").trim() :
+                    (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
+                phone: isGiftVoucher ? 
+                    (passengerData?.[0]?.phone || "").trim() :
+                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                mobile: isGiftVoucher ? 
+                    (passengerData?.[0]?.phone || "").trim() :
+                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 redeemed: "No",
                 paid: totalPrice, // This is already calculated correctly above
                 offer_code: "",
                 voucher_ref: voucherCode || "",
-                recipient_name: recipientDetails?.name || "",
-                recipient_email: recipientDetails?.email || "",
-                recipient_phone: recipientDetails?.phone || "",
-                recipient_gift_date: recipientDetails?.date || "",
+                // Recipient information (only for Gift Vouchers)
+                recipient_name: isGiftVoucher ? (recipientDetails?.name || "") : "",
+                recipient_email: isGiftVoucher ? (recipientDetails?.email || "") : "",
+                recipient_phone: isGiftVoucher ? (recipientDetails?.phone || "") : "",
+                recipient_gift_date: isGiftVoucher ? (recipientDetails?.date || "") : "",
+                // Purchaser information (explicitly set for Gift Vouchers)
+                purchaser_name: isGiftVoucher ? ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() : "",
+                purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
+                purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
@@ -779,6 +795,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 recipient_email: "",
                 recipient_phone: "",
                 recipient_gift_date: "",
+                // Purchaser information (same as main contact for Redeem Voucher)
+                purchaser_name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
+                purchaser_email: passengerData?.[0]?.email || "",
+                purchaser_phone: passengerData?.[0]?.phone || "",
+                purchaser_mobile: passengerData?.[0]?.phone || "",
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
