@@ -84,7 +84,28 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     // Calculate total price
     const flightTypePrice = chooseFlightType?.totalPrice || 0;
-    const voucherTypePrice = selectedVoucherType?.totalPrice || 0;
+    
+    // Calculate voucher type price dynamically based on current quantity and base price
+    let voucherTypePrice = 0;
+    if (selectedVoucherType) {
+        if (selectedVoucherType.priceUnit === 'total') {
+            // For total pricing, use the price as is
+            voucherTypePrice = selectedVoucherType.price;
+        } else {
+            // For per-person pricing, calculate based on quantity and base price
+            const basePrice = selectedVoucherType.basePrice || selectedVoucherType.price;
+            const quantity = selectedVoucherType.quantity || 1;
+            voucherTypePrice = basePrice * quantity;
+        }
+        console.log('RightInfoCard: Voucher type price calculation:', {
+            title: selectedVoucherType.title,
+            basePrice: selectedVoucherType.basePrice,
+            price: selectedVoucherType.price,
+            priceUnit: selectedVoucherType.priceUnit,
+            quantity: selectedVoucherType.quantity,
+            calculatedTotal: voucherTypePrice
+        });
+    }
     const addOnPrice = chooseAddOn.reduce((total, addOn) => {
         return total + (addOn.price !== "TBC" ? parseFloat(addOn.price) : 0); // Ignore "TBC" prices
     }, 0); // Opsiyonel - boş array ise 0 döner
@@ -682,7 +703,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 phone: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 mobile: (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 redeemed: "No",
-                paid: totalPrice,
+                paid: totalPrice, // This is already calculated correctly above
                 offer_code: "",
                 voucher_ref: voucherCode || "",
                 recipient_name: recipientDetails?.name || "",
@@ -957,7 +978,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : "Not Selected"}</p></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
                                 {chooseLocation !== "Bristol Fiesta" && (
-                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + voucherTypePrice.toFixed(2) : ""}</p></div></div></div></div>
                                 )}
                                 {/* Private Charter Weather Refundable Display */}
                                 {chooseFlightType?.type === "Private Charter" && privateCharterWeatherRefund && (
@@ -987,7 +1008,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                             <>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
                                 {chooseLocation !== "Bristol Fiesta" && (
-                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + voucherTypePrice.toFixed(2) : ""}</p></div></div></div></div>
                                 )}
                                 {/* Private Charter Weather Refundable Display */}
                                 {chooseFlightType?.type === "Private Charter" && privateCharterWeatherRefund && (
@@ -1002,7 +1023,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                             <>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : "Not Selected"}</p></div></div></div>
                                 {chooseLocation !== "Bristol Fiesta" && (
-                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + selectedVoucherType.totalPrice : ""}</p></div></div></div></div>
+                                    <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : "Not Selected"}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + voucherTypePrice.toFixed(2) : ""}</p></div></div></div></div>
                                 )}
                                 {/* Private Charter Weather Refundable Display */}
                                 {chooseFlightType?.type === "Private Charter" && privateCharterWeatherRefund && (

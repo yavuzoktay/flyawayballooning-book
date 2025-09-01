@@ -634,9 +634,8 @@ const VoucherType = ({
                     console.log(`VoucherType: ${vt.title} - Using fallback pricing: ${basePrice}`);
                 }
 
-                // Calculate total price for 2 passengers (default)
-                const defaultPassengers = 2;
-                const totalPrice = basePrice * defaultPassengers;
+                // Don't calculate total price here - let the summary panel calculate it dynamically
+                // based on the actual passenger count selected by the user
 
                 // Handle image URL properly
                 let imageUrl = weekdayMorningImg; // Default fallback
@@ -669,7 +668,7 @@ const VoucherType = ({
                     validity: `Valid: ${vt.validity_months || 18} Months`,
                     inclusions: features,
                     weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
-                    price: totalPrice,
+                    price: basePrice, // Set price to basePrice, let summary calculate total
                     basePrice: basePrice,
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
