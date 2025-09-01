@@ -210,9 +210,14 @@ const VoucherType = ({
     const fetchAllVoucherTypes = async () => {
         try {
             setAllVoucherTypesLoading(true);
-            console.log('Fetching regular voucher types from:', `${API_BASE_URL}/api/voucher-types`);
             
-            const response = await fetch(`${API_BASE_URL}/api/voucher-types`);
+            // Include location parameter if available to get location-specific pricing
+            const locationParam = chooseLocation ? `?location=${encodeURIComponent(chooseLocation)}` : '';
+            const url = `${API_BASE_URL}/api/voucher-types${locationParam}`;
+            
+            console.log('Fetching regular voucher types from:', url);
+            
+            const response = await fetch(url);
             console.log('Regular voucher types response status:', response.status);
             
             if (response.ok) {
@@ -228,13 +233,18 @@ const VoucherType = ({
                     
                     data.data.forEach(vt => {
                         newQuantities[vt.title] = 2;
+                        // Use the updated price_per_person from the API
                         newPricing[vt.title.toLowerCase().replace(/\s+/g, '_') + '_price'] = parseFloat(vt.price_per_person);
+                        
+                        // Log the pricing information for debugging
+                        console.log(`VoucherType: ${vt.title} - price_per_person: ${vt.price_per_person}, activity_pricing:`, vt.activity_pricing);
                     });
                     
                     setQuantities(newQuantities);
                     setLocationPricing(newPricing);
                     
                     console.log('Regular voucher types loaded successfully:', data.data.length, 'types');
+                    console.log('Updated locationPricing from voucher types API:', newPricing);
                 } else {
                     console.error('Regular voucher types API returned success: false:', data);
                 }
@@ -272,8 +282,38 @@ const VoucherType = ({
             console.log('VoucherType: Accordion became active, refreshing data...');
             fetchAllVoucherTypes();
             fetchPrivateCharterVoucherTypes();
+            
+            // Also refresh activity data for pricing
+            if (chooseLocation) {
+                // Force immediate refresh with cache busting
+                setTimeout(() => fetchActivityData(), 100);
+            }
         }
-    }, [activeAccordion]);
+    }, [activeAccordion, chooseLocation]);
+
+    // Force refresh all data (can be called manually if needed)
+    const forceRefreshAllData = () => {
+        console.log('VoucherType: Force refreshing all data...');
+        fetchAllVoucherTypes();
+        fetchPrivateCharterVoucherTypes();
+        if (chooseLocation) {
+            fetchActivityData();
+        }
+    };
+
+    // Add keyboard shortcut for manual refresh (Ctrl+R or Cmd+R)
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+                event.preventDefault();
+                console.log('VoucherType: Manual refresh triggered via keyboard shortcut');
+                forceRefreshAllData();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
 
 
@@ -372,40 +412,51 @@ const VoucherType = ({
     }, [selectedActivity]);
 
     // Fetch activity data to get individual pricing for private charter voucher types
-    useEffect(() => {
-        const fetchActivityData = async () => {
-            if (!chooseLocation) {
-                setActivityData(null);
-                return;
+    const fetchActivityData = async () => {
+        if (!chooseLocation) {
+            setActivityData(null);
+            return;
+        }
+        
+        setActivityDataLoading(true);
+        try {
+            // Add timestamp to prevent caching
+            const timestamp = Date.now();
+            const response = await axios.get(`${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}&t=${timestamp}`);
+            if (response.data.success && response.data.data.length > 0) {
+                // Get the first activity for this location
+                const activity = response.data.data[0];
+                setActivityData(activity);
+                console.log('VoucherType: Activity data loaded:', activity);
+                console.log('VoucherType: Private charter pricing field:', activity.private_charter_pricing);
+                console.log('VoucherType: Private charter pricing type:', typeof activity.private_charter_pricing);
+                console.log('VoucherType: Shared flight pricing fields:', {
+                    weekday_morning_price: activity.weekday_morning_price,
+                    flexible_weekday_price: activity.flexible_weekday_price,
+                    any_day_flight_price: activity.any_day_flight_price,
+                    shared_flight_from_price: activity.shared_flight_from_price
+                });
+            } else {
+                console.log('VoucherType: No activity data found for location:', chooseLocation);
             }
-            
-            setActivityDataLoading(true);
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}`);
-                if (response.data.success && response.data.data.length > 0) {
-                    // Get the first activity for this location
-                    const activity = response.data.data[0];
-                    setActivityData(activity);
-                    console.log('VoucherType: Activity data loaded:', activity);
-                    console.log('VoucherType: Private charter pricing field:', activity.private_charter_pricing);
-                    console.log('VoucherType: Private charter pricing type:', typeof activity.private_charter_pricing);
-                    console.log('VoucherType: Shared flight pricing fields:', {
-                        weekday_morning_price: activity.weekday_morning_price,
-                        flexible_weekday_price: activity.flexible_weekday_price,
-                        any_day_flight_price: activity.any_day_flight_price,
-                        shared_flight_from_price: activity.shared_flight_from_price
-                    });
-                } else {
-                    console.log('VoucherType: No activity data found for location:', chooseLocation);
-                }
-            } catch (error) {
-                console.error('Error fetching activity data:', error);
-            } finally {
-                setActivityDataLoading(false);
-            }
-        };
+        } catch (error) {
+            console.error('Error fetching activity data:', error);
+        } finally {
+            setActivityDataLoading(false);
+        }
+    };
 
+    // Fetch activity data when location changes
+    useEffect(() => {
         fetchActivityData();
+        
+        // Set up interval for periodic refresh of activity data (every 1 minute)
+        const interval = setInterval(() => {
+            console.log('VoucherType: Auto-refreshing activity data...');
+            fetchActivityData();
+        }, 1 * 60 * 1000); // 1 minute
+
+        return () => clearInterval(interval);
     }, [chooseLocation]);
 
     const voucherTypes = useMemo(() => {
@@ -417,6 +468,8 @@ const VoucherType = ({
         console.log('VoucherType: isPrivateCharter:', isPrivateCharter);
         console.log('VoucherType: allVoucherTypes count:', allVoucherTypes.length);
         console.log('VoucherType: privateCharterVoucherTypes count:', privateCharterVoucherTypes.length);
+        console.log('VoucherType: activityData for pricing:', activityData);
+        console.log('VoucherType: locationPricing fallback:', locationPricing);
         
         if (isPrivateCharter) {
             // For Private Charter, show only active private charter voucher types
@@ -551,28 +604,34 @@ const VoucherType = ({
             
             // Create voucher types for Shared Flight
             const sharedFlightVouchers = allVoucherTypes.map(vt => {
-                // Get pricing from location-specific activity data
-                let basePrice = 180; // Default fallback
+                // Use the updated price_per_person from the voucher types API (which now includes activity pricing)
+                let basePrice = parseFloat(vt.price_per_person) || 180; // Use API price, fallback to default
                 let priceUnit = 'pp';
                 
-                if (activityData) {
-                    // Use activity-specific pricing if available
-                    if (vt.title === 'Weekday Morning' && activityData.weekday_morning_price) {
-                        basePrice = parseFloat(activityData.weekday_morning_price);
-                    } else if (vt.title === 'Flexible Weekday' && activityData.flexible_weekday_price) {
-                        basePrice = parseFloat(activityData.flexible_weekday_price);
-                    } else if (vt.title === 'Any Day Flight' && activityData.any_day_flight_price) {
-                        basePrice = parseFloat(activityData.any_day_flight_price);
+                console.log(`VoucherType: ${vt.title} - Using price_per_person from API: ${basePrice}`);
+                
+                // Fallback to activity data if API price is not available
+                if (!vt.price_per_person || vt.price_per_person === '0.00') {
+                    if (activityData) {
+                        // Use activity-specific pricing if available
+                        if (vt.title === 'Weekday Morning' && activityData.weekday_morning_price) {
+                            basePrice = parseFloat(activityData.weekday_morning_price);
+                        } else if (vt.title === 'Flexible Weekday' && activityData.flexible_weekday_price) {
+                            basePrice = parseFloat(activityData.flexible_weekday_price);
+                        } else if (vt.title === 'Any Day Flight' && activityData.any_day_flight_price) {
+                            basePrice = parseFloat(activityData.any_day_flight_price);
+                        }
+                    } else {
+                        // Fallback to locationPricing
+                        if (vt.title === 'Weekday Morning') {
+                            basePrice = locationPricing.weekday_morning_price;
+                        } else if (vt.title === 'Flexible Weekday') {
+                            basePrice = locationPricing.flexible_weekday_price;
+                        } else if (vt.title === 'Any Day Flight') {
+                            basePrice = locationPricing.any_day_flight_price;
+                        }
                     }
-                } else {
-                    // Fallback to locationPricing
-                    if (vt.title === 'Weekday Morning') {
-                        basePrice = locationPricing.weekday_morning_price;
-                    } else if (vt.title === 'Flexible Weekday') {
-                        basePrice = locationPricing.flexible_weekday_price;
-                    } else if (vt.title === 'Any Day Flight') {
-                        basePrice = locationPricing.any_day_flight_price;
-                    }
+                    console.log(`VoucherType: ${vt.title} - Using fallback pricing: ${basePrice}`);
                 }
 
                 // Calculate total price for 2 passengers (default)
@@ -621,9 +680,22 @@ const VoucherType = ({
 
             console.log('VoucherType: Shared Flight voucher types created:', sharedFlightVouchers.length);
             console.log('VoucherType: Shared Flight weather clauses:', sharedFlightVouchers.map(vt => ({ title: vt.title, weatherClause: vt.weatherClause })));
+            console.log('VoucherType: Shared Flight pricing details:', sharedFlightVouchers.map(vt => ({ 
+                title: vt.title, 
+                basePrice: vt.basePrice, 
+                price: vt.price, 
+                priceUnit: vt.priceUnit,
+                originalPricePerPerson: vt.price_per_person
+            })));
+            console.log('VoucherType: Final pricing summary for shared flight vouchers:', sharedFlightVouchers.map(vt => ({
+                title: vt.title,
+                displayPrice: `From £${vt.basePrice} pp`,
+                totalPrice: vt.price,
+                basePrice: vt.basePrice
+            })));
             return sharedFlightVouchers;
         }
-    }, [chooseFlightType?.type, allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL]);
+    }, [chooseFlightType?.type, allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
@@ -784,7 +856,7 @@ const VoucherType = ({
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
                         {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
                             `From £${voucher.basePrice} pp` : 
-                            (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.price} pp`)
+                            (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.basePrice || voucher.price} pp`)
                         }
                     </div>
                     <button 
@@ -999,8 +1071,11 @@ const VoucherType = ({
             <style>{scrollbarStyles}</style>
             <Accordion
                 title={
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '8px' }}>
                         <span>Voucher Type</span>
+                        {(privateCharterVoucherTypesLoading || allVoucherTypesLoading || activityDataLoading) && (
+                            <span style={{ fontSize: '12px', color: '#6b7280' }}>🔄</span>
+                        )}
                     </div>
                 }
                 id="voucher-type"
@@ -1039,12 +1114,12 @@ const VoucherType = ({
                     minHeight: '400px'
                 }}>
                     {(() => {
-                        if (privateCharterVoucherTypesLoading || allVoucherTypesLoading) {
+                        if (privateCharterVoucherTypesLoading || allVoucherTypesLoading || activityDataLoading) {
                             return (
                                 <div style={{ textAlign: 'center', padding: '40px' }}>
                                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
                                     <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>Loading Voucher Types...</h3>
-                                    <p style={{ color: '#9ca3af' }}>Please wait while we fetch available options</p>
+                                    <p style={{ color: '#9ca3af' }}>Please wait while we fetch available options and pricing</p>
                                 </div>
                             );
                         }
