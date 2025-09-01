@@ -1039,11 +1039,24 @@ const VoucherType = ({
                     // Find active terms mapped to this voucher type. Prefer lowest sort_order, then newest.
                     const matches = json.data.filter(t => {
                         try {
+                            // Check if this voucher type is directly mapped
                             if (t.voucher_type_id && Number(t.voucher_type_id) === Number(voucher.id)) {
                                 return (t.is_active === 1 || t.is_active === true);
                             }
-                            const ids = t.voucher_type_ids ? JSON.parse(t.voucher_type_ids) : [];
-                            return Array.isArray(ids) && ids.map(Number).includes(Number(voucher.id)) && (t.is_active === 1 || t.is_active === true);
+                            
+                            // Check if this voucher type is in voucher_type_ids array
+                            const voucherTypeIds = t.voucher_type_ids ? JSON.parse(t.voucher_type_ids) : [];
+                            if (Array.isArray(voucherTypeIds) && voucherTypeIds.map(Number).includes(Number(voucher.id))) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check if this voucher type is in private_voucher_type_ids array (for Private Charter)
+                            const privateVoucherTypeIds = t.private_voucher_type_ids ? JSON.parse(t.private_voucher_type_ids) : [];
+                            if (Array.isArray(privateVoucherTypeIds) && privateVoucherTypeIds.map(Number).includes(Number(voucher.id))) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            return false;
                         } catch { return false; }
                     }).sort((a,b) => {
                         const so = (a.sort_order ?? 0) - (b.sort_order ?? 0);
