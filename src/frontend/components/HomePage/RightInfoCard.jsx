@@ -191,14 +191,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
     console.log("additionalInfo:", additionalInfo);
-    // Helper to check additionalInfo (optional for Buy Gift)
+    // Helper to check additionalInfo - only valid if actually filled
     const isAdditionalInfoValid = (info) => {
       if (!info || typeof info !== 'object') {
-        console.log('✅ additionalInfo is empty/null - this is OK for Buy Gift:', info);
-        return true; // Empty is valid for Buy Gift
+        console.log('✅ additionalInfo is empty/null - not valid:', info);
+        return false; // Empty is not valid
       }
       
-      // All additional info is optional for Buy Gift - just log what's there
+      // Check if any field has actual content
       const hasFilledValue = Object.values(info).some(val => {
         if (typeof val === 'string') {
           const trimmed = val.trim();
@@ -212,15 +212,15 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         return !!val;
       });
       
-      console.log('🎯 additionalInfo optional validation:', { 
+      console.log('🎯 additionalInfo validation:', { 
         info, 
         hasFilledValue,
         values: Object.values(info),
         keys: Object.keys(info),
-        note: 'Additional info is now optional for Buy Gift'
+        note: 'Additional info is only valid if actually filled'
       });
       
-      return true; // Always valid for Buy Gift
+      return hasFilledValue; // Only valid if there's actual content
     };
 
     // Book button enable logic:
