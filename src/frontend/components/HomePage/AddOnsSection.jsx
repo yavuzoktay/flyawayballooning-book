@@ -359,7 +359,13 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     <img 
                                         src={item.image} 
                                         alt={item.name} 
-                                        width="100%" 
+                                        style={{
+                                            width: '120px',
+                                            height: '120px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e5e7eb'
+                                        }}
                                         onError={(e) => {
                                             e.target.src = AddOn1; // Fallback to default image
                                         }}
