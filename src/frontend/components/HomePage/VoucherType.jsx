@@ -257,14 +257,23 @@ const VoucherType = ({
         // Initial fetch
         fetchAllVoucherTypes();
         
-        // Set up interval for periodic refresh (every 5 minutes)
+        // Set up interval for periodic refresh (every 2 minutes)
         const interval = setInterval(() => {
             console.log('VoucherType: Auto-refreshing voucher types...');
             fetchAllVoucherTypes();
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 2 * 60 * 1000); // 2 minutes
 
         return () => clearInterval(interval);
     }, [chooseLocation]); // Re-run when location changes
+
+    // Refresh data when accordion becomes active
+    useEffect(() => {
+        if (activeAccordion === 'voucher-type') {
+            console.log('VoucherType: Accordion became active, refreshing data...');
+            fetchAllVoucherTypes();
+            fetchPrivateCharterVoucherTypes();
+        }
+    }, [activeAccordion]);
 
 
 
@@ -428,6 +437,7 @@ const VoucherType = ({
             console.log('VoucherType: All Private Charter voucher types count:', privateCharterVoucherTypes.length);
             console.log('VoucherType: Active Private Charter voucher types count:', activePrivateCharterVoucherTypes.length);
             console.log('VoucherType: Active Private Charter voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
+            console.log('VoucherType: Raw private charter voucher types data:', activePrivateCharterVoucherTypes.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
             const privateVouchers = activePrivateCharterVoucherTypes.map(vt => {
                 console.log(`VoucherType: Processing voucher type: ${vt.title} (ID: ${vt.id})`);
@@ -524,6 +534,7 @@ const VoucherType = ({
             
             console.log('VoucherType: Private Charter voucher types created:', privateVouchers.length);
             console.log('VoucherType: Final Private Charter pricing:', privateVouchers.map(vt => ({ title: vt.title, price: vt.price, priceUnit: vt.priceUnit })));
+            console.log('VoucherType: Private Charter weather clauses:', privateVouchers.map(vt => ({ title: vt.title, weatherClause: vt.weatherClause })));
             console.log('VoucherType: Private Charter voucher types for selection:', privateVouchers);
             console.log('VoucherType: Private Charter - returning voucher types for display');
             return privateVouchers;
@@ -534,8 +545,9 @@ const VoucherType = ({
                 return [];
             }
 
-            console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
-            console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
+                            console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
+                console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
+                console.log('VoucherType: Raw voucher types data:', allVoucherTypes.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
             // Create voucher types for Shared Flight
             const sharedFlightVouchers = allVoucherTypes.map(vt => {
@@ -597,7 +609,7 @@ const VoucherType = ({
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
                     inclusions: features,
-                    weatherClause: 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
+                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
                     price: totalPrice,
                     basePrice: basePrice,
                     priceUnit: priceUnit,
@@ -608,6 +620,7 @@ const VoucherType = ({
             });
 
             console.log('VoucherType: Shared Flight voucher types created:', sharedFlightVouchers.length);
+            console.log('VoucherType: Shared Flight weather clauses:', sharedFlightVouchers.map(vt => ({ title: vt.title, weatherClause: vt.weatherClause })));
             return sharedFlightVouchers;
         }
     }, [chooseFlightType?.type, allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL]);
