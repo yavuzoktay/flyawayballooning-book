@@ -435,7 +435,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         name="weight"
                         value={passenger.weight}
                         onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder="e.g. 70, 70kg or TBC"
+                        placeholder="Max 18 Stone / 114Kg"
                       />
                       {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                     </div>
