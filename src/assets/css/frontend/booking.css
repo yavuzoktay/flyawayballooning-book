@@ -601,9 +601,10 @@ label {
 }
 
 .presger-scroll {
-    height: 31vh;
-    overflow: scroll;
-    padding: 25px;
+    /* Increase height so multiple passengers are visible without heavy scrolling */
+    height: 48vh;
+    overflow: auto;
+    padding: 20px 25px;
     background: #fff;
     border-radius: 40px;
     margin: 20px auto;
@@ -1483,7 +1484,7 @@ label {
     }
 
     .presger-scroll {
-        height: 37vh;
+        height: 56vh; /* more space on small screens to show multiple passengers */
     }
 
     .last_add {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle, useRef } from "react";
 import Accordion from "../Common/Accordion";
 import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -11,6 +11,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   
   // Mobile breakpoint
   const [isMobile, setIsMobile] = useState(false);
+  const scrollContainerRef = useRef(null);
   
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
@@ -263,7 +264,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}
     >
-      <div className="tab_box presger-scroll" style={{ padding: '10px 20px' }}>
+      <div className="tab_box presger-scroll" style={{ padding: '10px 20px' }} ref={scrollContainerRef}>
         {/* Display a message if no passengers are selected */}
         {passengerCount <= 0 && (
           <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -271,12 +272,58 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           </div>
         )}
         
+        {/* When multiple passengers, show quick navigator chips */}
+        {passengerCount > 1 && (
+          <div style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 5,
+            background: '#fff',
+            padding: '8px 0 12px 0',
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            borderBottom: '1px solid #eee'
+          }}>
+            <span style={{ fontWeight: 600 }}>Passengers:</span>
+            {[...Array(passengerCount)].map((_, i) => (
+              <button
+                key={`nav-${i}`}
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById(`passenger-${i+1}`);
+                  if (el && typeof el.scrollIntoView === 'function') {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else if (scrollContainerRef.current) {
+                    // Fallback: manual scroll by approximate height of blocks
+                    scrollContainerRef.current.scrollTop = Math.max(0, (i * 260));
+                  }
+                }}
+                style={{
+                  border: '1px solid #e5e7eb',
+                  background: '#f9fafb',
+                  color: '#111827',
+                  padding: '6px 10px',
+                  borderRadius: 9999,
+                  fontFamily: 'Gilroy',
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                {`Passenger ${i+1}`}
+              </button>
+            ))}
+            <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: 12 }}>Scroll to view all</span>
+          </div>
+        )}
+
         {/* Generate passenger forms based on passenger count */}
         {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
           const error = validationErrors[index] || {};
           return (
-            <div className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px' }}>
+            <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px', background: index > 0 ? '#fcfcfd' : 'transparent' }}>
               <div className="presnger_one" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0' }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
