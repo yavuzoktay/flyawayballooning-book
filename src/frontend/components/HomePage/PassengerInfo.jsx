@@ -462,16 +462,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         </span>
                       </label>
                       <input
-                        type="tel"
+                        type="text"
                         required
                         style={error?.weight ? { border: '1.5px solid red' } : {}}
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                         name="weight"
                         value={passenger.weight}
                         onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder="Kg"
+                        placeholder="e.g. 70, 70kg or TBC"
                       />
                       {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                     </div>
