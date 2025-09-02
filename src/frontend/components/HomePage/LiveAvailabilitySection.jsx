@@ -777,15 +777,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     {activitySelect === 'Book Flight' && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                                <span style={{ fontSize: 16, color: '#444' }}>Can’t see the date you are looking for?</span>
+                                <span style={{ fontSize: isMobile ? 12 : 13, color: '#777' }}>Can’t see the date you are looking for?</span>
                                 <button style={{
                                     background: '#56C1FF',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
-                                    padding: isMobile ? '6px 14px' : '8px 18px',
+                                    padding: isMobile ? '5px 12px' : '6px 14px',
                                     fontWeight: 600,
-                                    fontSize: isMobile ? 14 : 16,
+                                    fontSize: isMobile ? 13 : 14,
                                     cursor: 'pointer',
                                     boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
