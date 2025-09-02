@@ -1048,7 +1048,7 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType}
                                                 />
                                             )}
-                                            {(activitySelect === "Buy Gift" || activitySelect === "Redeem Voucher") && (
+                                            {(activitySelect === "Redeem Voucher") && (
                                                 <AddOnsSection 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -1102,6 +1102,23 @@ const Index = () => {
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                             />
+
+                                            {/* For Buy Gift, move Add To Booking below Purchaser Information */}
+                                            {activitySelect === "Buy Gift" && (
+                                                <AddOnsSection 
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    chooseAddOn={chooseAddOn} 
+                                                    setChooseAddOn={setChooseAddOn} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    chooseLocation={chooseLocation} 
+                                                    chooseFlightType={chooseFlightType} 
+                                                    activitySelect={activitySelect}
+                                                    flightType={chooseFlightType.type}
+                                                />
+                                            )}
 
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && chooseLocation !== "Bristol Fiesta" && (
                                                 <AdditionalInfo 
