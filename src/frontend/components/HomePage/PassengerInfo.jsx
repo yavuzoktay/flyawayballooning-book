@@ -281,41 +281,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             background: '#fff',
             padding: '8px 0 12px 0',
             marginBottom: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
             borderBottom: '1px solid #eee'
-          }}>
-            <span style={{ fontWeight: 600 }}>Passengers:</span>
-            {[...Array(passengerCount)].map((_, i) => (
-              <button
-                key={`nav-${i}`}
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById(`passenger-${i+1}`);
-                  if (el && typeof el.scrollIntoView === 'function') {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  } else if (scrollContainerRef.current) {
-                    // Fallback: manual scroll by approximate height of blocks
-                    scrollContainerRef.current.scrollTop = Math.max(0, (i * 260));
-                  }
-                }}
-                style={{
-                  border: '1px solid #e5e7eb',
-                  background: '#f9fafb',
-                  color: '#111827',
-                  padding: '6px 10px',
-                  borderRadius: 9999,
-                  fontFamily: 'Gilroy',
-                  fontSize: 13,
-                  cursor: 'pointer'
-                }}
-              >
-                {`Passenger ${i+1}`}
-              </button>
-            ))}
-            <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: 12 }}>Scroll to view all</span>
-          </div>
+          }} />
         )}
 
         {/* Generate passenger forms based on passenger count */}
