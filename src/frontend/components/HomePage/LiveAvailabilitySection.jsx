@@ -870,7 +870,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
-                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
+                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, maxWidth: 420 }} required />
                             {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         {requestSuccess && <div style={{ color: 'green', textAlign: 'center' }}>{requestSuccess}</div>}
