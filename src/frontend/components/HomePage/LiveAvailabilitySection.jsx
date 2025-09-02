@@ -811,7 +811,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 title="Request Date"
                 showCloseButton={true}
                 extraContent={
-                    <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 400, alignItems: 'stretch' }} onSubmit={e => {
+                    <form style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 480, alignItems: 'center', marginLeft: 'auto', marginRight: 'auto' }} onSubmit={e => {
                         e.preventDefault();
                         let hasError = false;
                         setNameError(false); setEmailError(false); setLocationError(false); setFlightTypeError(false); setDateError(false);
@@ -827,7 +827,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         if (hasError) { return; }
                         handleRequestSubmit();
                     }}>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
+                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <input type="text" placeholder="Name" value={requestName} onChange={e => {
                                 const val = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '');
                                 setRequestName(val);
@@ -837,7 +837,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             {nameError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                             {nameFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only letters allowed</div>}
                         </div>
-                        <div style={{ marginBottom: 8, width: '100%' }}>
+                        <div style={{ marginBottom: 8, width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <input type="text" placeholder="Phone" value={requestPhone} onChange={e => {
                                 const val = e.target.value.replace(/[^0-9]/g, '');
                                 setRequestPhone(val);
@@ -845,7 +845,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }} style={{ padding: 8, borderRadius: 4, border: phoneFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} />
                             {phoneFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only numbers allowed</div>}
                         </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
+                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <input type="email" placeholder="Email" value={requestEmail} onChange={e => {
                                 setRequestEmail(e.target.value);
                                 setEmailError(false);
@@ -854,14 +854,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                             {emailFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Invalid email format</div>}
                         </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
+                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal' }} required>
                                 <option value="">Select Location</option>
                                 {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                             </select>
                             {locationError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%' }}>
+                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal' }} required>
                                 <option value="">Select Flight Type</option>
                                 <option value="Private Flight">Private Flight</option>
