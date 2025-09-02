@@ -1197,25 +1197,25 @@ const Index = () => {
                 }}>
                     <div className="payment-success-popup" style={{
                         backgroundColor: 'white',
-                        borderRadius: '16px',
-                        padding: '32px',
-                        maxWidth: '500px',
+                        borderRadius: '14px',
+                        padding: '24px',
+                        maxWidth: '420px',
                         width: '90%',
                         textAlign: 'center',
-                        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 16px 32px rgba(0, 0, 0, 0.25)',
                         position: 'relative'
                     }}>
                         {/* Success Icon */}
                         <div style={{
-                            width: '80px',
-                            height: '80px',
+                            width: '64px',
+                            height: '64px',
                             borderRadius: '50%',
                             backgroundColor: '#10b981',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            margin: '0 auto 24px',
-                            fontSize: '40px',
+                            margin: '0 auto 16px',
+                            fontSize: '32px',
                             color: 'white'
                         }}>
                             ✓
@@ -1224,18 +1224,18 @@ const Index = () => {
                         {/* Success Message */}
                         <h2 style={{
                             color: '#1f2937',
-                            fontSize: '28px',
+                            fontSize: '22px',
                             fontWeight: '600',
-                            marginBottom: '16px'
+                            marginBottom: '12px'
                         }}>
                             Payment Successfully Received!
                         </h2>
                         
                         <p style={{
                             color: '#6b7280',
-                            fontSize: '18px',
-                            marginBottom: '24px',
-                            lineHeight: '1.5'
+                            fontSize: '14px',
+                            marginBottom: '16px',
+                            lineHeight: '1.4'
                         }}>
                             Your {paymentSuccessData.message} has been created successfully.
                         </p>
@@ -1243,9 +1243,9 @@ const Index = () => {
                         {/* Voucher Code Display - Always show for vouchers */}
                         <div style={{
                             backgroundColor: '#f3f4f6',
-                            borderRadius: '12px',
-                            padding: '20px',
-                            marginBottom: '24px',
+                            borderRadius: '10px',
+                            padding: '16px',
+                            marginBottom: '16px',
                             border: '2px solid #3b82f6'
                         }}>
                             <p style={{
@@ -1259,9 +1259,9 @@ const Index = () => {
                             <div style={{
                                 backgroundColor: '#3b82f6',
                                 color: 'white',
-                                fontSize: '24px',
+                                fontSize: '20px',
                                 fontWeight: '700',
-                                padding: '12px 20px',
+                                padding: '10px 16px',
                                 borderRadius: '8px',
                                 letterSpacing: '2px',
                                 fontFamily: 'monospace'
@@ -1276,8 +1276,8 @@ const Index = () => {
                             <div style={{
                                 backgroundColor: '#f9fafb',
                                 borderRadius: '8px',
-                                padding: '16px',
-                                marginBottom: '16px'
+                                padding: '14px',
+                                marginBottom: '12px'
                             }}>
                                 <p style={{
                                     color: '#374151',
@@ -1310,8 +1310,8 @@ const Index = () => {
                             <div style={{
                                 backgroundColor: '#f9fafb',
                                 borderRadius: '8px',
-                                padding: '16px',
-                                marginBottom: '16px'
+                                padding: '14px',
+                                marginBottom: '12px'
                             }}>
                                 <p style={{
                                     color: '#374151',
@@ -1330,28 +1330,7 @@ const Index = () => {
                             </div>
                         )}
                         
-                        {/* Booking/Voucher ID */}
-                        <div style={{
-                            backgroundColor: '#f9fafb',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            marginBottom: '24px'
-                        }}>
-                            <p style={{
-                                color: '#374151',
-                                fontSize: '14px',
-                                marginBottom: '4px'
-                            }}>
-                                {paymentSuccessData.type === 'booking' ? 'Reservation' : 'Voucher'} ID:
-                            </p>
-                            <p style={{
-                                color: '#1f2937',
-                                fontSize: '18px',
-                                fontWeight: '600'
-                            }}>
-                                {paymentSuccessData.id}
-                            </p>
-                        </div>
+                        {/* Reservation/Voucher ID removed per request */}
                         
                         {/* Close Button */}
                         <button
@@ -1361,8 +1340,8 @@ const Index = () => {
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
-                                padding: '12px 32px',
-                                fontSize: '16px',
+                                padding: '10px 24px',
+                                fontSize: '14px',
                                 fontWeight: '600',
                                 cursor: 'pointer',
                                 transition: 'background-color 0.2s'
