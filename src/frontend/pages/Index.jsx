@@ -1268,13 +1268,7 @@ const Index = () => {
                             }}>
                                 {paymentSuccessData.voucherCode || 'Voucher Code Not Available'}
                             </div>
-                            <p style={{
-                                color: '#6b7280',
-                                fontSize: '12px',
-                                marginTop: '8px'
-                            }}>
-                                Please keep this code in a safe place
-                            </p>
+                            {/* Note removed per request */}
                         </div>
                         
                         {/* Customer Information */}
