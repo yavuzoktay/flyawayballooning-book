@@ -174,7 +174,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             {showNotification && (
                 <div style={{
                     position: 'fixed',
-                    top: '20px',
+                    bottom: '20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
                     backgroundColor: '#4CAF50',
@@ -188,7 +188,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    animation: 'slideDown 0.3s ease-out',
+                    animation: 'slideUp 0.3s ease-out',
                     maxWidth: '90vw',
                     textAlign: 'center'
                 }}>
@@ -428,10 +428,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                 }
                 
                 /* Notification animation */
-                @keyframes slideDown {
+                @keyframes slideUp {
                     from {
                         opacity: 0;
-                        transform: translateX(-50%) translateY(-20px);
+                        transform: translateX(-50%) translateY(20px);
                     }
                     to {
                         opacity: 1;
