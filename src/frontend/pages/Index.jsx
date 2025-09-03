@@ -267,6 +267,46 @@ const Index = () => {
     // Lokasyon ve tarih seçilip seçilmediğini kontrol et
     const showBookingHeader = chooseLocation && selectedDate && selectedTime;
 
+    // Section sequence based on summary panel order
+    const getSectionSequence = (activityType) => {
+        const baseSequence = ['activity'];
+        
+        switch (activityType) {
+            case 'Book Flight':
+                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
+            case 'Redeem Voucher':
+                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
+            case 'Flight Voucher':
+                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
+            case 'Buy Gift':
+                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'recipient-details', 'additional-info', 'add-on'];
+            default:
+                return baseSequence;
+        }
+    };
+
+    // Auto-accordion logic: close current section and open next one
+    const handleSectionCompletion = (completedSectionId) => {
+        if (!activitySelect) return;
+        
+        const sequence = getSectionSequence(activitySelect);
+        const currentIndex = sequence.indexOf(completedSectionId);
+        
+        if (currentIndex === -1) return;
+        
+        // Close current section
+        setActiveAccordion(null);
+        
+        // Open next section after a short delay
+        setTimeout(() => {
+            const nextIndex = currentIndex + 1;
+            if (nextIndex < sequence.length) {
+                const nextSectionId = sequence[nextIndex];
+                setActiveAccordion(nextSectionId);
+            }
+        }, 500); // 500ms delay for smooth transition
+    };
+
     // Diğer section'lar için özel bir setActiveAccordion fonksiyonu
     // activitySelect null ise section'ların açılmasını engeller
     const handleSetActiveAccordion = (sectionId) => {
@@ -693,6 +733,7 @@ const Index = () => {
                                         voucherCode={voucherCode}
                                         voucherData={voucherData}
                                         onValidate={validateVoucherCode}
+                                        onSectionCompletion={handleSectionCompletion}
                                     />
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
@@ -712,6 +753,7 @@ const Index = () => {
                                                 setAvailabilities={setAvailabilities}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <ExperienceSection 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -726,6 +768,7 @@ const Index = () => {
                                                 isFlightVoucher={isFlightVoucher}
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
@@ -740,6 +783,7 @@ const Index = () => {
                                                     availableCapacity={getAvailableCapacityForSelection()}
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             <LiveAvailabilitySection 
@@ -761,6 +805,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onTimeout={handleCountdownTimeout}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -778,6 +823,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType}
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -789,6 +835,7 @@ const Index = () => {
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             
                                             <AddOnsSection 
@@ -804,6 +851,7 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
                                                 disabled={false}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {console.log('🔍 AddOnsSection called with:', {
                                                 activitySelect,
@@ -829,6 +877,7 @@ const Index = () => {
                                                 setAvailabilities={setAvailabilities}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -849,6 +898,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onTimeout={handleCountdownTimeout}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -866,6 +916,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType}
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -877,6 +928,7 @@ const Index = () => {
                                                 activeAccordion={activeAccordion} 
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -890,6 +942,7 @@ const Index = () => {
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {console.log('🔍 AddOnsSection (Redeem Voucher) called with:', {
                                                 activitySelect,

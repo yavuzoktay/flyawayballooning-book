@@ -31,7 +31,7 @@ const getNormalizedImageUrl = (exp) => {
     }
 };
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher, onSectionCompletion }) => {
     // Safety check for required props - log error but don't return early to avoid hook violations
     const hasRequiredProps = setChooseFlightType && setAddPassenger && setActiveAccordion && setAvailableSeats;
     if (!hasRequiredProps) {
@@ -451,6 +451,11 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             setChooseFlightType(flightData);
         } else {
             console.error('setChooseFlightType is not available');
+        }
+        
+        // Trigger section completion to close current section and open next one
+        if (onSectionCompletion) {
+            onSectionCompletion('experience');
         }
     };
 

@@ -4,7 +4,7 @@ import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
 import config from '../../../config';
 
-const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate }) => {
+const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate, onSectionCompletion }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
@@ -102,6 +102,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         setTimeout(() => {
             setShowNotification(false);
         }, 3000);
+        
+        // Trigger section completion to close current section and open next one
+        if (onSectionCompletion) {
+            onSectionCompletion('activity');
+        }
         
         // If Redeem Voucher is clicked, always ensure it's flipped
         if (label === "Redeem Voucher") {

@@ -17,7 +17,7 @@ const imageMap = {
 
 const API_BASE_URL = config.API_BASE_URL;
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType }) => {
+const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType, onSectionCompletion }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
@@ -137,6 +137,11 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
         setChooseLocation(locName);
         setActiveAccordion("location"); // Open the location accordion
         getActivityId(locName);
+        
+        // Trigger section completion to close current section and open next one
+        if (onSectionCompletion) {
+            onSectionCompletion('location');
+        }
     };
 
     const handleModalClose = () => {
