@@ -256,6 +256,8 @@ label {
     position: absolute;
     z-index: 1;
     right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .accordion.active:after {
@@ -263,6 +265,8 @@ label {
     position: absolute;
     z-index: 1;
     right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .main-content {
