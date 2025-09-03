@@ -23,10 +23,14 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, countdownSeconds, setCountdownSeconds, onTimeout }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, countdownSeconds, setCountdownSeconds, onTimeout, onSectionCompletion }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // Notification state for time selection
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
 
     const [requestModalOpen, setRequestModalOpen] = useState(false);
     const [requestName, setRequestName] = useState("");
@@ -260,6 +264,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setSelectedTime(time);
         setTimeSelectionModalOpen(false);
         setTempSelectedTime(null); // Reset temporary selection
+        
+        // Show notification for time selection
+        const formattedDate = format(selectedDateForTime, 'MMMM d, yyyy');
+        setNotificationMessage(`${formattedDate} at ${time} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
+        // Trigger section completion to close current section and open next one
+        if (onSectionCompletion) {
+            onSectionCompletion('live-availability');
+        }
         
         // Start countdown timer when date and time are selected
         startCountdownTimer();
@@ -600,6 +619,33 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     return (
         <>
+            {/* Notification for time selection */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideUp 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
             <style>
                 {`
                     @media (max-width: 768px) {
@@ -649,6 +695,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             font-size: 10px !important;
                             margin-bottom: 2px !important;
                             padding: 1px !important;
+                        }
+                    }
+                    
+                    @keyframes slideUp {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-50%) translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(-50%) translateY(0);
                         }
                     }
                 `}

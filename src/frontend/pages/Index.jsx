@@ -277,7 +277,7 @@ const Index = () => {
             case 'Redeem Voucher':
                 return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
             case 'Flight Voucher':
-                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
+                return [...baseSequence, 'experience', 'voucher-type', 'passenger-info', 'additional-info'];
             case 'Buy Gift':
                 return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'recipient-details', 'additional-info', 'add-on'];
             default:
