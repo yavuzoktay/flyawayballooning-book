@@ -195,23 +195,50 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if add-on items are available for current selection
     // This mimics the logic from AddOnsSection to determine if the section should be shown
     const hasAvailableAddOnItems = () => {
-        // Since AddOnsSection already handles its own visibility logic and shows/hides itself
-        // based on actual API data and filtering, we should be more permissive here.
-        // If the user can see the AddOnsSection in the main form, then it should also
-        // appear in the summary panel. The AddOnsSection will handle the actual filtering.
-        // 
-        // ALWAYS return true because:
-        // 1. AddOnsSection handles its own visibility based on API data
-        // 2. If AddOnsSection is visible in main form, it should be in summary too
-        // 3. If AddOnsSection is not visible, it won't affect the summary anyway
-        // 4. Network tab shows add-to-booking-items endpoint returns data successfully
-        // 5. Section should appear immediately when page loads if data is available
-        console.log('🔍 hasAvailableAddOnItems: ALWAYS returning true (AddOnsSection handles its own visibility)', {
-            flightType: chooseFlightType?.type,
+        // Determine current journey type based on user selections (same as AddOnsSection)
+        let currentJourneyType = 'Book Flight'; // Default
+        
+        if (activitySelect === 'Flight Voucher') {
+            currentJourneyType = 'Flight Voucher';
+        } else if (activitySelect === 'Redeem Voucher') {
+            currentJourneyType = 'Redeem Voucher';
+        } else if (activitySelect === 'Buy Gift') {
+            currentJourneyType = 'Buy Gift';
+        }
+        
+        console.log('🔍 hasAvailableAddOnItems: Checking availability', {
             activitySelect,
+            currentJourneyType,
+            flightType: chooseFlightType?.type,
             chooseLocation,
-            note: 'AddOnsSection handles its own visibility, we just ensure summary consistency'
+            note: 'Checking if add-on items are available for current selection'
         });
+        
+        // For now, we'll use a simplified approach:
+        // Only show Add To Booking section for certain journey types that typically have add-ons
+        // This is a temporary solution until we can properly integrate with AddOnsSection's logic
+        
+        if (currentJourneyType === 'Flight Voucher') {
+            console.log('🔍 hasAvailableAddOnItems: Flight Voucher selected, checking if add-ons are available');
+            // For Flight Voucher, we need to check if there are actually add-ons available
+            // Since we can't easily access AddOnsSection's state, we'll be conservative
+            // and only show if we have a flight type selected (which suggests user is progressing)
+            if (chooseFlightType?.type) {
+                console.log('🔍 hasAvailableAddOnItems: Flight Voucher + Flight Type selected, returning true');
+                return true;
+            } else {
+                console.log('🔍 hasAvailableAddOnItems: Flight Voucher but no Flight Type selected, returning false');
+                return false;
+            }
+        }
+        
+        // For other journey types, use the previous logic
+        if (!chooseFlightType?.type) {
+            console.log('🔍 hasAvailableAddOnItems: No flight type selected, returning false');
+            return false;
+        }
+        
+        console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true');
         return true;
     };
     // Helper to check additionalInfo - only valid if actually filled
