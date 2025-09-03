@@ -197,6 +197,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const hasAvailableAddOnItems = () => {
         // If no flight type is selected, no add-ons can be available
         if (!chooseFlightType?.type) {
+            console.log('🔍 hasAvailableAddOnItems: No flight type selected, returning false');
             return false;
         }
         
@@ -205,6 +206,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         // fetch and filter add-on items similar to how AddOnsSection does it
         // But since AddOnsSection already handles the visibility logic and shows/hides itself,
         // we can assume that if the user can see the AddOnsSection, then add-ons are available
+        console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true', {
+            flightType: chooseFlightType?.type,
+            activitySelect,
+            chooseLocation
+        });
         return true;
     };
     // Helper to check additionalInfo - only valid if actually filled
@@ -945,6 +951,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const sectionSpacing = { marginBottom: '24px' };
 
     // --- Mobile drawer compact section list ---
+    // Debug: Log hasAvailableAddOnItems result
+    console.log('🔍 hasAvailableAddOnItems result:', hasAvailableAddOnItems());
+    
     const mobileSections = [
         { id: 'activity', title: 'Flight Type', value: activitySelect ? (activitySelect === 'Redeem Voucher' && voucherCode ? `${activitySelect} - ${voucherStatus === 'invalid' ? 'Invalid' : voucherCode}` : activitySelect) : 'Not Selected', completed: !!activitySelect && (activitySelect !== 'Redeem Voucher' || voucherStatus === 'valid') },
         ...(activitySelect === 'Book Flight' ? [
