@@ -62,6 +62,12 @@ const Index = () => {
         console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);
     }, [selectedVoucherType]);
     
+    // Reset accordion when activity type changes to prevent sequence confusion
+    useEffect(() => {
+        console.log('🔄 Activity type changed, resetting accordion:', activitySelect);
+        setActiveAccordion(null);
+    }, [activitySelect]);
+    
     // Payment success popup state
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
     const [paymentSuccessData, setPaymentSuccessData] = useState(null);
@@ -268,7 +274,8 @@ const Index = () => {
     const showBookingHeader = chooseLocation && selectedDate && selectedTime;
 
     // Get dynamic section sequence directly from summary panel logic (mirrors RightInfoCard.jsx mobileSections)
-    const getSectionSequence = (activityType) => {
+    // Takes current state as parameters to avoid stale closure issues
+    const getSectionSequence = (activityType, currentLocation, currentPassengerData, currentAdditionalInfo, currentRecipientDetails) => {
         const baseSequence = ['activity'];
         
         // Helper functions (mirrored from RightInfoCard.jsx)
@@ -296,7 +303,7 @@ const Index = () => {
                      details.date && details.date.trim() !== '');
         };
         
-        const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isPassengerInfoComplete = Array.isArray(currentPassengerData) && currentPassengerData.every((passenger, index) => {
             const isFirstPassenger = index === 0;
             const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
                    passenger.lastName && passenger.lastName.trim() !== '' &&
@@ -307,7 +314,7 @@ const Index = () => {
             return basicInfoValid && contactInfoValid;
         });
         
-        const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isBuyGiftPassengerComplete = Array.isArray(currentPassengerData) && currentPassengerData.every((passenger, index) => {
             const isFirstPassenger = index === 0;
             const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
                    passenger.lastName && passenger.lastName.trim() !== '';
@@ -323,7 +330,7 @@ const Index = () => {
             sequence.push('location');
             sequence.push('experience');
             // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
-            if (chooseLocation !== 'Bristol Fiesta') {
+            if (currentLocation !== 'Bristol Fiesta') {
                 sequence.push('voucher-type');
             }
             sequence.push('live-availability');
@@ -347,7 +354,7 @@ const Index = () => {
             const sequence = [...baseSequence];
             sequence.push('experience');
             // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
-            if (chooseLocation !== 'Bristol Fiesta') {
+            if (currentLocation !== 'Bristol Fiesta') {
                 sequence.push('voucher-type');
             }
             sequence.push('passenger-info');
@@ -360,7 +367,7 @@ const Index = () => {
             const sequence = [...baseSequence];
             sequence.push('experience');
             // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
-            if (chooseLocation !== 'Bristol Fiesta') {
+            if (currentLocation !== 'Bristol Fiesta') {
                 sequence.push('voucher-type');
             }
             sequence.push('passenger-info');
@@ -379,13 +386,17 @@ const Index = () => {
             return;
         }
         
-        const sequence = getSectionSequence(activitySelect);
+        // Pass current state values to avoid stale closure issues
+        const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
         const currentIndex = sequence.indexOf(completedSectionId);
         
-        console.log('🔄 DYNAMIC ACCORDION SEQUENCE:', {
+        console.log('🔄 DYNAMIC ACCORDION SEQUENCE (CURRENT STATE):', {
             completedSectionId,
             activitySelect,
             chooseLocation,
+            passengerDataLength: passengerData?.length,
+            additionalInfo: additionalInfo,
+            recipientDetails: recipientDetails,
             sequence,
             currentIndex,
             totalSections: sequence.length,
