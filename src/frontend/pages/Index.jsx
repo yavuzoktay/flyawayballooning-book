@@ -267,42 +267,94 @@ const Index = () => {
     // Lokasyon ve tarih seçilip seçilmediğini kontrol et
     const showBookingHeader = chooseLocation && selectedDate && selectedTime;
 
-    // Section sequence based on summary panel order
+    // Dynamic section sequence based on summary panel logic (from RightInfoCard.jsx)
     const getSectionSequence = (activityType) => {
         const baseSequence = ['activity'];
         
-        switch (activityType) {
-            case 'Book Flight':
-                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
-            case 'Redeem Voucher':
-                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on'];
-            case 'Flight Voucher':
-                return [...baseSequence, 'experience', 'voucher-type', 'passenger-info', 'additional-info'];
-            case 'Buy Gift':
-                return [...baseSequence, 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'recipient-details', 'additional-info', 'add-on'];
-            default:
-                return baseSequence;
+        if (activityType === 'Book Flight') {
+            const sequence = [...baseSequence];
+            sequence.push('location');
+            sequence.push('experience');
+            // Add voucher-type only if not Bristol Fiesta
+            if (chooseLocation !== 'Bristol Fiesta') {
+                sequence.push('voucher-type');
+            }
+            sequence.push('live-availability');
+            sequence.push('passenger-info');
+            sequence.push('additional-info');
+            sequence.push('add-on');
+            return sequence;
         }
+        
+        if (activityType === 'Redeem Voucher') {
+            const sequence = [...baseSequence];
+            sequence.push('location');
+            sequence.push('live-availability');
+            sequence.push('passenger-info');
+            sequence.push('additional-info');
+            sequence.push('add-on');
+            return sequence;
+        }
+        
+        if (activityType === 'Flight Voucher') {
+            const sequence = [...baseSequence];
+            sequence.push('experience');
+            sequence.push('voucher-type');
+            sequence.push('passenger-info');
+            sequence.push('additional-info');
+            sequence.push('add-on');
+            return sequence;
+        }
+        
+        if (activityType === 'Buy Gift') {
+            const sequence = [...baseSequence];
+            sequence.push('experience');
+            sequence.push('voucher-type');
+            sequence.push('passenger-info');
+            sequence.push('recipient-details');
+            sequence.push('add-on');
+            return sequence;
+        }
+        
+        return baseSequence;
     };
 
     // Auto-accordion logic: close current section and open next one
     const handleSectionCompletion = (completedSectionId) => {
-        if (!activitySelect) return;
+        if (!activitySelect) {
+            console.log('❌ handleSectionCompletion: No activitySelect');
+            return;
+        }
         
         const sequence = getSectionSequence(activitySelect);
         const currentIndex = sequence.indexOf(completedSectionId);
         
-        if (currentIndex === -1) return;
+        console.log('🔄 handleSectionCompletion:', {
+            completedSectionId,
+            activitySelect,
+            sequence,
+            currentIndex,
+            chooseLocation // Important for dynamic sequence
+        });
+        
+        if (currentIndex === -1) {
+            console.log('❌ Section not found in sequence:', completedSectionId);
+            return;
+        }
         
         // Close current section
         setActiveAccordion(null);
+        console.log('🔒 Closed current section');
         
         // Open next section after a short delay
         setTimeout(() => {
             const nextIndex = currentIndex + 1;
             if (nextIndex < sequence.length) {
                 const nextSectionId = sequence[nextIndex];
+                console.log('🔓 Opening next section:', nextSectionId);
                 setActiveAccordion(nextSectionId);
+            } else {
+                console.log('✅ No more sections to open - sequence complete');
             }
         }, 500); // 500ms delay for smooth transition
     };
