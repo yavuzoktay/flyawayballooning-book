@@ -962,7 +962,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         activitySelect,
         chooseFlightType: chooseFlightType?.type,
         chooseLocation,
-        addOnItemsAvailable
+        addOnItemsAvailable,
+        chooseAddOn: chooseAddOn,
+        chooseAddOnLength: Array.isArray(chooseAddOn) ? chooseAddOn.length : 'Not array'
     });
     
     const mobileSections = [
@@ -1002,6 +1004,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Debug: Log final mobileSections array
     console.log('🔍 Final mobileSections array:', mobileSections);
     console.log('🔍 Add To Booking section in mobileSections:', mobileSections.find(s => s.id === 'add-on'));
+    console.log('🔍 All section IDs in mobileSections:', mobileSections.map(s => s.id));
+    console.log('🔍 hasAvailableAddOnItems() called result:', hasAvailableAddOnItems());
 
     return (
         <>
