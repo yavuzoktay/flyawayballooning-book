@@ -1045,20 +1045,6 @@ const VoucherType = ({
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
         
-        // Show notification for voucher type selection
-        setNotificationMessage(`${voucher.title} Selected`);
-        setShowNotification(true);
-        
-        // Auto-hide notification after 3 seconds
-        setTimeout(() => {
-            setShowNotification(false);
-        }, 3000);
-        
-        // Trigger section completion to close current section and open next one
-        if (onSectionCompletion) {
-            onSectionCompletion('voucher-type');
-        }
-        
         // Fetch Terms & Conditions for this voucher type from backend Settings
         try {
             setTermsLoading(true);
@@ -1166,7 +1152,21 @@ const VoucherType = ({
                                     console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
                                     setSelectedVoucherType(selectedVoucher); 
                                     setActiveAccordion(null); 
-                                    setShowTerms(false); 
+                                    setShowTerms(false);
+                                    
+                                    // Show notification for voucher type selection after confirmation
+                                    setNotificationMessage(`${selectedVoucher?.title} Selected`);
+                                    setShowNotification(true);
+                                    
+                                    // Auto-hide notification after 3 seconds
+                                    setTimeout(() => {
+                                        setShowNotification(false);
+                                    }, 3000);
+                                    
+                                    // Trigger section completion to close current section and open next one
+                                    if (onSectionCompletion) {
+                                        onSectionCompletion('voucher-type');
+                                    }
                                 }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
                             </div>
                         </div>
