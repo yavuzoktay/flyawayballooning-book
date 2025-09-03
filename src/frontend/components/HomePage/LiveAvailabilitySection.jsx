@@ -1119,6 +1119,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 .day.available-day {
                     background: #61D836 !important; 
                     color: white !important;
+                    cursor: pointer;
+                }
+                /* Emphasize interactivity on hover */
+                .day.available-day:hover {
+                    transform: translateY(-2px) scale(1.03);
+                    box-shadow: 0 8px 18px rgba(0,0,0,0.15), 0 0 0 3px rgba(86,193,255,0.6);
+                    outline: 2px solid #56C1FF;
+                }
+                /* Add subtle focus-visible style for keyboard users */
+                .day.available-day:focus-visible {
+                    outline: 3px solid #56C1FF;
+                    box-shadow: 0 0 0 4px rgba(86,193,255,0.35);
                 }
                 @keyframes pulseAnim { 
                     0% { box-shadow: 0 0 0 0 #ff9800; } 
