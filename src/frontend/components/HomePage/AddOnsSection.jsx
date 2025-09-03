@@ -300,39 +300,10 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
     console.log('   - filteredItems.length:', filteredItems.length);
     console.log('   - Will show section:', !addToBookingLoading && filteredItems.length > 0);
 
-    // TEMPORARY: Always show section for debugging
-    console.log('🔧 DEBUG MODE: Always showing section regardless of items');
-    
     // If no items to show, don't render the section at all
     if (!addToBookingLoading && filteredItems.length === 0) {
         console.log('❌ No add to booking items to display, hiding section');
-        console.log('   - This means either:');
-        console.log('     1. No items in database');
-        console.log('     2. All items failed filtering');
-        console.log('     3. Items exist but are not active');
-        
-        // TEMPORARY: Show section anyway for debugging
-        console.log('🔧 DEBUG MODE: Showing section anyway with "no items" message');
-        return (
-            <Accordion title="Add To Booking (DEBUG)" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
-                <div className="tab_box add-on-card scroll-box vouch">
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-                        <p>🔧 DEBUG MODE: Section is visible but no items match filters</p>
-                        <p>Total items from API: {addToBookingItems.length}</p>
-                        <p>Filtered items: {filteredItems.length}</p>
-                        <p>Current journey type: {activitySelect || 'None'}</p>
-                        <p>Current location: {chooseLocation || 'None'}</p>
-                        <p>Current flight type: {flightType || 'None'}</p>
-                        <details style={{ textAlign: 'left', marginTop: '20px' }}>
-                            <summary>Raw API Data (Click to expand)</summary>
-                            <pre style={{ fontSize: '12px', overflow: 'auto', maxHeight: '200px' }}>
-                                {JSON.stringify(addToBookingItems, null, 2)}
-                            </pre>
-                        </details>
-                    </div>
-                </div>
-            </Accordion>
-        );
+        return null;
     }
 
     console.log('✅ Rendering Add to Booking section with', filteredItems.length, 'items');
