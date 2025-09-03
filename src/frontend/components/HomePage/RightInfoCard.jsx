@@ -206,14 +206,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         // If the user can see the AddOnsSection in the main form, then it should also
         // appear in the summary panel. The AddOnsSection will handle the actual filtering.
         // 
-        // For now, we'll always return true when flight type is selected, because:
+        // ALWAYS return true when flight type is selected, because:
         // 1. AddOnsSection handles its own visibility
         // 2. If AddOnsSection is visible in main form, it should be in summary too
         // 3. If AddOnsSection is not visible, it won't affect the summary anyway
-        console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true (letting AddOnsSection handle visibility)', {
+        // 4. Network tab shows add-to-booking-items endpoint returns data successfully
+        console.log('🔍 hasAvailableAddOnItems: Flight type selected, ALWAYS returning true', {
             flightType: chooseFlightType?.type,
             activitySelect,
-            chooseLocation
+            chooseLocation,
+            note: 'AddOnsSection handles its own visibility, we just ensure summary consistency'
         });
         return true;
     };
