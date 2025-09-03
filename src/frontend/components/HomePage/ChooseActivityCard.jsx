@@ -12,6 +12,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const [voucherTypesLoading, setVoucherTypesLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const cardBackRef = useRef(null);
+    
+    // Notification state for flight type selection
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
 
     // Handle window resize for responsive design
     useEffect(() => {
@@ -90,6 +94,15 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         // Always update the activity selection
         setActivitySelect(label);
         
+        // Show notification for flight type selection
+        setNotificationMessage(`${label} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
         // If Redeem Voucher is clicked, always ensure it's flipped
         if (label === "Redeem Voucher") {
             setIsFlipped(true);
@@ -156,7 +169,35 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     console.log('ChooseActivityCard render:', { isMobile, selectActivityData: selectActivityData.length });
     
     return (
-        <div className="tab_box" style={{ 
+        <>
+            {/* Notification for flight type selection */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideDown 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
+            <div className="tab_box" style={{ 
             display: 'flex', 
             flexWrap: 'wrap', 
             gap: isMobile ? '8px' : '40px', 
@@ -385,8 +426,21 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         min-height: 140px !important;
                     }
                 }
+                
+                /* Notification animation */
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(-20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                }
             `}</style>
         </div>
+        </>
     );
 };
 
