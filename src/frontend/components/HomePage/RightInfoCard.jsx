@@ -195,23 +195,18 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if add-on items are available for current selection
     // This mimics the logic from AddOnsSection to determine if the section should be shown
     const hasAvailableAddOnItems = () => {
-        // If no flight type is selected, no add-ons can be available
-        if (!chooseFlightType?.type) {
-            console.log('🔍 hasAvailableAddOnItems: No flight type selected, returning false');
-            return false;
-        }
-        
         // Since AddOnsSection already handles its own visibility logic and shows/hides itself
         // based on actual API data and filtering, we should be more permissive here.
         // If the user can see the AddOnsSection in the main form, then it should also
         // appear in the summary panel. The AddOnsSection will handle the actual filtering.
         // 
-        // ALWAYS return true when flight type is selected, because:
-        // 1. AddOnsSection handles its own visibility
+        // ALWAYS return true because:
+        // 1. AddOnsSection handles its own visibility based on API data
         // 2. If AddOnsSection is visible in main form, it should be in summary too
         // 3. If AddOnsSection is not visible, it won't affect the summary anyway
         // 4. Network tab shows add-to-booking-items endpoint returns data successfully
-        console.log('🔍 hasAvailableAddOnItems: Flight type selected, ALWAYS returning true', {
+        // 5. Section should appear immediately when page loads if data is available
+        console.log('🔍 hasAvailableAddOnItems: ALWAYS returning true (AddOnsSection handles its own visibility)', {
             flightType: chooseFlightType?.type,
             activitySelect,
             chooseLocation,
