@@ -201,11 +201,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             return false;
         }
         
-        // For now, we'll assume add-ons are available if we have a flight type selected
-        // This is a simplified approach - in a more complete implementation, this would
-        // fetch and filter add-on items similar to how AddOnsSection does it
-        // But since AddOnsSection already handles the visibility logic and shows/hides itself,
-        // we can assume that if the user can see the AddOnsSection, then add-ons are available
+        // For now, we'll use a simplified approach:
+        // If we have a flight type selected, we assume add-ons might be available
+        // The actual filtering is handled by AddOnsSection itself
+        // Since AddOnsSection shows/hides itself based on actual API data,
+        // we'll be more permissive here and let the section decide
         console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true', {
             flightType: chooseFlightType?.type,
             activitySelect,
@@ -952,7 +952,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
 
     // --- Mobile drawer compact section list ---
     // Debug: Log hasAvailableAddOnItems result
-    console.log('🔍 hasAvailableAddOnItems result:', hasAvailableAddOnItems());
+    const addOnItemsAvailable = hasAvailableAddOnItems();
+    console.log('🔍 hasAvailableAddOnItems result:', addOnItemsAvailable);
+    console.log('🔍 Current state for Add To Booking:', {
+        activitySelect,
+        chooseFlightType: chooseFlightType?.type,
+        chooseLocation,
+        addOnItemsAvailable
+    });
     
     const mobileSections = [
         { id: 'activity', title: 'Flight Type', value: activitySelect ? (activitySelect === 'Redeem Voucher' && voucherCode ? `${activitySelect} - ${voucherStatus === 'invalid' ? 'Invalid' : voucherCode}` : activitySelect) : 'Not Selected', completed: !!activitySelect && (activitySelect !== 'Redeem Voucher' || voucherStatus === 'valid') },
@@ -987,6 +994,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             ...(hasAvailableAddOnItems() ? [{ id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }] : [])
         ] : [])
     ];
+    
+    // Debug: Log final mobileSections array
+    console.log('🔍 Final mobileSections array:', mobileSections);
+    console.log('🔍 Add To Booking section in mobileSections:', mobileSections.find(s => s.id === 'add-on'));
 
     return (
         <>
