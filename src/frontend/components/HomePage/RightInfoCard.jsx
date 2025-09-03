@@ -195,10 +195,17 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if add-on items are available for current selection
     // This mimics the logic from AddOnsSection to determine if the section should be shown
     const hasAvailableAddOnItems = () => {
+        // If no flight type is selected, no add-ons can be available
+        if (!chooseFlightType?.type) {
+            return false;
+        }
+        
         // For now, we'll assume add-ons are available if we have a flight type selected
-        // In a more complete implementation, this would fetch and filter add-on items
-        // similar to how AddOnsSection does it, but for simplicity we'll use this approach
-        return !!(chooseFlightType?.type);
+        // This is a simplified approach - in a more complete implementation, this would
+        // fetch and filter add-on items similar to how AddOnsSection does it
+        // But since AddOnsSection already handles the visibility logic and shows/hides itself,
+        // we can assume that if the user can see the AddOnsSection, then add-ons are available
+        return true;
     };
     // Helper to check additionalInfo - only valid if actually filled
     const isAdditionalInfoValid = (info) => {
