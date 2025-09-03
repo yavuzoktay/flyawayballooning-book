@@ -1071,19 +1071,7 @@ const Index = () => {
                                                 isRedeemVoucher,
                                                 isFlightVoucher
                                             })}
-                                            {activitySelect === "Buy Gift" && (
-                                                <EnterRecipientDetails 
-                                                    ref={recipientDetailsRef}
-                                                    isBookFlight={isBookFlight}
-                                                    isRedeemVoucher={isRedeemVoucher} 
-                                                    isFlightVoucher={isFlightVoucher} 
-                                                    isGiftVoucher={isGiftVoucher}
-                                                    recipientDetails={recipientDetails} 
-                                                    setRecipientDetails={setRecipientDetails} 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion}
-                                                />
-                                            )}
+                                            {/* For Buy Gift: show Purchaser Information before Recipient Details */}
                                             <PassengerInfo
                                                 ref={passengerInfoRef}
                                                 isGiftVoucher={isGiftVoucher}
@@ -1102,6 +1090,19 @@ const Index = () => {
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                             />
+                                            {activitySelect === "Buy Gift" && (
+                                                <EnterRecipientDetails 
+                                                    ref={recipientDetailsRef}
+                                                    isBookFlight={isBookFlight}
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isGiftVoucher={isGiftVoucher}
+                                                    recipientDetails={recipientDetails} 
+                                                    setRecipientDetails={setRecipientDetails} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordion}
+                                                />
+                                            )}
 
                                             {/* For Buy Gift, move Add To Booking below Purchaser Information */}
                                             {activitySelect === "Buy Gift" && (
