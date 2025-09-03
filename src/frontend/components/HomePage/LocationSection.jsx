@@ -22,6 +22,10 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    
+    // Notification state for location selection
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
 
     // Handle window resize for responsive design
     useEffect(() => {
@@ -138,6 +142,15 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
         setActiveAccordion("location"); // Open the location accordion
         getActivityId(locName);
         
+        // Show notification for location selection
+        setNotificationMessage(`${locName} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
         // Trigger section completion to close current section and open next one
         if (onSectionCompletion) {
             onSectionCompletion('location');
@@ -158,6 +171,33 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
 
     return (
         <>
+            {/* Notification for location selection */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideUp 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
             <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`}>
                 <div className="tab_box scroll-box">
 
@@ -340,6 +380,18 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     
                     .tab_box .loc_data.location_data img {
                         height: 90px !important;
+                    }
+                }
+                
+                /* Notification animation */
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
                     }
                 }
             `}</style>
