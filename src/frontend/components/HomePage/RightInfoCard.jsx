@@ -201,12 +201,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             return false;
         }
         
-        // For now, we'll use a simplified approach:
-        // If we have a flight type selected, we assume add-ons might be available
-        // The actual filtering is handled by AddOnsSection itself
-        // Since AddOnsSection shows/hides itself based on actual API data,
-        // we'll be more permissive here and let the section decide
-        console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true', {
+        // Since AddOnsSection already handles its own visibility logic and shows/hides itself
+        // based on actual API data and filtering, we should be more permissive here.
+        // If the user can see the AddOnsSection in the main form, then it should also
+        // appear in the summary panel. The AddOnsSection will handle the actual filtering.
+        // 
+        // For now, we'll always return true when flight type is selected, because:
+        // 1. AddOnsSection handles its own visibility
+        // 2. If AddOnsSection is visible in main form, it should be in summary too
+        // 3. If AddOnsSection is not visible, it won't affect the summary anyway
+        console.log('🔍 hasAvailableAddOnItems: Flight type selected, returning true (letting AddOnsSection handle visibility)', {
             flightType: chooseFlightType?.type,
             activitySelect,
             chooseLocation
