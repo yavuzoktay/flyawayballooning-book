@@ -31,6 +31,17 @@ const slideAnimations = `
             opacity: 1;
         }
     }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
 `;
 
 // Inject the CSS animations
@@ -124,7 +135,8 @@ const VoucherType = ({
     selectedActivity,
     availableCapacity,
     selectedDate,
-    selectedTime
+    selectedTime,
+    onSectionCompletion
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -146,6 +158,10 @@ const VoucherType = ({
     const [activityData, setActivityData] = useState(null);
     const [activityDataLoading, setActivityDataLoading] = useState(false);
     const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+    
+    // Notification state for voucher type selection
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
@@ -1029,6 +1045,20 @@ const VoucherType = ({
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
         
+        // Show notification for voucher type selection
+        setNotificationMessage(`${voucher.title} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
+        // Trigger section completion to close current section and open next one
+        if (onSectionCompletion) {
+            onSectionCompletion('voucher-type');
+        }
+        
         // Fetch Terms & Conditions for this voucher type from backend Settings
         try {
             setTermsLoading(true);
@@ -1080,6 +1110,33 @@ const VoucherType = ({
 
     return (
         <>
+            {/* Notification for voucher type selection */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideUp 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
             <style>{scrollbarStyles}</style>
             <Accordion
                 title={

@@ -52,6 +52,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
+    
+    // Notification state for experience selection
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 768);
         onResize();
@@ -453,6 +457,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             console.error('setChooseFlightType is not available');
         }
         
+        // Show notification for experience selection
+        setNotificationMessage(`${flightData.type} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
         // Trigger section completion to close current section and open next one
         if (onSectionCompletion) {
             onSectionCompletion('experience');
@@ -481,6 +494,33 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     
     return (
         <>
+            {/* Notification for experience selection */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideUp 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
             <style>
                 {`
                     .experience-scroll-outer {
