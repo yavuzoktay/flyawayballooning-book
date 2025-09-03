@@ -273,17 +273,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         )}
         
         {/* When multiple passengers, show quick navigator chips */}
-        {passengerCount > 1 && (
-          <div style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 5,
-            background: '#fff',
-            padding: '8px 0 12px 0',
-            marginBottom: 8,
-            borderBottom: '1px solid #eee'
-          }} />
-        )}
+        {passengerCount > 1 && null}
 
         {/* Generate passenger forms based on passenger count */}
         {[...Array(passengerCount)].map((_, index) => {
@@ -291,9 +281,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           const error = validationErrors[index] || {};
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px', background: index > 0 ? '#fcfcfd' : 'transparent' }}>
-              <div className="presnger_one" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="presnger_one" style={{ marginBottom: index === 0 ? '8px' : '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="presnger-tag">
-                  <h3 style={{ margin: '0' }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
+                  <h3 style={{ margin: '0', lineHeight: 1 }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
                 {/* Weather Refundable alanı sadece "Any Day Flight" voucher type seçili olduğunda gösterilecek */}
                 {selectedVoucherType?.title === "Any Day Flight" && (
