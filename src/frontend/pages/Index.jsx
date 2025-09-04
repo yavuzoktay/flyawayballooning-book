@@ -1431,7 +1431,14 @@ const Index = () => {
                         </div>
                         
                         {/* Customer Information - Hide for Flight Voucher and Buy Gift */}
-                        {paymentSuccessData.customerName && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
+                        {(() => {
+                            console.log('Payment Success Debug:', {
+                                activitySelect,
+                                customerName: paymentSuccessData.customerName,
+                                shouldHide: activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift'
+                            });
+                            return paymentSuccessData.customerName && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift';
+                        })() && (
                             <div style={{
                                 backgroundColor: '#f9fafb',
                                 borderRadius: '8px',
