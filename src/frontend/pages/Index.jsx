@@ -1430,8 +1430,8 @@ const Index = () => {
                             {/* Note removed per request */}
                         </div>
                         
-                        {/* Customer Information */}
-                        {paymentSuccessData.customerName && (
+                        {/* Customer Information - Hide for Flight Voucher and Buy Gift */}
+                        {paymentSuccessData.customerName && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
                             <div style={{
                                 backgroundColor: '#f9fafb',
                                 borderRadius: '8px',
