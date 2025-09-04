@@ -736,6 +736,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             console.log('=== VOUCHER DATA BEING SENT ===');
             console.log('voucherData:', voucherData);
             console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            console.log('=== NUMBER OF PASSENGERS DEBUG ===');
+            console.log('passengerData:', passengerData);
+            console.log('passengerData.length:', passengerData ? passengerData.length : 'passengerData is null/undefined');
+            console.log('numberOfPassengers being sent:', voucherData.numberOfPassengers);
             
             try {
                 // Stripe Checkout Session başlat - VOUCHER için
