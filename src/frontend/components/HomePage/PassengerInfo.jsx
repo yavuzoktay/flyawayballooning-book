@@ -285,8 +285,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 <div className="presnger-tag">
                   <h3 style={{ margin: '0', lineHeight: 1 }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
-                {/* Weather Refundable alanı sadece "Any Day Flight" voucher type seçili olduğunda gösterilecek */}
-                {selectedVoucherType?.title === "Any Day Flight" && (
+                {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
+                {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (
                 <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
                     <span
