@@ -726,6 +726,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                numberOfPassengers: passengerData ? passengerData.length : 1,
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
@@ -800,6 +801,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 purchaser_email: passengerData?.[0]?.email || "",
                 purchaser_phone: passengerData?.[0]?.phone || "",
                 purchaser_mobile: passengerData?.[0]?.phone || "",
+                numberOfPassengers: passengerData ? passengerData.length : 1,
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
