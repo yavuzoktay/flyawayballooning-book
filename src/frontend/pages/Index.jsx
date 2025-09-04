@@ -62,11 +62,6 @@ const Index = () => {
         console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);
     }, [selectedVoucherType]);
     
-    // Reset accordion when activity type changes to prevent sequence confusion
-    useEffect(() => {
-        console.log('🔄 Activity type changed, resetting accordion:', activitySelect);
-        setActiveAccordion(null);
-    }, [activitySelect]);
     
     // Payment success popup state
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
@@ -502,16 +497,6 @@ const Index = () => {
         //     setActiveAccordion("location");
         // }, 500);
     };
-
-    useEffect(() => {
-        if (activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") {
-            setActiveAccordion("location");
-        } else if (activitySelect === "Flight Voucher" || activitySelect === "Buy Gift") {
-            setActiveAccordion("experience");
-        } else {
-            setActiveAccordion(null);
-        }
-    }, [activitySelect]);
 
     // Eğer Flight Voucher ise, passengerData'dan name'i otomatik doldur
     useEffect(() => {
