@@ -582,10 +582,10 @@ label {
 
 .form-presnger {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
+    justify-content: flex-start;
     margin-top: 18px;
-    gap: 20px;
+    gap: 15px;
 }
 
 .form-presnger input {
@@ -608,7 +608,7 @@ label {
     /* Increase height so multiple passengers are visible without heavy scrolling */
     height: 48vh;
     overflow: auto;
-    padding: 20px 25px;
+    padding: 20px 15px;
     background: #fff;
     border-radius: 40px;
     margin: 20px auto;
@@ -1391,6 +1391,11 @@ label {
 
     .presger-scroll {
         height: 32vh;
+        padding: 15px 10px;
+    }
+    
+    .form-presnger {
+        gap: 12px;
     }
 }
 
@@ -1469,6 +1474,11 @@ label {
 
     .presger_rate {
         width: 100%;
+    }
+
+    .form-presnger {
+        flex-direction: column;
+        gap: 10px;
     }
 
     .form-presnger form {
