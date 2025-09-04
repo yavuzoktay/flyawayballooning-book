@@ -56,6 +56,27 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [phoneFormatError, setPhoneFormatError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
     
+    // Derive available experiences for selected location from ExperienceSection data
+    const availableExperiencesForLocation = React.useMemo(() => {
+        try {
+            if (Array.isArray(selectedActivity) && selectedActivity.length > 0) {
+                const names = new Set();
+                selectedActivity.forEach(a => {
+                    if (Array.isArray(a?.flight_types)) {
+                        a.flight_types.forEach(ft => ft?.type && names.add(ft.type));
+                    } else if (a?.experience_type) {
+                        names.add(a.experience_type);
+                    }
+                });
+                if (names.size > 0) return Array.from(names);
+            }
+            if (chooseFlightType?.type) return [chooseFlightType.type];
+            return ['Shared Flight', 'Private Charter'];
+        } catch (_) {
+            return ['Shared Flight', 'Private Charter'];
+        }
+    }, [selectedActivity, chooseFlightType]);
+    
     // New state for time selection popup
     const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
     const [selectedDateForTime, setSelectedDateForTime] = useState(null);
@@ -921,8 +942,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                             <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal' }} required>
                                 <option value="">Select Flight Type</option>
-                                <option value="Private Flight">Private Flight</option>
-                                <option value="Shared Flight">Shared Flight</option>
+                                {(chooseLocation && Array.isArray(availableExperiencesForLocation) ? availableExperiencesForLocation : ['Shared Flight','Private Charter']).map((label) => (
+                                    <option key={label} value={label}>{label}</option>
+                                ))}
                             </select>
                             {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
