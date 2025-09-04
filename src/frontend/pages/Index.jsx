@@ -69,10 +69,12 @@ const Index = () => {
     
     
     
-    // Close payment success popup
+    // Close payment success popup and redirect to main website
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
+        // Redirect to main website
+        window.location.href = 'https://flyawayballooning.com/';
     };
     
     // Handle countdown timeout
@@ -1431,13 +1433,22 @@ const Index = () => {
                         </div>
                         
                         {/* Customer Information - Hide for Flight Voucher and Buy Gift */}
+                        {/* Only show customer info if: customerName exists AND activity is not Flight Voucher/Buy Gift AND payment type is not voucher */}
                         {(() => {
-                            console.log('Payment Success Debug:', {
-                                activitySelect,
+                            const shouldShowCustomer = paymentSuccessData.customerName && 
+                                                     activitySelect !== 'Flight Voucher' && 
+                                                     activitySelect !== 'Buy Gift' && 
+                                                     paymentSuccessData.type !== 'voucher';
+                            
+                            // Debug logging for customer info visibility
+                            console.log('🔍 Customer Info Visibility Check:', {
                                 customerName: paymentSuccessData.customerName,
-                                shouldHide: activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift'
+                                activitySelect,
+                                paymentType: paymentSuccessData.type,
+                                shouldShowCustomer
                             });
-                            return paymentSuccessData.customerName && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift';
+                            
+                            return shouldShowCustomer;
                         })() && (
                             <div style={{
                                 backgroundColor: '#f9fafb',

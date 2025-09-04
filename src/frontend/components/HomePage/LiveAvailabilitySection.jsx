@@ -993,7 +993,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 minWidth: '80px'
                             }}
                         >
-                            Cancel
+                            Back to calendar
                         </button>
                     </>
                 }
@@ -1009,7 +1009,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         {selectedDateForTime && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                 <div style={{ textAlign: 'center', marginBottom: 16, color: '#666' }}>
-                                    Choose your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
+                                    Select your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
                                 </div>
                                 {(() => {
                                     const { slots } = getSpacesForDate(selectedDateForTime);
@@ -1059,15 +1059,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 disabled={!isSelectable}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                    <span style={{ fontSize: 24 }}>🕒</span>
-                                                    <span style={{ fontWeight: 700 }}>{slot.time}</span>
+                                                    <span style={{ fontWeight: 700 }}>{slot.time.split(':').slice(0, 2).join(':')}</span>
                                                 </div>
                                                 <div style={{ textAlign: 'right' }}>
                                                     <div style={{ fontWeight: 600 }}>
-                                                        {slot.available} Space{slot.available > 1 ? 's' : ''} Available
-                                                    </div>
-                                                    <div style={{ fontSize: 14, opacity: 0.9 }}>
-                                                        Capacity: {slot.capacity}
+                                                        {slot.available} Space{slot.available > 1 ? 's' : ''}
                                                     </div>
                                                 </div>
                                             </button>
@@ -1118,7 +1114,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             setTempSelectedTime(null);
                                         }}
                                     >
-                                        Cancel
+                                        Back to calendar
                                     </button>
                                 </div>
                                 
