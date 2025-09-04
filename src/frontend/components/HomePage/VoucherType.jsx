@@ -508,6 +508,34 @@ const VoucherType = ({
             console.log('VoucherType: Active Private Charter voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
             console.log('VoucherType: Raw private charter voucher types data:', activePrivateCharterVoucherTypes.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
+            // Helper to find a price in activity private_charter_pricing by tolerant title matching
+            const findGroupPriceForTitle = (pricingDataRaw, voucherTitleRaw) => {
+                if (!pricingDataRaw) return undefined;
+                let pricingData = pricingDataRaw;
+                try {
+                    if (typeof pricingData === 'string') {
+                        pricingData = JSON.parse(pricingData);
+                    }
+                } catch {
+                    return undefined;
+                }
+
+                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                const titleNorm = normalize(voucherTitleRaw);
+
+                // Direct hits
+                if (pricingData[voucherTitleRaw] != null) return pricingData[voucherTitleRaw];
+                if (pricingData[voucherTitleRaw?.trim?.()] != null) return pricingData[voucherTitleRaw.trim()];
+
+                // Normalized scan
+                for (const key of Object.keys(pricingData)) {
+                    if (normalize(key) === titleNorm) {
+                        return pricingData[key];
+                    }
+                }
+                return undefined;
+            };
+
             const privateVouchers = activePrivateCharterVoucherTypes.map(vt => {
                 console.log(`VoucherType: Processing voucher type: ${vt.title} (ID: ${vt.id})`);
                 
@@ -537,27 +565,16 @@ const VoucherType = ({
                 } else {
                     // Fallback to activity data pricing if API doesn't have it
                     if (activityData && activityData.private_charter_pricing) {
-                        try {
-                            let pricingData = activityData.private_charter_pricing;
-                            if (typeof pricingData === 'string') {
-                                pricingData = JSON.parse(pricingData);
+                        const matched = findGroupPriceForTitle(activityData.private_charter_pricing, vt.title);
+                        if (matched != null && matched !== '') {
+                            const parsed = parseFloat(matched);
+                            if (!Number.isNaN(parsed)) {
+                                basePrice = parsed;
+                                priceUnit = 'pp';
+                                console.log(`VoucherType: Using tolerant group pricing for ${vt.title}: £${basePrice} per person (matched=${matched})`);
                             }
-                            
-                            console.log(`VoucherType: Parsed pricing data:`, pricingData);
-                            console.log(`VoucherType: Looking for pricing for voucher title: ${vt.title}`);
-                            
-                            // Look for pricing by voucher title (as shown in the admin interface Group Pricing section)
-                            if (pricingData && pricingData[vt.title]) {
-                                basePrice = parseFloat(pricingData[vt.title]);
-                                priceUnit = 'pp'; // This is base price per person
-                                console.log(`VoucherType: Using group pricing for ${vt.title}: £${basePrice} per person`);
-                            } else {
-                                console.log(`VoucherType: No group pricing found for ${vt.title}, using default: £${basePrice} per person`);
-                                console.log(`VoucherType: Available pricing keys:`, Object.keys(pricingData || {}));
-                            }
-                        } catch (e) {
-                            console.error('Error parsing private charter pricing:', e);
-                            console.log(`VoucherType: Using default pricing due to parsing error: £${basePrice} per person`);
+                        } else {
+                            console.log(`VoucherType: No tolerant group pricing match for ${vt.title}`);
                         }
                     } else {
                         console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${basePrice} per person`);
