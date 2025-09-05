@@ -1069,7 +1069,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             <button
                                                 key={slot.id}
                                                 style={{
-                                                    background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#56C1FF' : '#ccc'),
+                                                    background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#03A9F4' : '#ccc'),
                                                     color: '#fff',
                                                     border: tempSelectedTime === slot.time ? '2px solid #61D836' : 'none',
                                                     borderRadius: isMobile ? 6 : 12,
