@@ -1005,11 +1005,41 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onClose={() => setTimeSelectionModalOpen(false)}
                 title={`Select Time for ${selectedDateForTime ? format(selectedDateForTime, 'MMMM d, yyyy') : ''}`}
                 extraContent={
-                    <div style={{ minWidth: 400, width: '100%' }}>
+                    <div style={{ 
+                        minWidth: isMobile ? '100%' : 400, 
+                        width: '100%',
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
+                        padding: isMobile ? '0' : '0'
+                    }}>
                         {selectedDateForTime && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                <div style={{ textAlign: 'center', marginBottom: 16, color: '#666' }}>
+                            <div style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                gap: isMobile ? 4 : 12,
+                                width: '100%',
+                                boxSizing: 'border-box'
+                            }}>
+                                <div style={{ 
+                                    textAlign: 'center', 
+                                    marginBottom: isMobile ? 8 : 16, 
+                                    color: '#666',
+                                    fontSize: isMobile ? 12 : 16,
+                                    lineHeight: 1.3,
+                                    padding: isMobile ? '0 4px' : '0'
+                                }}>
                                     Select your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
+                                </div>
+                                <div style={{ 
+                                    textAlign: 'center', 
+                                    marginTop: isMobile ? -2 : -8, 
+                                    marginBottom: isMobile ? 4 : 8, 
+                                    color: '#888', 
+                                    fontSize: isMobile ? 10 : 14,
+                                    lineHeight: 1.2,
+                                    padding: isMobile ? '0 4px' : '0'
+                                }}>
+                                    'Call to Book' within 8 Hours of flight meeting time.
                                 </div>
                                 {(() => {
                                     const { slots } = getSpacesForDate(selectedDateForTime);
@@ -1042,50 +1072,126 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#56C1FF' : '#ccc'),
                                                     color: '#fff',
                                                     border: tempSelectedTime === slot.time ? '2px solid #61D836' : 'none',
-                                                    borderRadius: 12,
-                                                    padding: '16px 20px',
+                                                    borderRadius: isMobile ? 6 : 12,
+                                                    padding: isMobile ? '6px 8px' : '16px 20px',
                                                     fontWeight: 600,
-                                                    fontSize: 18,
+                                                    fontSize: isMobile ? 14 : 18,
                                                     cursor: isSelectable ? 'pointer' : 'not-allowed',
                                                     opacity: isSelectable ? 1 : 0.6,
                                                     width: '100%',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'space-between',
+                                                    justifyContent: isMobile ? 'center' : 'space-between',
                                                     transition: 'all 0.2s ease',
-                                                    transform: tempSelectedTime === slot.time ? 'scale(1.02)' : 'scale(1)'
+                                                    transform: tempSelectedTime === slot.time ? 'scale(1.02)' : 'scale(1)',
+                                                    position: 'relative',
+                                                    boxSizing: 'border-box',
+                                                    marginBottom: isMobile ? 6 : 0,
+                                                    minHeight: isMobile ? '40px' : 'auto'
                                                 }}
                                                 onClick={() => isSelectable && setTempSelectedTime(slot.time)}
                                                 disabled={!isSelectable}
                                             >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                    <span style={{ fontWeight: 700 }}>{slot.time.split(':').slice(0, 2).join(':')}</span>
-                                                </div>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    <div style={{ fontWeight: 600 }}>
-                                                        {slot.available} Space{slot.available > 1 ? 's' : ''}
+                                                {isMobile ? (
+                                                    // Mobile layout - vertical stack
+                                                    <div style={{ 
+                                                        display: 'flex', 
+                                                        flexDirection: 'column', 
+                                                        alignItems: 'center', 
+                                                        gap: 2,
+                                                        width: '100%'
+                                                    }}>
+                                                        <span style={{ 
+                                                            fontWeight: 700, 
+                                                            fontSize: '16px',
+                                                            lineHeight: 1
+                                                        }}>
+                                                            {slot.time.split(':').slice(0, 2).join(':')}
+                                                        </span>
+                                                        <span style={{ 
+                                                            fontWeight: 600, 
+                                                            fontSize: '11px',
+                                                            lineHeight: 1,
+                                                            opacity: 0.9
+                                                        }}>
+                                                            {slot.available} Space{slot.available > 1 ? 's' : ''}
+                                                        </span>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    // Desktop layout - horizontal
+                                                    <>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                            <span style={{ fontWeight: 700, fontSize: '18px' }}>{slot.time.split(':').slice(0, 2).join(':')}</span>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <div style={{ fontWeight: 600, fontSize: '16px' }}>
+                                                                {slot.available} Space{slot.available > 1 ? 's' : ''}
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                {/* Center label based on remaining spaces */}
+                                                {slot.available <= 2 ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 10 : 16,
+                                                        letterSpacing: isMobile ? 0.2 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase',
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                    }}>
+                                                        {isMobile ? 'HIGH' : 'High Demand'}
+                                                    </div>
+                                                ) : (slot.available === 3 || slot.available === 4) && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 8 : 16,
+                                                        letterSpacing: isMobile ? 0.1 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase',
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                    }}>
+                                                        {isMobile ? 'LOW' : 'Spaces Running Low'}
+                                                    </div>
+                                                )}
                                             </button>
                                         );
                                     });
                                 })()}
                                 
                                 {/* Confirm and Cancel Buttons */}
-                                <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    gap: isMobile ? 6 : 12, 
+                                    marginTop: isMobile ? 12 : 20,
+                                    width: '100%',
+                                    boxSizing: 'border-box'
+                                }}>
                                     <button
                                         style={{
                                             flex: 1,
-                                            padding: '12px 20px',
+                                            padding: isMobile ? '8px 12px' : '12px 20px',
                                             background: '#61D836',
                                             color: '#fff',
                                             border: 'none',
-                                            borderRadius: 8,
+                                            borderRadius: isMobile ? 4 : 8,
                                             fontWeight: 600,
-                                            fontSize: 16,
+                                            fontSize: isMobile ? 12 : 16,
                                             cursor: 'pointer',
                                             opacity: tempSelectedTime ? 1 : 0.5,
-                                            transition: 'all 0.2s ease'
+                                            transition: 'all 0.2s ease',
+                                            boxSizing: 'border-box',
+                                            minHeight: isMobile ? '36px' : 'auto'
                                         }}
                                         onClick={() => {
                                             if (tempSelectedTime) {
@@ -1099,15 +1205,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     <button
                                         style={{
                                             flex: 1,
-                                            padding: '12px 20px',
+                                            padding: isMobile ? '8px 12px' : '12px 20px',
                                             background: '#dc3545',
                                             color: '#fff',
                                             border: 'none',
-                                            borderRadius: 8,
+                                            borderRadius: isMobile ? 4 : 8,
                                             fontWeight: 600,
-                                            fontSize: 16,
+                                            fontSize: isMobile ? 12 : 16,
                                             cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
+                                            transition: 'all 0.2s ease',
+                                            boxSizing: 'border-box',
+                                            minHeight: isMobile ? '36px' : 'auto'
                                         }}
                                         onClick={() => {
                                             setTimeSelectionModalOpen(false);
@@ -1121,11 +1229,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 {/* Informational Text */}
                                 <div style={{ 
                                     textAlign: 'center', 
-                                    marginTop: 16, 
+                                    marginTop: isMobile ? 8 : 16, 
                                     color: '#666', 
-                                    fontSize: '12px',
-                                    lineHeight: '1.4',
-                                    fontStyle: 'italic'
+                                    fontSize: isMobile ? '9px' : '12px',
+                                    lineHeight: '1.3',
+                                    fontStyle: 'italic',
+                                    padding: isMobile ? '0 4px' : '0'
                                 }}>
                                     Hot air balloons can only fly twice a day – around sunrise and sunset. Meeting times are set according to these times.
                                 </div>

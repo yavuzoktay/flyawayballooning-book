@@ -4,20 +4,20 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', background: 'rgba(0,0,0,0.35)', zIndex: 1000 }}>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', background: 'rgba(0,0,0,0.35)', zIndex: 1000 }}>
             <div
                 className="common-modal"
                 style={{
-                    width: 'calc(100vw - 24px)', // ensure we never exceed viewport
+                    width: 'calc(100vw - 16px)', // ensure we never exceed viewport
                     maxWidth: '600px',
                     background: '#fff',
                     borderRadius: 12,
-                    padding: '20px 16px',
+                    padding: window.innerWidth <= 768 ? '12px 8px' : '20px 16px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'stretch',
                     justifyContent: 'flex-start',
-                    maxHeight: 'calc(100vh - 24px)',
+                    maxHeight: 'calc(100vh - 16px)',
                     overflowY: 'auto',
                     overflowX: 'hidden',
                     boxSizing: 'border-box'

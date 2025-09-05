@@ -6,6 +6,15 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     const [validationErrors, setValidationErrors] = useState({});
     const [additionalInfoQuestions, setAdditionalInfoQuestions] = useState([]);
     const [additionalInfoLoading, setAdditionalInfoLoading] = useState(true);
+    
+    // Mobile detection
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Fetch additional information questions from API
     useEffect(() => {
@@ -272,7 +281,34 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
                         value={additionalInfo.notes || ""}
-                        style={{ height: 90, resize: 'vertical' }}
+                        style={{ 
+                            height: 90, 
+                            resize: 'vertical',
+                            ...(isMobile ? {
+                                fontSize: '16px',
+                                padding: '12px 16px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '500',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                transition: 'all 0.2s ease',
+                                minHeight: '100px'
+                            } : {})
+                        }}
+                        onFocus={(e) => {
+                            if (isMobile) {
+                                e.target.style.borderColor = '#3b82f6';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                            }
+                        }}
+                        onBlur={(e) => {
+                            if (isMobile) {
+                                e.target.style.borderColor = '#d1d5db';
+                                e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                            }
+                        }}
                     ></textarea>
                 </div>
 
@@ -300,22 +336,54 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                         onChange={handleChange}
                                         value={additionalInfo[fieldName] || ""}
                                         required={isRequired}
-                                        style={validationErrors[fieldName] ? { border: '1.5px solid red' } : {}}
+                                        style={{
+                                            ...(validationErrors[fieldName] ? { border: '1.5px solid red' } : {}),
+                                            ...(isMobile ? {
+                                                fontSize: '16px',
+                                                padding: '12px 16px',
+                                                minHeight: '48px',
+                                                border: '2px solid #d1d5db',
+                                                borderRadius: '8px',
+                                                backgroundColor: '#ffffff',
+                                                color: '#374151',
+                                                fontWeight: '500',
+                                                appearance: 'none',
+                                                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                                                backgroundRepeat: 'no-repeat',
+                                                backgroundPosition: 'right 12px center',
+                                                backgroundSize: '20px',
+                                                paddingRight: '40px',
+                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                                transition: 'all 0.2s ease'
+                                            } : {})
+                                        }}
+                                        onFocus={(e) => {
+                                            if (isMobile) {
+                                                e.target.style.borderColor = '#3b82f6';
+                                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (isMobile) {
+                                                e.target.style.borderColor = '#d1d5db';
+                                                e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                                            }
+                                        }}
                                     >
-                                        <option value="">Please select</option>
+                                        <option value="" style={{ color: '#9ca3af' }}>Please select</option>
                                         {question.options && question.options !== '[]' && (() => {
                                             try {
                                                 const parsedOptions = JSON.parse(question.options);
                                                 if (Array.isArray(parsedOptions)) {
                                                     return parsedOptions.map((option, index) => (
-                                                        <option key={index} value={option}>{option}</option>
+                                                        <option key={index} value={option} style={{ color: '#374151' }}>{option}</option>
                                                     ));
                                                 } else {
-                                                    return <option value="">Invalid options format</option>;
+                                                    return <option value="" style={{ color: '#9ca3af' }}>Invalid options format</option>;
                                                 }
                                             } catch (parseError) {
                                                 console.warn('Error parsing question options:', parseError, 'Raw value:', question.options);
-                                                return <option value="">Invalid options format</option>;
+                                                return <option value="" style={{ color: '#9ca3af' }}>Invalid options format</option>;
                                             }
                                         })()}
                                     </select>
@@ -330,7 +398,33 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                         value={additionalInfo[fieldName] || ""}
                                         placeholder={question.placeholder_text || ""}
                                         required={isRequired}
-                                        style={validationErrors[fieldName] ? { border: '1.5px solid red' } : {}}
+                                        style={{
+                                            ...(validationErrors[fieldName] ? { border: '1.5px solid red' } : {}),
+                                            ...(isMobile ? {
+                                                fontSize: '16px',
+                                                padding: '12px 16px',
+                                                border: '2px solid #d1d5db',
+                                                borderRadius: '8px',
+                                                backgroundColor: '#ffffff',
+                                                color: '#374151',
+                                                fontWeight: '500',
+                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                                transition: 'all 0.2s ease',
+                                                minHeight: '80px'
+                                            } : {})
+                                        }}
+                                        onFocus={(e) => {
+                                            if (isMobile) {
+                                                e.target.style.borderColor = '#3b82f6';
+                                                e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (isMobile) {
+                                                e.target.style.borderColor = '#d1d5db';
+                                                e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                                            }
+                                        }}
                                     />
                                 )}
                                 
@@ -341,7 +435,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                                 const parsedOptions = JSON.parse(question.options);
                                                 if (Array.isArray(parsedOptions)) {
                                                     return parsedOptions.map((option, index) => (
-                                                        <label key={index} className="block mb-2">
+                                                        <label key={index} className={`block mb-2 ${isMobile ? 'flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer' : ''}`}>
                                                             <input
                                                                 type="radio"
                                                                 name={fieldName}
@@ -349,9 +443,20 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                                                 onChange={handleChange}
                                                                 checked={additionalInfo[fieldName] === option}
                                                                 required={isRequired}
-                                                                className="mr-2"
+                                                                className={`mr-2 ${isMobile ? 'w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500' : ''}`}
+                                                                style={isMobile ? {
+                                                                    accentColor: '#3b82f6',
+                                                                    transform: 'scale(1.2)'
+                                                                } : {}}
                                                             />
-                                                            {option}
+                                                            <span style={isMobile ? {
+                                                                fontSize: '16px',
+                                                                fontWeight: '500',
+                                                                color: '#374151',
+                                                                marginLeft: '8px'
+                                                            } : {}}>
+                                                                {option}
+                                                            </span>
                                                         </label>
                                                     ));
                                                 } else {
@@ -372,7 +477,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                                 const parsedOptions = JSON.parse(question.options);
                                                 if (Array.isArray(parsedOptions)) {
                                                     return parsedOptions.map((option, index) => (
-                                                        <label key={index} className="block mb-2">
+                                                        <label key={index} className={`block mb-2 ${isMobile ? 'flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer' : ''}`}>
                                                             <input
                                                                 type="checkbox"
                                                                 name={fieldName}
@@ -393,9 +498,20 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                                                     }));
                                                                 }}
                                                                 checked={additionalInfo[fieldName] ? additionalInfo[fieldName].split(',').map(v => v.trim()).includes(option) : false}
-                                                                className="mr-2"
+                                                                className={`mr-2 ${isMobile ? 'w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500' : ''}`}
+                                                                style={isMobile ? {
+                                                                    accentColor: '#3b82f6',
+                                                                    transform: 'scale(1.2)'
+                                                                } : {}}
                                                             />
-                                                            {option}
+                                                            <span style={isMobile ? {
+                                                                fontSize: '16px',
+                                                                fontWeight: '500',
+                                                                color: '#374151',
+                                                                marginLeft: '8px'
+                                                            } : {}}>
+                                                                {option}
+                                                            </span>
                                                         </label>
                                                     ));
                                                 } else {

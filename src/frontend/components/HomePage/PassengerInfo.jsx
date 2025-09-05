@@ -26,6 +26,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   console.log("Current passengerData length:", passengerData.length);
   console.log("selectedVoucherType in PassengerInfo:", selectedVoucherType);
   console.log("Should show Private Charter weather refundable:", chooseFlightType?.type === "Private Charter");
+  console.log("Activity select:", activitySelect);
+  console.log("Array length for mapping:", [...Array(passengerCount)].length);
   console.log("Flight type check:", chooseFlightType?.type);
   console.log("Is Private Charter:", chooseFlightType?.type === "Private Charter");
 
@@ -233,18 +235,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Styles for custom ticked circle
   const checkStyle = {
     position: 'relative',
-    width: '20px',
-    height: '20px',
+    width: isMobile ? '24px' : '20px',
+    height: isMobile ? '24px' : '20px',
     borderRadius: '50%',
-    border: '2px solid gray',
+    border: isMobile ? '3px solid #d1d5db' : '2px solid gray',
     background: '#fff',
     cursor: 'pointer',
     display: 'inline-block',
+    transition: 'all 0.2s ease',
+    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
   };
   const activeCheckStyle = {
     ...checkStyle,
-    backgroundColor: '#74da78',
-    borderColor: '#74da78',
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+    boxShadow: isMobile ? '0 4px 8px rgba(59, 130, 246, 0.3)' : 'none',
   };
   const checkIconStyle = {
     position: 'absolute',
@@ -252,7 +257,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     left: '50%',
     transform: 'translate(-50%, -50%)',
     color: 'white',
-    fontSize: '12px',
+    fontSize: isMobile ? '14px' : '12px',
     fontWeight: 'bold',
     pointerEvents: 'none',
   };
@@ -264,7 +269,14 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}
     >
-      <div className="tab_box presger-scroll" style={{ padding: '10px 20px' }} ref={scrollContainerRef}>
+      <div className="tab_box presger-scroll" style={{ 
+        padding: isMobile ? '12px 16px' : '10px 20px',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '16px' : '0',
+        overflowX: isMobile ? 'hidden' : 'auto',
+        overflowY: isMobile ? 'auto' : 'auto'
+      }} ref={scrollContainerRef}>
         {/* Display a message if no passengers are selected */}
         {passengerCount <= 0 && (
           <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -276,19 +288,66 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         {passengerCount > 1 && null}
 
         {/* Generate passenger forms based on passenger count */}
+        {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
         {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
           const error = validationErrors[index] || {};
+          console.log(`Rendering passenger ${index + 1}, data:`, passenger);
           return (
-            <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ marginBottom: '20px', padding: '15px', border: index > 0 ? '1px solid #eee' : 'none', borderRadius: '8px', background: index > 0 ? '#fcfcfd' : 'transparent' }}>
-              <div className="presnger_one" style={{ marginBottom: index === 0 ? '8px' : '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
+              marginBottom: isMobile ? '20px' : '20px', 
+              padding: isMobile ? '20px' : '15px', 
+              border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
+              borderRadius: isMobile ? '20px' : '8px', 
+              background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
+              boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)') : 'none',
+              width: isMobile ? '100%' : 'auto',
+              minWidth: isMobile ? '100%' : 'auto',
+              flexShrink: isMobile ? 0 : 1,
+              position: 'relative',
+              zIndex: 1,
+              borderTop: isMobile && index > 0 ? '4px solid #3b82f6' : 'none'
+            }}>
+              <div className="presnger_one" style={{ 
+                marginBottom: index === 0 ? '8px' : '6px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '12px' : '0'
+              }}>
                 <div className="presnger-tag">
-                  <h3 style={{ margin: '0', lineHeight: 1 }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
+                  <h3 style={{ 
+                    margin: '0', 
+                    lineHeight: 1,
+                    fontSize: isMobile ? '20px' : '16px',
+                    fontWeight: isMobile ? '700' : '500',
+                    color: isMobile ? '#1f2937' : 'inherit',
+                    textAlign: isMobile ? 'center' : 'left',
+                    width: isMobile ? '100%' : 'auto'
+                  }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
                 </div>
                 {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
                 {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (
-                <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", margin: '0' }}>
+                <div className="final_pax-label-wrap" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: isMobile ? 'center' : 'flex-end'
+                }}>
+                  <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ 
+                    cursor: "pointer", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: isMobile ? "12px" : "8px", 
+                    margin: '0',
+                    padding: isMobile ? '8px 12px' : '0',
+                    borderRadius: isMobile ? '8px' : '0',
+                    backgroundColor: isMobile ? '#f8fafc' : 'transparent',
+                    border: isMobile ? '1px solid #e2e8f0' : 'none',
+                    transition: isMobile ? 'all 0.2s ease' : 'none'
+                  }}>
                     <span
                       style={passenger.weatherRefund ? activeCheckStyle : checkStyle}
                       onClick={() => handleWeatherRefundChange(index)}
@@ -301,7 +360,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       )}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <p style={{ margin: 0 }}>Weather Refundable</p>
+                      <p style={{ 
+                        margin: 0, 
+                        fontSize: isMobile ? '16px' : '14px',
+                        fontWeight: isMobile ? '500' : '400',
+                        color: isMobile ? '#374151' : 'inherit'
+                      }}>Weather Refundable</p>
                       {passenger.weatherRefund && (
                         <span style={{
                           background: "#61D836",
@@ -326,8 +390,26 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 
                 {/* Private Charter Weather Refundable - One-time charge for entire booking, only for Any Day Flight */}
                 {chooseFlightType?.type === "Private Charter" && selectedVoucherType?.title === "Any Day Flight" && (
-                <div className="final_pax-label-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-                  <label className="passenger_weather-refund" htmlFor="privateCharterWeatherRefund" style={{ cursor: "pointer", display: 'flex', alignItems: 'center', gap: '8px', margin: '0' }}>
+                <div className="final_pax-label-wrap" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  marginTop: '10px',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: isMobile ? 'center' : 'flex-end'
+                }}>
+                  <label className="passenger_weather-refund" htmlFor="privateCharterWeatherRefund" style={{ 
+                    cursor: "pointer", 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: isMobile ? "12px" : "8px", 
+                    margin: '0',
+                    padding: isMobile ? '8px 12px' : '0',
+                    borderRadius: isMobile ? '8px' : '0',
+                    backgroundColor: isMobile ? '#f8fafc' : 'transparent',
+                    border: isMobile ? '1px solid #e2e8f0' : 'none',
+                    transition: isMobile ? 'all 0.2s ease' : 'none'
+                  }}>
                     <span
                       style={privateCharterWeatherRefund ? activeCheckStyle : checkStyle}
                       onClick={handlePrivateCharterWeatherRefundChange}
@@ -340,7 +422,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       )}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <p style={{ margin: 0 }}>Weather Refundable (Private Charter)</p>
+                      <p style={{ 
+                        margin: 0, 
+                        fontSize: isMobile ? '16px' : '14px',
+                        fontWeight: isMobile ? '500' : '400',
+                        color: isMobile ? '#374151' : 'inherit'
+                      }}>Weather Refundable (Private Charter)</p>
                       {privateCharterWeatherRefund && (
                         <span style={{
                           background: "#61D836",
@@ -377,7 +464,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
                   <div style={{ flex: 1, width: '100%' }}>
-                    <label>First Name<span style={{ color: 'red' }}>*</span></label>
+                    <label style={{
+                      fontSize: isMobile ? '14px' : '12px',
+                      fontWeight: isMobile ? '600' : '500',
+                      color: isMobile ? '#374151' : 'inherit',
+                      marginBottom: isMobile ? '6px' : '4px',
+                      display: 'block'
+                    }}>First Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -385,7 +478,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       value={passenger.firstName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
-                      style={error?.firstName ? { border: '1.5px solid red' } : {}}
+                      style={{
+                        ...(error?.firstName ? { border: '1.5px solid red' } : {}),
+                        ...(isMobile ? {
+                          fontSize: '16px',
+                          padding: '12px 16px',
+                          minHeight: '48px',
+                          border: '2px solid #d1d5db',
+                          borderRadius: '8px',
+                          backgroundColor: '#ffffff',
+                          color: '#374151',
+                          fontWeight: '500',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
+                        } : {})
+                      }}
                       placeholder="First Name"
                     />
                     {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
@@ -399,7 +506,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       value={passenger.lastName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
-                      style={error?.lastName ? { border: '1.5px solid red' } : {}}
+                      style={{
+                        ...(error?.lastName ? { border: '1.5px solid red' } : {}),
+                        ...(isMobile ? {
+                          fontSize: '16px',
+                          padding: '12px 16px',
+                          minHeight: '48px',
+                          border: '2px solid #d1d5db',
+                          borderRadius: '8px',
+                          backgroundColor: '#ffffff',
+                          color: '#374151',
+                          fontWeight: '500',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
+                        } : {})
+                      }}
                       placeholder="Last Name"
                     />
                     {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
@@ -421,7 +542,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       <input
                         type="text"
                         required
-                        style={error?.weight ? { border: '1.5px solid red' } : {}}
+                        style={{
+                          ...(error?.weight ? { border: '1.5px solid red' } : {}),
+                          ...(isMobile ? {
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            minHeight: '48px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            backgroundColor: '#ffffff',
+                            color: '#374151',
+                            fontWeight: '500',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.2s ease'
+                          } : {})
+                        }}
                         name="weight"
                         value={passenger.weight}
                         onChange={(e) => handlePassengerInputChange(index, e)}
@@ -446,7 +581,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Mobile Number"
                         required
-                        style={error?.phone ? { border: '1.5px solid red' } : {}}
+                        style={{
+                          ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                          ...(isMobile ? {
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            minHeight: '48px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            backgroundColor: '#ffffff',
+                            color: '#374151',
+                            fontWeight: '500',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.2s ease'
+                          } : {})
+                        }}
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                     </div>
@@ -459,7 +608,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Email"
                         required
-                        style={error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}}
+                        style={{
+                          ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
+                          ...(isMobile ? {
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            minHeight: '48px',
+                            border: '2px solid #d1d5db',
+                            borderRadius: '8px',
+                            backgroundColor: '#ffffff',
+                            color: '#374151',
+                            fontWeight: '500',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.2s ease'
+                          } : {})
+                        }}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
                       {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}

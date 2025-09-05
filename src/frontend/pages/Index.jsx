@@ -789,7 +789,13 @@ const Index = () => {
     }, [location, paymentProcessed]);
 
     return (
-        <div className="final-booking-wrap">
+        <div className="final-booking-wrap" style={{ 
+            overflowX: 'hidden', 
+            maxWidth: '100vw', 
+            width: '100%',
+            boxSizing: 'border-box',
+            position: 'relative'
+        }}>
             <div className="header-bg">
                 <div className="header-layout">
                     <Container>

@@ -298,12 +298,13 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         position: absolute !important;
                         left: 12px !important;
                         bottom: 12px !important;
-                        color: #fff !important;
+                        color: #333 !important;
                         z-index: 2 !important;
-                        padding: 4px 8px !important;
+                        padding: 8px 12px !important;
                         border-radius: 6px !important;
-                        background: rgba(0,0,0,0.35) !important;
-                        text-shadow: 0 1px 2px rgba(0,0,0,0.6) !important;
+                        background: #ffffff !important;
+                        text-shadow: none !important;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
@@ -312,15 +313,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         object-fit: cover !important;
                         width: 100% !important;
                     }
-                    /* subtle gradient to ensure text readability */
-                    .tab_box .loc_data.location_data::after {
-                        content: "";
-                        position: absolute;
-                        left: 0; right: 0; bottom: 0;
-                        height: 40px;
-                        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.45) 100%);
-                        z-index: 1;
-                    }
+                    /* Gradient removed as per requirements */
                 }
                 
                 @media (max-width: 576px) {
@@ -340,12 +333,13 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         position: absolute !important;
                         left: 12px !important;
                         bottom: 10px !important;
-                        color: #fff !important;
+                        color: #333 !important;
                         z-index: 2 !important;
-                        padding: 4px 8px !important;
+                        padding: 8px 12px !important;
                         border-radius: 6px !important;
-                        background: rgba(0,0,0,0.35) !important;
-                        text-shadow: 0 1px 2px rgba(0,0,0,0.6) !important;
+                        background: #ffffff !important;
+                        text-shadow: none !important;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
@@ -370,12 +364,13 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         position: absolute !important;
                         left: 10px !important;
                         bottom: 8px !important;
-                        color: #fff !important;
+                        color: #333 !important;
                         z-index: 2 !important;
-                        padding: 3px 7px !important;
+                        padding: 6px 10px !important;
                         border-radius: 6px !important;
-                        background: rgba(0,0,0,0.35) !important;
-                        text-shadow: 0 1px 2px rgba(0,0,0,0.6) !important;
+                        background: #ffffff !important;
+                        text-shadow: none !important;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
