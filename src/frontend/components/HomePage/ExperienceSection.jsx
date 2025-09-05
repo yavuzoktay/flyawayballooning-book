@@ -48,6 +48,43 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const [loading, setLoading] = useState(false);
     const [experiences, setExperiences] = useState([]);
     const [experiencesLoading, setExperiencesLoading] = useState(false);
+    
+    // Terms & Conditions states
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [termsContent, setTermsContent] = useState('');
+    const [termsLoading, setTermsLoading] = useState(false);
+    
+    // Function to fetch Terms & Conditions for experience type
+    const fetchTermsForExperience = async (experienceType) => {
+        try {
+            setTermsLoading(true);
+            const res = await fetch(`${API_BASE_URL}/api/terms-and-conditions/experience/${experienceType}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+                    // Get the first (highest priority) terms
+                    const terms = json.data[0];
+                    setTermsContent(terms.content || '');
+                    setShowTermsModal(true);
+                } else {
+                    // Fallback to default terms
+                    setTermsContent('Terms and conditions will be displayed here.');
+                    setShowTermsModal(true);
+                }
+            } else {
+                // Fallback to default terms
+                setTermsContent('Terms and conditions will be displayed here.');
+                setShowTermsModal(true);
+            }
+        } catch (error) {
+            console.error('Error fetching terms for experience:', error);
+            // Fallback to default terms
+            setTermsContent('Terms and conditions will be displayed here.');
+            setShowTermsModal(true);
+        } finally {
+            setTermsLoading(false);
+        }
+    };
     const [activitiesWithFlightTypes, setActivitiesWithFlightTypes] = useState([]);
 
     // Mobile breakpoint
@@ -466,10 +503,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             setShowNotification(false);
         }, 3000);
         
-        // Trigger section completion to close current section and open next one
-        if (onSectionCompletion) {
-            onSectionCompletion('experience');
-        }
+        // Terms & Conditions modal removed from ExperienceSection
+        // It will be shown in VoucherType component instead
+        
+        // Trigger section completion after state update
+        setTimeout(() => {
+            if (onSectionCompletion) {
+                console.log('✈️ ExperienceSection: Calling onSectionCompletion for experience');
+                onSectionCompletion('experience');
+            }
+        }, 300); // Longer delay to ensure state is fully updated
     };
 
 
@@ -723,6 +766,28 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 </div>
             )}
         </Accordion>
+        
+        {/* Terms & Conditions Modal */}
+        {showTermsModal && (
+            <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
+                    <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
+                        <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827',textAlign:'center'}}>Terms & Conditions</h4>
+                    </div>
+                    <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
+                        {termsLoading ? 'Loading terms...' : termsContent}
+                    </div>
+                    <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
+                        <button 
+                            onClick={() => setShowTermsModal(false)}
+                            style={{background:'#6b7280',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
         </>
     );
 };

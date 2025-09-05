@@ -47,6 +47,13 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     const [countdownSeconds, setCountdownSeconds] = useState(null);
+    
+    // Notification states for accordion completion
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState("");
+    
+    // Flag to track if we're in a fresh start after activity change
+    const [isFreshStart, setIsFreshStart] = useState(false);
 
     // NEW: viewport helper for mobile-specific inline tweaks
     const [isMobile, setIsMobile] = useState(false);
@@ -384,6 +391,7 @@ const Index = () => {
         }
         
         // Pass current state values to avoid stale closure issues
+        // Always use current state for sequence calculation
         const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
         const currentIndex = sequence.indexOf(completedSectionId);
         
@@ -406,17 +414,78 @@ const Index = () => {
             return;
         }
         
+        // Show notification for completed section
+        const sectionNames = {
+            'activity': 'Activity Type',
+            'location': 'Location',
+            'experience': 'Experience',
+            'voucher-type': 'Voucher Type',
+            'live-availability': 'Live Availability',
+            'passenger-info': 'Passenger Information',
+            'additional-info': 'Additional Information',
+            'recipient-details': 'Recipient Details',
+            'add-on': 'Add To Booking'
+        };
+        
+        const sectionName = sectionNames[completedSectionId] || completedSectionId;
+        setNotificationMessage(`${sectionName} Selected`);
+        setShowNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 3000);
+        
         // Close current section
         setActiveAccordion(null);
         console.log('🔒 Closed current section:', completedSectionId);
         
         // Open next section after a short delay
         setTimeout(() => {
-            const nextIndex = currentIndex + 1;
-            if (nextIndex < sequence.length) {
-                const nextSectionId = sequence[nextIndex];
-                console.log('🔓 Opening next section:', nextSectionId, `(${nextIndex + 1}/${sequence.length})`);
-                setActiveAccordion(nextSectionId);
+            // Fresh start durumunda sadece sequence'deki sırayı takip et
+            let nextSection;
+            
+            if (isFreshStart) {
+                // Fresh start: sadece sequence'deki sırayı takip et
+                const currentIndex = sequence.indexOf(completedSectionId);
+                nextSection = sequence[currentIndex + 1]; // Sıradaki section
+                console.log('🔄 FRESH START: Following sequence order', {
+                    completedSectionId,
+                    currentIndex,
+                    nextSection,
+                    sequence
+                });
+                
+                // Fresh start flag'ini sıfırla
+                setIsFreshStart(false);
+            } else {
+                // Normal flow: check all current states
+                const completedSections = [];
+                if (activitySelect) completedSections.push('activity');
+                if (chooseLocation) completedSections.push('location');
+                if (chooseFlightType?.type) completedSections.push('experience');
+                if (selectedVoucherType) completedSections.push('voucher-type');
+                if (selectedDate && selectedTime) completedSections.push('live-availability');
+                if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+                if (additionalInfo?.notes) completedSections.push('additional-info');
+                if (recipientDetails?.name) completedSections.push('recipient-details');
+                if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
+                
+                // Tamamlanan section'ı da completed olarak işaretle
+                if (!completedSections.includes(completedSectionId)) {
+                    completedSections.push(completedSectionId);
+                }
+                
+                console.log('📋 Completed sections after update:', completedSections);
+                console.log('📋 Current sequence:', sequence);
+                
+                // Sıradaki tamamlanmamış section'ı bul
+                nextSection = sequence.find(section => !completedSections.includes(section));
+            }
+            
+            if (nextSection) {
+                console.log('🔓 Opening next section:', nextSection, `(${sequence.indexOf(nextSection) + 1}/${sequence.length})`);
+                setActiveAccordion(nextSection);
             } else {
                 console.log('✅ No more sections to open - sequence complete');
                 console.log('📋 Final sequence was:', sequence);
@@ -616,25 +685,114 @@ const Index = () => {
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
         if (activitySelect !== null) {
+            // Tüm state'leri sıfırla
             setChooseLocation(null);
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
             setAddPassenger([1, 2]);
             setChooseAddOn([]);
-                    setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
-        setWeatherRefund(false);
-        setPrivateCharterWeatherRefund(false);
+            setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
+            setWeatherRefund(false);
+            setPrivateCharterWeatherRefund(false);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: '', email: '', phone: '', date: '' });
             setAdditionalInfo({ notes: '' });
             setSelectedDate(null);
+            setSelectedTime(null);
             setActivityId(null);
             setSelectedActivity([]);
             setAvailableSeats([]);
             setVoucherCode('');
             setVoucherStatus(null);
-            setSelectedVoucherType(null); // Reset voucher type when activity changes
+            setSelectedVoucherType(null);
+            
+            // Accordion'ı da sıfırla - yeni uçuş türü için sıfırdan başla
+            setActiveAccordion(null);
+            
+            console.log('🔄 ACTIVITY CHANGED - RESETTING ALL STATES:', {
+                activitySelect,
+                timestamp: new Date().getTime()
+            });
         }
     }, [activitySelect]);
+
+    // Yeni: activitySelect değiştiğinde accordion'ı sıfırla ve otomatik olarak sıralamayı baştan başlat
+    React.useEffect(() => {
+        if (activitySelect !== null) {
+            console.log('🔄 ACTIVITY CHANGED - RESETTING EVERYTHING:', activitySelect);
+            
+            // Fresh start flag'ini set et
+            setIsFreshStart(true);
+            
+            // Accordion'ı sıfırla
+            setActiveAccordion(null);
+            
+            // Kısa delay sonra sıfırdan sıralamayı başlat
+            setTimeout(() => {
+                // Yeni uçuş türü için sıralamayı al (state'ler sıfırlandığı için temiz sıralama)
+                const sequence = getSectionSequence(activitySelect, null, [], {}, {});
+                
+                console.log('🔄 ACTIVITY SELECT CHANGED - AUTO STARTING FROM BEGINNING:', {
+                    activitySelect,
+                    sequence,
+                    firstSection: sequence[0],
+                    totalSections: sequence.length,
+                    message: 'Starting fresh accordion flow',
+                    isFreshStart: true
+                });
+                
+                // İlk accordion'ı (activity'den sonraki) otomatik aç
+                if (sequence.length > 1) {
+                    const firstSectionAfterActivity = sequence[1]; // activity'den sonraki ilk section
+                    console.log('🔓 Auto-opening first section for new activity:', firstSectionAfterActivity);
+                    setActiveAccordion(firstSectionAfterActivity);
+                }
+            }, 300); // State reset'in tamamlanması için biraz daha uzun delay
+        }
+    }, [activitySelect]);
+
+    // Yeni: Dinamik sıralama değiştiğinde accordion akışını kontrol et
+    React.useEffect(() => {
+        if (activitySelect !== null && activeAccordion !== null) {
+            // Mevcut state değerlerini kullanarak sıralamayı al
+            const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
+            
+            console.log('🔄 DYNAMIC SEQUENCE CHECK - CURRENT ACCORDION:', {
+                activeAccordion,
+                activitySelect,
+                chooseLocation,
+                sequence,
+                isCurrentInSequence: sequence.includes(activeAccordion)
+            });
+            
+            // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
+            if (!sequence.includes(activeAccordion)) {
+                console.log('❌ Current accordion not in new sequence, finding next valid accordion');
+                
+                // Tamamlanmış section'ları kontrol et
+                const completedSections = [];
+                if (activitySelect) completedSections.push('activity');
+                if (chooseLocation) completedSections.push('location');
+                if (chooseFlightType?.type) completedSections.push('experience');
+                if (selectedVoucherType) completedSections.push('voucher-type');
+                if (selectedDate && selectedTime) completedSections.push('live-availability');
+                if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+                if (additionalInfo?.notes) completedSections.push('additional-info');
+                if (recipientDetails?.name) completedSections.push('recipient-details');
+                if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
+                
+                // Sıradaki tamamlanmamış section'ı bul
+                const nextSection = sequence.find(section => !completedSections.includes(section));
+                
+                if (nextSection) {
+                    console.log('🔓 Opening next valid section:', nextSection);
+                    setActiveAccordion(nextSection);
+                } else {
+                    console.log('✅ All sections completed, closing accordion');
+                    setActiveAccordion(null);
+                }
+            }
+        }
+    }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn]);
 
     const location = useLocation();
     const [paymentProcessed, setPaymentProcessed] = React.useState(false);
@@ -789,13 +947,41 @@ const Index = () => {
     }, [location, paymentProcessed]);
 
     return (
-        <div className="final-booking-wrap" style={{ 
-            overflowX: 'hidden', 
-            maxWidth: '100vw', 
-            width: '100%',
-            boxSizing: 'border-box',
-            position: 'relative'
-        }}>
+        <>
+            {/* Notification for accordion completion */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 9999,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideUp 0.3s ease-out',
+                    maxWidth: '90vw',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '18px' }}>✓</span>
+                    {notificationMessage}
+                </div>
+            )}
+            
+            <div className="final-booking-wrap" style={{ 
+                overflowX: 'hidden', 
+                maxWidth: '100vw', 
+                width: '100%',
+                boxSizing: 'border-box',
+                position: 'relative'
+            }}>
             <div className="header-bg">
                 <div className="header-layout">
                     <Container>
@@ -1081,6 +1267,7 @@ const Index = () => {
                                                 isFlightVoucher={isFlightVoucher}
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
@@ -1095,6 +1282,7 @@ const Index = () => {
                                                     availableCapacity={getAvailableCapacityForSelection()}
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             <PassengerInfo
@@ -1110,6 +1298,7 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             <AdditionalInfo 
                                                 ref={additionalInfoRef}
@@ -1123,6 +1312,7 @@ const Index = () => {
                                                 setActiveAccordion={handleSetActiveAccordion}
                                                 flightType={chooseFlightType.type}
                                                 location={chooseLocation}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
@@ -1137,6 +1327,7 @@ const Index = () => {
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {console.log('🔍 AddOnsSection (Flight Voucher) called with:', {
                                                 activitySelect,
@@ -1162,6 +1353,7 @@ const Index = () => {
                                                     setAvailabilities={setAvailabilities}
                                                     selectedVoucherType={selectedVoucherType}
                                                     chooseFlightType={chooseFlightType}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {!(activitySelect === "Redeem Voucher") && (
@@ -1178,6 +1370,7 @@ const Index = () => {
                                                     isFlightVoucher={isFlightVoucher}
                                                     isBookFlight={isBookFlight}
                                                     isGiftVoucher={isGiftVoucher}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {activitySelect === "Buy Gift" && chooseLocation !== "Bristol Fiesta" && (
@@ -1193,6 +1386,7 @@ const Index = () => {
                                                     availableCapacity={getAvailableCapacityForSelection()}
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
@@ -1212,6 +1406,7 @@ const Index = () => {
                                                     activitySelect={activitySelect}
                                                     selectedVoucherType={selectedVoucherType}
                                                     chooseFlightType={chooseFlightType}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {(activitySelect === "Redeem Voucher") && (
@@ -1227,6 +1422,7 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType} 
                                                     activitySelect={activitySelect}
                                                     flightType={chooseFlightType.type}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {console.log('🔍 AddOnsSection (Buy Gift/Redeem Voucher) called with:', {
@@ -1255,6 +1451,7 @@ const Index = () => {
                                                 selectedVoucherType={selectedVoucherType}
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
+                                                onSectionCompletion={handleSectionCompletion}
                                             />
                                             {activitySelect === "Buy Gift" && (
                                                 <EnterRecipientDetails 
@@ -1267,6 +1464,7 @@ const Index = () => {
                                                     setRecipientDetails={setRecipientDetails} 
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordion}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
 
@@ -1284,6 +1482,7 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType} 
                                                     activitySelect={activitySelect}
                                                     flightType={chooseFlightType.type}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
 
@@ -1300,6 +1499,7 @@ const Index = () => {
                                                     setActiveAccordion={handleSetActiveAccordion}
                                                     flightType={chooseFlightType.type}
                                                     location={chooseLocation}
+                                                    onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
@@ -1611,8 +1811,21 @@ const Index = () => {
                         margin-bottom: 20px !important;
                     }
                 }
+                
+                /* Notification animation */
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                }
             `}</style>
-        </div>
+            </div>
+        </>
     )
 }
 

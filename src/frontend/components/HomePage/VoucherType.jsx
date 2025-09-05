@@ -1199,15 +1199,87 @@ const VoucherType = ({
                             }
                             
                             // Check if this voucher type is in voucher_type_ids array
-                            const voucherTypeIds = t.voucher_type_ids ? JSON.parse(t.voucher_type_ids) : [];
+                            let voucherTypeIds = [];
+                            if (t.voucher_type_ids) {
+                                if (Array.isArray(t.voucher_type_ids)) {
+                                    voucherTypeIds = t.voucher_type_ids;
+                                } else {
+                                    try {
+                                        voucherTypeIds = JSON.parse(t.voucher_type_ids);
+                                    } catch (e) {
+                                        voucherTypeIds = [];
+                                    }
+                                }
+                            }
                             if (Array.isArray(voucherTypeIds) && voucherTypeIds.map(Number).includes(Number(voucher.id))) {
                                 return (t.is_active === 1 || t.is_active === true);
                             }
                             
                             // Check if this voucher type is in private_voucher_type_ids array (for Private Charter)
-                            const privateVoucherTypeIds = t.private_voucher_type_ids ? JSON.parse(t.private_voucher_type_ids) : [];
+                            let privateVoucherTypeIds = [];
+                            if (t.private_voucher_type_ids) {
+                                if (Array.isArray(t.private_voucher_type_ids)) {
+                                    privateVoucherTypeIds = t.private_voucher_type_ids;
+                                } else {
+                                    try {
+                                        privateVoucherTypeIds = JSON.parse(t.private_voucher_type_ids);
+                                    } catch (e) {
+                                        privateVoucherTypeIds = [];
+                                    }
+                                }
+                            }
                             if (Array.isArray(privateVoucherTypeIds) && privateVoucherTypeIds.map(Number).includes(Number(voucher.id))) {
                                 return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check if this voucher type is for Private Charter experience
+                            let experienceIds = [];
+                            if (t.experience_ids) {
+                                if (Array.isArray(t.experience_ids)) {
+                                    experienceIds = t.experience_ids;
+                                } else {
+                                    try {
+                                        experienceIds = JSON.parse(t.experience_ids);
+                                    } catch (e) {
+                                        experienceIds = [];
+                                    }
+                                }
+                            }
+                            if (Array.isArray(experienceIds) && experienceIds.includes(2)) { // 2 = Private Charter
+                                // Check if this voucher type matches the selected voucher
+                                let voucherTypeIds = [];
+                                if (t.voucher_type_ids) {
+                                    if (Array.isArray(t.voucher_type_ids)) {
+                                        voucherTypeIds = t.voucher_type_ids;
+                                    } else {
+                                        try {
+                                            voucherTypeIds = JSON.parse(t.voucher_type_ids);
+                                        } catch (e) {
+                                            voucherTypeIds = [];
+                                        }
+                                    }
+                                }
+                                
+                                let privateVoucherTypeIds = [];
+                                if (t.private_voucher_type_ids) {
+                                    if (Array.isArray(t.private_voucher_type_ids)) {
+                                        privateVoucherTypeIds = t.private_voucher_type_ids;
+                                    } else {
+                                        try {
+                                            privateVoucherTypeIds = JSON.parse(t.private_voucher_type_ids);
+                                        } catch (e) {
+                                            privateVoucherTypeIds = [];
+                                        }
+                                    }
+                                }
+                                
+                                if (Array.isArray(voucherTypeIds) && voucherTypeIds.map(Number).includes(Number(voucher.id))) {
+                                    return (t.is_active === 1 || t.is_active === true);
+                                }
+                                
+                                if (Array.isArray(privateVoucherTypeIds) && privateVoucherTypeIds.map(Number).includes(Number(voucher.id))) {
+                                    return (t.is_active === 1 || t.is_active === true);
+                                }
                             }
                             
                             return false;
@@ -1289,7 +1361,6 @@ const VoucherType = ({
                                 <button onClick={() => { 
                                     console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
                                     setSelectedVoucherType(selectedVoucher); 
-                                    setActiveAccordion(null); 
                                     setShowTerms(false);
                                     
                                     // Show notification for voucher type selection after confirmation
@@ -1301,10 +1372,13 @@ const VoucherType = ({
                                         setShowNotification(false);
                                     }, 3000);
                                     
-                                    // Trigger section completion to close current section and open next one
-                                    if (onSectionCompletion) {
-                                        onSectionCompletion('voucher-type');
-                                    }
+                                            // Trigger section completion after state update
+        setTimeout(() => {
+            if (onSectionCompletion) {
+                console.log('🎫 VoucherType: Calling onSectionCompletion for voucher-type');
+                onSectionCompletion('voucher-type');
+            }
+        }, 300); // Longer delay to ensure state is fully updated
                                 }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
                             </div>
                         </div>

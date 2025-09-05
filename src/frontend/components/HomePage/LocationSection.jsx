@@ -139,7 +139,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
 
     const confirmLocation = (locName) => {
         setChooseLocation(locName);
-        setActiveAccordion("location"); // Open the location accordion
         getActivityId(locName);
         
         // Show notification for location selection
@@ -151,10 +150,13 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             setShowNotification(false);
         }, 3000);
         
-        // Trigger section completion to close current section and open next one
-        if (onSectionCompletion) {
-            onSectionCompletion('location');
-        }
+        // Trigger section completion after state update
+        setTimeout(() => {
+            if (onSectionCompletion) {
+                console.log('📍 LocationSection: Calling onSectionCompletion for location');
+                onSectionCompletion('location');
+            }
+        }, 300); // Longer delay to ensure state is fully updated
     };
 
     const handleModalClose = () => {
