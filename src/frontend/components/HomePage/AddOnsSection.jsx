@@ -6,6 +6,15 @@ import config from '../../../config';
 const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect, flightType }) => {
     const [addToBookingItems, setAddToBookingItems] = useState([]);
     const [addToBookingLoading, setAddToBookingLoading] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Mobile detection
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 576);
+        onResize();
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     // Fetch add to booking items from API
     useEffect(() => {
@@ -325,33 +334,110 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                     filteredItems.map((item, index) => {
                         const isSelected = Array.isArray(chooseAddOn) && chooseAddOn.some(addOn => addOn.name === item.name);
                         return (
-                            <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)}>
+                            <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)} style={{
+                                minHeight: isMobile ? '160px' : 'auto',
+                                padding: isMobile ? '20px 16px' : '15px',
+                                gap: isMobile ? '20px' : '20px',
+                                alignItems: isMobile ? 'flex-start' : 'center',
+                                overflow: isMobile ? 'hidden' : 'visible'
+                            }}>
                                 <div>
                                     <img 
                                         src={item.image} 
                                         alt={item.name} 
                                         style={{
-                                            width: '120px',
-                                            height: '120px',
+                                            width: isMobile ? '100px' : '120px',
+                                            height: isMobile ? '100px' : '120px',
                                             objectFit: 'cover',
-                                            borderRadius: '8px',
-                                            border: '1px solid #e5e7eb'
+                                            borderRadius: isMobile ? '12px' : '8px',
+                                            border: isMobile ? '2px solid #e5e7eb' : '1px solid #e5e7eb',
+                                            flexShrink: 0,
+                                            boxShadow: isMobile ? '0 4px 8px rgba(0, 0, 0, 0.15)' : 'none'
                                         }}
                                         onError={(e) => {
                                             e.target.src = AddOn1; // Fallback to default image
                                         }}
                                     />
                                 </div>
-                                <div className="vouch-text">
-                                    <div className="vouch-header">
-                                        <p className="vouch-title">{item.name}</p>
-                                        <p className="vouch-price">£{item.price}</p>
+                                <div className="vouch-text" style={{
+                                    flex: 1,
+                                    minWidth: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: isMobile ? '12px' : '0',
+                                    justifyContent: isMobile ? 'flex-start' : 'center',
+                                    height: isMobile ? '120px' : 'auto',
+                                    overflow: isMobile ? 'auto' : 'visible',
+                                    paddingRight: isMobile ? '8px' : '0'
+                                }}>
+                                    <div className="vouch-header" style={{
+                                        display: 'flex',
+                                        flexDirection: isMobile ? 'row' : 'row',
+                                        alignItems: isMobile ? 'center' : 'center',
+                                        justifyContent: isMobile ? 'space-between' : 'space-between',
+                                        gap: isMobile ? '8px' : '15px',
+                                        marginBottom: isMobile ? '8px' : '8px',
+                                        width: '100%'
+                                    }}>
+                                        <p className="vouch-title" style={{
+                                            margin: 0,
+                                            fontWeight: isMobile ? '700' : '500',
+                                            color: isMobile ? '#1f2937' : '#333',
+                                            fontSize: isMobile ? '18px' : '14px',
+                                            lineHeight: isMobile ? '1.4' : '1.4',
+                                            flex: 1,
+                                            minWidth: 0
+                                        }}>{item.name}</p>
+                                        <p className="vouch-price" style={{
+                                            margin: 0,
+                                            whiteSpace: 'nowrap',
+                                            fontWeight: isMobile ? '800' : '500',
+                                            color: isMobile ? '#059669' : '#222',
+                                            fontSize: isMobile ? '20px' : '14px',
+                                            marginLeft: isMobile ? '8px' : '10px',
+                                            flexShrink: 0
+                                        }}>£{item.price}</p>
                                     </div>
                                     {item.description && (
-                                        <p className="vouch-desc">{item.description}</p>
+                                        <div style={{
+                                            flex: 1,
+                                            overflow: isMobile ? 'auto' : 'visible',
+                                            maxHeight: isMobile ? '60px' : 'none'
+                                        }}>
+                                            <p className="vouch-desc" style={{
+                                                fontSize: isMobile ? '15px' : '12px',
+                                                color: isMobile ? '#374151' : '#666',
+                                                margin: 0,
+                                                lineHeight: isMobile ? '1.6' : '1.3',
+                                                display: isMobile ? 'block' : 'block',
+                                                fontWeight: isMobile ? '500' : '400',
+                                                paddingRight: isMobile ? '4px' : '0'
+                                            }}>{item.description}</p>
+                                        </div>
                                     )}
                                 </div>
-                                <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`}></span>
+                                <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`} style={{
+                                    position: 'absolute',
+                                    right: isMobile ? '12px' : '15px',
+                                    top: isMobile ? '12px' : '15px',
+                                    width: isMobile ? '24px' : '20px',
+                                    height: isMobile ? '24px' : '20px',
+                                    border: isMobile ? '2px solid #d1d5db' : '2px solid #bbb4b4',
+                                    borderRadius: isMobile ? '50%' : '4px',
+                                    background: isSelected ? (isMobile ? '#3b82f6' : '#03a9f4') : '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease'
+                                }}>
+                                    {isSelected && (
+                                        <span style={{
+                                            color: 'white',
+                                            fontSize: isMobile ? '14px' : '12px',
+                                            fontWeight: 'bold'
+                                        }}>✓</span>
+                                    )}
+                                </span>
                             </div>
                         )
                     })

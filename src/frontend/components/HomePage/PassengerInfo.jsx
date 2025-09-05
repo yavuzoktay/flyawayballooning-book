@@ -369,12 +369,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {passenger.weatherRefund && (
                         <span style={{
                           background: "#61D836",
-                          padding: "6px 12px",
-                          borderRadius: "15px",
+                          padding: isMobile ? "4px 8px" : "6px 12px",
+                          borderRadius: isMobile ? "12px" : "15px",
                           color: "#fff",
                           fontFamily: 'Gilroy',
-                          fontSize: "14px",
-                          fontWeight: "500"
+                          fontSize: isMobile ? "11px" : "14px",
+                          fontWeight: isMobile ? "600" : "500",
+                          minWidth: isMobile ? "60px" : "auto",
+                          textAlign: "center",
+                          display: "inline-block"
                         }}>+£47.50</span>
                       )}
                       <div className="info-icon-container" style={{ position: 'relative' }}>
@@ -431,23 +434,29 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {privateCharterWeatherRefund && (
                         <span style={{
                           background: "#61D836",
-                          padding: "6px 12px",
-                          borderRadius: "15px",
+                          padding: isMobile ? "4px 8px" : "6px 12px",
+                          borderRadius: isMobile ? "12px" : "15px",
                           color: "#fff",
                           fontFamily: 'Gilroy',
-                          fontSize: "14px",
-                          fontWeight: "500"
+                          fontSize: isMobile ? "11px" : "14px",
+                          fontWeight: isMobile ? "600" : "500",
+                          minWidth: isMobile ? "60px" : "auto",
+                          textAlign: "center",
+                          display: "inline-block"
                         }}>+£{getPrivateCharterWeatherRefundPrice()}</span>
                       )}
                       {!privateCharterWeatherRefund && (
                         <span style={{
                           background: "#f3f4f6",
-                          padding: "6px 12px",
-                          borderRadius: "15px",
+                          padding: isMobile ? "4px 8px" : "6px 12px",
+                          borderRadius: isMobile ? "12px" : "15px",
                           color: "#6b7280",
                           fontFamily: 'Gilroy',
-                          fontSize: "14px",
-                          fontWeight: "500"
+                          fontSize: isMobile ? "11px" : "14px",
+                          fontWeight: isMobile ? "600" : "500",
+                          minWidth: isMobile ? "60px" : "auto",
+                          textAlign: "center",
+                          display: "inline-block"
                         }}>+£{getPrivateCharterWeatherRefundPrice()}</span>
                       )}
                       <div className="info-icon-container" style={{ position: 'relative' }}>
