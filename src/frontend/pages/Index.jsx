@@ -1553,6 +1553,15 @@ const Index = () => {
                         margin-top: 5px !important;
                         margin-bottom: 10px !important;
                     }
+                    
+                    /* Add spacing between accordions and summary on mobile */
+                    .booking_data {
+                        padding-bottom: 80px !important;
+                    }
+                    
+                    .accodien {
+                        margin-bottom: 20px !important;
+                    }
                 }
                 
                 @media (max-width: 576px) {
@@ -1568,6 +1577,15 @@ const Index = () => {
                         margin-top: 3px !important;
                         margin-bottom: 8px !important;
                     }
+                    
+                    /* Add spacing between accordions and summary on mobile */
+                    .booking_data {
+                        padding-bottom: 80px !important;
+                    }
+                    
+                    .accodien {
+                        margin-bottom: 20px !important;
+                    }
                 }
                 
                 @media (max-width: 480px) {
@@ -1582,6 +1600,15 @@ const Index = () => {
                     .mobile-optimized h3 {
                         margin-top: 2px !important;
                         margin-bottom: 6px !important;
+                    }
+                    
+                    /* Add spacing between accordions and summary on mobile */
+                    .booking_data {
+                        padding-bottom: 80px !important;
+                    }
+                    
+                    .accodien {
+                        margin-bottom: 20px !important;
                     }
                 }
             `}</style>

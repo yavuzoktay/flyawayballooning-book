@@ -1093,13 +1093,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 disabled={!isSelectable}
                                             >
                                                 {isMobile ? (
-                                                    // Mobile layout - vertical stack
+                                                    // Mobile layout - horizontal single line
                                                     <div style={{ 
                                                         display: 'flex', 
-                                                        flexDirection: 'column', 
+                                                        flexDirection: 'row', 
                                                         alignItems: 'center', 
-                                                        gap: 2,
-                                                        width: '100%'
+                                                        justifyContent: 'space-between',
+                                                        width: '100%',
+                                                        gap: 8
                                                     }}>
                                                         <span style={{ 
                                                             fontWeight: 700, 
@@ -1145,7 +1146,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         textTransform: 'uppercase',
                                                         textShadow: '0 1px 2px rgba(0,0,0,0.35)'
                                                     }}>
-                                                        {isMobile ? 'HIGH' : 'High Demand'}
+                                                        High Demand
                                                     </div>
                                                 ) : (slot.available === 3 || slot.available === 4) && (
                                                     <div style={{
@@ -1161,7 +1162,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         textTransform: 'uppercase',
                                                         textShadow: '0 1px 2px rgba(0,0,0,0.35)'
                                                     }}>
-                                                        {isMobile ? 'LOW' : 'Spaces Running Low'}
+                                                        Spaces Running Low
                                                     </div>
                                                 )}
                                             </button>
