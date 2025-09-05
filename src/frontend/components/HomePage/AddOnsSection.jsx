@@ -346,13 +346,15 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         src={item.image} 
                                         alt={item.name} 
                                         style={{
-                                            width: isMobile ? '100px' : '120px',
-                                            height: isMobile ? '100px' : '120px',
+                                            width: isMobile ? '80px' : '120px',
+                                            height: isMobile ? '80px' : '120px',
                                             objectFit: 'cover',
-                                            borderRadius: isMobile ? '12px' : '8px',
+                                            borderRadius: isMobile ? '10px' : '8px',
                                             border: isMobile ? '2px solid #e5e7eb' : '1px solid #e5e7eb',
                                             flexShrink: 0,
-                                            boxShadow: isMobile ? '0 4px 8px rgba(0, 0, 0, 0.15)' : 'none'
+                                            boxShadow: isMobile ? '0 3px 6px rgba(0, 0, 0, 0.12)' : 'none',
+                                            minWidth: isMobile ? '80px' : '120px',
+                                            minHeight: isMobile ? '80px' : '120px'
                                         }}
                                         onError={(e) => {
                                             e.target.src = AddOn1; // Fallback to default image
@@ -383,7 +385,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                             margin: 0,
                                             fontWeight: isMobile ? '700' : '500',
                                             color: isMobile ? '#1f2937' : '#333',
-                                            fontSize: isMobile ? '18px' : '14px',
+                                            fontSize: isMobile ? '14px' : '14px',
                                             lineHeight: isMobile ? '1.4' : '1.4',
                                             flex: 1,
                                             minWidth: 0
@@ -393,7 +395,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                             whiteSpace: 'nowrap',
                                             fontWeight: isMobile ? '800' : '500',
                                             color: isMobile ? '#059669' : '#222',
-                                            fontSize: isMobile ? '20px' : '14px',
+                                            fontSize: isMobile ? '16px' : '14px',
                                             marginLeft: isMobile ? '8px' : '10px',
                                             flexShrink: 0
                                         }}>£{item.price}</p>

@@ -1186,13 +1186,15 @@ label {
         box-shadow: 0 4px 8px rgba(59, 130, 246, 0.15) !important;
     }
     .add-on-card .loc_data img {
-        width: 100px !important;
-        height: 100px !important;
+        width: 80px !important;
+        height: 80px !important;
         object-fit: cover !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         flex-shrink: 0 !important;
         border: 2px solid #e5e7eb !important;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
+        min-width: 80px !important;
+        min-height: 80px !important;
     }
     .add-on-card .vouch-text {
         flex: 1 1 auto !important;
@@ -1233,7 +1235,7 @@ label {
         width: 100% !important;
     }
     .vouch-title { 
-        font-size: 18px !important;
+        font-size: 14px !important;
         font-weight: 700 !important;
         color: #1f2937 !important;
         margin: 0 !important;
@@ -1242,7 +1244,7 @@ label {
         min-width: 0 !important;
     }
     .vouch-price { 
-        font-size: 20px !important;
+        font-size: 16px !important;
         font-weight: 800 !important;
         color: #059669 !important;
         margin: 0 !important;
