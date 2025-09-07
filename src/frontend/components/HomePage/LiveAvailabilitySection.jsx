@@ -86,9 +86,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [countdownTimer, setCountdownTimer] = useState(null);
     const [showTimeoutModal, setShowTimeoutModal] = useState(false);
     
-    // Capacity warning state
-    const [showCapacityWarning, setShowCapacityWarning] = useState(false);
-    const [capacityWarningMessage, setCapacityWarningMessage] = useState('');
+    // Removed capacity warning modal approach; we'll indicate issues inline in time picker
     
     // Get selected passenger count from voucher type
     const getSelectedPassengerCount = () => {
@@ -197,19 +195,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         if (!selectedVoucherType) {
             console.log('No voucher type selected, allowing date selection');
             // Continue with normal flow
-        } else {
-            // Check capacity for this date against selected passenger count
-            const selectedPassengers = getSelectedPassengerCount();
-            const { total } = getSpacesForDate(date);
-            
-            console.log(`Date click capacity check: ${selectedPassengers} passengers selected, ${total} spaces available`);
-            
-            if (total > 0 && selectedPassengers > total) {
-                // Show capacity warning and prevent date selection
-                setCapacityWarningMessage(`You have selected ${selectedPassengers} passenger${selectedPassengers > 1 ? 's' : ''} but only ${total} space${total > 1 ? 's are' : ' is'} available on this date. Please select a different number of passengers or choose another date.`);
-                setShowCapacityWarning(true);
-                return; // Don't proceed with date selection
-            }
         }
         
         // Create date strings manually to avoid timezone issues
@@ -252,34 +237,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Handle time selection from popup
     const handleTimeSelection = (time) => {
-        // Check capacity for the specific time slot if voucher type is selected
-        if (selectedVoucherType && selectedDateForTime) {
-            const selectedPassengers = getSelectedPassengerCount();
-            
-            // Create date string manually to avoid timezone issues
-            const year = selectedDateForTime.getFullYear();
-            const month = String(selectedDateForTime.getMonth() + 1).padStart(2, '0');
-            const day = String(selectedDateForTime.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-            
-            // Find the specific time slot
-            const timeSlot = availabilities.find(slot => 
-                slot.date === dateStr && slot.time === time
-            );
-            
-            if (timeSlot) {
-                const availableCapacity = timeSlot.available || timeSlot.capacity || 0;
-                console.log(`Time selection capacity check: ${selectedPassengers} passengers selected, ${availableCapacity} capacity available for ${time}`);
-                
-                if (selectedPassengers > availableCapacity) {
-                    // Show capacity warning and prevent time selection
-                    setCapacityWarningMessage(`You have selected ${selectedPassengers} passenger${selectedPassengers > 1 ? 's' : ''} but only ${availableCapacity} space${availableCapacity > 1 ? 's are' : ' is'} available at ${time}. Please select a different number of passengers or choose another time.`);
-                    setShowCapacityWarning(true);
-                    setTimeSelectionModalOpen(false); // Close time selection modal
-                    return; // Don't proceed with time selection
-                }
-            }
-        }
+        // Capacity will be indicated inline; selection for insufficient slots is disabled in the UI
         
         setSelectedDate(selectedDateForTime);
         setSelectedTime(time);
@@ -1030,17 +988,45 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 }}>
                                     Select your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
                                 </div>
-                                <div style={{ 
-                                    textAlign: 'center', 
-                                    marginTop: isMobile ? -2 : -8, 
-                                    marginBottom: isMobile ? 4 : 8, 
-                                    color: '#888', 
-                                    fontSize: isMobile ? 10 : 14,
-                                    lineHeight: 1.2,
-                                    padding: isMobile ? '0 4px' : '0'
-                                }}>
-                                    'Call to Book' within 8 Hours of flight meeting time.
-                                </div>
+                                {(() => {
+                                    // Show 'Call to Book' only when within 8 hours of any slot on this date
+                                    const year = selectedDateForTime.getFullYear();
+                                    const month = String(selectedDateForTime.getMonth() + 1).padStart(2, '0');
+                                    const day = String(selectedDateForTime.getDate()).padStart(2, '0');
+                                    const dateStr = `${year}-${month}-${day}`;
+                                    const slotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
+                                    const now = new Date();
+                                    const selectedPassengers = getSelectedPassengerCount();
+                                    const hasCallToBook = slotsForDate.some(slot => {
+                                        const slotDateTime = new Date(selectedDateForTime);
+                                        if (slot.time) {
+                                            const [h, m, s] = slot.time.split(':');
+                                            slotDateTime.setHours(Number(h));
+                                            slotDateTime.setMinutes(Number(m || 0));
+                                            slotDateTime.setSeconds(Number(s || 0));
+                                        }
+                                        const diffHours = (slotDateTime - now) / (1000 * 60 * 60);
+                                        const availableSeats = slot.available || slot.capacity || 0;
+                                        return diffHours < 8 && diffHours > 0 && availableSeats >= selectedPassengers;
+                                    });
+                                    if (!hasCallToBook) return null;
+                                    return (
+                                        <div style={{ 
+                                            textAlign: 'center', 
+                                            marginTop: isMobile ? -2 : -8, 
+                                            marginBottom: isMobile ? 4 : 8, 
+                                            color: '#888', 
+                                            lineHeight: 1.2,
+                                            padding: isMobile ? '0 4px' : '0',
+                                            fontWeight: 800,
+                                            fontSize: 16,
+                                            letterSpacing: 0.5,
+                                            textTransform: 'uppercase'
+                                        }}>
+                                            'Call to Book'
+                                        </div>
+                                    );
+                                })()}
                                 {(() => {
                                     const { slots } = getSpacesForDate(selectedDateForTime);
                                     if (slots.length === 0) {
@@ -1050,6 +1036,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             </div>
                                         );
                                     }
+                                    const selectedPassengers = getSelectedPassengerCount();
                                     return slots.map(slot => {
                                         // 8 hour rule check
                                         let slotDateTime = new Date(selectedDateForTime);
@@ -1063,7 +1050,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const diffMs = slotDateTime - now;
                                         const diffHours = diffMs / (1000 * 60 * 60);
                                         const isAvailable = slot.available > 0;
-                                        const isSelectable = isAvailable && diffHours >= 8;
+                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > (slot.available || 0);
+                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         
                                         return (
                                             <button
@@ -1131,8 +1119,24 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         </div>
                                                     </>
                                                 )}
-                                                {/* Center label based on remaining spaces */}
-                                                {slot.available <= 2 ? (
+                                                {/* Center label based on remaining spaces or passenger-capacity mismatch */}
+                                                {insufficientForPassengers ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 10 : 16,
+                                                        letterSpacing: isMobile ? 0.2 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase',
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                    }}>
+                                                        Too few seats
+                                                    </div>
+                                                ) : slot.available <= 2 ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1366,33 +1370,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 }
             `}</style>
             
-            {/* Capacity Warning Modal */}
-            {showCapacityWarning && (
-                <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
-                    <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:460,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)',textAlign:'center'}}>
-                        <div style={{fontSize:'48px',marginBottom:'16px'}}>⚠️</div>
-                        <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#dc3545',marginBottom:'12px'}}>Insufficient Capacity</h4>
-                        <p style={{color:'#374151',lineHeight:1.5,fontSize:16,marginBottom:'20px'}}>
-                            {capacityWarningMessage}
-                        </p>
-                        <button 
-                            onClick={() => setShowCapacityWarning(false)} 
-                            style={{
-                                background:'#dc3545',
-                                color:'#fff',
-                                padding:'12px 24px',
-                                borderRadius:8,
-                                cursor:'pointer',
-                                border:'none',
-                                fontSize:16,
-                                fontWeight:600
-                            }}
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Removed standalone capacity warning modal */}
             
             {/* Timeout Modal */}
             <Modal
