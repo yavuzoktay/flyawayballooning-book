@@ -1051,6 +1051,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const diffHours = diffMs / (1000 * 60 * 60);
                                         const isAvailable = slot.available > 0;
                                         const insufficientForPassengers = selectedVoucherType && selectedPassengers > (slot.available || 0);
+                                        const within8h = diffHours < 8 && diffHours > 0;
+                                        const enoughSeats = (slot.available || 0) >= selectedPassengers;
+                                        const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         
                                         return (
@@ -1135,6 +1138,22 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         textShadow: '0 1px 2px rgba(0,0,0,0.35)'
                                                     }}>
                                                         Too few seats
+                                                    </div>
+                                                ) : showCallToBookForSlot ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 10 : 16,
+                                                        letterSpacing: isMobile ? 0.2 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase',
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                    }}>
+                                                        Call to Book
                                                     </div>
                                                 ) : slot.available <= 2 ? (
                                                     <div style={{
