@@ -988,45 +988,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 }}>
                                     Select your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
                                 </div>
-                                {(() => {
-                                    // Show 'Call to Book' only when within 8 hours of any slot on this date
-                                    const year = selectedDateForTime.getFullYear();
-                                    const month = String(selectedDateForTime.getMonth() + 1).padStart(2, '0');
-                                    const day = String(selectedDateForTime.getDate()).padStart(2, '0');
-                                    const dateStr = `${year}-${month}-${day}`;
-                                    const slotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
-                                    const now = new Date();
-                                    const selectedPassengers = getSelectedPassengerCount();
-                                    const hasCallToBook = slotsForDate.some(slot => {
-                                        const slotDateTime = new Date(selectedDateForTime);
-                                        if (slot.time) {
-                                            const [h, m, s] = slot.time.split(':');
-                                            slotDateTime.setHours(Number(h));
-                                            slotDateTime.setMinutes(Number(m || 0));
-                                            slotDateTime.setSeconds(Number(s || 0));
-                                        }
-                                        const diffHours = (slotDateTime - now) / (1000 * 60 * 60);
-                                        const availableSeats = slot.available || slot.capacity || 0;
-                                        return diffHours < 8 && diffHours > 0 && availableSeats >= selectedPassengers;
-                                    });
-                                    if (!hasCallToBook) return null;
-                                    return (
-                                        <div style={{ 
-                                            textAlign: 'center', 
-                                            marginTop: isMobile ? -2 : -8, 
-                                            marginBottom: isMobile ? 4 : 8, 
-                                            color: '#888', 
-                                            lineHeight: 1.2,
-                                            padding: isMobile ? '0 4px' : '0',
-                                            fontWeight: 800,
-                                            fontSize: 16,
-                                            letterSpacing: 0.5,
-                                            textTransform: 'uppercase'
-                                        }}>
-                                            'Call to Book'
-                                        </div>
-                                    );
-                                })()}
+                                {/* Removed top-level 'Call to Book' banner; handled per-slot now */}
                                 {(() => {
                                     const { slots } = getSpacesForDate(selectedDateForTime);
                                     if (slots.length === 0) {
