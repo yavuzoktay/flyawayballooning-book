@@ -8,7 +8,18 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
     const [validationErrors, setValidationErrors] = useState({});
 
     const handleChange = (e) => {
-        setRecipientDetails({ ...recipientDetails, [e.target.name]: e.target.value });
+        let value = e.target.value;
+        
+        // Handle input validation and filtering
+        if (e.target.name === 'name') {
+            // Only allow letters and spaces for name
+            value = value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '');
+        } else if (e.target.name === 'phone') {
+            // Only allow numbers for phone
+            value = value.replace(/[^0-9]/g, '');
+        }
+        
+        setRecipientDetails({ ...recipientDetails, [e.target.name]: value });
         
         // Clear validation error when user starts typing
         if (validationErrors[e.target.name]) {
@@ -17,7 +28,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         
         if (e.target.name === 'email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            setEmailError(e.target.value && !emailRegex.test(e.target.value));
+            setEmailError(value && !emailRegex.test(value));
         }
     };
 
@@ -99,7 +110,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             disabled={isBookFlight}
         >
             <div className="Recipient">
-                <form action="/submit" method="post">
+                <form onSubmit={(e) => e.preventDefault()}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <label>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                         <div className="info-icon-container recipient-tooltip">
@@ -112,7 +123,6 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     <br />
                     <input
                         type="text"
-                        onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
                         name="name"
                         required={isGiftVoucher}
                         value={recipientDetails.name}
@@ -142,7 +152,6 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         type="tel"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
                         name="phone"
                         required={isGiftVoucher}
                         value={recipientDetails.phone}
