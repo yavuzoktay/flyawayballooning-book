@@ -1029,32 +1029,33 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         
                                         return (
-                                            <button
-                                                key={slot.id}
-                                                style={{
-                                                    background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#03A9F4' : '#ccc'),
-                                                    color: '#fff',
-                                                    border: tempSelectedTime === slot.time ? '2px solid #61D836' : 'none',
-                                                    borderRadius: isMobile ? 6 : 12,
-                                                    padding: isMobile ? '6px 8px' : '16px 20px',
-                                                    fontWeight: 600,
-                                                    fontSize: isMobile ? 14 : 18,
-                                                    cursor: isSelectable ? 'pointer' : 'not-allowed',
-                                                    opacity: isSelectable ? 1 : 0.6,
-                                                    width: '100%',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: isMobile ? 'center' : 'space-between',
-                                                    transition: 'all 0.2s ease',
-                                                    transform: tempSelectedTime === slot.time ? 'scale(1.02)' : 'scale(1)',
-                                                    position: 'relative',
-                                                    boxSizing: 'border-box',
-                                                    marginBottom: isMobile ? 6 : 0,
-                                                    minHeight: isMobile ? '40px' : 'auto'
-                                                }}
-                                                onClick={() => isSelectable && setTempSelectedTime(slot.time)}
-                                                disabled={!isSelectable}
-                                            >
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
+                                                <button
+                                                    key={slot.id}
+                                                    style={{
+                                                        background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#03A9F4' : '#ccc'),
+                                                        color: '#fff',
+                                                        border: tempSelectedTime === slot.time ? '2px solid #61D836' : 'none',
+                                                        borderRadius: isMobile ? 6 : 12,
+                                                        padding: isMobile ? '6px 8px' : '16px 20px',
+                                                        fontWeight: 600,
+                                                        fontSize: isMobile ? 14 : 18,
+                                                        cursor: isSelectable ? 'pointer' : 'not-allowed',
+                                                        opacity: isSelectable ? 1 : 0.6,
+                                                        width: isMobile ? '100%' : '60%',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: isMobile ? 'center' : 'space-between',
+                                                        transition: 'all 0.2s ease',
+                                                        transform: tempSelectedTime === slot.time ? 'scale(1.02)' : 'scale(1)',
+                                                        position: 'relative',
+                                                        boxSizing: 'border-box',
+                                                        marginBottom: isMobile ? 6 : 0,
+                                                        minHeight: isMobile ? '40px' : 'auto'
+                                                    }}
+                                                    onClick={() => isSelectable && setTempSelectedTime(slot.time)}
+                                                    disabled={!isSelectable}
+                                                >
                                                 {isMobile ? (
                                                     // Mobile layout - horizontal single line
                                                     <div style={{ 
@@ -1176,7 +1177,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         Spaces Running Low
                                                     </div>
                                                 )}
-                                            </button>
+                                                </button>
+                                            </div>
                                         );
                                     });
                                 })()}
