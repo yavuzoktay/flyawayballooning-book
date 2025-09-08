@@ -468,7 +468,7 @@ const Index = () => {
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
                 if (additionalInfo?.notes) completedSections.push('additional-info');
-                if (recipientDetails?.name) completedSections.push('recipient-details');
+                if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
                 // Tamamlanan section'ı da completed olarak işaretle
@@ -774,7 +774,7 @@ const Index = () => {
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
                 if (additionalInfo?.notes) completedSections.push('additional-info');
-                if (recipientDetails?.name) completedSections.push('recipient-details');
+                if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
                 // Sıradaki tamamlanmamış section'ı bul
