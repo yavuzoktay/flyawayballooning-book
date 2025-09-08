@@ -1184,22 +1184,43 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 {/* Confirm and Cancel Buttons */}
                                 <div style={{ 
                                     display: 'flex', 
-                                    gap: isMobile ? 6 : 12, 
-                                    marginTop: isMobile ? 12 : 20,
+                                    justifyContent: 'center',
+                                    gap: 10, 
+                                    marginTop: 16,
                                     width: '100%',
                                     boxSizing: 'border-box'
                                 }}>
                                     <button
                                         style={{
-                                            flex: 1,
-                                            padding: isMobile ? '8px 12px' : '12px 20px',
-                                            background: '#61D836',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: isMobile ? 4 : 8,
-                                            fontWeight: 600,
-                                            fontSize: isMobile ? 12 : 16,
+                                            border: '1px solid #d1d5db',
+                                            background: '#fff',
+                                            color: '#374151',
+                                            padding: '8px 14px',
+                                            borderRadius: 8,
                                             cursor: 'pointer',
+                                            fontSize: isMobile ? 12 : 14,
+                                            fontWeight: 500,
+                                            transition: 'all 0.2s ease',
+                                            boxSizing: 'border-box',
+                                            minHeight: isMobile ? '36px' : 'auto'
+                                        }}
+                                        onClick={() => {
+                                            setTimeSelectionModalOpen(false);
+                                            setTempSelectedTime(null);
+                                        }}
+                                    >
+                                        Back to calendar
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: '#10b981',
+                                            color: '#fff',
+                                            padding: '8px 14px',
+                                            borderRadius: 8,
+                                            cursor: 'pointer',
+                                            border: 'none',
+                                            fontSize: isMobile ? 12 : 14,
+                                            fontWeight: 500,
                                             opacity: tempSelectedTime ? 1 : 0.5,
                                             transition: 'all 0.2s ease',
                                             boxSizing: 'border-box',
@@ -1213,28 +1234,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         disabled={!tempSelectedTime}
                                     >
                                         Confirm
-                                    </button>
-                                    <button
-                                        style={{
-                                            flex: 1,
-                                            padding: isMobile ? '8px 12px' : '12px 20px',
-                                            background: '#dc3545',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: isMobile ? 4 : 8,
-                                            fontWeight: 600,
-                                            fontSize: isMobile ? 12 : 16,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            boxSizing: 'border-box',
-                                            minHeight: isMobile ? '36px' : 'auto'
-                                        }}
-                                        onClick={() => {
-                                            setTimeSelectionModalOpen(false);
-                                            setTempSelectedTime(null);
-                                        }}
-                                    >
-                                        Back to calendar
                                     </button>
                                 </div>
                                 
