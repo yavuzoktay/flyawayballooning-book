@@ -655,7 +655,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <div style={{ borderBottom: '1px solid #e0e0e0', margin: '4px 0 8px 0' }} />
                             <div style={{ fontSize: 12, color: '#444', marginBottom: 8, lineHeight: '1.3', flex: '1' }}>{experience.desc}</div>
                             <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 8 }}>
-                                From £{experience.price}
+                                {experience.title === 'Shared Flight' ? 'Per Person From £' : 'Per Flight From £'}{experience.price}
                             </div>
                             <button
                                 style={{
@@ -719,7 +719,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
                                 <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
                                 <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
-                                    From £{experience.price}
+                                    {experience.title === 'Shared Flight' ? 'Per Person From £' : 'Per Flight From £'}{experience.price}
                                 </div>
                                 <button
                                     style={{
