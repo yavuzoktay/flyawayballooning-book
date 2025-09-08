@@ -541,25 +541,25 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {showNotification && (
                 <div style={{
                     position: 'fixed',
-                    bottom: '20px',
+                    [isMobile ? 'top' : 'bottom']: '20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
                     backgroundColor: '#4CAF50',
                     color: 'white',
-                    padding: '12px 24px',
+                    padding: isMobile ? '8px 16px' : '12px 24px',
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                     zIndex: 9999,
-                    fontSize: '16px',
+                    fontSize: isMobile ? '14px' : '16px',
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    animation: 'slideUp 0.3s ease-out',
+                    animation: isMobile ? 'slideDown 0.3s ease-out' : 'slideUp 0.3s ease-out',
                     maxWidth: '90vw',
                     textAlign: 'center'
                 }}>
-                    <span style={{ fontSize: '18px' }}>✓</span>
+                    <span style={{ fontSize: isMobile ? '16px' : '18px' }}>✓</span>
                     {notificationMessage}
                 </div>
             )}
@@ -593,6 +593,28 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     
                     .experience-scroll-outer::-webkit-scrollbar-thumb:hover {
                         background: #555;
+                    }
+                    
+                    @keyframes slideUp {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-50%) translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(-50%) translateY(0);
+                        }
+                    }
+                    
+                    @keyframes slideDown {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-50%) translateY(-20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(-50%) translateY(0);
+                        }
                     }
                 `}
             </style>
