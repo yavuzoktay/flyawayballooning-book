@@ -46,6 +46,12 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         setValidationErrors({});
         setEmailError(false);
         
+        // Mark recipient details as skipped in the state
+        setRecipientDetails(prev => ({
+            ...prev,
+            isSkipped: true
+        }));
+        
         // Trigger section completion to move to next step
         if (onSectionCompletion) {
             onSectionCompletion('recipient-details');
@@ -57,7 +63,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         if (!isGiftVoucher) return true;
         
         // If user chose to skip recipient details, validation passes
-        if (skipRecipientDetails) return true;
+        if (skipRecipientDetails || recipientDetails?.isSkipped) return true;
         
         const errors = {};
         
@@ -127,7 +133,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         >
             <div className="Recipient">
                 {/* Skip Recipient Details Button */}
-                {isGiftVoucher && !skipRecipientDetails && (
+                {isGiftVoucher && !skipRecipientDetails && !recipientDetails?.isSkipped && (
                     <div style={{ 
                         marginBottom: '20px', 
                         padding: '12px', 
@@ -166,7 +172,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                 )}
 
                 {/* Show success message if skipped */}
-                {isGiftVoucher && skipRecipientDetails && (
+                {isGiftVoucher && (skipRecipientDetails || recipientDetails?.isSkipped) && (
                     <div style={{ 
                         marginBottom: '20px', 
                         padding: '12px', 
