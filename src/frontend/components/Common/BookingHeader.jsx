@@ -10,6 +10,19 @@ const BookingHeader = ({ location, selectedDate, selectedTime, countdownSeconds,
   const [minutes, setMinutes] = useState(5);
   const [seconds, setSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   // Format time to display with leading zeros
   const formatTime = (time) => {
@@ -122,9 +135,11 @@ const BookingHeader = ({ location, selectedDate, selectedTime, countdownSeconds,
         <div className="booking-header-location-display">
           <div className="booking-header-location">{locationName}</div>
         </div>
-        <div className="booking-header-center">
-          <div className="booking-header-date">{formatDate(selectedDate, selectedTime)}</div>
-        </div>
+        {!isMobile && (
+          <div className="booking-header-center">
+            <div className="booking-header-date">{formatDate(selectedDate, selectedTime)}</div>
+          </div>
+        )}
         <div className="booking-header-timer">
           <span className="timer-label">Time Remaining:</span>
           <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
