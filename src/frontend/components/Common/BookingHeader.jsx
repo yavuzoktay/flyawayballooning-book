@@ -140,10 +140,12 @@ const BookingHeader = ({ location, selectedDate, selectedTime, countdownSeconds,
             <div className="booking-header-date">{formatDate(selectedDate, selectedTime)}</div>
           </div>
         )}
-        <div className="booking-header-timer">
-          <span className="timer-label">Time Remaining:</span>
-          <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
-        </div>
+        {!isMobile && (
+          <div className="booking-header-timer">
+            <span className="timer-label">Time Remaining:</span>
+            <span className={getTimerClass()}>{`${formatTime(minutes)}:${formatTime(seconds)}`}</span>
+          </div>
+        )}
       </div>
 
     </div>
