@@ -356,15 +356,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     console.log('LiveAvailabilitySection received availabilities:', availabilities);
     console.log('Current date range:', { startDate: format(startDate, 'yyyy-MM-dd'), endDate: format(endDate, 'yyyy-MM-dd'), currentDate: format(currentDate, 'yyyy-MM-dd') });
     
-    // Filter availabilities - show all open ones (no AM/PM filtering)
+    // Filter availabilities - respect selected voucher type when provided
     // Only filter if location and experience are selected
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         // Check multiple conditions for availability
         const isOpen = a.status === 'Open' || a.status === 'open' || a.status === 'Open' || a.available > 0;
         const hasCapacity = a.capacity && a.capacity > 0;
         const isAvailable = isOpen && hasCapacity;
-        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
-        return isAvailable;
+        // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
+        const matchesVoucher = selectedVoucherType?.title ? (
+            Array.isArray(a.voucher_types)
+                ? a.voucher_types.includes(selectedVoucherType.title)
+                : (typeof a.voucher_types === 'string'
+                    ? a.voucher_types.split(',').map(s => s.trim()).includes(selectedVoucherType.title)
+                    : true)
+        ) : true;
+        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, voucher_types=${a.voucher_types}`);
+        return isAvailable && matchesVoucher;
     }) : [];
     console.log('Filtered availabilities (all times):', filteredAvailabilities);
     
