@@ -3,9 +3,10 @@ import React, { useState, forwardRef, useImperativeHandle } from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 
-const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion }, ref) => {
+const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion }, ref) => {
     const [emailError, setEmailError] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
+    const [skipRecipientDetails, setSkipRecipientDetails] = useState(false);
 
     const handleChange = (e) => {
         let value = e.target.value;
@@ -39,9 +40,24 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         }));
     };
 
+    const handleSkipRecipientDetails = () => {
+        setSkipRecipientDetails(true);
+        // Clear any validation errors
+        setValidationErrors({});
+        setEmailError(false);
+        
+        // Trigger section completion to move to next step
+        if (onSectionCompletion) {
+            onSectionCompletion('recipient-details');
+        }
+    };
+
     // Required validation function for Buy Gift
     const validateFields = () => {
         if (!isGiftVoucher) return true;
+        
+        // If user chose to skip recipient details, validation passes
+        if (skipRecipientDetails) return true;
         
         const errors = {};
         
@@ -110,6 +126,66 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             disabled={isBookFlight}
         >
             <div className="Recipient">
+                {/* Skip Recipient Details Button */}
+                {isGiftVoucher && !skipRecipientDetails && (
+                    <div style={{ 
+                        marginBottom: '20px', 
+                        padding: '12px', 
+                        backgroundColor: '#f8f9fa', 
+                        border: '1px solid #e9ecef', 
+                        borderRadius: '8px',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{ 
+                            margin: '0 0 12px 0', 
+                            fontSize: '14px', 
+                            color: '#6c757d' 
+                        }}>
+                            Don't want to enter recipient details now?
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleSkipRecipientDetails}
+                            style={{
+                                background: '#6c757d',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '8px 16px',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s ease'
+                            }}
+                            onMouseOver={(e) => e.target.style.background = '#5a6268'}
+                            onMouseOut={(e) => e.target.style.background = '#6c757d'}
+                        >
+                            I don't want to enter recipient details
+                        </button>
+                    </div>
+                )}
+
+                {/* Show success message if skipped */}
+                {isGiftVoucher && skipRecipientDetails && (
+                    <div style={{ 
+                        marginBottom: '20px', 
+                        padding: '12px', 
+                        backgroundColor: '#d4edda', 
+                        border: '1px solid #c3e6cb', 
+                        borderRadius: '8px',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{ 
+                            margin: '0', 
+                            fontSize: '14px', 
+                            color: '#155724',
+                            fontWeight: '500'
+                        }}>
+                            ✓ Recipient details skipped - you can add them later
+                        </p>
+                    </div>
+                )}
+
                 <form onSubmit={(e) => e.preventDefault()}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <label>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
