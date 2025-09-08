@@ -430,7 +430,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         })));
         console.log(`Raw availabilities for ${dateStr}:`, availabilities.filter(a => a.date === dateStr));
         
-        // Get available slots (capacity > 0)
+        // Get open/available slots (capacity > 0) for totals
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
         const total = availableSlots.reduce((sum, s) => sum + (s.available || s.capacity || 0), 0);
         
@@ -441,7 +441,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const soldOut = (allSlotsForDate.length > 0 && total === 0) || hasClosedSlots;
         
         console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${soldOut}`);
-        return { total, soldOut, slots: availableSlots };
+        // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
+        return { total, soldOut, slots: allSlotsForDate };
     };
 
         const renderDays = () => {
@@ -1011,11 +1012,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const now = new Date();
                                         const diffMs = slotDateTime - now;
                                         const diffHours = diffMs / (1000 * 60 * 60);
-                                        const isAvailable = slot.available > 0;
+                                        const isAvailable = (slot.available || 0) > 0;
                                         const insufficientForPassengers = selectedVoucherType && selectedPassengers > (slot.available || 0);
                                         const within8h = diffHours < 8 && diffHours > 0;
                                         const enoughSeats = (slot.available || 0) >= selectedPassengers;
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
+                                        // Selectable only if there are seats and rules met
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         
                                         return (
@@ -1085,7 +1087,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     </>
                                                 )}
                                                 {/* Center label based on remaining spaces or passenger-capacity mismatch */}
-                                                {insufficientForPassengers ? (
+                                                {(!isAvailable) ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 10 : 16,
+                                                        letterSpacing: isMobile ? 0.2 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase',
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                    }}>
+                                                        Sold Out
+                                                    </div>
+                                                ) : insufficientForPassengers ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',

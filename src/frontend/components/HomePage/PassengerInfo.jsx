@@ -5,9 +5,34 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
 const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund }, ref) => {
-  // Parse passengerCount from chooseFlightType and ensure it's at least 1
-  // For Buy Gift, always 1 passenger
-  const passengerCount = activitySelect === 'Buy Gift' ? 1 : Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
+  // Determine passengerCount
+  // - For Buy Gift: fixed to 1
+  // - For Flight Voucher and Book Flight: prefer quantity from selected voucher type
+  // - Otherwise: fall back to chooseFlightType.passengerCount (min 1)
+  const passengerCount = (() => {
+    if (activitySelect === 'Buy Gift') {
+      return 1;
+    }
+    const isVoucherDriven = chooseFlightType?.type === 'Flight Voucher' || activitySelect === 'Book Flight';
+    if (isVoucherDriven) {
+      // Prefer explicit quantity prop
+      if (selectedVoucherType?.quantity !== undefined && selectedVoucherType?.quantity !== null) {
+        const extracted = typeof selectedVoucherType.quantity === 'string'
+          ? (selectedVoucherType.quantity.match(/\d+/)?.[0] ?? selectedVoucherType.quantity)
+          : selectedVoucherType.quantity;
+        const q = Math.max(parseInt(extracted, 10) || 1, 1);
+        if (q) return q;
+      }
+      // Fallback: extract from title like "Any Day Flight (3 passengers)"
+      if (typeof selectedVoucherType?.title === 'string') {
+        const m = selectedVoucherType.title.match(/\((\d+)\s*passenger/i);
+        if (m && m[1]) {
+          return Math.max(parseInt(m[1], 10) || 1, 1);
+        }
+      }
+    }
+    return Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
+  })();
   
   // Mobile breakpoint
   const [isMobile, setIsMobile] = useState(false);
@@ -262,6 +287,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     pointerEvents: 'none',
   };
 
+  const isMultiPassenger = passengerCount > 1;
+
   return (
     <Accordion 
       title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
@@ -271,10 +298,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     >
       <div className="tab_box presger-scroll" style={{ 
         padding: isMobile ? '12px 16px' : '10px 20px',
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? '16px' : '0',
-        overflowX: isMobile ? 'hidden' : 'auto',
+        overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
         {/* Display a message if no passengers are selected */}
@@ -301,9 +325,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               borderRadius: isMobile ? '20px' : '8px', 
               background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
               boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)') : 'none',
-              width: isMobile ? '100%' : 'auto',
-              minWidth: isMobile ? '100%' : 'auto',
-              flexShrink: isMobile ? 0 : 1,
+              width: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
+              minWidth: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
+              flexShrink: isMobile ? 0 : (isMultiPassenger ? 0 : 1),
               position: 'relative',
               zIndex: 1,
               borderTop: isMobile && index > 0 ? '4px solid #3b82f6' : 'none'

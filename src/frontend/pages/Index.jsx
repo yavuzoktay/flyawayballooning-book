@@ -670,15 +670,15 @@ const Index = () => {
         fetchAvailabilities();
     }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType]);
 
-    // Update chooseFlightType when selectedVoucherType changes to sync passenger count
+    // Sync passengerCount with Voucher Type quantity for Flight Voucher and Book Flight flows
     useEffect(() => {
-        if (selectedVoucherType && selectedVoucherType.quantity) {
+        if (selectedVoucherType && selectedVoucherType.quantity && (activitySelect === 'Flight Voucher' || activitySelect === 'Book Flight')) {
             setChooseFlightType(prev => ({
                 ...prev,
-                passengerCount: selectedVoucherType.quantity.toString()
+                passengerCount: String(selectedVoucherType.quantity)
             }));
         }
-    }, [selectedVoucherType]);
+    }, [selectedVoucherType, activitySelect]);
 
 
 
