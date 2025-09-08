@@ -749,6 +749,11 @@ const Index = () => {
 
     // Yeni: Dinamik sıralama değiştiğinde accordion akışını kontrol et
     React.useEffect(() => {
+        // Don't run this effect if recipient-details accordion is open and user is typing
+        if (activeAccordion === 'recipient-details') {
+            return;
+        }
+        
         if (activitySelect !== null && activeAccordion !== null) {
             // Mevcut state değerlerini kullanarak sıralamayı al
             const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
