@@ -1379,7 +1379,7 @@ const VoucherType = ({
                 onSectionCompletion('voucher-type');
             }
         }, 300); // Longer delay to ensure state is fully updated
-                                }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Confirm</button>
+                                }} style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Agree and Proceed</button>
                             </div>
                         </div>
                     </div>
