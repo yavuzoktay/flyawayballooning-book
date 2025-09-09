@@ -142,13 +142,6 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         borderRadius: '8px',
                         textAlign: 'center'
                     }}>
-                        <p style={{ 
-                            margin: '0 0 12px 0', 
-                            fontSize: '14px', 
-                            color: '#6c757d' 
-                        }}>
-                            Don't want to enter recipient details now?
-                        </p>
                         <button
                             type="button"
                             onClick={handleSkipRecipientDetails}
@@ -166,7 +159,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             onMouseOver={(e) => e.target.style.background = '#5a6268'}
                             onMouseOut={(e) => e.target.style.background = '#6c757d'}
                         >
-                            I don't want to enter recipient details
+                            Don’t enter recipient details
                         </button>
                     </div>
                 )}
