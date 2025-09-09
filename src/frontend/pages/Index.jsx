@@ -168,6 +168,91 @@ const Index = () => {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
         }
     };
+
+    // Passenger Terms (for Passenger Information) modal state
+    const [passengerTermsModalOpen, setPassengerTermsModalOpen] = React.useState(false);
+    const [passengerTermsContent, setPassengerTermsContent] = React.useState('');
+    const [passengerTermsShownForJourney, setPassengerTermsShownForJourney] = React.useState('');
+
+    // Map local activity labels to admin journey labels
+    const mapJourneyLabel = (label) => {
+        if (!label) return '';
+        switch (label) {
+            case 'Book Flight Date':
+                return 'Book Flight';
+            case 'Buy Flight Voucher':
+                return 'Flight Voucher';
+            case 'Buy Gift Voucher':
+                return 'Buy Gift';
+            default:
+                return label; // 'Redeem Voucher' stays same
+        }
+    };
+
+    const fetchPassengerTermsForJourney = async (journeyLabelRaw) => {
+        try {
+            const journeyLabel = mapJourneyLabel(journeyLabelRaw);
+            if (!journeyLabel) return;
+            if (passengerTermsShownForJourney === journeyLabel) {
+                console.log('ℹ️ Passenger terms already shown for', journeyLabel);
+                return;
+            }
+            const url = `${API_BASE_URL}/api/passenger-terms/journey/${encodeURIComponent(journeyLabel)}`;
+            console.log('🔎 Fetching Passenger Terms for journey:', journeyLabel, 'URL:', url);
+            let combined = '';
+            try {
+                const resp = await axios.get(url);
+                if (resp?.data?.success && Array.isArray(resp.data.data) && resp.data.data.length > 0) {
+                    combined = resp.data.data
+                        .map((t) => (t && t.content ? String(t.content) : ''))
+                        .filter(Boolean)
+                        .join('\n\n');
+                }
+            } catch (e) {
+                console.warn('Passenger terms journey endpoint failed, will try fallback', e);
+            }
+
+            // Fallback: fetch all and filter on client
+            if (!combined) {
+                try {
+                    const allUrl = `${API_BASE_URL}/api/passenger-terms`;
+                    console.log('🔎 Fallback fetching all Passenger Terms:', allUrl);
+                    const respAll = await axios.get(allUrl);
+                    if (respAll?.data?.success && Array.isArray(respAll.data.data)) {
+                        const safeParse = (val) => {
+                            try {
+                                if (Array.isArray(val)) return val;
+                                if (typeof val === 'string') {
+                                    const s = val.trim();
+                                    if (s.startsWith('[')) return JSON.parse(s);
+                                    if (s.includes(',')) return s.split(',').map(v => v.trim());
+                                    return s ? [s] : [];
+                                }
+                            } catch {}
+                            return [];
+                        };
+                        const matched = respAll.data.data.filter((t) => safeParse(t.journey_types).includes(journeyLabel));
+                        combined = matched
+                            .map((t) => (t && t.content ? String(t.content) : ''))
+                            .filter(Boolean)
+                            .join('\n\n');
+                    }
+                } catch (e) {
+                    console.warn('Passenger terms all endpoint failed', e);
+                }
+            }
+
+            if (combined) {
+                setPassengerTermsContent(combined);
+                setPassengerTermsModalOpen(true);
+                setPassengerTermsShownForJourney(journeyLabel);
+            } else {
+                console.log('ℹ️ No passenger terms content to show for', journeyLabel);
+            }
+        } catch (e) {
+            console.error('Error fetching passenger terms:', e);
+        }
+    };
     
     // Voucher code validation function
     const validateVoucherCode = async (codeToValidate = null) => {
@@ -436,6 +521,12 @@ const Index = () => {
             setShowNotification(false);
         }, 3000);
         
+        // Trigger Passenger Terms popup when Passenger Information is completed
+        if (completedSectionId === 'passenger-info') {
+            const journeyLabel = activitySelect; // e.g., local labels
+            fetchPassengerTermsForJourney(journeyLabel);
+        }
+
         // Close current section
         setActiveAccordion(null);
         console.log('🔒 Closed current section:', completedSectionId);
@@ -950,6 +1041,26 @@ const Index = () => {
 
     return (
         <>
+            {passengerTermsModalOpen && (
+                <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:3000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
+                        <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
+                            <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827',textAlign:'center'}}>Important Information</h4>
+                        </div>
+                        <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
+                            {passengerTermsContent}
+                        </div>
+                        <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
+                            <button 
+                                onClick={() => setPassengerTermsModalOpen(false)}
+                                style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Notification for accordion completion */}
             {showNotification && (
                 <div style={{
