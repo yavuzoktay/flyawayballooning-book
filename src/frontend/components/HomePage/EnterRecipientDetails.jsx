@@ -146,18 +146,18 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             type="button"
                             onClick={handleSkipRecipientDetails}
                             style={{
-                                background: '#6c757d',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '8px 16px',
-                                fontSize: '14px',
-                                fontWeight: '500',
+                                border: '1px solid #d1d5db',
+                                background: '#fff',
+                                color: '#374151',
+                                padding: '8px 14px',
+                                borderRadius: 8,
                                 cursor: 'pointer',
-                                transition: 'background 0.2s ease'
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease',
+                                boxSizing: 'border-box',
+                                minHeight: '36px'
                             }}
-                            onMouseOver={(e) => e.target.style.background = '#5a6268'}
-                            onMouseOut={(e) => e.target.style.background = '#6c757d'}
                         >
                             Don’t enter recipient details
                         </button>
