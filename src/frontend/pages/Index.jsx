@@ -590,13 +590,6 @@ const Index = () => {
         if (activitySelect === null) {
             return; // Eğer aktivite seçilmediyse, hiçbir şey yapma
         }
-        
-        // Call passenger-terms endpoint when passenger-info section is clicked
-        if (sectionId === "passenger-info") {
-            console.log('🔍 Passenger Info section clicked, fetching passenger terms for:', activitySelect);
-            fetchPassengerTermsForJourney(activitySelect);
-        }
-        
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
 
