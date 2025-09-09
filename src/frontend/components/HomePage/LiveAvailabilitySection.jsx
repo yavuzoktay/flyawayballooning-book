@@ -1006,7 +1006,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     lineHeight: 1.3,
                                     padding: isMobile ? '0 4px' : '0'
                                 }}>
-                                    Select your preferred time for {format(selectedDateForTime, 'EEEE, MMMM d, yyyy')}
+                                    {/* Removed subtitle requesting preferred time per user request */}
                                 </div>
                                 {/* Removed top-level 'Call to Book' banner; handled per-slot now */}
                                 {(() => {
