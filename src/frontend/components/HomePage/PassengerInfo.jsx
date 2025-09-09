@@ -4,7 +4,7 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund }, ref) => {
+const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion }, ref) => {
   // Determine passengerCount
   // - For Buy Gift: fixed to 1
   // - For Flight Voucher and Book Flight: prefer quantity from selected voucher type
@@ -256,6 +256,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   useImperativeHandle(ref, () => ({
     validate: validateFields
   }));
+
+  // Auto-trigger section completion when all fields are valid
+  useEffect(() => {
+    if (passengerData.length > 0 && onSectionCompletion) {
+      const isValid = validateFields();
+      if (isValid) {
+        console.log('✅ All passenger fields valid, triggering section completion');
+        onSectionCompletion('passenger-info');
+      }
+    }
+  }, [passengerData, onSectionCompletion]);
 
   // Styles for custom ticked circle
   const checkStyle = {
