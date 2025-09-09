@@ -137,8 +137,6 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     <div style={{ 
                         marginBottom: '20px', 
                         padding: '12px', 
-                        backgroundColor: '#f8f9fa', 
-                        border: '1px solid #e9ecef', 
                         borderRadius: '8px',
                         textAlign: 'center'
                     }}>
