@@ -929,7 +929,7 @@ const VoucherType = ({
                             <div key={i} style={{ marginBottom: 3 }}>{inclusion}</div>
                         ))}
                     </div>
-                    {voucher.weatherClause && (
+                    {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
                         <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
