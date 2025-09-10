@@ -495,7 +495,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
               marginBottom: 0, 
               padding: activitySelect === 'Buy Gift' ? '16px' : '20px', 
-              border: 'none', 
+              border: '1px solid #e5e7eb', 
               borderRadius: '16px', 
               background: '#ffffff',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -932,7 +932,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
                   marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '20px' : '20px'), 
                   padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? '20px' : '15px'), 
-                  border: isMobile ? 'none' : (index > 0 ? '1px solid #eee' : 'none'), 
+                  border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
                   borderRadius: isMobile ? '20px' : '8px', 
                   background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
                   boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)') : 'none',
