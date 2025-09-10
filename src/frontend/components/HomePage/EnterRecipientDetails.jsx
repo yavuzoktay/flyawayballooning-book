@@ -125,7 +125,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
     return (
         <Accordion 
             title="Recipient Details"  
-            id="recipent-details" 
+            id="recipient-details" 
             activeAccordion={activeAccordion} 
             setActiveAccordion={setActiveAccordion} 
             className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`} 

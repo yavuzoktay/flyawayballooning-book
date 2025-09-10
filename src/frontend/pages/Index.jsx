@@ -615,7 +615,7 @@ const Index = () => {
         if (activitySelect === "Buy Gift" && recipientDetailsRef.current) {
             const recipientValid = recipientDetailsRef.current.validate();
             if (!recipientValid) {
-                setActiveAccordion("recipent-details");
+                setActiveAccordion("recipient-details");
                 isValid = false;
             }
         }
