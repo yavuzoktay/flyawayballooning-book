@@ -1046,14 +1046,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     style={{
                                                         background: isSelectable ? '#61D836' : '#ccc',
                                                         color: '#fff',
-                                                        border: tempSelectedTime === slot.time ? '2px solid #56C1FF' : '2px solid transparent',
+                                                        border: tempSelectedTime === slot.time ? (isMobile ? '1px solid #56C1FF' : '2px solid #56C1FF') : (isMobile ? '1px solid transparent' : '2px solid transparent'),
                                                         borderRadius: isMobile ? 6 : 12,
-                                                        padding: isMobile ? '6px 8px' : '16px 20px',
+                                                        padding: isMobile ? '8px 12px' : '16px 20px',
                                                         fontWeight: 600,
                                                         fontSize: isMobile ? 14 : 18,
                                                         cursor: isSelectable ? 'pointer' : 'not-allowed',
                                                         opacity: isSelectable ? 1 : 0.6,
-                                                        width: isMobile ? '100%' : '60%',
+                                                        width: isMobile ? 'calc(100% - 4px)' : '60%',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: isMobile ? 'center' : 'space-between',
@@ -1062,8 +1062,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         position: 'relative',
                                                         boxSizing: 'border-box',
                                                         marginBottom: isMobile ? 6 : 0,
-                                                        minHeight: isMobile ? '40px' : 'auto',
-                                                        boxShadow: tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none'
+                                                        marginLeft: isMobile ? '2px' : '0',
+                                                        marginRight: isMobile ? '2px' : '0',
+                                                        minHeight: isMobile ? '40px' : 'auto'
                                                     }}
                                                     onClick={() => isSelectable && setTempSelectedTime(slot.time)}
                                                     disabled={!isSelectable}

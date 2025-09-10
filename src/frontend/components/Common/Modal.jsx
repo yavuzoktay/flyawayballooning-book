@@ -9,7 +9,7 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
                 className="common-modal"
                 style={{
                     width: 'calc(100vw - 16px)', // ensure we never exceed viewport
-                    maxWidth: '600px',
+                    maxWidth: window.innerWidth <= 768 ? 'calc(100vw - 16px)' : '600px',
                     background: '#fff',
                     borderRadius: 12,
                     padding: window.innerWidth <= 768 ? '12px 8px' : '20px 16px',
@@ -20,7 +20,8 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
                     maxHeight: 'calc(100vh - 16px)',
                     overflowY: 'auto',
                     overflowX: 'hidden',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    margin: window.innerWidth <= 768 ? '0 4px' : '0'
                 }}
             >
                 {/* Close Button (X) */}
@@ -51,7 +52,18 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
                     </button>
                 )}
 
-                <h2 className="text-xl font-semibold mb-4" style={{ textAlign: 'center', margin: 0, width: '100%', boxSizing: 'border-box' }}>{title}</h2>
+                <h2 className="text-xl font-semibold mb-4" style={{ 
+                    textAlign: 'center', 
+                    margin: 0, 
+                    width: '100%', 
+                    boxSizing: 'border-box',
+                    fontSize: window.innerWidth <= 768 ? '16px' : '20px',
+                    lineHeight: window.innerWidth <= 768 ? '1.3' : '1.5',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    hyphens: 'auto',
+                    padding: window.innerWidth <= 768 ? '0 8px' : '0'
+                }}>{title}</h2>
 
                 {bulletPoints.length > 0 && (
                     <ul className="list-disc pl-5 space-y-2" style={{ width: '100%', padding: 0, margin: '12px 0', boxSizing: 'border-box', overflowX: 'hidden' }}>
