@@ -624,6 +624,8 @@ const Index = () => {
         if (passengerInfoRef.current) {
             const passengerValid = passengerInfoRef.current.validate();
             if (!passengerValid) {
+                // Show validation errors now because user is trying to proceed
+                passengerInfoRef.current.validate(true);
                 setActiveAccordion("passenger-info");
                 isValid = false;
             }

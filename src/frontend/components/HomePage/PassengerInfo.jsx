@@ -140,7 +140,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
 
   // Optional validation function for Buy Gift, strict for others
-  const validateFields = () => {
+  // When setErrors=false, perform a silent validation (no red borders yet)
+  const validateFields = (setErrors = true) => {
     const errors = [];
     
     console.log('👥 Starting passenger validation for:', activitySelect);
@@ -254,7 +255,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       note: activitySelect === 'Buy Gift' ? 'All fields optional for Buy Gift' : 'Standard validation applied'
     });
     
-    setValidationErrors(errors);
+    if (setErrors) {
+      setValidationErrors(errors);
+    }
     return isValid;
   };
 
@@ -267,7 +270,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const completionFiredRef = useRef(false);
   useEffect(() => {
     if (!onSectionCompletion || passengerData.length === 0) return;
-    const isValid = validateFields();
+    // Run silent validation here to avoid showing red borders on first open
+    const isValid = validateFields(false);
     if (isValid && !completionFiredRef.current) {
       completionFiredRef.current = true;
       console.log('✅ All passenger fields valid, triggering section completion');
