@@ -223,7 +223,21 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                         height: 'auto'
                                     }}
                                 >
-                                    <img src={loc.image} alt={loc.name} width="100%" style={{ height: '120px', objectFit: 'cover' }} />
+                                    <img src={loc.image} alt={loc.name} width="100%" style={{ 
+                                        height: '120px', 
+                                        objectFit: 'cover',
+                                        transition: 'transform 0.3s ease',
+                                        cursor: 'pointer'
+                                    }} 
+                                    onMouseEnter={(e) => {
+                                        if (!isDisabled) {
+                                            e.target.style.transform = 'scale(1.05)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.transform = 'scale(1)';
+                                    }}
+                                    />
                                     <h3>{loc.name}</h3>
                                     <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`} style={{ 
                                         position: 'absolute', 
@@ -318,6 +332,12 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         object-fit: cover !important;
                         width: calc(100% + 24px) !important;
                         margin: -12px -12px 0 -12px !important;
+                        transition: transform 0.3s ease !important;
+                        cursor: pointer !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data:hover img {
+                        transform: scale(1.05) !important;
                     }
                     /* Gradient removed as per requirements */
                 }
@@ -355,6 +375,12 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         height: 100px !important;
                         width: calc(100% + 20px) !important;
                         margin: -10px -10px 0 -10px !important;
+                        transition: transform 0.3s ease !important;
+                        cursor: pointer !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data:hover img {
+                        transform: scale(1.05) !important;
                     }
                 }
                 
@@ -391,6 +417,12 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         height: 90px !important;
                         width: calc(100% + 16px) !important;
                         margin: -8px -8px 0 -8px !important;
+                        transition: transform 0.3s ease !important;
+                        cursor: pointer !important;
+                    }
+                    
+                    .tab_box .loc_data.location_data:hover img {
+                        transform: scale(1.05) !important;
                     }
                 }
                 
