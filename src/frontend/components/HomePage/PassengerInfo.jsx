@@ -415,7 +415,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <p style={{ 
                         margin: 0, 
-                        fontSize: isMobile ? '16px' : '14px',
+                        fontSize: isMobile ? '14px' : '14px',
                         fontWeight: isMobile ? '500' : '400',
                         color: isMobile ? '#374151' : 'inherit'
                       }}>Weather Refundable</p>
@@ -480,7 +480,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <p style={{ 
                         margin: 0, 
-                        fontSize: isMobile ? '16px' : '14px',
+                        fontSize: isMobile ? '14px' : '14px',
                         fontWeight: isMobile ? '500' : '400',
                         color: isMobile ? '#374151' : 'inherit'
                       }}>Weather Refundable (Private Charter)</p>

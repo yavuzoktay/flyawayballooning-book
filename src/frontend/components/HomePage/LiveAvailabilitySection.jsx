@@ -736,7 +736,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         {/* Real-time availability badge - responsive */}
                         <div className="realtime-badge-wrap">
                             <div className="realtime-badge" style={{
-                                fontSize: isMobile ? 12 : 14,
+                                fontSize: isMobile ? 14 : 14,
                                 padding: isMobile ? '6px 10px' : '8px 12px'
                             }}>
                                 <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
@@ -759,7 +759,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     }}>
                         {isLocationAndExperienceSelected ? (
                             <>
-                                <div style={{ fontSize: isMobile ? 13 : 16 }}>
+                                <div style={{ fontSize: isMobile ? 14 : 16 }}>
                                     Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b>
                                 </div>
                                 {selectedDate && selectedTime && (
@@ -778,7 +778,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         ) : (
                             <div style={{ 
                                 color: '#666',
-                                fontSize: isMobile ? 13 : 16,
+                                fontSize: isMobile ? 14 : 16,
                                 lineHeight: isMobile ? 1.3 : 1.4
                             }}>
                                 {activitySelect === 'Redeem Voucher' ? 
@@ -821,7 +821,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         marginBottom: 2 
                     }}>
                         <span style={{ 
-                            fontSize: isMobile ? 12 : 14, 
+                            fontSize: isMobile ? 14 : 14, 
                             color: '#888',
                             lineHeight: isMobile ? 1.3 : 1.4
                         }}>
@@ -1228,7 +1228,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             padding: '8px 14px',
                                             borderRadius: 8,
                                             cursor: 'pointer',
-                                            fontSize: isMobile ? 12 : 14,
+                                            fontSize: isMobile ? 14 : 14,
                                             fontWeight: 500,
                                             transition: 'all 0.2s ease',
                                             boxSizing: 'border-box',
@@ -1249,7 +1249,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             borderRadius: 8,
                                             cursor: 'pointer',
                                             border: 'none',
-                                            fontSize: isMobile ? 12 : 14,
+                                            fontSize: isMobile ? 14 : 14,
                                             fontWeight: 500,
                                             opacity: tempSelectedTime ? 1 : 0.5,
                                             transition: 'all 0.2s ease',
@@ -1272,7 +1272,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     textAlign: 'center', 
                                     marginTop: isMobile ? 8 : 16, 
                                     color: '#666', 
-                                    fontSize: isMobile ? '9px' : '12px',
+                                    fontSize: isMobile ? '14px' : '12px',
                                     lineHeight: '1.3',
                                     fontStyle: 'italic',
                                     padding: isMobile ? '0 4px' : '0'

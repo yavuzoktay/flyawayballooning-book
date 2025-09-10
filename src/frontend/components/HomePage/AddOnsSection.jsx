@@ -408,7 +408,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                             maxHeight: isMobile ? '80px' : 'none'
                                         }}>
                                             <p className="vouch-desc" style={{
-                                                fontSize: isMobile ? '13px' : '12px',
+                                                fontSize: isMobile ? '14px' : '12px',
                                                 color: isMobile ? '#374151' : '#666',
                                                 margin: 0,
                                                 lineHeight: isMobile ? '1.4' : '1.3',
