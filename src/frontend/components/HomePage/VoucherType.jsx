@@ -1047,24 +1047,23 @@ const VoucherType = ({
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
                 const gap = 16; // Gap between items
-                const scrollAmount = container.clientWidth - 8 + gap; // Item width + gap
-                container.scrollBy({
-                    left: -scrollAmount,
+                const itemWidth = container.clientWidth - 8 + gap; // Item width + gap
+                
+                // Calculate target scroll position for previous item
+                const currentScrollLeft = container.scrollLeft;
+                const currentIndex = Math.round(currentScrollLeft / itemWidth);
+                const targetIndex = Math.max(0, currentIndex - 1);
+                const targetScrollLeft = targetIndex * itemWidth;
+                
+                container.scrollTo({
+                    left: targetScrollLeft,
                     behavior: 'smooth'
                 });
-                // Update scroll buttons after scroll
-                setTimeout(() => {
-                    const { scrollLeft, scrollWidth, clientWidth } = container;
-                    const itemCount = container.children.length;
-                    const itemWidth = clientWidth - 8 + gap;
-                    
-                    // Use same simplified logic as scroll listener
-                    const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                    const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
-                    setCurrentItemIndex(clampedIndex);
-                    setCanScrollLeft(clampedIndex > 0);
-                    setCanScrollRight(clampedIndex < itemCount - 1);
-                }, 150); // Slightly longer timeout for smooth scroll completion
+                
+                // Update state immediately
+                setCurrentItemIndex(targetIndex);
+                setCanScrollLeft(targetIndex > 0);
+                setCanScrollRight(targetIndex < container.children.length - 1);
             }
             return;
         }
@@ -1127,24 +1126,23 @@ const VoucherType = ({
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
                 const gap = 16; // Gap between items
-                const scrollAmount = container.clientWidth - 8 + gap; // Item width + gap
-                container.scrollBy({
-                    left: scrollAmount,
+                const itemWidth = container.clientWidth - 8 + gap; // Item width + gap
+                
+                // Calculate target scroll position for next item
+                const currentScrollLeft = container.scrollLeft;
+                const currentIndex = Math.round(currentScrollLeft / itemWidth);
+                const targetIndex = Math.min(container.children.length - 1, currentIndex + 1);
+                const targetScrollLeft = targetIndex * itemWidth;
+                
+                container.scrollTo({
+                    left: targetScrollLeft,
                     behavior: 'smooth'
                 });
-                // Update scroll buttons after scroll
-                setTimeout(() => {
-                    const { scrollLeft, scrollWidth, clientWidth } = container;
-                    const itemCount = container.children.length;
-                    const itemWidth = clientWidth - 8 + gap;
-                    
-                    // Use same simplified logic as scroll listener
-                    const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                    const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
-                    setCurrentItemIndex(clampedIndex);
-                    setCanScrollLeft(clampedIndex > 0);
-                    setCanScrollRight(clampedIndex < itemCount - 1);
-                }, 150); // Slightly longer timeout for smooth scroll completion
+                
+                // Update state immediately
+                setCurrentItemIndex(targetIndex);
+                setCanScrollLeft(targetIndex > 0);
+                setCanScrollRight(targetIndex < container.children.length - 1);
             }
             return;
         }
@@ -1654,10 +1652,15 @@ const VoucherType = ({
                                                                 if (container) {
                                                                     const gap = 16;
                                                                     const itemWidth = container.clientWidth - 8 + gap;
+                                                                    const targetScrollLeft = i * itemWidth;
                                                                     container.scrollTo({
-                                                                        left: i * itemWidth,
+                                                                        left: targetScrollLeft,
                                                                         behavior: 'smooth'
                                                                     });
+                                                                    // Update state immediately
+                                                                    setCurrentItemIndex(i);
+                                                                    setCanScrollLeft(i > 0);
+                                                                    setCanScrollRight(i < container.children.length - 1);
                                                                 }
                                                             }}
                                                         />
@@ -1836,10 +1839,15 @@ const VoucherType = ({
                                                                 if (container) {
                                                                     const gap = 16;
                                                                     const itemWidth = container.clientWidth - 8 + gap;
+                                                                    const targetScrollLeft = i * itemWidth;
                                                                     container.scrollTo({
-                                                                        left: i * itemWidth,
+                                                                        left: targetScrollLeft,
                                                                         behavior: 'smooth'
                                                                     });
+                                                                    // Update state immediately
+                                                                    setCurrentItemIndex(i);
+                                                                    setCanScrollLeft(i > 0);
+                                                                    setCanScrollRight(i < container.children.length - 1);
                                                                 }
                                                             }}
                                                         />
