@@ -232,6 +232,21 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     const filteredQuestions = getFilteredQuestions();
     console.log('Filtered questions for journey type:', getCurrentJourneyType(), ':', filteredQuestions);
 
+    // Expose required keys to parent state so global summary can validate dynamically
+    useEffect(() => {
+        try {
+            const requiredKeys = filteredQuestions
+                .filter(q => q.is_required)
+                .map(q => `question_${q.id}`);
+            setAdditionalInfo(prev => ({
+                ...(prev || {}),
+                __requiredKeys: requiredKeys
+            }));
+        } catch (e) {
+            console.warn('Failed to set required keys for Additional Information', e);
+        }
+    }, [JSON.stringify(filteredQuestions)]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 

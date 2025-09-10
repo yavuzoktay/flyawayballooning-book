@@ -193,34 +193,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     console.log("additionalInfo:", additionalInfo);
     // Helper to check additionalInfo - only valid if actually filled
     const isAdditionalInfoValid = (info) => {
-      if (!info || typeof info !== 'object') {
-        console.log('✅ additionalInfo is empty/null - not valid:', info);
-        return false; // Empty is not valid
+      if (!info || typeof info !== 'object') return false;
+      const requiredKeys = Array.isArray(info.__requiredKeys) ? info.__requiredKeys : [];
+      if (requiredKeys.length > 0) {
+        return requiredKeys.every((k) => {
+          const v = info[k];
+          return typeof v === 'string' ? v.trim() !== '' : !!v;
+        });
       }
-      
-      // Check if any field has actual content
-      const hasFilledValue = Object.values(info).some(val => {
-        if (typeof val === 'string') {
-          const trimmed = val.trim();
-          return trimmed !== '';
-        }
-        if (typeof val === 'object' && val !== null) {
-          return Object.values(val).some(
-            v => typeof v === 'string' ? v.trim() !== '' : !!v
-          );
-        }
-        return !!val;
-      });
-      
-      console.log('🎯 additionalInfo validation:', { 
-        info, 
-        hasFilledValue,
-        values: Object.values(info),
-        keys: Object.keys(info),
-        note: 'Additional info is only valid if actually filled'
-      });
-      
-      return hasFilledValue; // Only valid if there's actual content
+      // Fallback to any filled value (for flows without required questions)
+      return Object.entries(info).some(([k, v]) => k !== '__requiredKeys' && (typeof v === 'string' ? v.trim() !== '' : !!v));
     };
 
     // Book button enable logic:
@@ -381,7 +363,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedVoucherType &&
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
-            // additionalInfo is optional for Book Flight
+            // Enforce Additional Information required fields dynamically
+            isAdditionalInfoValid(additionalInfo) &&
             selectedDate &&
             selectedTime
         );
