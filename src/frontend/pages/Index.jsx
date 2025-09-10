@@ -172,6 +172,7 @@ const Index = () => {
     // Passenger Terms (for Passenger Information) modal state
     const [passengerTermsModalOpen, setPassengerTermsModalOpen] = React.useState(false);
     const [passengerTermsContent, setPassengerTermsContent] = React.useState('');
+    const [passengerTermsContentCache, setPassengerTermsContentCache] = React.useState('');
     const [passengerTermsShownForJourney, setPassengerTermsShownForJourney] = React.useState('');
 
     // Map local activity labels to admin journey labels
@@ -189,11 +190,19 @@ const Index = () => {
         }
     };
 
-    const fetchPassengerTermsForJourney = async (journeyLabelRaw) => {
+    const fetchPassengerTermsForJourney = async (journeyLabelRaw, { openModal = true, preferCache = true } = {}) => {
         try {
             const journeyLabel = mapJourneyLabel(journeyLabelRaw);
             if (!journeyLabel) return;
-            // Always fetch on completion so the popup appears right when all fields are valid
+            // If we already have cached content and preferCache, use it
+            if (preferCache && passengerTermsContentCache) {
+                if (openModal) {
+                    setPassengerTermsContent(passengerTermsContentCache);
+                    setPassengerTermsModalOpen(true);
+                    setPassengerTermsShownForJourney(journeyLabel);
+                }
+                return;
+            }
             const url = `${API_BASE_URL}/api/passenger-terms/journey/${encodeURIComponent(journeyLabel)}`;
             console.log('🔎 Fetching Passenger Terms for journey:', journeyLabel, 'URL:', url);
             let combined = '';
@@ -240,9 +249,13 @@ const Index = () => {
             }
 
             if (combined) {
-                setPassengerTermsContent(combined);
-                setPassengerTermsModalOpen(true);
-                setPassengerTermsShownForJourney(journeyLabel);
+                // Always populate cache
+                setPassengerTermsContentCache(combined);
+                if (openModal) {
+                    setPassengerTermsContent(combined);
+                    setPassengerTermsModalOpen(true);
+                    setPassengerTermsShownForJourney(journeyLabel);
+                }
             } else {
                 console.log('ℹ️ No passenger terms content to show for', journeyLabel);
             }
@@ -586,6 +599,10 @@ const Index = () => {
     const handleSetActiveAccordion = (sectionId) => {
         if (activitySelect === null) {
             return; // Eğer aktivite seçilmediyse, hiçbir şey yapma
+        }
+        // Prefetch passenger terms when Passenger Information is opened so modal can show instantly
+        if (sectionId === 'passenger-info') {
+            fetchPassengerTermsForJourney(activitySelect, { openModal: false, preferCache: false });
         }
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
