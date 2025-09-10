@@ -529,10 +529,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         }}>
                             {format(dateCopy, 'd')}
                         </div>
-                        {isAvailable && !isPastDate && (
+                        {isAvailable && !isPastDate && !isMobile && (
                             <div style={{ 
-                                fontSize: isMobile ? 9 : 11, 
-                                marginTop: isMobile ? 2 : 4, 
+                                fontSize: 11, 
+                                marginTop: 4, 
                                 fontWeight: 500,
                                 lineHeight: 1,
                                 textAlign: 'center'
