@@ -38,12 +38,95 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef(null);
   
+  // Mobile carousel state for multiple passengers
+  const [currentPassengerIndex, setCurrentPassengerIndex] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  // Mobile carousel navigation functions
+  const handlePrevPassenger = () => {
+    if (currentPassengerIndex > 0) {
+      const newIndex = currentPassengerIndex - 1;
+      setCurrentPassengerIndex(newIndex);
+      setCanScrollLeft(newIndex > 0);
+      setCanScrollRight(newIndex < passengerCount - 1);
+      
+      // Scroll to the passenger
+      const container = document.querySelector('.passenger-cards-container');
+      if (container) {
+        const gap = 16;
+        const itemWidth = container.clientWidth - 8 + gap;
+        const targetScrollLeft = newIndex * itemWidth;
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  const handleNextPassenger = () => {
+    if (currentPassengerIndex < passengerCount - 1) {
+      const newIndex = currentPassengerIndex + 1;
+      setCurrentPassengerIndex(newIndex);
+      setCanScrollLeft(newIndex > 0);
+      setCanScrollRight(newIndex < passengerCount - 1);
+      
+      // Scroll to the passenger
+      const container = document.querySelector('.passenger-cards-container');
+      if (container) {
+        const gap = 16;
+        const itemWidth = container.clientWidth - 8 + gap;
+        const targetScrollLeft = newIndex * itemWidth;
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  // Update navigation buttons when passenger count changes
+  useEffect(() => {
+    if (isMobile && passengerCount > 1) {
+      setCanScrollLeft(currentPassengerIndex > 0);
+      setCanScrollRight(currentPassengerIndex < passengerCount - 1);
+    }
+  }, [passengerCount, currentPassengerIndex, isMobile]);
+
+  // Track scroll position for mobile carousel
+  useEffect(() => {
+    if (!isMobile || passengerCount <= 1) return;
+
+    const container = document.querySelector('.passenger-cards-container');
+    if (!container) return;
+
+    const updateScrollButtons = () => {
+      const { scrollLeft, clientWidth } = container;
+      const gap = 16;
+      const itemWidth = clientWidth - 8 + gap;
+      
+      const newCurrentIndex = Math.round(scrollLeft / itemWidth);
+      const clampedIndex = Math.max(0, Math.min(newCurrentIndex, passengerCount - 1));
+      setCurrentPassengerIndex(clampedIndex);
+      setCanScrollLeft(clampedIndex > 0);
+      setCanScrollRight(clampedIndex < passengerCount - 1);
+    };
+
+    updateScrollButtons();
+    container.addEventListener('scroll', updateScrollButtons);
+    
+    return () => {
+      container.removeEventListener('scroll', updateScrollButtons);
+    };
+  }, [isMobile, passengerCount]);
   
   // Add console logs to debug
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);
@@ -337,29 +420,92 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           </div>
         )}
         
-        {/* When multiple passengers, show quick navigator chips */}
-        {passengerCount > 1 && null}
+        {/* Mobile carousel for multiple passengers */}
+        {isMobile && passengerCount > 1 ? (
+          <div style={{ position: 'relative' }}>
+            {/* Navigation Arrows */}
+            <div style={{ position: 'relative' }}>
+              {/* Left Arrow */}
+              {canScrollLeft && (
+                <div style={{ 
+                  position: 'absolute', 
+                  left: 10, 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  zIndex: 10,
+                  background: 'rgba(255,255,255,0.9)',
+                  borderRadius: '50%',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  border: '1px solid #ddd',
+                  transition: 'all 0.2s ease'
+                }} onClick={handlePrevPassenger}>
+                  <span style={{ fontSize: '18px', color: '#666' }}>‹</span>
+                </div>
+              )}
 
-        {/* Generate passenger forms based on passenger count */}
-        {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
-        {[...Array(passengerCount)].map((_, index) => {
+              {/* Right Arrow */}
+              {canScrollRight && (
+                <div style={{ 
+                  position: 'absolute', 
+                  right: 10, 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  zIndex: 10,
+                  background: 'rgba(255,255,255,0.9)',
+                  borderRadius: '50%',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  border: '1px solid #ddd',
+                  transition: 'all 0.2s ease'
+                }} onClick={handleNextPassenger}>
+                  <span style={{ fontSize: '18px', color: '#666' }}>›</span>
+                </div>
+              )}
+
+              {/* Passenger Cards Container */}
+              <div className="passenger-cards-container" style={{ 
+                display: 'flex', 
+                flexDirection: 'row', 
+                gap: '16px', 
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                width: '100%',
+                overflowX: 'auto',
+                paddingBottom: '10px',
+                scrollBehavior: 'smooth',
+                scrollSnapType: 'x mandatory',
+                scrollPadding: '0 8px'
+              }}>
+                {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
           const error = validationErrors[index] || {};
           console.log(`Rendering passenger ${index + 1}, data:`, passenger);
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
-              marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '20px' : '20px'), 
-              padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? '20px' : '15px'), 
-              border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
-              borderRadius: isMobile ? '20px' : '8px', 
-              background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
-              boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)') : 'none',
-              width: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
-              minWidth: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
-              flexShrink: isMobile ? 0 : (isMultiPassenger ? 0 : 1),
+              marginBottom: 0, 
+              padding: activitySelect === 'Buy Gift' ? '12px' : '20px', 
+              border: '1px solid #e5e7eb', 
+              borderRadius: '20px', 
+              background: '#ffffff',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+              width: 'calc(100% - 8px)',
+              minWidth: 'calc(100% - 8px)',
+              maxWidth: 'calc(100% - 8px)',
+              flexShrink: 0,
               position: 'relative',
               zIndex: 1,
-              borderTop: isMobile && index > 0 ? '4px solid #3b82f6' : 'none'
+              scrollSnapAlign: 'start'
             }}>
               <div className="presnger_one" style={{ 
                 marginBottom: index === 0 ? '8px' : '6px', 
@@ -722,6 +868,340 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             </div>
           );
         })}
+              </div>
+
+              {/* Pagination Dots */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '20px',
+                position: 'absolute',
+                bottom: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)'
+              }}>
+                {[...Array(passengerCount)].map((_, i) => {
+                  const isActive = i === currentPassengerIndex;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: isActive ? '#03a9f4' : '#ddd',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        const container = document.querySelector('.passenger-cards-container');
+                        if (container) {
+                          const gap = 16;
+                          const itemWidth = container.clientWidth - 8 + gap;
+                          const targetScrollLeft = i * itemWidth;
+                          container.scrollTo({
+                            left: targetScrollLeft,
+                            behavior: 'smooth'
+                          });
+                          setCurrentPassengerIndex(i);
+                          setCanScrollLeft(i > 0);
+                          setCanScrollRight(i < passengerCount - 1);
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Desktop: Regular vertical layout */
+          <>
+            {/* When multiple passengers, show quick navigator chips */}
+            {passengerCount > 1 && null}
+
+            {/* Generate passenger forms based on passenger count */}
+            {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
+            {[...Array(passengerCount)].map((_, index) => {
+              const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
+              const error = validationErrors[index] || {};
+              console.log(`Rendering passenger ${index + 1}, data:`, passenger);
+              return (
+                <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
+                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '20px' : '20px'), 
+                  padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? '20px' : '15px'), 
+                  border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
+                  borderRadius: isMobile ? '20px' : '8px', 
+                  background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
+                  boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)') : 'none',
+                  width: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
+                  minWidth: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
+                  flexShrink: isMobile ? 0 : (isMultiPassenger ? 0 : 1),
+                  position: 'relative',
+                  zIndex: 1,
+                  borderTop: isMobile && index > 0 ? '4px solid #3b82f6' : 'none'
+                }}>
+                  <div className="presnger_one" style={{ 
+                    marginBottom: index === 0 ? '8px' : '6px', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '12px' : '0'
+                  }}>
+                    <div className="presnger-tag">
+                      <h3 style={{ 
+                        margin: '0', 
+                        lineHeight: 1,
+                        fontSize: isMobile ? '16px' : '16px',
+                        fontWeight: isMobile ? '500' : '500',
+                        color: isMobile ? '#1f2937' : 'inherit',
+                        textAlign: isMobile ? 'center' : 'left',
+                        width: isMobile ? '100%' : 'auto'
+                      }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
+                    </div>
+                    {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
+                    {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (
+                    <div className="final_pax-label-wrap" style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      width: isMobile ? '100%' : 'auto',
+                      justifyContent: isMobile ? 'center' : 'flex-end'
+                    }}>
+                      <label style={{ 
+                        fontSize: isMobile ? '14px' : '13px',
+                        fontWeight: isMobile ? '500' : '500',
+                        color: isMobile ? '#374151' : 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        margin: 0
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={passenger.weatherRefund || false}
+                          onChange={() => handleWeatherRefundChange(index)}
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            accentColor: '#3b82f6',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        Weather Refundable
+                      </label>
+                    </div>
+                    )}
+                  </div>
+
+                  <div className="form-presnger" style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: isMobile ? '16px' : '12px',
+                    width: '100%'
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ 
+                            fontSize: isMobile ? '14px' : '13px',
+                            fontWeight: isMobile ? '500' : '500',
+                            color: isMobile ? '#374151' : 'inherit',
+                            marginBottom: '6px',
+                            display: 'block'
+                          }}>First Name*</label>
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={passenger.firstName || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="First Name"
+                            style={{
+                              ...(error?.firstName ? { border: '1.5px solid red' } : {}),
+                              ...(isMobile ? {
+                                fontSize: '16px',
+                                padding: '12px 16px',
+                                minHeight: '48px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '500',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                transition: 'all 0.2s ease'
+                              } : {})
+                            }}
+                          />
+                          {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
+                        </div>
+
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ 
+                            fontSize: isMobile ? '14px' : '13px',
+                            fontWeight: isMobile ? '500' : '500',
+                            color: isMobile ? '#374151' : 'inherit',
+                            marginBottom: '6px',
+                            display: 'block'
+                          }}>Last Name*</label>
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={passenger.lastName || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="Last Name"
+                            style={{
+                              ...(error?.lastName ? { border: '1.5px solid red' } : {}),
+                              ...(isMobile ? {
+                                fontSize: '16px',
+                                padding: '12px 16px',
+                                minHeight: '48px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '500',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                transition: 'all 0.2s ease'
+                              } : {})
+                            }}
+                          />
+                          {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ 
+                            fontSize: isMobile ? '14px' : '13px',
+                            fontWeight: isMobile ? '500' : '500',
+                            color: isMobile ? '#374151' : 'inherit',
+                            marginBottom: '6px',
+                            display: 'block'
+                          }}>Weight (Kg) *</label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              type="number"
+                              name="weight"
+                              value={passenger.weight || ''}
+                              onChange={(e) => handlePassengerInputChange(index, e)}
+                              placeholder="Max 18 Stone / 114Kg"
+                              style={{
+                                ...(error?.weight ? { border: '1.5px solid red' } : {}),
+                                ...(isMobile ? {
+                                  fontSize: '16px',
+                                  padding: '12px 16px',
+                                  minHeight: '48px',
+                                  border: '2px solid #d1d5db',
+                                  borderRadius: '8px',
+                                  backgroundColor: '#ffffff',
+                                  color: '#374151',
+                                  fontWeight: '500',
+                                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                  transition: 'all 0.2s ease',
+                                  width: '100%'
+                                } : {})
+                              }}
+                            />
+                            <BsInfoCircle 
+                              data-tooltip-id={`weight-tooltip-${index}`}
+                              style={{ 
+                                position: 'absolute', 
+                                right: '12px', 
+                                color: '#3b82f6', 
+                                cursor: 'pointer',
+                                fontSize: '16px'
+                              }} 
+                            />
+                            <ReactTooltip 
+                              id={`weight-tooltip-${index}`}
+                              place="top"
+                              content="Approximate weights are fine - this helps us with flight planning and safety"
+                            />
+                          </div>
+                          {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
+                        </div>
+
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ 
+                            fontSize: isMobile ? '14px' : '13px',
+                            fontWeight: isMobile ? '500' : '500',
+                            color: isMobile ? '#374151' : 'inherit',
+                            marginBottom: '6px',
+                            display: 'block'
+                          }}>Mobile Number*</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={passenger.phone || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="Mobile Number"
+                            style={{
+                              ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                              ...(isMobile ? {
+                                fontSize: '16px',
+                                padding: '12px 16px',
+                                minHeight: '48px',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '500',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                transition: 'all 0.2s ease'
+                              } : {})
+                            }}
+                          />
+                          {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email field - only show for non-Buy Gift or when not Any Day Flight */}
+                    {!(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ 
+                          fontSize: isMobile ? '14px' : '13px',
+                          fontWeight: isMobile ? '500' : '500',
+                          color: isMobile ? '#374151' : 'inherit',
+                          marginBottom: '6px',
+                          display: 'block'
+                        }}>Email*</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={passenger.email || ''}
+                          onChange={(e) => handlePassengerInputChange(index, e)}
+                          placeholder="Email"
+                          style={{
+                            ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
+                            ...(isMobile ? {
+                              fontSize: '16px',
+                              padding: '12px 16px',
+                              minHeight: '48px',
+                              border: '2px solid #d1d5db',
+                              borderRadius: '8px',
+                              backgroundColor: '#ffffff',
+                              color: '#374151',
+                              fontWeight: '500',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              transition: 'all 0.2s ease'
+                            } : {})
+                          }}
+                        />
+                        {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
+                        {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
     </Accordion>
   );
