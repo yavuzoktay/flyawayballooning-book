@@ -84,7 +84,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     }, [activitySelect]);
 
     const selectActivityData = [
-        { value: 0, label: "Book Flight", subText: "" },
+        { value: 0, label: "Book Flight", displayLabel: "Book Flight Date", subText: "" },
         { value: 1, label: "Flight Voucher", subText: "" },
         { value: 3, label: "Buy Gift", subText: "" },
         { value: 2, label: "Redeem Voucher", subText: "" }
@@ -271,7 +271,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                             </div>
                                         </div>
                                         <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                            {item.label}
+                                            {item.displayLabel || item.label}
                                             <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                                 <BsInfoCircle size={14} color="#0070f3" />
                                                 <div className="hover-text">
@@ -347,11 +347,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 </div>
                             </div>
                             <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                {item.label}
+                                {item.displayLabel || item.label}
                                 <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                     <BsInfoCircle size={14} color="#0070f3" />
                                     <div className="hover-text">
-                                        {item.label === 'Book Flight' ? 'Pick a date, live availability' : item.label === 'Flight Voucher' ? 'Choose date and location later' : item.label === 'Buy Gift' ? 'Valid in any location' : 'Redeem your code'}
+                                        {(item.label === 'Book Flight' ? 'Pick a date, live availability' : item.label === 'Flight Voucher' ? 'Choose date and location later' : item.label === 'Buy Gift' ? 'Valid in any location' : 'Redeem your code')}
                                     </div>
                                 </span>
                             </h3>
