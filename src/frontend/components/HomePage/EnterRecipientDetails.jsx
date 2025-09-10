@@ -184,7 +184,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                 )}
 
                 <form onSubmit={(e) => e.preventDefault()}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <label>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                         <div className="info-icon-container recipient-tooltip">
                             <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
@@ -193,7 +193,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             </div>
                         </div>
                     </div>
-                    <br />
+                    {/* Reduced spacing to match other fields */}
                     <input
                         type="text"
                         name="name"
