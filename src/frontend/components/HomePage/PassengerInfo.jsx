@@ -257,14 +257,18 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     validate: validateFields
   }));
 
-  // Auto-trigger section completion when all fields are valid
+  // Auto-trigger section completion when all fields are valid (fire once per validity session)
+  const completionFiredRef = useRef(false);
   useEffect(() => {
-    if (passengerData.length > 0 && onSectionCompletion) {
-      const isValid = validateFields();
-      if (isValid) {
-        console.log('✅ All passenger fields valid, triggering section completion');
-        onSectionCompletion('passenger-info');
-      }
+    if (!onSectionCompletion || passengerData.length === 0) return;
+    const isValid = validateFields();
+    if (isValid && !completionFiredRef.current) {
+      completionFiredRef.current = true;
+      console.log('✅ All passenger fields valid, triggering section completion');
+      onSectionCompletion('passenger-info');
+    }
+    if (!isValid) {
+      completionFiredRef.current = false;
     }
   }, [passengerData, onSectionCompletion]);
 

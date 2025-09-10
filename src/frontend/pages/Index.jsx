@@ -193,10 +193,7 @@ const Index = () => {
         try {
             const journeyLabel = mapJourneyLabel(journeyLabelRaw);
             if (!journeyLabel) return;
-            if (passengerTermsShownForJourney === journeyLabel) {
-                console.log('ℹ️ Passenger terms already shown for', journeyLabel);
-                return;
-            }
+            // Always fetch on completion so the popup appears right when all fields are valid
             const url = `${API_BASE_URL}/api/passenger-terms/journey/${encodeURIComponent(journeyLabel)}`;
             console.log('🔎 Fetching Passenger Terms for journey:', journeyLabel, 'URL:', url);
             let combined = '';
