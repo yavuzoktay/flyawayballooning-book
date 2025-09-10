@@ -494,36 +494,36 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
               marginBottom: 0, 
-              padding: activitySelect === 'Buy Gift' ? '12px' : '20px', 
+              padding: activitySelect === 'Buy Gift' ? '16px' : '20px', 
               border: '1px solid #e5e7eb', 
-              borderRadius: '20px', 
+              borderRadius: '16px', 
               background: '#ffffff',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-              width: 'calc(100% - 8px)',
-              minWidth: 'calc(100% - 8px)',
-              maxWidth: 'calc(100% - 8px)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              width: 'calc(100% - 32px)',
+              minWidth: 'calc(100% - 32px)',
+              maxWidth: 'calc(100% - 32px)',
               flexShrink: 0,
               position: 'relative',
               zIndex: 1,
               scrollSnapAlign: 'start'
             }}>
               <div className="presnger_one" style={{ 
-                marginBottom: index === 0 ? '8px' : '6px', 
+                marginBottom: '16px', 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '12px' : '0'
+                flexDirection: 'column',
+                gap: '12px'
               }}>
                 <div className="presnger-tag">
                   <h3 style={{ 
                     margin: '0', 
-                    lineHeight: 1,
-                    fontSize: isMobile ? '16px' : '16px',
-                    fontWeight: isMobile ? '500' : '500',
-                    color: isMobile ? '#1f2937' : 'inherit',
-                    textAlign: isMobile ? 'center' : 'left',
-                    width: isMobile ? '100%' : 'auto'
+                    lineHeight: 1.2,
+                    fontSize: '15px',
+                    fontWeight: '500',
+                    color: '#1f2937',
+                    textAlign: 'center',
+                    width: '100%'
                   }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
                 </div>
                 {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
@@ -964,23 +964,23 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     </div>
                     {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
                     {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (
-                    <div className="final_pax-label-wrap" style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '10px',
-                      width: isMobile ? '100%' : 'auto',
-                      justifyContent: isMobile ? 'center' : 'flex-end'
-                    }}>
-                      <label style={{ 
-                        fontSize: isMobile ? '14px' : '13px',
-                        fontWeight: isMobile ? '500' : '500',
-                        color: isMobile ? '#374151' : 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        margin: 0
-                      }}>
+                <div className="final_pax-label-wrap" style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  width: '100%',
+                  justifyContent: 'center'
+                }}>
+                  <label style={{ 
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    margin: 0
+                  }}>
                         <input
                           type="checkbox"
                           checked={passenger.weatherRefund || false}
@@ -1001,17 +1001,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   <div className="form-presnger" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    gap: isMobile ? '16px' : '12px',
+                    gap: '16px',
                     width: '100%'
                   }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px' }}>
-                      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
-                            fontSize: isMobile ? '14px' : '13px',
-                            fontWeight: isMobile ? '500' : '500',
-                            color: isMobile ? '#374151' : 'inherit',
-                            marginBottom: '6px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
                             display: 'block'
                           }}>First Name*</label>
                           <input
@@ -1023,15 +1023,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             style={{
                               ...(error?.firstName ? { border: '1.5px solid red' } : {}),
                               ...(isMobile ? {
-                                fontSize: '16px',
-                                padding: '12px 16px',
-                                minHeight: '48px',
-                                border: '2px solid #d1d5db',
-                                borderRadius: '8px',
+                                fontSize: '14px',
+                                padding: '10px 12px',
+                                minHeight: '40px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
                                 backgroundColor: '#ffffff',
                                 color: '#374151',
-                                fontWeight: '500',
-                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
                               } : {})
                             }}
@@ -1039,12 +1039,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                         </div>
 
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
-                            fontSize: isMobile ? '14px' : '13px',
-                            fontWeight: isMobile ? '500' : '500',
-                            color: isMobile ? '#374151' : 'inherit',
-                            marginBottom: '6px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
                             display: 'block'
                           }}>Last Name*</label>
                           <input
@@ -1056,15 +1056,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             style={{
                               ...(error?.lastName ? { border: '1.5px solid red' } : {}),
                               ...(isMobile ? {
-                                fontSize: '16px',
-                                padding: '12px 16px',
-                                minHeight: '48px',
-                                border: '2px solid #d1d5db',
-                                borderRadius: '8px',
+                                fontSize: '14px',
+                                padding: '10px 12px',
+                                minHeight: '40px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
                                 backgroundColor: '#ffffff',
                                 color: '#374151',
-                                fontWeight: '500',
-                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
                               } : {})
                             }}
@@ -1074,12 +1074,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
-                            fontSize: isMobile ? '14px' : '13px',
-                            fontWeight: isMobile ? '500' : '500',
-                            color: isMobile ? '#374151' : 'inherit',
-                            marginBottom: '6px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
                             display: 'block'
                           }}>Weight (Kg) *</label>
                           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -1125,12 +1125,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                         </div>
 
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
-                            fontSize: isMobile ? '14px' : '13px',
-                            fontWeight: isMobile ? '500' : '500',
-                            color: isMobile ? '#374151' : 'inherit',
-                            marginBottom: '6px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
                             display: 'block'
                           }}>Mobile Number*</label>
                           <input
@@ -1142,15 +1142,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             style={{
                               ...(error?.phone ? { border: '1.5px solid red' } : {}),
                               ...(isMobile ? {
-                                fontSize: '16px',
-                                padding: '12px 16px',
-                                minHeight: '48px',
-                                border: '2px solid #d1d5db',
-                                borderRadius: '8px',
+                                fontSize: '14px',
+                                padding: '10px 12px',
+                                minHeight: '40px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
                                 backgroundColor: '#ffffff',
                                 color: '#374151',
-                                fontWeight: '500',
-                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
                               } : {})
                             }}
