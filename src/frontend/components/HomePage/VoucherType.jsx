@@ -200,19 +200,20 @@ const VoucherType = ({
             
             // For mobile: more precise button visibility control
             if (isMobile) {
-                // Hide prev button when at the very beginning
-                setCanScrollLeft(scrollLeft > 0);
-                
-                // Hide next button when at the very end - more precise calculation
-                // Since each item is 100% width, we can calculate exact end position
                 const itemCount = container.children.length;
-                const itemWidth = clientWidth; // Each item is 100% width
-                const maxScrollLeft = (itemCount - 1) * itemWidth;
+                const gap = 16; // Gap between items
+                const itemWidth = clientWidth + gap; // Each item width including gap
                 
-                // More precise end detection - check if we're at the last item
+                // Calculate current item index more accurately
                 const currentItemIndex = Math.round(scrollLeft / itemWidth);
+                
+                // Hide prev button when at the very beginning
+                setCanScrollLeft(scrollLeft > 5); // Small tolerance for better UX
+                
+                // Hide next button when at the last item
                 const isAtLastItem = currentItemIndex >= itemCount - 1;
-                const isAtEnd = scrollLeft >= maxScrollLeft - 2 || isAtLastItem; // 2px tolerance for better detection
+                const maxScrollLeft = (itemCount - 1) * itemWidth;
+                const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem; // 5px tolerance
                 setCanScrollRight(!isAtEnd);
                 
                 console.log('Mobile scroll debug:', {
@@ -1043,8 +1044,8 @@ const VoucherType = ({
         if (isMobile) {
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
-                // Since each item is now 100% width with gap, scroll by full container width
-                const scrollAmount = container.clientWidth + 16; // Account for gap
+                const gap = 16; // Gap between items
+                const scrollAmount = container.clientWidth + gap; // Account for gap
                 container.scrollBy({
                     left: -scrollAmount,
                     behavior: 'smooth'
@@ -1052,18 +1053,18 @@ const VoucherType = ({
                 // Update scroll buttons after scroll
                 setTimeout(() => {
                     const { scrollLeft, scrollWidth, clientWidth } = container;
-                    // Mobile-specific button visibility control
-                    setCanScrollLeft(scrollLeft > 0);
-                    
-                    // More precise end detection for mobile
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth + 16; // Account for gap
-                    const maxScrollLeft = (itemCount - 1) * itemWidth;
+                    const itemWidth = clientWidth + gap;
+                    
+                    // Use same logic as scroll listener
                     const currentItemIndex = Math.round(scrollLeft / itemWidth);
+                    setCanScrollLeft(scrollLeft > 5);
+                    
                     const isAtLastItem = currentItemIndex >= itemCount - 1;
-                    const isAtEnd = scrollLeft >= maxScrollLeft - 2 || isAtLastItem;
+                    const maxScrollLeft = (itemCount - 1) * itemWidth;
+                    const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem;
                     setCanScrollRight(!isAtEnd);
-                }, 100);
+                }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
         }
@@ -1125,8 +1126,8 @@ const VoucherType = ({
         if (isMobile) {
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
-                // Since each item is now 100% width with gap, scroll by full container width
-                const scrollAmount = container.clientWidth + 16; // Account for gap
+                const gap = 16; // Gap between items
+                const scrollAmount = container.clientWidth + gap; // Account for gap
                 container.scrollBy({
                     left: scrollAmount,
                     behavior: 'smooth'
@@ -1134,18 +1135,18 @@ const VoucherType = ({
                 // Update scroll buttons after scroll
                 setTimeout(() => {
                     const { scrollLeft, scrollWidth, clientWidth } = container;
-                    // Mobile-specific button visibility control
-                    setCanScrollLeft(scrollLeft > 0);
-                    
-                    // More precise end detection for mobile
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth + 16; // Account for gap
-                    const maxScrollLeft = (itemCount - 1) * itemWidth;
+                    const itemWidth = clientWidth + gap;
+                    
+                    // Use same logic as scroll listener
                     const currentItemIndex = Math.round(scrollLeft / itemWidth);
+                    setCanScrollLeft(scrollLeft > 5);
+                    
                     const isAtLastItem = currentItemIndex >= itemCount - 1;
-                    const isAtEnd = scrollLeft >= maxScrollLeft - 2 || isAtLastItem;
+                    const maxScrollLeft = (itemCount - 1) * itemWidth;
+                    const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem;
                     setCanScrollRight(!isAtEnd);
-                }, 100);
+                }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
         }
