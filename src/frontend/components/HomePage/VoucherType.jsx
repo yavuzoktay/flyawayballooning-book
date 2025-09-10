@@ -179,6 +179,7 @@ const VoucherType = ({
     const [scrollPosition, setScrollPosition] = useState(0);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
+    const [currentItemIndex, setCurrentItemIndex] = useState(0);
     
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 576);
@@ -205,16 +206,14 @@ const VoucherType = ({
                 const itemWidth = clientWidth + gap; // Each item width including gap
                 
                 // Calculate current item index more accurately
-                const currentItemIndex = Math.round(scrollLeft / itemWidth);
+                const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
+                setCurrentItemIndex(newCurrentItemIndex);
                 
-                // Hide prev button when at the very beginning
-                setCanScrollLeft(scrollLeft > 5); // Small tolerance for better UX
+                // Hide prev button when at the very beginning (first item)
+                setCanScrollLeft(newCurrentItemIndex > 0);
                 
                 // Hide next button when at the last item
-                const isAtLastItem = currentItemIndex >= itemCount - 1;
-                const maxScrollLeft = (itemCount - 1) * itemWidth;
-                const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem; // 5px tolerance
-                setCanScrollRight(!isAtEnd);
+                setCanScrollRight(newCurrentItemIndex < itemCount - 1);
                 
                 console.log('Mobile scroll debug:', {
                     scrollLeft,
@@ -222,11 +221,9 @@ const VoucherType = ({
                     clientWidth,
                     itemCount,
                     itemWidth,
-                    maxScrollLeft,
-                    currentItemIndex,
-                    isAtLastItem,
-                    isAtEnd,
-                    canScrollRight: !isAtEnd
+                    newCurrentItemIndex,
+                    canScrollLeft: newCurrentItemIndex > 0,
+                    canScrollRight: newCurrentItemIndex < itemCount - 1
                 });
             } else {
                 // Desktop logic remains unchanged
@@ -1056,14 +1053,11 @@ const VoucherType = ({
                     const itemCount = container.children.length;
                     const itemWidth = clientWidth + gap;
                     
-                    // Use same logic as scroll listener
-                    const currentItemIndex = Math.round(scrollLeft / itemWidth);
-                    setCanScrollLeft(scrollLeft > 5);
-                    
-                    const isAtLastItem = currentItemIndex >= itemCount - 1;
-                    const maxScrollLeft = (itemCount - 1) * itemWidth;
-                    const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem;
-                    setCanScrollRight(!isAtEnd);
+                    // Use same simplified logic as scroll listener
+                    const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
+                    setCurrentItemIndex(newCurrentItemIndex);
+                    setCanScrollLeft(newCurrentItemIndex > 0);
+                    setCanScrollRight(newCurrentItemIndex < itemCount - 1);
                 }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
@@ -1138,14 +1132,11 @@ const VoucherType = ({
                     const itemCount = container.children.length;
                     const itemWidth = clientWidth + gap;
                     
-                    // Use same logic as scroll listener
-                    const currentItemIndex = Math.round(scrollLeft / itemWidth);
-                    setCanScrollLeft(scrollLeft > 5);
-                    
-                    const isAtLastItem = currentItemIndex >= itemCount - 1;
-                    const maxScrollLeft = (itemCount - 1) * itemWidth;
-                    const isAtEnd = scrollLeft >= maxScrollLeft - 5 || isAtLastItem;
-                    setCanScrollRight(!isAtEnd);
+                    // Use same simplified logic as scroll listener
+                    const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
+                    setCurrentItemIndex(newCurrentItemIndex);
+                    setCanScrollLeft(newCurrentItemIndex > 0);
+                    setCanScrollRight(newCurrentItemIndex < itemCount - 1);
                 }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
@@ -1617,8 +1608,8 @@ const VoucherType = ({
                                         ))}
                                     </div>
 
-                                    {/* Dot Navigation */}
-                                    {activeVouchers.length > 1 && (
+                                    {/* Dot Navigation - Mobile Only */}
+                                    {isMobile && activeVouchers.length > 1 && (
                                         <div style={{
                                             display: 'flex',
                                             justifyContent: 'center',
@@ -1631,64 +1622,34 @@ const VoucherType = ({
                                             transform: 'translateX(-50%)'
                                         }}>
                                             {(() => {
-                                                // Create dots based on how many voucher types we have
-                                                const totalDots = activeVouchers.length >= 4 ? 2 : activeVouchers.length;
+                                                // Create dots for each voucher item
+                                                const totalDots = activeVouchers.length;
                                                 const dots = [];
                                                 
                                                 for (let i = 0; i < totalDots; i++) {
-                                                    let isActive = false;
-                                                    
-                                                    if (activeVouchers.length >= 4) {
-                                                        // For 4+ voucher types, show 2 dots representing the two groups
-                                                        if (i === 0) {
-                                                            // First dot represents first two vouchers
-                                                            isActive = (currentViewIndex === 0);
-                                                        } else if (i === 1) {
-                                                            // Second dot represents next two vouchers
-                                                            isActive = (currentViewIndex === 2);
-                                                        }
-                                                    } else {
-                                                        // For 2-3 voucher types, show individual dots
-                                                        if (activeVouchers.length === 2) {
-                                                            // Always show both as active
-                                                            isActive = true;
-                                                        } else if (activeVouchers.length === 3) {
-                                                            // Show first dot for first two, second dot for last one
-                                                            if (i === 0) {
-                                                                isActive = (currentViewIndex === 0);
-                                                            } else {
-                                                                isActive = (currentViewIndex === 2);
-                                                            }
-                                                        }
-                                                    }
+                                                    const isActive = i === currentItemIndex;
                                                     
                                                     dots.push(
                                                         <div
                                                             key={i}
-                                                            onClick={() => {
-                                                                if (activeVouchers.length >= 4) {
-                                                                    // For 4+ voucher types, navigate between groups
-                                                                    if (i === 0) {
-                                                                        setCurrentViewIndex(0);
-                                                                    } else {
-                                                                        setCurrentViewIndex(2);
-                                                                    }
-                                                                } else if (activeVouchers.length === 3) {
-                                                                    // For 3 voucher types, navigate between first two and last one
-                                                                    if (i === 0) {
-                                                                        setCurrentViewIndex(0);
-                                                                    } else {
-                                                                        setCurrentViewIndex(2);
-                                                                    }
-                                                                }
-                                                            }}
                                                             style={{
-                                                                width: '10px',
-                                                                height: '10px',
+                                                                width: '8px',
+                                                                height: '8px',
                                                                 borderRadius: '50%',
                                                                 backgroundColor: isActive ? '#03a9f4' : '#ddd',
-                                                                cursor: 'pointer',
-                                                                transition: 'background-color 0.2s ease'
+                                                                transition: 'all 0.3s ease',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            onClick={() => {
+                                                                const container = document.querySelector('.voucher-cards-container');
+                                                                if (container) {
+                                                                    const gap = 16;
+                                                                    const itemWidth = container.clientWidth + gap;
+                                                                    container.scrollTo({
+                                                                        left: i * itemWidth,
+                                                                        behavior: 'smooth'
+                                                                    });
+                                                                }
                                                             }}
                                                         />
                                                     );
@@ -1827,8 +1788,8 @@ const VoucherType = ({
                                         ))}
                                     </div>
 
-                                    {/* Dot Navigation */}
-                                    {filteredVouchers.length > 1 && (
+                                    {/* Dot Navigation - Mobile Only */}
+                                    {isMobile && filteredVouchers.length > 1 && (
                                         <div style={{
                                             display: 'flex',
                                             justifyContent: 'center',
@@ -1841,47 +1802,34 @@ const VoucherType = ({
                                             transform: 'translateX(-50%)'
                                         }}>
                                             {(() => {
-                                                // Create dots based on how many voucher types we have
-                                                const totalDots = filteredVouchers.length >= 3 ? 2 : filteredVouchers.length;
+                                                // Create dots for each voucher item
+                                                const totalDots = filteredVouchers.length;
                                                 const dots = [];
                                                 
                                                 for (let i = 0; i < totalDots; i++) {
-                                                    let isActive = false;
-                                                    
-                                                    if (filteredVouchers.length >= 3) {
-                                                        // For 3+ voucher types, show 2 dots representing the groups
-                                                        if (i === 0) {
-                                                            // First dot represents first two vouchers
-                                                            isActive = (currentViewIndex === 0);
-                                                        } else if (i === 1) {
-                                                            // Second dot represents remaining vouchers
-                                                            isActive = (currentViewIndex > 0);
-                                                        }
-                                                    } else {
-                                                        // For 1-2 voucher types, show individual dots
-                                                        isActive = true;
-                                                    }
+                                                    const isActive = i === currentItemIndex;
                                                     
                                                     dots.push(
                                                         <div
                                                             key={i}
-                                                            onClick={() => {
-                                                                if (filteredVouchers.length >= 3) {
-                                                                    // For 3+ voucher types, navigate between groups
-                                                                    if (i === 0) {
-                                                                        setCurrentViewIndex(0);
-                                                                    } else {
-                                                                        setCurrentViewIndex(2);
-                                                                    }
-                                                                }
-                                                            }}
                                                             style={{
-                                                                width: '10px',
-                                                                height: '10px',
+                                                                width: '8px',
+                                                                height: '8px',
                                                                 borderRadius: '50%',
                                                                 backgroundColor: isActive ? '#03a9f4' : '#ddd',
-                                                                cursor: 'pointer',
-                                                                transition: 'background-color 0.2s ease'
+                                                                transition: 'all 0.3s ease',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            onClick={() => {
+                                                                const container = document.querySelector('.voucher-cards-container');
+                                                                if (container) {
+                                                                    const gap = 16;
+                                                                    const itemWidth = container.clientWidth + gap;
+                                                                    container.scrollTo({
+                                                                        left: i * itemWidth,
+                                                                        behavior: 'smooth'
+                                                                    });
+                                                                }
                                                             }}
                                                         />
                                                     );
