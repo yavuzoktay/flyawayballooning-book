@@ -322,7 +322,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       setActiveAccordion={setActiveAccordion}
     >
       <div className="tab_box presger-scroll" style={{ 
-        padding: isMobile ? '12px 16px' : '10px 20px',
+        // Make Purchaser Information (Buy Gift) more compact without affecting other steps
+        padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
@@ -519,7 +520,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 </div>
                 )}
               </div>
-              <div className="form-presnger" style={{ gap: '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
+              <div className="form-presnger" style={{ gap: activitySelect === 'Buy Gift' ? '8px' : '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
                   <div style={{ flex: 1, width: '100%' }}>
                     <label style={{
