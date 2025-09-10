@@ -938,7 +938,16 @@ const VoucherType = ({
                             <button
                                 type="button"
                                 onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
-                                style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                style={{ 
+                                    padding: isMobile ? '8px 12px' : '4px 8px', 
+                                    border: '1px solid #ddd', 
+                                    background: '#f9f9f9', 
+                                    borderRadius: 4, 
+                                    cursor: 'pointer',
+                                    fontSize: isMobile ? '18px' : '14px',
+                                    minHeight: isMobile ? '40px' : 'auto',
+                                    minWidth: isMobile ? '40px' : 'auto'
+                                }}
                             >
                                 −
                             </button>
@@ -954,12 +963,29 @@ const VoucherType = ({
                                 }
                                 value={quantities[voucher.title] || 2} 
                                 onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                style={{ width: '50px', padding: '4px 6px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, textAlign: 'center' }} 
+                                style={{ 
+                                    width: isMobile ? '60px' : '50px', 
+                                    padding: isMobile ? '8px 6px' : '4px 6px', 
+                                    border: '1px solid #ddd', 
+                                    borderRadius: 4, 
+                                    fontSize: isMobile ? 16 : 13, 
+                                    textAlign: 'center',
+                                    minHeight: isMobile ? '40px' : 'auto'
+                                }} 
                             />
                             <button
                                 type="button"
                                 onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
-                                style={{ padding: '4px 8px', border: '1px solid #ddd', background: '#f9f9f9', borderRadius: 4, cursor: 'pointer' }}
+                                style={{ 
+                                    padding: isMobile ? '8px 12px' : '4px 8px', 
+                                    border: '1px solid #ddd', 
+                                    background: '#f9f9f9', 
+                                    borderRadius: 4, 
+                                    cursor: 'pointer',
+                                    fontSize: isMobile ? '18px' : '14px',
+                                    minHeight: isMobile ? '40px' : 'auto',
+                                    minWidth: isMobile ? '40px' : 'auto'
+                                }}
                             >
                                 +
                             </button>
