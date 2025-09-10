@@ -197,7 +197,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     <input
                         type="text"
                         name="name"
-                        required={isGiftVoucher}
+                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
                         value={recipientDetails.name}
                         onChange={handleChange}
                         placeholder="Recipient Name"
@@ -210,7 +210,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     <input
                         type="email"
                         name="email"
-                        required={isGiftVoucher}
+                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
                         value={recipientDetails.email}
                         onChange={handleChange}
                         placeholder="Recipient Email"
@@ -226,7 +226,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         inputMode="numeric"
                         pattern="[0-9]*"
                         name="phone"
-                        required={isGiftVoucher}
+                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
                         value={recipientDetails.phone}
                         onChange={handleChange}
                         placeholder="Recipient Phone Number"
@@ -241,7 +241,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         name="date"
                         value={recipientDetails.date || ''}
                         onChange={handleChange}
-                        required={isGiftVoucher}
+                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
                         style={validationErrors.date ? { border: '1.5px solid red' } : {}}
                     />
                     {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}

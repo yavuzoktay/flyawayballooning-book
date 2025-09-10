@@ -151,6 +151,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             console.log('❌ recipientDetails is null/undefined or not object:', details);
             return false;
         }
+        // If user intentionally skipped entering recipient details, treat as valid
+        if (details.isSkipped) {
+            return true;
+        }
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
