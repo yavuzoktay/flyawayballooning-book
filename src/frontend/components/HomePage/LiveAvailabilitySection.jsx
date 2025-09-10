@@ -1067,6 +1067,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}
                                                     onClick={() => isSelectable && setTempSelectedTime(slot.time)}
                                                     disabled={!isSelectable}
+                                                    onMouseEnter={(e) => {
+                                                        if (!isSelectable) return;
+                                                        e.currentTarget.style.border = '2px solid #56C1FF';
+                                                        e.currentTarget.style.boxShadow = '0 0 0 2px #56C1FF';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        if (!isSelectable) return;
+                                                        if (tempSelectedTime === slot.time) {
+                                                            e.currentTarget.style.border = '2px solid #56C1FF';
+                                                            e.currentTarget.style.boxShadow = '0 0 0 2px #56C1FF';
+                                                        } else {
+                                                            e.currentTarget.style.border = '2px solid transparent';
+                                                            e.currentTarget.style.boxShadow = 'none';
+                                                        }
+                                                    }}
                                                 >
                                                 {isMobile ? (
                                                     // Mobile layout - horizontal single line
