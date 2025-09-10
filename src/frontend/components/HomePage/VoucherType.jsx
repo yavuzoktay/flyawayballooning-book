@@ -679,7 +679,8 @@ const VoucherType = ({
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
                     inclusions: features,
-                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Private charters subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
+                    // Show terms only if provided; otherwise hide
+                    weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
                     price: totalPrice, // Show total price for default passengers
                     basePrice: basePrice, // Store base price per person for calculations
                     priceUnit: priceUnit,
@@ -771,7 +772,8 @@ const VoucherType = ({
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
                     inclusions: features,
-                    weatherClause: vt.terms && vt.terms.trim() !== '' ? vt.terms : 'Shared flights subject to weather conditions. Your voucher remains valid and re-bookable within its validity period if cancelled due to weather.',
+                    // Show terms only if provided; otherwise hide
+                    weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
                     price: basePrice, // Set price to basePrice, let summary calculate total
                     basePrice: basePrice,
                     priceUnit: priceUnit,
@@ -867,13 +869,17 @@ const VoucherType = ({
 
     // Helper function to get next allowed passenger count
     const getNextAllowedPassenger = (current, direction) => {
-        const allowedPassengers = [1, 2, 3, 4, 5, 6, 7, 8];
+        // For Private Charter, only 2,3,4,8 are valid steps so the + button should jump 4 -> 8
+        const allowedPassengers = (chooseFlightType?.type === "Private Charter")
+            ? [2, 3, 4, 8]
+            : [1, 2, 3, 4, 5, 6, 7, 8];
         const currentIndex = allowedPassengers.indexOf(current);
-        
+        // If current not in array (e.g., direct input), snap to nearest valid value
+        const safeIndex = currentIndex === -1 ? 0 : currentIndex;
         if (direction === 'next') {
-            return allowedPassengers[Math.min(currentIndex + 1, allowedPassengers.length - 1)];
+            return allowedPassengers[Math.min(safeIndex + 1, allowedPassengers.length - 1)];
         } else {
-            return allowedPassengers[Math.max(currentIndex - 1, 0)];
+            return allowedPassengers[Math.max(safeIndex - 1, 0)];
         }
     };
 
@@ -923,7 +929,9 @@ const VoucherType = ({
                             <div key={i} style={{ marginBottom: 3 }}>{inclusion}</div>
                         ))}
                     </div>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
+                    {voucher.weatherClause && (
+                        <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                         <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
