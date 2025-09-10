@@ -1151,8 +1151,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 </div>
             </div>
 
-            {/* Mobile sticky summary + drawer */}
-            {isMobile && (
+            {/* Mobile sticky summary + drawer - only show after activity is selected */}
+            {isMobile && activitySelect && (
                 <>
                     <div className="summary-sticky" onClick={() => setIsDrawerOpen(true)}>
                         <div className="summary-sticky-left">
