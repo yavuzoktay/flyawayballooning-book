@@ -528,7 +528,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   <div style={{ flex: 1, width: '100%' }}>
                     <label style={{
                       fontSize: isMobile ? '14px' : '12px',
-                      fontWeight: isMobile ? '600' : '500',
+                      fontWeight: isMobile ? '500' : '500',
                       color: isMobile ? '#374151' : 'inherit',
                       marginBottom: isMobile ? '6px' : '4px',
                       display: 'block'
@@ -560,7 +560,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                   </div>
                   <div style={{ flex: 1, width: '100%' }}>
-                    <label>Last Name<span style={{ color: 'red' }}>*</span></label>
+                    <label style={{
+                      fontSize: isMobile ? '14px' : '12px',
+                      fontWeight: isMobile ? '500' : '500',
+                      color: isMobile ? '#374151' : 'inherit',
+                      marginBottom: isMobile ? '6px' : '4px',
+                      display: 'block'
+                    }}>Last Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -590,7 +596,16 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
                     <div style={{ flex: 1, width: '100%' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: isMobile ? '0' : '-10px' }}>
+                      <label style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '2px', 
+                        marginLeft: isMobile ? '0' : '-10px',
+                        fontSize: isMobile ? '14px' : '12px',
+                        fontWeight: isMobile ? '500' : '500',
+                        color: isMobile ? '#374151' : 'inherit',
+                        marginBottom: isMobile ? '6px' : '4px'
+                      }}>
                         Weight (Kg)<span style={{ color: 'red' }}>*</span>
                         <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                           <div className="info-icon-container" style={{ position: 'relative' }}>
@@ -632,7 +647,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 {index === 0 && (
                   <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
                     <div style={{ flex: 1, width: '100%' }}>
-                      <label>Mobile Number<span style={{ color: 'red' }}>*</span></label>
+                      <label style={{
+                        fontSize: isMobile ? '14px' : '12px',
+                        fontWeight: isMobile ? '500' : '500',
+                        color: isMobile ? '#374151' : 'inherit',
+                        marginBottom: isMobile ? '6px' : '4px',
+                        display: 'block'
+                      }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="tel"
                         inputMode="numeric"
@@ -662,7 +683,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                     </div>
                     <div style={{ flex: 1, width: '100%' }}>
-                      <label>Email<span style={{ color: 'red' }}>*</span></label>
+                      <label style={{
+                        fontSize: isMobile ? '14px' : '12px',
+                        fontWeight: isMobile ? '500' : '500',
+                        color: isMobile ? '#374151' : 'inherit',
+                        marginBottom: isMobile ? '6px' : '4px',
+                        display: 'block'
+                      }}>Email<span style={{ color: 'red' }}>*</span></label>
                       <input
                         type="email"
                         name="email"
