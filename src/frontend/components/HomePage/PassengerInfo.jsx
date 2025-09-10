@@ -324,6 +324,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       <div className="tab_box presger-scroll" style={{ 
         // Make Purchaser Information (Buy Gift) more compact without affecting other steps
         padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
+        paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : undefined,
+        minHeight: activitySelect === 'Buy Gift' ? 'auto' : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
@@ -345,8 +347,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           console.log(`Rendering passenger ${index + 1}, data:`, passenger);
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
-              marginBottom: isMobile ? '20px' : '20px', 
-              padding: isMobile ? '20px' : '15px', 
+              marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '20px' : '20px'), 
+              padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? '20px' : '15px'), 
               border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
               borderRadius: isMobile ? '20px' : '8px', 
               background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
