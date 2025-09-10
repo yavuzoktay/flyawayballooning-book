@@ -1044,9 +1044,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 <button
                                                     key={slot.id}
                                                     style={{
-                                                        background: tempSelectedTime === slot.time ? '#61D836' : (isSelectable ? '#03A9F4' : '#ccc'),
+                                                        background: isSelectable ? '#61D836' : '#ccc',
                                                         color: '#fff',
-                                                        border: tempSelectedTime === slot.time ? '2px solid #61D836' : 'none',
+                                                        border: tempSelectedTime === slot.time ? '2px solid #56C1FF' : '2px solid transparent',
                                                         borderRadius: isMobile ? 6 : 12,
                                                         padding: isMobile ? '6px 8px' : '16px 20px',
                                                         fontWeight: 600,
@@ -1062,7 +1062,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         position: 'relative',
                                                         boxSizing: 'border-box',
                                                         marginBottom: isMobile ? 6 : 0,
-                                                        minHeight: isMobile ? '40px' : 'auto'
+                                                        minHeight: isMobile ? '40px' : 'auto',
+                                                        boxShadow: tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none'
                                                     }}
                                                     onClick={() => isSelectable && setTempSelectedTime(slot.time)}
                                                     disabled={!isSelectable}
