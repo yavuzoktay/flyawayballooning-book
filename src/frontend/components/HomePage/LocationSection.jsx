@@ -299,6 +299,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         margin: 0 !important;
                         position: absolute !important;
                         left: 12px !important;
+                        right: 12px !important;
                         bottom: 12px !important;
                         color: #333 !important;
                         z-index: 2 !important;
@@ -307,6 +308,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                        width: calc(100% - 24px) !important;
+                        box-sizing: border-box !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
@@ -334,6 +337,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         margin: 0 !important;
                         position: absolute !important;
                         left: 12px !important;
+                        right: 12px !important;
                         bottom: 10px !important;
                         color: #333 !important;
                         z-index: 2 !important;
@@ -342,6 +346,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                        width: calc(100% - 24px) !important;
+                        box-sizing: border-box !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
@@ -365,6 +371,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         margin: 0 !important;
                         position: absolute !important;
                         left: 10px !important;
+                        right: 10px !important;
                         bottom: 8px !important;
                         color: #333 !important;
                         z-index: 2 !important;
@@ -373,6 +380,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                        width: calc(100% - 20px) !important;
+                        box-sizing: border-box !important;
                     }
                     
                     .tab_box .loc_data.location_data img {
