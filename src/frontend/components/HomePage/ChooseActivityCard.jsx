@@ -86,7 +86,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const selectActivityData = [
         { value: 0, label: "Book Flight", displayLabel: "Book Flight Date", subText: "" },
         { value: 1, label: "Flight Voucher", displayLabel: "Buy Flight Voucher", subText: "" },
-        { value: 3, label: "Buy Gift", subText: "" },
+        { value: 3, label: "Buy Gift", displayLabel: "Buy Gift Voucher", subText: "" },
         { value: 2, label: "Redeem Voucher", subText: "" }
     ];
 
