@@ -370,7 +370,8 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     justifyContent: isMobile ? 'flex-start' : 'center',
                                     height: isMobile ? '120px' : 'auto',
                                     overflow: isMobile ? 'auto' : 'visible',
-                                    paddingRight: isMobile ? '8px' : '0'
+                                    paddingRight: isMobile ? '4px' : '0',
+                                    width: isMobile ? 'calc(100% - 100px)' : 'auto'
                                 }}>
                                     <div className="vouch-header" style={{
                                         display: 'flex',
@@ -404,16 +405,16 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         <div style={{
                                             flex: 1,
                                             overflow: isMobile ? 'auto' : 'visible',
-                                            maxHeight: isMobile ? '60px' : 'none'
+                                            maxHeight: isMobile ? '80px' : 'none'
                                         }}>
                                             <p className="vouch-desc" style={{
-                                                fontSize: isMobile ? '15px' : '12px',
+                                                fontSize: isMobile ? '13px' : '12px',
                                                 color: isMobile ? '#374151' : '#666',
                                                 margin: 0,
-                                                lineHeight: isMobile ? '1.6' : '1.3',
+                                                lineHeight: isMobile ? '1.4' : '1.3',
                                                 display: isMobile ? 'block' : 'block',
-                                                fontWeight: isMobile ? '500' : '400',
-                                                paddingRight: isMobile ? '4px' : '0'
+                                                fontWeight: isMobile ? '400' : '400',
+                                                paddingRight: isMobile ? '2px' : '0'
                                             }}>{item.description}</p>
                                         </div>
                                     )}
