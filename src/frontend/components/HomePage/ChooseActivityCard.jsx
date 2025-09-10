@@ -351,7 +351,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                     <BsInfoCircle size={14} color="#0070f3" />
                                     <div className="hover-text">
-                                        {(item.label === 'Book Flight' ? 'Pick a date, live availability' : item.label === 'Flight Voucher' ? 'Choose date and location later' : item.label === 'Buy Gift' ? 'Valid in any location' : 'Redeem your code')}
+                                        {(item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Choose date and location later' : item.label === 'Buy Gift' ? 'Valid in any location' : 'Redeem your code')}
                                     </div>
                                 </span>
                             </h3>
