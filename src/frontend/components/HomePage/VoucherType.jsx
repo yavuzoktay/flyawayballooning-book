@@ -919,18 +919,18 @@ const VoucherType = ({
                     height: '100%' 
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.refundability}</div>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
-                    <div style={{ fontSize: 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
-                    <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: 13, lineHeight: '1.3' }}>
+                    <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.refundability}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
+                    <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
+                    <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 15 : 13, lineHeight: '1.3' }}>
                         {voucher.inclusions.map((inclusion, i) => (
                             <div key={i} style={{ marginBottom: 3 }}>{inclusion}</div>
                         ))}
                     </div>
                     {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
-                        <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
+                        <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
                         <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
