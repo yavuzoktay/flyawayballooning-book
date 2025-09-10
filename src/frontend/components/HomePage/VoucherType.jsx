@@ -203,17 +203,20 @@ const VoucherType = ({
             if (isMobile) {
                 const itemCount = container.children.length;
                 const gap = 16; // Gap between items
-                const itemWidth = clientWidth + gap; // Each item width including gap
+                // Each item is calc(100% - 8px) of container width, so actual item width is clientWidth - 8px
+                const itemWidth = clientWidth - 8 + gap; // Item width + gap
                 
                 // Calculate current item index more accurately
                 const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                setCurrentItemIndex(newCurrentItemIndex);
+                // Ensure index is within bounds
+                const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
+                setCurrentItemIndex(clampedIndex);
                 
                 // Hide prev button when at the very beginning (first item)
-                setCanScrollLeft(newCurrentItemIndex > 0);
+                setCanScrollLeft(clampedIndex > 0);
                 
                 // Hide next button when at the last item
-                setCanScrollRight(newCurrentItemIndex < itemCount - 1);
+                setCanScrollRight(clampedIndex < itemCount - 1);
                 
                 console.log('Mobile scroll debug:', {
                     scrollLeft,
@@ -223,7 +226,8 @@ const VoucherType = ({
                     itemWidth,
                     newCurrentItemIndex,
                     canScrollLeft: newCurrentItemIndex > 0,
-                    canScrollRight: newCurrentItemIndex < itemCount - 1
+                    canScrollRight: newCurrentItemIndex < itemCount - 1,
+                    maxScrollLeft: (itemCount - 1) * itemWidth
                 });
             } else {
                 // Desktop logic remains unchanged
@@ -897,7 +901,8 @@ const VoucherType = ({
                 flexDirection: 'column',
                 overflow: 'hidden',
                 animation: shouldAnimate ? (slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none') : 'none',
-                border: isSelected ? '2px solid #03a9f4' : 'none'
+                border: isSelected ? '2px solid #03a9f4' : 'none',
+                scrollSnapAlign: isMobile ? 'start' : 'none'
             }}>
                 <img
                     src={voucher.image}
@@ -1042,7 +1047,7 @@ const VoucherType = ({
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
                 const gap = 16; // Gap between items
-                const scrollAmount = container.clientWidth + gap; // Account for gap
+                const scrollAmount = container.clientWidth - 8 + gap; // Item width + gap
                 container.scrollBy({
                     left: -scrollAmount,
                     behavior: 'smooth'
@@ -1051,13 +1056,14 @@ const VoucherType = ({
                 setTimeout(() => {
                     const { scrollLeft, scrollWidth, clientWidth } = container;
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth + gap;
+                    const itemWidth = clientWidth - 8 + gap;
                     
                     // Use same simplified logic as scroll listener
                     const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                    setCurrentItemIndex(newCurrentItemIndex);
-                    setCanScrollLeft(newCurrentItemIndex > 0);
-                    setCanScrollRight(newCurrentItemIndex < itemCount - 1);
+                    const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
+                    setCurrentItemIndex(clampedIndex);
+                    setCanScrollLeft(clampedIndex > 0);
+                    setCanScrollRight(clampedIndex < itemCount - 1);
                 }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
@@ -1121,7 +1127,7 @@ const VoucherType = ({
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
                 const gap = 16; // Gap between items
-                const scrollAmount = container.clientWidth + gap; // Account for gap
+                const scrollAmount = container.clientWidth - 8 + gap; // Item width + gap
                 container.scrollBy({
                     left: scrollAmount,
                     behavior: 'smooth'
@@ -1130,13 +1136,14 @@ const VoucherType = ({
                 setTimeout(() => {
                     const { scrollLeft, scrollWidth, clientWidth } = container;
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth + gap;
+                    const itemWidth = clientWidth - 8 + gap;
                     
                     // Use same simplified logic as scroll listener
                     const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                    setCurrentItemIndex(newCurrentItemIndex);
-                    setCanScrollLeft(newCurrentItemIndex > 0);
-                    setCanScrollRight(newCurrentItemIndex < itemCount - 1);
+                    const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
+                    setCurrentItemIndex(clampedIndex);
+                    setCanScrollLeft(clampedIndex > 0);
+                    setCanScrollRight(clampedIndex < itemCount - 1);
                 }, 150); // Slightly longer timeout for smooth scroll completion
             }
             return;
@@ -1591,7 +1598,9 @@ const VoucherType = ({
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
                                         paddingBottom: isMobile ? '10px' : '0',
-                                        scrollBehavior: 'smooth'
+                                        scrollBehavior: 'smooth',
+                                        scrollSnapType: isMobile ? 'x mandatory' : 'none',
+                                        scrollPadding: isMobile ? '0 8px' : '0'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <VoucherCard
@@ -1644,7 +1653,7 @@ const VoucherType = ({
                                                                 const container = document.querySelector('.voucher-cards-container');
                                                                 if (container) {
                                                                     const gap = 16;
-                                                                    const itemWidth = container.clientWidth + gap;
+                                                                    const itemWidth = container.clientWidth - 8 + gap;
                                                                     container.scrollTo({
                                                                         left: i * itemWidth,
                                                                         behavior: 'smooth'
@@ -1771,7 +1780,9 @@ const VoucherType = ({
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
                                         paddingBottom: isMobile ? '10px' : '0',
-                                        scrollBehavior: 'smooth'
+                                        scrollBehavior: 'smooth',
+                                        scrollSnapType: isMobile ? 'x mandatory' : 'none',
+                                        scrollPadding: isMobile ? '0 8px' : '0'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <VoucherCard
@@ -1824,7 +1835,7 @@ const VoucherType = ({
                                                                 const container = document.querySelector('.voucher-cards-container');
                                                                 if (container) {
                                                                     const gap = 16;
-                                                                    const itemWidth = container.clientWidth + gap;
+                                                                    const itemWidth = container.clientWidth - 8 + gap;
                                                                     container.scrollTo({
                                                                         left: i * itemWidth,
                                                                         behavior: 'smooth'
