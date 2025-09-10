@@ -232,8 +232,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                         width: '20px',
                                         height: '20px',
                                         borderRadius: '50%',
-                                        border: chooseLocation == loc.name ? '2px solid #0070f3' : '2px solid #ccc',
-                                        backgroundColor: chooseLocation == loc.name ? '#0070f3' : 'transparent',
+                                        border: chooseLocation == loc.name ? '2px solid #74da78' : '2px solid #ccc',
+                                        backgroundColor: chooseLocation == loc.name ? '#74da78' : 'transparent',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
