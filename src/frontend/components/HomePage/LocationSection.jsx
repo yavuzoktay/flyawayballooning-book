@@ -316,7 +316,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         border-radius: 8px 8px 0 0 !important;
                         height: 120px !important;
                         object-fit: cover !important;
-                        width: 100% !important;
+                        width: calc(100% + 24px) !important;
+                        margin: -12px -12px 0 -12px !important;
                     }
                     /* Gradient removed as per requirements */
                 }
@@ -352,6 +353,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     
                     .tab_box .loc_data.location_data img {
                         height: 100px !important;
+                        width: calc(100% + 20px) !important;
+                        margin: -10px -10px 0 -10px !important;
                     }
                 }
                 
@@ -386,6 +389,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     
                     .tab_box .loc_data.location_data img {
                         height: 90px !important;
+                        width: calc(100% + 16px) !important;
+                        margin: -8px -8px 0 -8px !important;
                     }
                 }
                 
