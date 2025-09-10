@@ -771,8 +771,7 @@ label {
     /* Checked state ka color */
 }
 
-.active-card-val .active-book-card:before,
-.add-on-input.active-add-on:before {
+.active-card-val .active-book-card:before {
     content: '✓';
     position: absolute;
     top: 58%;
@@ -1272,19 +1271,10 @@ label {
         background: #ffffff !important;
     }
     .add-on-input.active-add-on {
-        background: #3b82f6 !important;
-        border-color: #3b82f6 !important;
+        background: #74da78 !important;
+        border-color: #74da78 !important;
     }
-    .add-on-input.active-add-on::after {
-        content: '✓' !important;
-        color: white !important;
-        font-size: 14px !important;
-        font-weight: bold !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-    }
+    .add-on-input.active-add-on::after { display: none !important; }
 }
 
 /* Start Tooltip Css */

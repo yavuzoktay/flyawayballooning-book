@@ -203,16 +203,22 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           console.log(`❌ Passenger ${index + 1} lastName failed:`, passenger.lastName);
         }
         
-        // Phone validation
-        if (!passenger.phone?.trim()) {
-          passengerErrors.phone = true;
-          console.log(`❌ Passenger ${index + 1} phone failed:`, passenger.phone);
-        }
-        
-        // Email validation
-        if (!passenger.email?.trim()) {
-          passengerErrors.email = true;
-          console.log(`❌ Passenger ${index + 1} email failed:`, passenger.email);
+        // Phone and Email validation only for the first passenger (contact person)
+        if (index === 0) {
+          if (!passenger.phone?.trim()) {
+            passengerErrors.phone = true;
+            console.log(`❌ First passenger phone failed:`, passenger.phone);
+          }
+          if (!passenger.email?.trim()) {
+            passengerErrors.email = true;
+            console.log(`❌ First passenger email failed (empty):`, passenger.email);
+          } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(passenger.email.trim())) {
+              passengerErrors.email = true;
+              console.log(`❌ First passenger email failed (format):`, passenger.email);
+            }
+          }
         }
         
         // Weight is required for Book Flight, Redeem Voucher, and Flight Voucher
@@ -364,7 +370,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     color: isMobile ? '#1f2937' : 'inherit',
                     textAlign: isMobile ? 'center' : 'left',
                     width: isMobile ? '100%' : 'auto'
-                  }}>{activitySelect === 'Buy Gift' ? 'Purchaser Details' : `Passenger ${index + 1}`}</h3>
+                  }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
                 </div>
                 {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
                 {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (

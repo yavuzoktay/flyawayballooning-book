@@ -742,7 +742,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
                                 <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
                                 <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
-                                <div style={{ fontWeight: 500, fontSize: 18, marginBottom: 12 }}>
+                                <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 12 }}>
                                     {experience.title === 'Shared Flight' 
                                         ? `From £${experience.price} per person` 
                                         : `From £${experience.price} per flight`}
