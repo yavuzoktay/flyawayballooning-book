@@ -325,7 +325,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         // Make Purchaser Information (Buy Gift) more compact without affecting other steps
         padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
         paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : undefined,
-        minHeight: activitySelect === 'Buy Gift' ? 'auto' : undefined,
+        // Fix the section height for Purchaser Information so there isn't excessive empty space
+        height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '340px') : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
