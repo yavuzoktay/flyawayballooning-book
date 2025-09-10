@@ -40,7 +40,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [requestFlightType, setRequestFlightType] = useState("");
     const [requestDate, setRequestDate] = useState("");
     const allLocations = ["Bath", "Devon", "Somerset", "Bristol Fiesta"];
-    const allFlightTypes = ["Book Flight Date", "Flight Voucher", "Redeem Voucher", "Buy Gift"];
+    const allFlightTypes = ["Book Flight Date", "Buy Flight Voucher", "Redeem Voucher", "Buy Gift"];
     const [requestSuccess, setRequestSuccess] = useState("");
     const [requestError, setRequestError] = useState("");
     // State'e yeni bir error ekle

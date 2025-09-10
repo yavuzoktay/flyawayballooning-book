@@ -994,7 +994,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                             `${activitySelect} - ${voucherCode}` : 
                                             activitySelect === 'Redeem Voucher' && voucherCode && voucherStatus === 'invalid' ?
                                             `${activitySelect} - Invalid Code` :
-                                            (activitySelect === 'Book Flight' ? 'Book Flight Date' : activitySelect)
+                                            (activitySelect === 'Book Flight' ? 'Book Flight Date' : (activitySelect === 'Flight Voucher' ? 'Buy Flight Voucher' : activitySelect))
                                         ) : 'Not Selected'}
                                     </p>
                                 </div>
