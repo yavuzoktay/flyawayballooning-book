@@ -932,8 +932,19 @@ const VoucherType = ({
                     {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
                         <div style={{ fontSize: isMobile ? 15 : 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: '8px' }}>
-                        <label style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>Passengers:</label>
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: isMobile ? 'column' : 'row', 
+                        alignItems: isMobile ? 'flex-start' : 'center', 
+                        marginBottom: 12, 
+                        gap: isMobile ? '8px' : '8px' 
+                    }}>
+                        <label style={{ 
+                            fontSize: isMobile ? 16 : 13, 
+                            color: '#666', 
+                            fontWeight: isMobile ? 600 : 500,
+                            marginBottom: isMobile ? '4px' : '0'
+                        }}>Passengers:</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button
                                 type="button"
