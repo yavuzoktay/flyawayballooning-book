@@ -298,17 +298,17 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         font-size: 16px !important;
                         margin: 0 !important;
                         position: absolute !important;
-                        left: 0 !important;
-                        right: 0 !important;
+                        left: 12px !important;
+                        right: 12px !important;
                         bottom: 12px !important;
                         color: #333 !important;
                         z-index: 2 !important;
                         padding: 8px 12px !important;
-                        border-radius: 0 0 6px 6px !important;
+                        border-radius: 6px !important;
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-                        width: 100% !important;
+                        width: calc(100% - 24px) !important;
                         box-sizing: border-box !important;
                     }
                     
@@ -336,17 +336,17 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         font-size: 15px !important;
                         margin: 0 !important;
                         position: absolute !important;
-                        left: 0 !important;
-                        right: 0 !important;
+                        left: 12px !important;
+                        right: 12px !important;
                         bottom: 10px !important;
                         color: #333 !important;
                         z-index: 2 !important;
                         padding: 8px 12px !important;
-                        border-radius: 0 0 6px 6px !important;
+                        border-radius: 6px !important;
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-                        width: 100% !important;
+                        width: calc(100% - 24px) !important;
                         box-sizing: border-box !important;
                     }
                     
@@ -370,17 +370,17 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         font-size: 14px !important;
                         margin: 0 !important;
                         position: absolute !important;
-                        left: 0 !important;
-                        right: 0 !important;
+                        left: 10px !important;
+                        right: 10px !important;
                         bottom: 8px !important;
                         color: #333 !important;
                         z-index: 2 !important;
                         padding: 6px 10px !important;
-                        border-radius: 0 0 6px 6px !important;
+                        border-radius: 6px !important;
                         background: #ffffff !important;
                         text-shadow: none !important;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-                        width: 100% !important;
+                        width: calc(100% - 20px) !important;
                         box-sizing: border-box !important;
                     }
                     
