@@ -890,9 +890,9 @@ const VoucherType = ({
                 background: '#fff',
                 borderRadius: 16,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                width: isMobile ? '100%' : '320px',
-                minWidth: isMobile ? '100%' : '320px',
-                maxWidth: isMobile ? '100%' : '320px',
+                width: isMobile ? 'calc(100% - 8px)' : '320px',
+                minWidth: isMobile ? 'calc(100% - 8px)' : '320px',
+                maxWidth: isMobile ? 'calc(100% - 8px)' : '320px',
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
@@ -1043,8 +1043,8 @@ const VoucherType = ({
         if (isMobile) {
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
-                // Since each item is now 100% width, scroll by full container width
-                const scrollAmount = container.clientWidth;
+                // Since each item is now 100% width with gap, scroll by full container width
+                const scrollAmount = container.clientWidth + 16; // Account for gap
                 container.scrollBy({
                     left: -scrollAmount,
                     behavior: 'smooth'
@@ -1057,7 +1057,7 @@ const VoucherType = ({
                     
                     // More precise end detection for mobile
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth;
+                    const itemWidth = clientWidth + 16; // Account for gap
                     const maxScrollLeft = (itemCount - 1) * itemWidth;
                     const currentItemIndex = Math.round(scrollLeft / itemWidth);
                     const isAtLastItem = currentItemIndex >= itemCount - 1;
@@ -1125,8 +1125,8 @@ const VoucherType = ({
         if (isMobile) {
             const container = document.querySelector('.voucher-cards-container');
             if (container) {
-                // Since each item is now 100% width, scroll by full container width
-                const scrollAmount = container.clientWidth;
+                // Since each item is now 100% width with gap, scroll by full container width
+                const scrollAmount = container.clientWidth + 16; // Account for gap
                 container.scrollBy({
                     left: scrollAmount,
                     behavior: 'smooth'
@@ -1139,7 +1139,7 @@ const VoucherType = ({
                     
                     // More precise end detection for mobile
                     const itemCount = container.children.length;
-                    const itemWidth = clientWidth;
+                    const itemWidth = clientWidth + 16; // Account for gap
                     const maxScrollLeft = (itemCount - 1) * itemWidth;
                     const currentItemIndex = Math.round(scrollLeft / itemWidth);
                     const isAtLastItem = currentItemIndex >= itemCount - 1;
@@ -1593,7 +1593,7 @@ const VoucherType = ({
                                     <div className="voucher-cards-container" style={{ 
                                         display: 'flex', 
                                         flexDirection: isMobile ? 'row' : 'row', 
-                                        gap: isMobile ? '0' : '20px', 
+                                        gap: isMobile ? '16px' : '20px', 
                                         justifyContent: isMobile ? 'flex-start' : 'center',
                                         alignItems: 'center',
                                         width: '100%',
@@ -1803,7 +1803,7 @@ const VoucherType = ({
                                     <div className="voucher-cards-container" style={{ 
                                         display: 'flex', 
                                         flexDirection: isMobile ? 'row' : 'row', 
-                                        gap: isMobile ? '0' : '20px', 
+                                        gap: isMobile ? '16px' : '20px', 
                                         justifyContent: isMobile ? 'flex-start' : 'center',
                                         alignItems: 'center',
                                         width: '100%',
