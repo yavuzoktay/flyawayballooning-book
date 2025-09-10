@@ -373,8 +373,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   <h3 style={{ 
                     margin: '0', 
                     lineHeight: 1,
-                    fontSize: isMobile ? '20px' : '16px',
-                    fontWeight: isMobile ? '700' : '500',
+                    fontSize: isMobile ? '16px' : '16px',
+                    fontWeight: isMobile ? '500' : '500',
                     color: isMobile ? '#1f2937' : 'inherit',
                     textAlign: isMobile ? 'center' : 'left',
                     width: isMobile ? '100%' : 'auto'
