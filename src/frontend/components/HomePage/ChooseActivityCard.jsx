@@ -32,6 +32,61 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Mobile tooltip positioning fix
+    useEffect(() => {
+        if (!isMobile) return;
+
+        const adjustTooltips = () => {
+            const tooltips = document.querySelectorAll('.info-icon-container .hover-text');
+            tooltips.forEach(tooltip => {
+                // Position tooltip directly under the title text
+                const iconContainer = tooltip.closest('.info-icon-container');
+                if (iconContainer) {
+                    const cardTitle = iconContainer.closest('h3');
+                    if (cardTitle) {
+                        // Center the tooltip under the title text
+                        tooltip.style.left = '70%';
+                        tooltip.style.right = 'auto';
+                        tooltip.style.transform = 'translateX(-50%)';
+                        tooltip.style.top = 'calc(100% + 8px)';
+                        
+                        // Check if it goes off screen and adjust if needed
+                        const rect = tooltip.getBoundingClientRect();
+                        const viewportWidth = window.innerWidth;
+                        
+                        if (rect.left < 12) {
+                            tooltip.style.left = '15px';
+                            tooltip.style.right = 'auto';
+                            tooltip.style.transform = 'none';
+                        } else if (rect.right > viewportWidth - 12) {
+                            tooltip.style.left = 'auto';
+                            tooltip.style.right = '15px';
+                            tooltip.style.transform = 'none';
+                        }
+                    }
+                }
+            });
+        };
+
+        // Adjust tooltips on hover and touch
+        const infoIcons = document.querySelectorAll('.info-icon-container');
+        infoIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', adjustTooltips);
+            icon.addEventListener('mouseleave', adjustTooltips);
+            icon.addEventListener('touchstart', adjustTooltips);
+            icon.addEventListener('touchend', adjustTooltips);
+        });
+
+        return () => {
+            infoIcons.forEach(icon => {
+                icon.removeEventListener('mouseenter', adjustTooltips);
+                icon.removeEventListener('mouseleave', adjustTooltips);
+                icon.removeEventListener('touchstart', adjustTooltips);
+                icon.removeEventListener('touchend', adjustTooltips);
+            });
+        };
+    }, [isMobile]);
+
     // Fetch voucher types from API
     useEffect(() => {
         const fetchVoucherTypes = async () => {

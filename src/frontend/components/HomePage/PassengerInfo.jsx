@@ -175,6 +175,60 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const [emailErrors, setEmailErrors] = useState([]);
   const [validationErrors, setValidationErrors] = useState([]);
 
+  // Check if a passenger's details are complete
+  const isPassengerComplete = (passenger, index) => {
+    if (activitySelect === 'Buy Gift') {
+      // For Buy Gift: All fields required
+      const hasFirstName = passenger.firstName?.trim();
+      const hasLastName = passenger.lastName?.trim();
+      const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
+      const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
+      
+      return hasFirstName && hasLastName && hasPhone && hasEmail;
+    } else if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher') {
+      // For other activity types: All fields required
+      const hasFirstName = passenger.firstName?.trim();
+      const hasLastName = passenger.lastName?.trim();
+      const hasWeight = passenger.weight?.trim();
+      const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
+      const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
+      
+      return hasFirstName && hasLastName && hasWeight && hasPhone && hasEmail;
+    } else {
+      // For other activity types, basic validation
+      const hasFirstName = passenger.firstName?.trim();
+      const hasLastName = passenger.lastName?.trim();
+      const hasPhone = passenger.phone?.trim();
+      const hasEmail = passenger.email?.trim();
+      const hasWeight = isFlightVoucher ? passenger.weight?.trim() : true;
+      
+      return hasFirstName && hasLastName && hasPhone && hasEmail && hasWeight;
+    }
+  };
+
+  // Auto-slide to next passenger when current one is complete
+  const checkAndAutoSlide = (index) => {
+    if (!isMobile || passengerCount <= 1) return;
+    
+    const passenger = passengerData[index];
+    if (passenger && isPassengerComplete(passenger, index)) {
+      // Add a subtle completion indicator
+      const passengerCard = document.querySelector(`#passenger-${index + 1}`);
+      if (passengerCard) {
+        passengerCard.style.borderColor = '#10b981';
+        passengerCard.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.2)';
+      }
+      
+      // Small delay to let the user see the completion
+      setTimeout(() => {
+        if (index < passengerCount - 1) {
+          console.log(`✅ Passenger ${index + 1} complete, auto-sliding to Passenger ${index + 2}`);
+          handleNextPassenger();
+        }
+      }, 1200); // 1200ms delay for better UX
+    }
+  };
+
   // Handle passenger input change
   const handlePassengerInputChange = (index, e) => {
     const { name, value } = e.target;
@@ -202,6 +256,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       newErrors[index] = value && !emailRegex.test(value);
       setEmailErrors(newErrors);
     }
+    
+    // Check for auto-slide after input change
+    setTimeout(() => {
+      checkAndAutoSlide(index);
+    }, 100);
   };
 
   // Handle weather refund toggle for regular passengers
@@ -211,6 +270,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       updatedData[index] = { ...updatedData[index], weatherRefund: !updatedData[index].weatherRefund };
       return updatedData;
     });
+    
+    // Check for auto-slide after weather refund change
+    setTimeout(() => {
+      checkAndAutoSlide(index);
+    }, 100);
   };
 
   // Handle weather refund toggle for Private Charter (one-time charge)
@@ -380,6 +444,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     }
   }, [passengerData, onSectionCompletion]);
 
+  // Check for auto-slide on passenger data changes (mobile only)
+  useEffect(() => {
+    if (!isMobile || passengerCount <= 1) return;
+    
+    // Check if current passenger is complete and auto-slide
+    const currentPassenger = passengerData[currentPassengerIndex];
+    if (currentPassenger && isPassengerComplete(currentPassenger, currentPassengerIndex)) {
+      checkAndAutoSlide(currentPassengerIndex);
+    }
+  }, [passengerData, currentPassengerIndex, isMobile, passengerCount]);
+
   // Styles for custom ticked circle
   const checkStyle = {
     position: 'relative',
@@ -528,9 +603,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
               marginBottom: 0, 
-              padding: activitySelect === 'Buy Gift' ? '16px' : '20px', 
-              border: '1px solid #e5e7eb', 
-              borderRadius: '16px', 
+              padding: activitySelect === 'Buy Gift' ? '16px' : '5px', 
               background: '#ffffff',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
               width: 'calc(100% - 32px)',
