@@ -44,7 +44,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const [canScrollRight, setCanScrollRight] = useState(false);
   
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth <= 576);
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -108,7 +108,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     const container = document.querySelector('.passenger-cards-container');
     if (!container) return;
 
-    const updateScrollButtons = () => {
+    let debounceTimer = null;
+
+    const computeAndSet = () => {
       const { scrollLeft, clientWidth } = container;
       const gap = 16;
       const itemWidth = clientWidth - 8 + gap;
@@ -120,11 +122,24 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       setCanScrollRight(clampedIndex < passengerCount - 1);
     };
 
+    const updateScrollButtons = () => {
+      computeAndSet();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => computeAndSet(), 120);
+    };
+
     updateScrollButtons();
-    container.addEventListener('scroll', updateScrollButtons);
+    container.addEventListener('scroll', updateScrollButtons, { passive: true });
+    container.addEventListener('touchstart', updateScrollButtons, { passive: true });
+    container.addEventListener('touchmove', updateScrollButtons, { passive: true });
+    container.addEventListener('touchend', updateScrollButtons, { passive: true });
     
     return () => {
       container.removeEventListener('scroll', updateScrollButtons);
+      container.removeEventListener('touchstart', updateScrollButtons);
+      container.removeEventListener('touchmove', updateScrollButtons);
+      container.removeEventListener('touchend', updateScrollButtons);
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [isMobile, passengerCount]);
   
@@ -396,6 +411,24 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
 
   const isMultiPassenger = passengerCount > 1;
+  
+  // Shared input style for mobile consistency
+  const mobileInputBase = {
+    fontSize: '14px',
+    padding: '10px 12px',
+    minHeight: '40px',
+    border: '1.5px solid #d1d5db',
+    borderRadius: '8px',
+    backgroundColor: '#ffffff',
+    color: '#374151',
+    fontWeight: '500',
+    lineHeight: 1.2,
+    boxShadow: 'none',
+    outline: 'none',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    transition: 'all 0.2s ease'
+  };
 
   return (
     <Accordion 
@@ -485,7 +518,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 paddingBottom: '10px',
                 scrollBehavior: 'smooth',
                 scrollSnapType: 'x mandatory',
-                scrollPadding: '0 8px'
+                scrollPadding: '0 8px',
+                WebkitOverflowScrolling: 'touch'
               }}>
                 {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
@@ -688,18 +722,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       required
                       style={{
                         ...(error?.firstName ? { border: '1.5px solid red' } : {}),
-                        ...(isMobile ? {
-                          fontSize: '16px',
-                          padding: '12px 16px',
-                          minHeight: '48px',
-                          border: '2px solid #d1d5db',
-                          borderRadius: '8px',
-                          backgroundColor: '#ffffff',
-                          color: '#374151',
-                          fontWeight: '500',
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                          transition: 'all 0.2s ease'
-                        } : {})
+                        ...(isMobile ? mobileInputBase : {})
                       }}
                       placeholder="First Name"
                     />
@@ -722,18 +745,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       required
                       style={{
                         ...(error?.lastName ? { border: '1.5px solid red' } : {}),
-                        ...(isMobile ? {
-                          fontSize: '16px',
-                          padding: '12px 16px',
-                          minHeight: '48px',
-                          border: '2px solid #d1d5db',
-                          borderRadius: '8px',
-                          backgroundColor: '#ffffff',
-                          color: '#374151',
-                          fontWeight: '500',
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                          transition: 'all 0.2s ease'
-                        } : {})
+                        ...(isMobile ? mobileInputBase : {})
                       }}
                       placeholder="Last Name"
                     />
@@ -767,18 +779,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         required
                         style={{
                           ...(error?.weight ? { border: '1.5px solid red' } : {}),
-                          ...(isMobile ? {
-                            fontSize: '16px',
-                            padding: '12px 16px',
-                            minHeight: '48px',
-                            border: '2px solid #d1d5db',
-                            borderRadius: '8px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            fontWeight: '500',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.2s ease'
-                          } : {})
+                          ...(isMobile ? mobileInputBase : {})
                         }}
                         name="weight"
                         value={passenger.weight}
@@ -812,18 +813,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         required
                         style={{
                           ...(error?.phone ? { border: '1.5px solid red' } : {}),
-                          ...(isMobile ? {
-                            fontSize: '16px',
-                            padding: '12px 16px',
-                            minHeight: '48px',
-                            border: '2px solid #d1d5db',
-                            borderRadius: '8px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            fontWeight: '500',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.2s ease'
-                          } : {})
+                          ...(isMobile ? mobileInputBase : {})
                         }}
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
@@ -845,18 +835,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         required
                         style={{
                           ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
-                          ...(isMobile ? {
-                            fontSize: '16px',
-                            padding: '12px 16px',
-                            minHeight: '48px',
-                            border: '2px solid #d1d5db',
-                            borderRadius: '8px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            fontWeight: '500',
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.2s ease'
-                          } : {})
+                          ...(isMobile ? mobileInputBase : {})
                         }}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
@@ -1074,56 +1053,58 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
-                            display: 'block'
-                          }}>Weight (Kg) *</label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type="number"
-                              name="weight"
-                              value={passenger.weight || ''}
-                              onChange={(e) => handlePassengerInputChange(index, e)}
-                              placeholder="Max 18 Stone / 114Kg"
-                              style={{
-                                ...(error?.weight ? { border: '1.5px solid red' } : {}),
-                                ...(isMobile ? {
-                                  fontSize: '16px',
-                                  padding: '12px 16px',
-                                  minHeight: '48px',
-                                  border: '2px solid #d1d5db',
-                                  borderRadius: '8px',
-                                  backgroundColor: '#ffffff',
-                                  color: '#374151',
-                                  fontWeight: '500',
-                                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                                  transition: 'all 0.2s ease',
-                                  width: '100%'
-                                } : {})
-                              }}
-                            />
-                            <BsInfoCircle 
-                              data-tooltip-id={`weight-tooltip-${index}`}
-                              style={{ 
-                                position: 'absolute', 
-                                right: '12px', 
-                                color: '#3b82f6', 
-                                cursor: 'pointer',
-                                fontSize: '16px'
-                              }} 
-                            />
-                            <ReactTooltip 
-                              id={`weight-tooltip-${index}`}
-                              place="top"
-                              content="Approximate weights are fine - this helps us with flight planning and safety"
-                            />
+                        {activitySelect !== 'Buy Gift' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <label style={{ 
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              color: '#374151',
+                              marginBottom: '4px',
+                              display: 'block'
+                            }}>Weight (Kg) *</label>
+                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                              <input
+                                type="number"
+                                name="weight"
+                                value={passenger.weight || ''}
+                                onChange={(e) => handlePassengerInputChange(index, e)}
+                                placeholder="Max 18 Stone / 114Kg"
+                                style={{
+                                  ...(error?.weight ? { border: '1.5px solid red' } : {}),
+                                  ...(isMobile ? {
+                                    fontSize: '14px',
+                                    padding: '10px 12px',
+                                    minHeight: '40px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    backgroundColor: '#ffffff',
+                                    color: '#374151',
+                                    fontWeight: '400',
+                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                    transition: 'all 0.2s ease',
+                                    width: '100%'
+                                  } : {})
+                                }}
+                              />
+                              <BsInfoCircle 
+                                data-tooltip-id={`weight-tooltip-${index}`}
+                                style={{ 
+                                  position: 'absolute', 
+                                  right: '12px', 
+                                  color: '#3b82f6', 
+                                  cursor: 'pointer',
+                                  fontSize: '16px'
+                                }} 
+                              />
+                              <ReactTooltip 
+                                id={`weight-tooltip-${index}`}
+                                place="top"
+                                content="Approximate weights are fine - this helps us with flight planning and safety"
+                              />
+                            </div>
+                            {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                           </div>
-                          {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
-                        </div>
+                        )}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
@@ -1179,15 +1160,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           style={{
                             ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
                             ...(isMobile ? {
-                              fontSize: '16px',
-                              padding: '12px 16px',
-                              minHeight: '48px',
-                              border: '2px solid #d1d5db',
-                              borderRadius: '8px',
+                              fontSize: '14px',
+                              padding: '10px 12px',
+                              minHeight: '40px',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
                               backgroundColor: '#ffffff',
                               color: '#374151',
-                              fontWeight: '500',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              fontWeight: '400',
+                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                               transition: 'all 0.2s ease'
                             } : {})
                           }}

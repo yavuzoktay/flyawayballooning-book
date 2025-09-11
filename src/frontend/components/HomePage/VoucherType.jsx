@@ -181,6 +181,16 @@ const VoucherType = ({
     const [canScrollRight, setCanScrollRight] = useState(true);
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
     
+    // Helper: compute one slide width (+ gap) reliably on mobile
+    const getMobileItemWidth = (container) => {
+        if (!container) return 0;
+        const firstChild = container.children && container.children[0];
+        const rectWidth = firstChild ? firstChild.getBoundingClientRect().width : container.clientWidth;
+        const style = window.getComputedStyle(container);
+        const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+        return rectWidth + gap;
+    };
+    
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 576);
         onResize();
@@ -195,16 +205,16 @@ const VoucherType = ({
         const container = document.querySelector('.voucher-cards-container');
         if (!container) return;
 
-        const updateScrollButtons = () => {
+        let scrollDebounceTimer = null;
+
+        const computeAndSet = () => {
             const { scrollLeft, scrollWidth, clientWidth } = container;
             setScrollPosition(scrollLeft);
             
             // For mobile: more precise button visibility control
             if (isMobile) {
                 const itemCount = container.children.length;
-                const gap = 16; // Gap between items
-                // Each item is calc(100% - 8px) of container width, so actual item width is clientWidth - 8px
-                const itemWidth = clientWidth - 8 + gap; // Item width + gap
+                const itemWidth = getMobileItemWidth(container) || clientWidth;
                 
                 // Calculate current item index more accurately
                 const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
@@ -237,13 +247,77 @@ const VoucherType = ({
             }
         };
 
+        let isScrolling = false;
+        let touchStartX = 0;
+        let lastScrollLeft = 0;
+
+        const updateScrollButtons = () => {
+            // immediate update during gesture
+            computeAndSet();
+            // then debounce another update to capture snap/momentum end
+            if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
+            scrollDebounceTimer = setTimeout(() => computeAndSet(), 100);
+        };
+
+        const handleTouchStart = (e) => {
+            isScrolling = true;
+            touchStartX = e.touches[0].clientX;
+            lastScrollLeft = container.scrollLeft;
+            updateScrollButtons();
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isScrolling) return;
+            updateScrollButtons();
+        };
+
+        const handleTouchEnd = (e) => {
+            isScrolling = false;
+            // Force update after touch ends to catch momentum scrolling
+            setTimeout(() => {
+                computeAndSet();
+            }, 50);
+            setTimeout(() => {
+                computeAndSet();
+            }, 150);
+            setTimeout(() => {
+                computeAndSet();
+            }, 300);
+        };
+
+        const handleScroll = () => {
+            updateScrollButtons();
+        };
+
+        // Additional momentum scroll detection
+        const handleScrollEnd = () => {
+            setTimeout(() => {
+                computeAndSet();
+            }, 100);
+        };
+
+        // Listen for scroll end events
+        container.addEventListener('scrollend', handleScrollEnd, { passive: true });
+
         updateScrollButtons();
-        container.addEventListener('scroll', updateScrollButtons);
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        container.addEventListener('touchstart', handleTouchStart, { passive: true });
+        container.addEventListener('touchmove', handleTouchMove, { passive: true });
+        container.addEventListener('touchend', handleTouchEnd, { passive: true });
+        container.addEventListener('pointerdown', handleTouchStart, { passive: true });
+        container.addEventListener('pointerup', handleTouchEnd, { passive: true });
         
         return () => {
-            container.removeEventListener('scroll', updateScrollButtons);
+            container.removeEventListener('scroll', handleScroll);
+            container.removeEventListener('scrollend', handleScrollEnd);
+            container.removeEventListener('touchstart', handleTouchStart);
+            container.removeEventListener('touchmove', handleTouchMove);
+            container.removeEventListener('touchend', handleTouchEnd);
+            container.removeEventListener('pointerdown', handleTouchStart);
+            container.removeEventListener('pointerup', handleTouchEnd);
+            if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
         };
-    }, [isMobile]);
+    }, [isMobile, chooseFlightType, privateCharterVoucherTypes.length, allVoucherTypes.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
@@ -945,7 +1019,7 @@ const VoucherType = ({
                         <label style={{ 
                             fontSize: isMobile ? 16 : 13, 
                             color: '#666', 
-                            fontWeight: isMobile ? 600 : 500,
+                            fontWeight: isMobile ? 500 : 500,
                             marginBottom: isMobile ? '4px' : '0'
                         }}>Passengers:</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1598,7 +1672,9 @@ const VoucherType = ({
                                         paddingBottom: isMobile ? '10px' : '0',
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 8px' : '0'
+                                        scrollPadding: isMobile ? '0 8px' : '0',
+                                        WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
+                                        overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <VoucherCard
@@ -1785,7 +1861,9 @@ const VoucherType = ({
                                         paddingBottom: isMobile ? '10px' : '0',
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 8px' : '0'
+                                        scrollPadding: isMobile ? '0 8px' : '0',
+                                        WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
+                                        overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <VoucherCard

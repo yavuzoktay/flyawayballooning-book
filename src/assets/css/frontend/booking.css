@@ -2169,10 +2169,11 @@ label {
         border-top-right-radius: 16px;
         padding: 12px 14px 16px 14px;
         box-shadow: 0 -8px 24px rgba(0,0,0,0.2);
-        animation: slideUp .18s ease-out;
+        animation: summarySlideUp .18s ease-out;
     }
     .summary-row.completed .summary-dot { background: #10b981; }
-    @keyframes slideUp {
+    /* Use a unique animation name to avoid collisions with other components */
+    @keyframes summarySlideUp {
         from { transform: translateY(20px); opacity: 0; }
         to   { transform: translateY(0); opacity: 1; }
     }
@@ -2185,9 +2186,9 @@ label {
     .summary-row-title { font-weight: 600; color: #111827; }
     .summary-row-sub { color: #6b7280; font-size: 12px; margin-top: 2px; }
     .summary-chevron { color: #9ca3af; font-size: 18px; }
-    .summary-drawer-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; }
+    .summary-drawer-footer { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 12px; }
     .summary-total { font-weight: 700; font-size: 18px; }
-    .summary-primary { background: #2d4263; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; }
+    .summary-primary { background: #2d4263; color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 90%; max-width: 420px; text-align: center; }
     .summary-primary:disabled { background:#ddd; color:#888; }
 }
 

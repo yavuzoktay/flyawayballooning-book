@@ -1060,6 +1060,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         transition: 'all 0.2s ease',
                                                         transform: tempSelectedTime === slot.time ? (isMobile ? 'scale(1)' : 'scale(1.02)') : 'scale(1)',
                                                         position: 'relative',
+                                                        boxShadow: tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none',
                                                         boxSizing: 'border-box',
                                                         marginBottom: isMobile ? 6 : 0,
                                                         marginLeft: isMobile ? '2px' : '0',
@@ -1068,21 +1069,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}
                                                     onClick={() => isSelectable && setTempSelectedTime(slot.time)}
                                                     disabled={!isSelectable}
-                                                    onMouseEnter={(e) => {
-                                                        if (!isSelectable) return;
-                                                        e.currentTarget.style.border = '2px solid #56C1FF';
-                                                        e.currentTarget.style.boxShadow = '0 0 0 2px #56C1FF';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        if (!isSelectable) return;
-                                                        if (tempSelectedTime === slot.time) {
-                                                            e.currentTarget.style.border = '2px solid #56C1FF';
-                                                            e.currentTarget.style.boxShadow = '0 0 0 2px #56C1FF';
-                                                        } else {
-                                                            e.currentTarget.style.border = '2px solid transparent';
-                                                            e.currentTarget.style.boxShadow = 'none';
-                                                        }
-                                                    }}
                                                 >
                                                 {isMobile ? (
                                                     // Mobile layout - horizontal single line

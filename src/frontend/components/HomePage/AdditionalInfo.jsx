@@ -354,22 +354,23 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                         style={{
                                             ...(validationErrors[fieldName] ? { border: '1.5px solid red' } : {}),
                                             ...(isMobile ? {
-                                                fontSize: '16px',
-                                                padding: '12px 16px',
-                                                minHeight: '48px',
-                                                border: '2px solid #d1d5db',
-                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                padding: '10px 12px',
+                                                minHeight: '40px',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '6px',
                                                 backgroundColor: '#ffffff',
                                                 color: '#374151',
-                                                fontWeight: '500',
+                                                fontWeight: '400',
                                                 appearance: 'none',
                                                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
                                                 backgroundRepeat: 'no-repeat',
                                                 backgroundPosition: 'right 12px center',
                                                 backgroundSize: '20px',
                                                 paddingRight: '40px',
-                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                                 transition: 'all 0.2s ease'
+
                                             } : {})
                                         }}
                                         onFocus={(e) => {

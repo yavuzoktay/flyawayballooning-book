@@ -403,3 +403,34 @@
     margin-right: 0 !important;
   }
 } 
+
+/* Mobile-only: ensure activity tooltips are fully visible and readable */
+@media (max-width: 768px) {
+  /* Prevent clipping by card faces on mobile */
+  .card-front,
+  .card-back {
+    overflow: visible !important;
+  }
+
+  /* Raise the stacking context for the info icon */
+  .info-icon-container {
+    position: relative;
+    z-index: 10001 !important;
+  }
+
+  /* Constrain tooltip within viewport and improve readability */
+  .info-icon-container .hover-text {
+    max-width: 92vw !important;
+    width: max-content !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.4 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: calc(100% + 8px) !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    z-index: 10002 !important;
+    box-sizing: border-box !important;
+  }
+}
