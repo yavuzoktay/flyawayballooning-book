@@ -303,7 +303,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         border-radius: 12px !important;
                         min-height: 180px !important;
                         height: auto !important;
-                        padding: 12px !important;
                         position: relative !important;
                         overflow: hidden !important;
                     }
@@ -331,7 +330,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         height: 120px !important;
                         object-fit: cover !important;
                         width: calc(100% + 24px) !important;
-                        margin: -12px -12px 0 -12px !important;
                         transition: transform 0.3s ease !important;
                         cursor: pointer !important;
                     }
@@ -350,7 +348,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     .tab_box .loc_data.location_data {
                         margin-bottom: 14px !important;
                         min-height: 160px !important;
-                        padding: 10px !important;
+                        
                     }
                     
                     .tab_box .loc_data.location_data h3 {
@@ -374,7 +372,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     .tab_box .loc_data.location_data img {
                         height: 100px !important;
                         width: calc(100% + 20px) !important;
-                        margin: -10px -10px 0 -10px !important;
                         transition: transform 0.3s ease !important;
                         cursor: pointer !important;
                     }
@@ -392,7 +389,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     .tab_box .loc_data.location_data {
                         margin-bottom: 12px !important;
                         min-height: 150px !important;
-                        padding: 8px !important;
+                        
                     }
                     
                     .tab_box .loc_data.location_data h3 {
@@ -415,8 +412,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     
                     .tab_box .loc_data.location_data img {
                         height: 90px !important;
-                        width: calc(100% + 16px) !important;
-                        margin: -8px -8px 0 -8px !important;
                         transition: transform 0.3s ease !important;
                         cursor: pointer !important;
                     }
