@@ -28,6 +28,25 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     
+    // Bristol Fiesta için Ağustos ayı mantığı
+    useEffect(() => {
+        if (chooseLocation === "Bristol Fiesta") {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth(); // 0-11, Ağustos = 7
+            
+            // Eğer şu anki ay Ağustos'tan sonraysa, gelecek yılın Ağustos'unu göster
+            // Eğer şu anki ay Ağustos'tan önceyse, bu yılın Ağustos'unu göster
+            let targetYear = currentYear;
+            if (currentMonth > 7) { // Ağustos'tan sonra
+                targetYear = currentYear + 1;
+            }
+            
+            // Ağustos ayını hedefle (month = 7, 0-indexed)
+            const augustDate = new Date(targetYear, 7, 1);
+            setCurrentDate(augustDate);
+        }
+    }, [chooseLocation]);
+    
     // Notification state for time selection
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState("");
@@ -177,11 +196,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     }, [chooseLocation, selectedActivity, chooseFlightType, selectedVoucherType, activitySelect, isLocationAndExperienceSelected]);
 
     const handlePrevMonth = () => {
-        setCurrentDate(subMonths(currentDate, 1));
+        if (chooseLocation === "Bristol Fiesta") {
+            // Bristol Fiesta için sadece Ağustos ayları arasında geçiş yap
+            const prevAugust = subMonths(currentDate, 12); // 1 yıl önceki Ağustos
+            setCurrentDate(prevAugust);
+        } else {
+            setCurrentDate(subMonths(currentDate, 1));
+        }
     };
 
     const handleNextMonth = () => {
-        setCurrentDate(addMonths(currentDate, 1));
+        if (chooseLocation === "Bristol Fiesta") {
+            // Bristol Fiesta için sadece Ağustos ayları arasında geçiş yap
+            const nextAugust = addMonths(currentDate, 12); // 1 yıl sonraki Ağustos
+            setCurrentDate(nextAugust);
+        } else {
+            setCurrentDate(addMonths(currentDate, 1));
+        }
     };
 
     const handleDateClick = (date) => {
@@ -729,10 +760,30 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 fontSize: isMobile ? 18 : 24, 
                                 letterSpacing: 1 
                             }}>
-                                {format(currentDate, 'MMMM yyyy')}
+                                {chooseLocation === "Bristol Fiesta" ? 
+                                    `${format(currentDate, 'MMMM yyyy')} (August Only)` : 
+                                    format(currentDate, 'MMMM yyyy')
+                                }
                             </h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
+                        {/* Bristol Fiesta için özel bilgi mesajı */}
+                        {chooseLocation === "Bristol Fiesta" && (
+                            <div style={{
+                                background: '#e3f2fd',
+                                border: '1px solid #2196f3',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                margin: '8px 0',
+                                fontSize: '14px',
+                                color: '#1976d2',
+                                textAlign: 'center',
+                                fontWeight: 500
+                            }}>
+                                Bristol Fiesta is only available in August. Use arrows to navigate between August months.
+                            </div>
+                        )}
+                        
                         {/* Real-time availability badge - responsive */}
                         <div className="realtime-badge-wrap">
                             <div className="realtime-badge" style={{
