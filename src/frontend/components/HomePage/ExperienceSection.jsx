@@ -839,7 +839,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
                     {/* Dots */}
                     {filteredExperiences && filteredExperiences.length > 1 && (
-                        <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+                        <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
                             {filteredExperiences.map((_, i) => (
                                 <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === currentExperienceIndex ? '#03a9f4' : '#ddd' }}
                                     onClick={() => {
