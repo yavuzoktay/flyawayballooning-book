@@ -28,7 +28,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     
-    // Bristol Fiesta için Ağustos ayı mantığı
+    // Bristol Fiesta için Ağustos ayı mantığı, diğer lokasyonlar için güncel ay
     useEffect(() => {
         if (chooseLocation === "Bristol Fiesta") {
             const currentYear = new Date().getFullYear();
@@ -44,6 +44,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             // Ağustos ayını hedefle (month = 7, 0-indexed)
             const augustDate = new Date(targetYear, 7, 1);
             setCurrentDate(augustDate);
+        } else if (chooseLocation) {
+            // Diğer lokasyonlar için güncel aya dön
+            const now = new Date();
+            setCurrentDate(now);
         }
     }, [chooseLocation]);
     
