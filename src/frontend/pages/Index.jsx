@@ -21,10 +21,9 @@ import { BsInfoCircle } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 
 import config from '../../config';
-const API_BASE_URL = config.API_BASE_URL;
-
-// Stripe imports
 import { loadStripe } from '@stripe/stripe-js';
+
+const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
 const Index = () => {
