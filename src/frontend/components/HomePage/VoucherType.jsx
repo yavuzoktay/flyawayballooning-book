@@ -2009,7 +2009,7 @@ const VoucherType = ({
                                                                 cursor: 'pointer'
                                                             }}
                                                             onClick={() => {
-                                                                const container = document.querySelector('.voucher-cards-container');
+                                                                const container = voucherContainerRef.current;
                                                                 if (container) {
                                                                     const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                                                                     const targetScrollLeft = i * itemWidth;
