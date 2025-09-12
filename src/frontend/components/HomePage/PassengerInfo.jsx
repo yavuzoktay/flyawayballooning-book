@@ -1179,6 +1179,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           </div>
                         )}
 
+                        {index === 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
                             fontSize: '13px',
@@ -1211,11 +1212,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           />
                           {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                         </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Email field - only show for non-Buy Gift or when not Any Day Flight */}
-                    {!(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                    {/* Email field - only show for first passenger */}
+                    {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <label style={{ 
                           fontSize: isMobile ? '14px' : '13px',
