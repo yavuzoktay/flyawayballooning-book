@@ -213,9 +213,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Check if location and experience are selected
     // For Book Flight: also need voucher type
     // For Redeem Voucher: only need location and activity
+    // For Bristol Fiesta: only need location and activity (no voucher type required)
     const isLocationAndExperienceSelected = chooseLocation && selectedActivity && selectedActivity.length > 0 && (
         (activitySelect === 'Book Flight' && chooseFlightType && chooseFlightType.type && selectedVoucherType) ||
         (activitySelect === 'Redeem Voucher') ||
+        (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
     );
     
