@@ -50,6 +50,54 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             setCurrentDate(now);
         }
     }, [chooseLocation]);
+
+    // Bristol Fiesta için müsaitlik kontrolü - Ağustos aylarında müsaitlik var mı kontrol et
+    useEffect(() => {
+        if (chooseLocation === "Bristol Fiesta" && availabilities && availabilities.length > 0) {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth();
+            
+            // Başlangıç yılı belirle
+            let startYear = currentYear;
+            if (currentMonth > 7) { // Ağustos'tan sonra
+                startYear = currentYear + 1;
+            }
+            
+            // Ağustos aylarında müsaitlik kontrolü (maksimum 5 yıl ileriye bak)
+            let targetYear = startYear;
+            let foundAvailability = false;
+            
+            for (let year = startYear; year <= startYear + 5; year++) {
+                const augustDate = new Date(year, 7, 1); // Ağustos ayı
+                const yearMonth = format(augustDate, 'yyyy-MM');
+                
+                // Bu yılın Ağustos ayında müsaitlik var mı kontrol et
+                const augustAvailabilities = availabilities.filter(a => {
+                    if (!a.date) return false;
+                    const availabilityDate = new Date(a.date);
+                    const availabilityYearMonth = format(availabilityDate, 'yyyy-MM');
+                    return availabilityYearMonth === yearMonth && 
+                           (a.status === 'Open' || a.status === 'open') && 
+                           a.capacity > 0;
+                });
+                
+                if (augustAvailabilities.length > 0) {
+                    targetYear = year;
+                    foundAvailability = true;
+                    break;
+                }
+            }
+            
+            // Müsaitlik bulunan yılın Ağustos ayına geç
+            if (foundAvailability) {
+                const targetAugustDate = new Date(targetYear, 7, 1);
+                setCurrentDate(targetAugustDate);
+                console.log(`Bristol Fiesta: Found availability in August ${targetYear}, switching to that month`);
+            } else {
+                console.log(`Bristol Fiesta: No availability found in August for years ${startYear}-${startYear + 5}`);
+            }
+        }
+    }, [chooseLocation, availabilities]);
     
     // Notification state for time selection
     const [showNotification, setShowNotification] = useState(false);
