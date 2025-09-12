@@ -53,7 +53,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Bristol Fiesta için müsaitlik kontrolü - Ağustos aylarında müsaitlik var mı kontrol et
     useEffect(() => {
-        if (chooseLocation === "Bristol Fiesta" && availabilities && availabilities.length > 0) {
+        if (chooseLocation === "Bristol Fiesta") {
+            // Müsaitlik verisi henüz yüklenmemişse, sadece Ağustos ayına geç
+            if (!availabilities || availabilities.length === 0) {
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth();
+                
+                let startYear = currentYear;
+                if (currentMonth > 7) { // Ağustos'tan sonra
+                    startYear = currentYear + 1;
+                }
+                
+                const augustDate = new Date(startYear, 7, 1);
+                setCurrentDate(augustDate);
+                console.log(`Bristol Fiesta: No availabilities loaded yet, setting to August ${startYear}`);
+                return;
+            }
+            
             const currentYear = new Date().getFullYear();
             const currentMonth = new Date().getMonth();
             
