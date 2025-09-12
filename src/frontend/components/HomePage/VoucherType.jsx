@@ -295,6 +295,7 @@ const VoucherType = ({
         container.addEventListener('touchmove', handleTouchMove, { passive: true });
         container.addEventListener('touchend', handleTouchEnd, { passive: true });
         container.addEventListener('pointerdown', handleTouchStart, { passive: true });
+        container.addEventListener('pointermove', handleTouchMove, { passive: true });
         container.addEventListener('pointerup', handleTouchEnd, { passive: true });
         
         return () => {
@@ -1694,8 +1695,7 @@ const VoucherType = ({
                                                             onClick={() => {
                                                                 const container = document.querySelector('.voucher-cards-container');
                                                                 if (container) {
-                                                                    const gap = 16;
-                                                                    const itemWidth = container.clientWidth - 8 + gap;
+                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                                                                     const targetScrollLeft = i * itemWidth;
                                                                     container.scrollTo({
                                                                         left: targetScrollLeft,
