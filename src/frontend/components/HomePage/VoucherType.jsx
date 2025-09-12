@@ -177,8 +177,8 @@ const VoucherType = ({
     // Mobile breakpoint
     const [isMobile, setIsMobile] = useState(false);
     const [scrollPosition, setScrollPosition] = useState(0);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
+    const [canScrollVouchersLeft, setCanScrollVouchersLeft] = useState(false);
+    const [canScrollVouchersRight, setCanScrollVouchersRight] = useState(true);
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
     const voucherContainerRef = useRef(null);
     
@@ -224,8 +224,8 @@ const VoucherType = ({
             const index = Math.round(scrollLeft / itemWidth);
             const clamped = Math.max(0, Math.min(index, itemCount - 1));
             setCurrentItemIndex(clamped);
-            setCanScrollLeft(clamped > 0);
-            setCanScrollRight(clamped < itemCount - 1);
+            setCanScrollVouchersLeft(clamped > 0);
+            setCanScrollVouchersRight(clamped < itemCount - 1);
         };
 
         const handleScroll = () => {
@@ -1067,16 +1067,10 @@ const VoucherType = ({
         const container = voucherContainerRef.current;
         if (!container) return;
         
-        const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-        const currentScrollLeft = container.scrollLeft;
-        const currentIndex = Math.round(currentScrollLeft / itemWidth);
-        const targetIndex = Math.max(0, currentIndex - 1);
-        const targetScrollLeft = targetIndex * itemWidth;
-        
-        container.scrollTo({
-            left: targetScrollLeft,
-            behavior: 'smooth'
-        });
+        const firstChild = container.children[0];
+        const gap = 12;
+        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+        container.scrollTo({ left: Math.max(0, container.scrollLeft - itemWidth), behavior: 'smooth' });
     };
 
     const handleNextVoucher = () => {
@@ -1085,16 +1079,10 @@ const VoucherType = ({
         const container = voucherContainerRef.current;
         if (!container) return;
         
-        const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-        const currentScrollLeft = container.scrollLeft;
-        const currentIndex = Math.round(currentScrollLeft / itemWidth);
-        const targetIndex = Math.min(container.children.length - 1, currentIndex + 1);
-        const targetScrollLeft = targetIndex * itemWidth;
-        
-        container.scrollTo({
-            left: targetScrollLeft,
-            behavior: 'smooth'
-        });
+        const firstChild = container.children[0];
+        const gap = 12;
+        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+        container.scrollTo({ left: container.scrollLeft + itemWidth, behavior: 'smooth' });
     };
 
     const handleSelectVoucher = async (voucher) => {
@@ -1396,7 +1384,7 @@ const VoucherType = ({
                                         {activeVouchers.length > 1 && (
                                             <>
                                                 {/* Left Arrow (mobile, match ExperienceSection) */}
-                                                {canScrollLeft && (
+                                                {canScrollVouchersLeft && (
                                                     <div style={{
                                                         position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                         background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
@@ -1408,7 +1396,7 @@ const VoucherType = ({
                                                 )}
                                                 
                                                 {/* Right Arrow (mobile, match ExperienceSection) */}
-                                                {canScrollRight && (
+                                                {canScrollVouchersRight && (
                                                     <div style={{
                                                         position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                         background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
@@ -1665,7 +1653,7 @@ const VoucherType = ({
                                     {(isMobile ? filteredVouchers.length > 1 : filteredVouchers.length > 2) && (
                                         <>
                                             {/* Left Arrow */}
-                                            {(isMobile ? canScrollLeft : currentViewIndex > 0) && (
+                                            {(isMobile ? canScrollVouchersLeft : currentViewIndex > 0) && (
                                                 <div style={{ 
                                                     position: 'absolute', 
                                                     left: isMobile ? 10 : 20, 
@@ -1693,7 +1681,7 @@ const VoucherType = ({
                                             )}
                                             
                                             {/* Right Arrow */}
-                                            {(isMobile ? canScrollRight : currentViewIndex === 0) && (
+                                            {(isMobile ? canScrollVouchersRight : currentViewIndex === 0) && (
                                                 <div style={{ 
                                                     position: 'absolute', 
                                                     right: isMobile ? 10 : 20, 
