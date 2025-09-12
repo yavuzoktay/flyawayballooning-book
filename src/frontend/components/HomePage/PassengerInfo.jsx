@@ -1060,9 +1060,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     maxWidth: isMobile ? '100%' : '860px',
                     margin: isMobile ? '0' : '0 auto'
                   }}>
-                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '16px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '1 / -1' }}>
+                    {/* Row 1: First, Last, Weight (desktop) */}
+                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '16px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '1 / 2' }}>
                           <label style={{ 
                             fontSize: '13px',
                             fontWeight: '500',
@@ -1094,8 +1094,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           />
                           {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                         </div>
- 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '2 / 3' }}>
                           <label style={{ 
                             fontSize: '13px',
                             fontWeight: '500',
@@ -1127,11 +1126,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           />
                           {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
                         </div>
-                      </div>
- 
-                      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: isMobile ? '16px' : '12px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', width: '100%' }}>
                         {activitySelect !== 'Buy Gift' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '3 / 4' }}>
                             <label style={{ 
                               fontSize: '13px',
                               fontWeight: '500',
@@ -1165,22 +1161,19 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               />
                               <BsInfoCircle 
                                 data-tooltip-id={`weight-tooltip-${index}`}
-                                style={{ 
-                                  position: 'absolute', 
-                                  right: '12px', 
-                                  color: '#3b82f6', 
-                                  cursor: 'pointer',
-                                  fontSize: '16px'
-                                }} 
+                                style={{ position: 'absolute', right: '12px', color: '#3b82f6', cursor: 'pointer', fontSize: '16px' }} 
                               />
-                              <ReactTooltip 
-                                id={`weight-tooltip-${index}`}
-                                place="top"
-                                content="Approximate weights are fine - this helps us with flight planning and safety"
-                              />
+                              <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
                             </div>
                             {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                           </div>
+                        )}
+                    </div>
+
+                    {/* Row 2: Mobile + Email (desktop) */}
+                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: isMobile ? '16px' : '12px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1', width: '100%' }}>
+                        {activitySelect !== 'Buy Gift' && (
+                          null
                         )}
  
                          {index === 0 && (
@@ -1217,14 +1210,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                            {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                          </div>
                          )}
-                       </div>
-                     </div>
- 
-                     {/* Email field - only show for first passenger */}
-                    {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
-                      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '6px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
-                        {/* On desktop, place Email next to Mobile by spanning two columns container */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '2 / 3' }}>
+                        {/* Email next to Mobile */}
+                        {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
                             fontSize: isMobile ? '14px' : '13px',
                             fontWeight: isMobile ? '500' : '500',
@@ -1257,8 +1245,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
                           {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
                         </div>
-                       </div>
-                     )}
+                        )}
+                    </div>
                   </div>
                 </div>
               );
