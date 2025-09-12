@@ -203,7 +203,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           console.log(`✅ Passenger ${index + 1} complete, auto-sliding to Passenger ${index + 2} after 4s delay`);
           handleNextPassenger();
         }
-      }, 4000); // 4000ms delay for mobile UX
+      }, 6000); // 6000ms delay for mobile UX
     }
   };
 

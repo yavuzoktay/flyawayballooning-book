@@ -537,7 +537,7 @@ const Index = () => {
             const journeyLabel = activitySelect; // e.g., local labels
             setTimeout(() => {
                 fetchPassengerTermsForJourney(journeyLabel);
-            }, 5000);
+            }, 10000);
         }
 
         // Close current section

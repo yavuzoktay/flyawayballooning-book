@@ -199,106 +199,63 @@ const VoucherType = ({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Track scroll position for mobile navigation buttons
+    // Sync arrows/dots while swiping vouchers on mobile (based on ExperienceSection pattern)
     useEffect(() => {
         if (!isMobile) return;
-
         const container = voucherContainerRef.current;
         if (!container) return;
 
-        let scrollDebounceTimer = null;
-
-        const computeAndSet = () => {
-            const { scrollLeft, scrollWidth, clientWidth } = container;
-            setScrollPosition(scrollLeft);
-            
-            // For mobile: more precise button visibility control
-                const itemCount = container.children.length;
-            const itemWidth = getMobileItemWidth(container) || clientWidth;
-                
-                // Calculate current item index more accurately
-                const newCurrentItemIndex = Math.round(scrollLeft / itemWidth);
-                // Ensure index is within bounds
-                const clampedIndex = Math.max(0, Math.min(newCurrentItemIndex, itemCount - 1));
-                setCurrentItemIndex(clampedIndex);
-                
-                // Hide prev button when at the very beginning (first item)
-                setCanScrollLeft(clampedIndex > 0);
-                
-                // Hide next button when at the last item
-                setCanScrollRight(clampedIndex < itemCount - 1);
-                
-            console.log('VoucherType Mobile scroll debug:', {
-                    scrollLeft,
-                    scrollWidth,
-                    clientWidth,
-                    itemCount,
-                    itemWidth,
-                    newCurrentItemIndex,
-                    canScrollLeft: newCurrentItemIndex > 0,
-                    canScrollRight: newCurrentItemIndex < itemCount - 1,
-                    maxScrollLeft: (itemCount - 1) * itemWidth
-                });
-        };
-
-        let isScrolling = false;
-        let touchStartX = 0;
-        let lastScrollLeft = 0;
         let animationFrameId = null;
 
-
-        const handleTouchStart = (e) => {
-            isScrolling = true;
-            touchStartX = e.touches[0].clientX;
-            lastScrollLeft = container.scrollLeft;
-            computeAndSet(); // Force immediate update on touch start
-        };
-
-        const handleTouchMove = (e) => {
-            if (!isScrolling) return;
-            computeAndSet(); // Force immediate update during touch move
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
+        const getItemWidth = () => {
+            const firstChild = container.children && container.children[0];
+            if (firstChild) {
+                const styles = window.getComputedStyle(container);
+                const gap = parseInt(styles.columnGap || styles.gap || '12', 10) || 12;
+                return firstChild.getBoundingClientRect().width + gap;
             }
-            animationFrameId = requestAnimationFrame(() => {
-                computeAndSet();
-            });
+            return container.clientWidth;
         };
 
-        const handleTouchEnd = (e) => {
-            isScrolling = false;
-            setTimeout(() => { computeAndSet(); }, 50);
-            setTimeout(() => { computeAndSet(); }, 150);
-            setTimeout(() => { computeAndSet(); }, 300);
+        const computeAndSet = () => {
+            const { scrollLeft } = container;
+            const itemCount = container.children.length;
+            const itemWidth = getItemWidth();
+            const index = Math.round(scrollLeft / itemWidth);
+            const clamped = Math.max(0, Math.min(index, itemCount - 1));
+            setCurrentItemIndex(clamped);
+            setCanScrollLeft(clamped > 0);
+            setCanScrollRight(clamped < itemCount - 1);
         };
 
         const handleScroll = () => {
-            computeAndSet(); // Force immediate update on every scroll event
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            animationFrameId = requestAnimationFrame(() => {
-                computeAndSet();
-            });
+            computeAndSet();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(computeAndSet);
         };
 
         const handleScrollEnd = () => {
-            setTimeout(() => { computeAndSet(); }, 100);
+            setTimeout(computeAndSet, 100);
         };
 
-        // Initial setup
-        computeAndSet();
+        const handleTouchStart = () => computeAndSet();
+        const handleTouchMove = () => handleScroll();
+        const handleTouchEnd = () => {
+            setTimeout(computeAndSet, 50);
+            setTimeout(computeAndSet, 150);
+            setTimeout(computeAndSet, 300);
+        };
 
-        // Add event listeners
+        // initial
+        computeAndSet();
         container.addEventListener('scroll', handleScroll, { passive: true });
         container.addEventListener('scrollend', handleScrollEnd, { passive: true });
         container.addEventListener('touchstart', handleTouchStart, { passive: true });
         container.addEventListener('touchmove', handleTouchMove, { passive: true });
         container.addEventListener('touchend', handleTouchEnd, { passive: true });
         container.addEventListener('pointerdown', handleTouchStart, { passive: true });
-        container.addEventListener('pointermove', handleTouchMove, { passive: true });
         container.addEventListener('pointerup', handleTouchEnd, { passive: true });
-        
+
         return () => {
             container.removeEventListener('scroll', handleScroll);
             container.removeEventListener('scrollend', handleScrollEnd);
@@ -307,10 +264,9 @@ const VoucherType = ({
             container.removeEventListener('touchend', handleTouchEnd);
             container.removeEventListener('pointerdown', handleTouchStart);
             container.removeEventListener('pointerup', handleTouchEnd);
-            if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
         };
-    }, [isMobile, chooseFlightType, privateCharterVoucherTypes.length, allVoucherTypes.length]);
+    }, [isMobile, filteredVouchers.length, activeVouchers.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
@@ -1106,168 +1062,39 @@ const VoucherType = ({
     // Keep layout sensible per device and experience type
 
     const handlePrevVoucher = () => {
-        setSlideDirection('left');
-        setShouldAnimate(true);
+        if (!isMobile) return;
         
-        // For mobile devices, use horizontal scroll instead of view index changes
-        if (isMobile) {
-            const container = voucherContainerRef.current;
-            if (container) {
-                const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-                
-                // Calculate target scroll position for previous item
-                const currentScrollLeft = container.scrollLeft;
-                const currentIndex = Math.round(currentScrollLeft / itemWidth);
-                const targetIndex = Math.max(0, currentIndex - 1);
-                const targetScrollLeft = targetIndex * itemWidth;
-                
-                container.scrollTo({
-                    left: targetScrollLeft,
-                    behavior: 'smooth'
-                });
-                
-                // Update state immediately
-                setCurrentItemIndex(targetIndex);
-                setCanScrollLeft(targetIndex > 0);
-                setCanScrollRight(targetIndex < container.children.length - 1);
-            }
-            return;
-        }
+        const container = voucherContainerRef.current;
+        if (!container) return;
         
-        if (chooseFlightType?.type === "Private Charter") {
-            // For Private Charter, cycle through available voucher types
-            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
-            console.log('Private Charter Prev - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
-            
-            if (activePrivateCharterVoucherTypes.length >= 4) {
-                // 4 or more voucher types - show two at a time
-                if (currentViewIndex === 0) {
-                    // Currently showing first two vouchers, move to last two
-                    setCurrentViewIndex(2);
-                    setShowTwoVouchers(true);
-                    console.log('Moving to last two vouchers (index 2-3)');
-                } else if (currentViewIndex === 2) {
-                    // Currently showing second two vouchers, back to first two
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving back to first two vouchers (index 0-1)');
-                } else {
-                    // Fallback to first two
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving to first two vouchers (index 0-1)');
-                }
-            } else if (activePrivateCharterVoucherTypes.length >= 3) {
-                // 3 voucher types - show first two, then last one with a placeholder
-                if (currentViewIndex === 0) {
-                    // Currently showing first two vouchers, move to last one
-                    setCurrentViewIndex(2);
-                    setShowTwoVouchers(false);
-                    console.log('Moving to last voucher (index 2)');
-                } else {
-                    // Back to first two vouchers
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving back to first two vouchers (index 0-1)');
-                }
-            } else if (activePrivateCharterVoucherTypes.length > 1) {
-                // Only 2 voucher types, just toggle between single and two-voucher view
-                setShowTwoVouchers(!showTwoVouchers);
-                setCurrentViewIndex(0);
-                console.log('Toggling between single and two-voucher view');
-            }
-        } else {
-            // For Shared Flight, use original logic
-            setShowTwoVouchers(true);
-            setCurrentViewIndex(0);
-        }
+        const itemWidth = getMobileItemWidth(container) || container.clientWidth;
+        const currentScrollLeft = container.scrollLeft;
+        const currentIndex = Math.round(currentScrollLeft / itemWidth);
+        const targetIndex = Math.max(0, currentIndex - 1);
+        const targetScrollLeft = targetIndex * itemWidth;
+        
+        container.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+        });
     };
 
     const handleNextVoucher = () => {
-        setSlideDirection('right');
-        setShouldAnimate(true);
+        if (!isMobile) return;
         
-        // For mobile devices, use horizontal scroll instead of view index changes
-        if (isMobile) {
-            const container = voucherContainerRef.current;
-            if (container) {
-                const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-                
-                // Calculate target scroll position for next item
-                const currentScrollLeft = container.scrollLeft;
-                const currentIndex = Math.round(currentScrollLeft / itemWidth);
-                const targetIndex = Math.min(container.children.length - 1, currentIndex + 1);
-                const targetScrollLeft = targetIndex * itemWidth;
-                
-                container.scrollTo({
-                    left: targetScrollLeft,
-                    behavior: 'smooth'
-                });
-                
-                // Update state immediately
-                setCurrentItemIndex(targetIndex);
-                setCanScrollLeft(targetIndex > 0);
-                setCanScrollRight(targetIndex < container.children.length - 1);
-            }
-            return;
-        }
+        const container = voucherContainerRef.current;
+        if (!container) return;
         
-        if (chooseFlightType?.type === "Private Charter") {
-            // For Private Charter, cycle through available voucher types
-            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
-            console.log('Private Charter Next - Active voucher types:', activePrivateCharterVoucherTypes.length, 'Current showTwoVouchers:', showTwoVouchers, 'Current index:', currentViewIndex);
-            
-            if (activePrivateCharterVoucherTypes.length >= 4) {
-                // 4 or more voucher types - show two at a time
-                if (currentViewIndex === 0) {
-                    // Currently showing first two vouchers, move to next two
-                    setCurrentViewIndex(2);
-                    setShowTwoVouchers(true);
-                    console.log('Moving to next two vouchers (index 2-3)');
-                } else if (currentViewIndex === 2) {
-                    // Currently showing second two vouchers, back to first two
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving back to first two vouchers (index 0-1)');
-                } else {
-                    // Fallback to first two
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving to first two vouchers (index 0-1)');
-                }
-            } else if (activePrivateCharterVoucherTypes.length >= 3) {
-                // 3 voucher types - show first two, then last one with a placeholder
-                if (currentViewIndex === 0) {
-                    // Currently showing first two vouchers, move to last one
-                    setCurrentViewIndex(2);
-                    setShowTwoVouchers(false);
-                    console.log('Moving to last voucher (index 2)');
-                } else {
-                    // Back to first two vouchers
-                    setCurrentViewIndex(0);
-                    setShowTwoVouchers(true);
-                    console.log('Moving back to first two vouchers (index 0-1)');
-                }
-            } else if (activePrivateCharterVoucherTypes.length > 1) {
-                // Only 2 voucher types, just toggle between single and two-voucher view
-                setShowTwoVouchers(!showTwoVouchers);
-                setCurrentViewIndex(0);
-                console.log('Toggling between single and two-voucher view');
-            }
-        } else {
-            // For Shared Flight, use existing logic
-            const filteredVouchers = voucherTypes.filter(voucher => 
-                availableVoucherTypes.length === 0 || availableVoucherTypes.includes(voucher.title)
-            );
-            
-            if (showTwoVouchers) {
-                setShowTwoVouchers(false);
-                setCurrentViewIndex(2); // Move to third voucher (Any Day Flight)
-            } else {
-                setShowTwoVouchers(true);
-                setCurrentViewIndex(0);
-            }
-        }
+        const itemWidth = getMobileItemWidth(container) || container.clientWidth;
+        const currentScrollLeft = container.scrollLeft;
+        const currentIndex = Math.round(currentScrollLeft / itemWidth);
+        const targetIndex = Math.min(container.children.length - 1, currentIndex + 1);
+        const targetScrollLeft = targetIndex * itemWidth;
+        
+        container.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+        });
     };
 
     const handleSelectVoucher = async (voucher) => {
