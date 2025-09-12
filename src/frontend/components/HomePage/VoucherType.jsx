@@ -1619,61 +1619,6 @@ const VoucherType = ({
                                         ))}
                                     </div>
 
-                                    {/* Dot Navigation - Mobile Only */}
-                                    {isMobile && activeVouchers.length > 1 && (
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            marginTop: '20px',
-                                            position: 'absolute',
-                                            bottom: '10px',
-                                            left: '50%',
-                                            transform: 'translateX(-50%)'
-                                        }}>
-                                            {(() => {
-                                                // Create dots for each voucher item
-                                                const totalDots = activeVouchers.length;
-                                                const dots = [];
-                                                
-                                                for (let i = 0; i < totalDots; i++) {
-                                                    const isActive = i === currentItemIndex;
-                                                    
-                                                    dots.push(
-                                                        <div
-                                                            key={i}
-                                                            style={{
-                                                                width: '8px',
-                                                                height: '8px',
-                                                                borderRadius: '50%',
-                                                                backgroundColor: isActive ? '#03a9f4' : '#ddd',
-                                                                transition: 'all 0.3s ease',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                            onClick={() => {
-                                                                const container = voucherContainerRef.current;
-                                                                if (container) {
-                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-                                                                    const targetScrollLeft = i * itemWidth;
-                                                                    container.scrollTo({
-                                                                        left: targetScrollLeft,
-                                                                        behavior: 'smooth'
-                                                                    });
-                                                                    // Update state immediately
-                                                                    setCurrentItemIndex(i);
-                                                                    setCanScrollLeft(i > 0);
-                                                                    setCanScrollRight(i < container.children.length - 1);
-                                                                }
-                                                            }}
-                                                        />
-                                                    );
-                                                }
-                                                
-                                                return dots;
-                                            })()}
-                                        </div>
-                                    )}
                                 </>
                             );
                         } else {
@@ -1807,57 +1752,6 @@ const VoucherType = ({
                                         ))}
                                     </div>
 
-                                    {/* Dot Navigation - Mobile Only */}
-                                    {isMobile && filteredVouchers.length > 1 && (
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            marginTop: '8px'
-                                        }}>
-                                            {(() => {
-                                                // Create dots for each voucher item
-                                                const totalDots = filteredVouchers.length;
-                                                const dots = [];
-                                                
-                                                for (let i = 0; i < totalDots; i++) {
-                                                    const isActive = i === currentItemIndex;
-                                                    
-                                                    dots.push(
-                                                        <div
-                                                            key={i}
-                                                            style={{
-                                                                width: '8px',
-                                                                height: '8px',
-                                                                borderRadius: '50%',
-                                                                backgroundColor: isActive ? '#03a9f4' : '#ddd',
-                                                                transition: 'all 0.3s ease',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                            onClick={() => {
-                                                                const container = voucherContainerRef.current;
-                                                                if (container) {
-                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-                                                                    const targetScrollLeft = i * itemWidth;
-                                                                    container.scrollTo({
-                                                                        left: targetScrollLeft,
-                                                                        behavior: 'smooth'
-                                                                    });
-                                                                    // Update state immediately
-                                                                    setCurrentItemIndex(i);
-                                                                    setCanScrollLeft(i > 0);
-                                                                    setCanScrollRight(i < container.children.length - 1);
-                                                                }
-                                                            }}
-                                                        />
-                                                    );
-                                                }
-                                                
-                                                return dots;
-                                            })()}
-                                        </div>
-                                    )}
                                 </>
                             );
                         }
