@@ -532,9 +532,12 @@ const Index = () => {
         }, 3000);
         
         // Trigger Passenger Terms popup when Passenger Information is completed
+        // Show after a 5s delay to avoid interrupting the flow immediately
         if (completedSectionId === 'passenger-info') {
             const journeyLabel = activitySelect; // e.g., local labels
-            fetchPassengerTermsForJourney(journeyLabel);
+            setTimeout(() => {
+                fetchPassengerTermsForJourney(journeyLabel);
+            }, 5000);
         }
 
         // Close current section
