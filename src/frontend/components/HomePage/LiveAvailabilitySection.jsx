@@ -812,29 +812,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 fontSize: isMobile ? 18 : 24, 
                                 letterSpacing: 1 
                             }}>
-                                {chooseLocation === "Bristol Fiesta" ? 
-                                    `${format(currentDate, 'MMMM yyyy')} (August Only)` : 
-                                    format(currentDate, 'MMMM yyyy')
-                                }
+                                {format(currentDate, 'MMMM yyyy')}
                             </h2>
                             <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
-                        {/* Bristol Fiesta için özel bilgi mesajı */}
-                        {chooseLocation === "Bristol Fiesta" && (
-                            <div style={{
-                                background: '#e3f2fd',
-                                border: '1px solid #2196f3',
-                                borderRadius: '8px',
-                                padding: '8px 12px',
-                                margin: '8px 0',
-                                fontSize: '14px',
-                                color: '#1976d2',
-                                textAlign: 'center',
-                                fontWeight: 500
-                            }}>
-                                Bristol Fiesta is only available in August. Use arrows to navigate between August months.
-                            </div>
-                        )}
                         
                         {/* Real-time availability badge - responsive */}
                         <div className="realtime-badge-wrap">
