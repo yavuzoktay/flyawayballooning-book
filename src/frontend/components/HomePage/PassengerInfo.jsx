@@ -11,11 +11,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // - Otherwise: fall back to chooseFlightType.passengerCount (min 1)
   const passengerCount = (() => {
     if (activitySelect === 'Buy Gift') {
-      console.log('PassengerInfo: Buy Gift - passengerCount = 1');
       return 1;
     }
     const isVoucherDriven = chooseFlightType?.type === 'Flight Voucher' || activitySelect === 'Book Flight';
-    console.log('PassengerInfo: isVoucherDriven =', isVoucherDriven, 'chooseFlightType:', chooseFlightType, 'activitySelect:', activitySelect);
     if (isVoucherDriven) {
       // Prefer explicit quantity prop
       if (selectedVoucherType?.quantity !== undefined && selectedVoucherType?.quantity !== null) {
@@ -23,22 +21,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           ? (selectedVoucherType.quantity.match(/\d+/)?.[0] ?? selectedVoucherType.quantity)
           : selectedVoucherType.quantity;
         const q = Math.max(parseInt(extracted, 10) || 1, 1);
-        console.log('PassengerInfo: Using selectedVoucherType.quantity =', q);
         if (q) return q;
       }
       // Fallback: extract from title like "Any Day Flight (3 passengers)"
       if (typeof selectedVoucherType?.title === 'string') {
         const m = selectedVoucherType.title.match(/\((\d+)\s*passenger/i);
         if (m && m[1]) {
-          const count = Math.max(parseInt(m[1], 10) || 1, 1);
-          console.log('PassengerInfo: Extracted from title =', count);
-          return count;
+          return Math.max(parseInt(m[1], 10) || 1, 1);
         }
       }
     }
-    const fallbackCount = Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
-    console.log('PassengerInfo: Using fallback passengerCount =', fallbackCount, 'from chooseFlightType:', chooseFlightType);
-    return fallbackCount;
+    return Math.max(parseInt(chooseFlightType?.passengerCount) || 0, 1);
   })();
   
   // Mobile breakpoint
@@ -887,7 +880,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             {passengerCount > 1 && null}
 
             {/* Generate passenger forms based on passenger count */}
-            {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)], "isMobile:", isMobile)}
+            {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
             {[...Array(passengerCount)].map((_, index) => {
               const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
               const error = validationErrors[index] || {};

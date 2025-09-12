@@ -23,6 +23,10 @@ import { useLocation } from 'react-router-dom';
 import config from '../../config';
 const API_BASE_URL = config.API_BASE_URL;
 
+// Stripe imports
+import { loadStripe } from '@stripe/stripe-js';
+const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
+
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
     const [activitySelect, setActivitySelect] = useState(null);
@@ -51,6 +55,7 @@ const Index = () => {
     // Notification states for accordion completion
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState("");
+    const [showWarning, setShowWarning] = useState(false);
     
     // Flag to track if we're in a fresh start after activity change
     const [isFreshStart, setIsFreshStart] = useState(false);
@@ -369,6 +374,145 @@ const Index = () => {
     const isBookFlight = activitySelect === "Book Flight";
     console.log('chooseFlightType', chooseFlightType);
 
+    // Book button validation logic (copied from RightInfoCard)
+    const isAdditionalInfoValid = (info) => {
+        if (!info || typeof info !== 'object') return false;
+        const hasFilledValue = Object.values(info).some(val => {
+            if (typeof val === 'string') return val.trim() !== '';
+            if (typeof val === 'boolean') return val;
+            if (Array.isArray(val)) return val.length > 0;
+            if (typeof val === 'object' && val !== null) return Object.values(val).some(v => v);
+            return val !== null && val !== undefined;
+        });
+        return hasFilledValue;
+    };
+
+    const isRecipientDetailsValid = (details) => {
+        if (!details || typeof details !== 'object') return false;
+        const hasFilledValue = Object.values(details).some(val => {
+            if (typeof val === 'string') return val.trim() !== '';
+            if (typeof val === 'boolean') return val;
+            if (Array.isArray(val)) return val.length > 0;
+            if (typeof val === 'object' && val !== null) return Object.values(val).some(v => v);
+            return val !== null && val !== undefined;
+        });
+        return hasFilledValue;
+    };
+
+    const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isFirstPassenger = index === 0;
+        
+        // All passengers need: firstName, lastName, weight
+        const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
+               passenger.lastName && passenger.lastName.trim() !== '' &&
+               (passenger.weight && (typeof passenger.weight === 'string' ? passenger.weight.trim() !== '' : passenger.weight !== null && passenger.weight !== undefined));
+        
+        // Only first passenger needs: phone and email
+        const contactInfoValid = isFirstPassenger ? 
+            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            true;
+        
+        return basicInfoValid && contactInfoValid;
+    });
+
+    const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
+        const isFirstPassenger = index === 0;
+        
+        // All passengers need: firstName, lastName, weight
+        const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
+               passenger.lastName && passenger.lastName.trim() !== '' &&
+               (passenger.weight && (typeof passenger.weight === 'string' ? passenger.weight.trim() !== '' : passenger.weight !== null && passenger.weight !== undefined));
+        
+        // Only first passenger needs: phone and email
+        const contactInfoValid = isFirstPassenger ? 
+            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            true;
+        
+        return basicInfoValid && contactInfoValid;
+    });
+
+    const isBookDisabled = isRedeemVoucher
+        ? !(
+            activitySelect &&
+            chooseLocation &&
+            chooseFlightType &&
+            selectedVoucherType &&
+            selectedDate &&
+            selectedTime &&
+            isPassengerInfoComplete
+        )
+        : isFlightVoucher
+        ? !(
+            chooseFlightType &&
+            selectedVoucherType &&
+            isPassengerInfoComplete &&
+            isAdditionalInfoValid(additionalInfo)
+        )
+        : isGiftVoucher
+        ? !(
+            chooseFlightType &&
+            selectedVoucherType &&
+            isBuyGiftPassengerComplete &&
+            isRecipientDetailsValid(recipientDetails)
+        )
+        : !(
+            activitySelect &&
+            chooseLocation &&
+            chooseFlightType &&
+            selectedVoucherType &&
+            isPassengerInfoComplete &&
+            isAdditionalInfoValid(additionalInfo) &&
+            selectedDate &&
+            selectedTime
+        );
+
+    // Calculate total price (copied from RightInfoCard)
+    let totalPrice = 0;
+    
+    if (activitySelect === 'Book Flight') {
+        // For Book Flight, only include voucher type price and add-ons
+        const voucherTypePrice = selectedVoucherType?.price || 0;
+        const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
+        const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+        totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
+    } else if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
+        // For Flight Voucher and Buy Gift, only show total when voucher type is selected
+        if (selectedVoucherType) {
+            const voucherTypePrice = selectedVoucherType?.price || 0;
+            const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
+            const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+            totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
+        }
+    } else {
+        // For other activity types (like Redeem Voucher), include all components
+        const flightTypePrice = chooseFlightType?.price || 0;
+        const voucherTypePrice = selectedVoucherType?.price || 0;
+        const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
+        const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+        totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
+    }
+
+    // Validation function for Buy Gift fields
+    const validateBuyGiftFields = () => {
+        if (!isGiftVoucher) return true;
+        
+        // Check if all required fields are filled
+        const hasRecipientDetails = isRecipientDetailsValid(recipientDetails);
+        const hasPassengerInfo = isBuyGiftPassengerComplete;
+        
+        if (!hasRecipientDetails) {
+            alert('Please fill in all recipient details.');
+            return false;
+        }
+        
+        if (!hasPassengerInfo) {
+            alert('Please fill in all purchaser information.');
+            return false;
+        }
+        
+        return true;
+    };
+
     // Lokasyon ve tarih seçilip seçilmediğini kontrol et
     const showBookingHeader = chooseLocation && selectedDate && selectedTime;
 
@@ -536,7 +680,7 @@ const Index = () => {
         if (completedSectionId === 'passenger-info') {
             const journeyLabel = activitySelect; // e.g., local labels
             setTimeout(() => {
-                fetchPassengerTermsForJourney(journeyLabel);
+            fetchPassengerTermsForJourney(journeyLabel);
             }, 10000);
         }
 
@@ -610,59 +754,6 @@ const Index = () => {
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
 
-    // Validation function for all activity types
-    const validateBuyGiftFields = () => {
-        let isValid = true;
-        
-        // Validate Recipient Details (only for Buy Gift)
-        if (activitySelect === "Buy Gift" && recipientDetailsRef.current) {
-            const recipientValid = recipientDetailsRef.current.validate();
-            if (!recipientValid) {
-                setActiveAccordion("recipient-details");
-                isValid = false;
-            }
-        }
-        
-        // Validate Passenger Information (for all activity types)
-        if (passengerInfoRef.current) {
-            const passengerValid = passengerInfoRef.current.validate();
-            if (!passengerValid) {
-                // Show validation errors now because user is trying to proceed
-                passengerInfoRef.current.validate(true);
-                setActiveAccordion("passenger-info");
-                isValid = false;
-            }
-        }
-        
-        // Validate Additional Information (for all activity types)
-        if (additionalInfoRef.current) {
-            const additionalValid = additionalInfoRef.current.validate();
-            if (!additionalValid) {
-                setActiveAccordion("additional-info");
-                isValid = false;
-            }
-        }
-        
-        // For Redeem Voucher, also validate that Live Availability is selected
-        if (activitySelect === "Redeem Voucher" && (!selectedDate || !selectedTime)) {
-            setActiveAccordion("live-availability");
-            isValid = false;
-        }
-        
-        // For Flight Voucher, validate that all required fields are filled
-        if (activitySelect === "Flight Voucher") {
-            // PassengerInfo validation is already handled in validateBuyGiftFields
-            // Additional validation can be added here if needed
-        }
-        
-        // For Buy Gift, validate that all required fields are filled
-        if (activitySelect === "Buy Gift") {
-            // PassengerInfo validation is already handled in validateBuyGiftFields
-            // Additional validation can be added here if needed
-        }
-        
-        return isValid;
-    };
 
     // Handle voucher code submission
     const handleVoucherSubmit = (code) => {
@@ -702,16 +793,242 @@ const Index = () => {
         setWeatherRefund(false);
         setPrivateCharterWeatherRefund(false);
         setPreference({ location: {}, time: {}, day: {} });
+        setVoucherCode("");
+        setShowWarning(false);
         setRecipientDetails({ name: "", email: "", phone: "", date: "" });
         setAdditionalInfo({ notes: "" });
         setSelectedDate(null);
         setActivityId(null);
         setSelectedActivity([]);
+        setSelectedVoucherType(null);
         setAvailableSeats([]);
         setVoucherCode("");
         setVoucherStatus(null);
         setVoucherData(null);
-        setSelectedVoucherType(null);
+    };
+
+    // Send Data To Backend
+    const handleBookData = async () => {
+        console.log("Book button clicked");
+        console.log("API_BASE_URL:", API_BASE_URL);
+        
+        // Validate Buy Gift and Flight Voucher fields if needed
+        if ((isGiftVoucher || isFlightVoucher) && validateBuyGiftFields) {
+            const isValid = validateBuyGiftFields();
+            if (!isValid) {
+                return; // Validation failed, don't proceed
+            }
+        }
+        if (isFlightVoucher || isGiftVoucher) {
+            // Debug: Log the selectedVoucherType
+            console.log('=== VOUCHER DATA PREPARATION DEBUG ===');
+            console.log('selectedVoucherType:', selectedVoucherType);
+            console.log('selectedVoucherType?.title:', selectedVoucherType?.title);
+            console.log('isFlightVoucher:', isFlightVoucher);
+            console.log('isGiftVoucher:', isGiftVoucher);
+            
+            // Validate that selectedVoucherType is set
+            if (!selectedVoucherType || !selectedVoucherType.title) {
+                alert('Please select a voucher type before proceeding with payment.');
+                return;
+            }
+            
+            // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
+            const voucherData = {
+                // For Gift Vouchers: name/email/phone/mobile should be PURCHASER info (from PassengerInfo form)
+                // For Flight Vouchers: name/email/phone/mobile should be the main contact info
+                name: isGiftVoucher ? 
+                    ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() :
+                    (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
+                weight: passengerData?.[0]?.weight || "",
+                flight_type: chooseFlightType?.type || "",
+                voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
+                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
+                email: isGiftVoucher ? 
+                    (passengerData?.[0]?.email || "").trim() :
+                    (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
+                phone: isGiftVoucher ? 
+                    (passengerData?.[0]?.phone || "").trim() :
+                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                mobile: isGiftVoucher ? 
+                    (passengerData?.[0]?.phone || "").trim() :
+                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                redeemed: "No",
+                paid: totalPrice, // This is already calculated correctly above
+                offer_code: "",
+                voucher_ref: voucherCode || "",
+                // Recipient information (only for Gift Vouchers)
+                recipient_name: isGiftVoucher ? (recipientDetails?.name || "") : "",
+                recipient_email: isGiftVoucher ? (recipientDetails?.email || "") : "",
+                recipient_phone: isGiftVoucher ? (recipientDetails?.phone || "") : "",
+                recipient_gift_date: isGiftVoucher ? (recipientDetails?.date || "") : "",
+                // Purchaser information (explicitly set for Gift Vouchers)
+                purchaser_name: isGiftVoucher ? ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() : "",
+                purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
+                purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                numberOfPassengers: passengerData ? passengerData.length : 1,
+                preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+                preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+            };
+            
+            // Debug: Log the voucher data being sent
+            console.log('=== VOUCHER DATA BEING SENT ===');
+            console.log('voucherData:', voucherData);
+            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            console.log('=== NUMBER OF PASSENGERS DEBUG ===');
+            console.log('passengerData:', passengerData);
+            console.log('passengerData.length:', passengerData ? passengerData.length : 'passengerData is null/undefined');
+            console.log('numberOfPassengers being sent:', voucherData.numberOfPassengers);
+            
+            try {
+                // Stripe Checkout Session başlat - VOUCHER için
+                const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
+                    totalPrice,
+                    currency: 'GBP',
+                    voucherData,
+                    type: 'voucher'
+                });
+                if (!sessionRes.data.success) {
+                    alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                    return;
+                }
+                const stripe = await stripePromise;
+                const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
+                if (error) {
+                    alert('Stripe yönlendirme hatası: ' + error.message);
+                }
+                // Başarılı ödeme sonrası voucher code generation ve createVoucher webhook ile tetiklenecek
+            } catch (error) {
+                console.error('Stripe Checkout başlatılırken hata:', error);
+                const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
+                const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
+                const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
+                alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+            }
+            return;
+        }
+        
+        // REDEEM VOUCHER FLOW (Stripe ödeme olmadan direkt createVoucher)
+        if (isRedeemVoucher) {
+            // Debug: Log the selectedVoucherType
+            console.log('=== REDEEM VOUCHER DEBUG ===');
+            console.log('selectedVoucherType:', selectedVoucherType);
+            console.log('selectedVoucherType?.title:', selectedVoucherType?.title);
+            
+            // Validate that selectedVoucherType is set
+            if (!selectedVoucherType || !selectedVoucherType.title) {
+                alert('Please select a voucher type before proceeding.');
+                return;
+            }
+            
+            // Voucher data preparation for Redeem Voucher
+            const voucherData = {
+                name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
+                weight: passengerData?.[0]?.weight || "",
+                flight_type: chooseFlightType?.type || "",
+                voucher_type: "Redeem Voucher",
+                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
+                email: passengerData?.[0]?.email || "",
+                phone: passengerData?.[0]?.phone || "",
+                mobile: passengerData?.[0]?.phone || "",
+                redeemed: "Yes", // Redeem Voucher için redeemed = "Yes"
+                paid: 0, // Redeem Voucher için ödeme yok
+                offer_code: voucherCode || "",
+                voucher_ref: voucherCode || "",
+                recipient_name: "",
+                recipient_email: "",
+                recipient_phone: "",
+                recipient_gift_date: "",
+                // Purchaser information (same as main contact for Redeem Voucher)
+                purchaser_name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
+                purchaser_email: passengerData?.[0]?.email || "",
+                purchaser_phone: passengerData?.[0]?.phone || "",
+                purchaser_mobile: passengerData?.[0]?.phone || "",
+                numberOfPassengers: passengerData ? passengerData.length : 1,
+                preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+                preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+            };
+            
+            // Debug: Log the voucher data being sent
+            console.log('=== REDEEM VOUCHER DATA BEING SENT ===');
+            console.log('voucherData:', voucherData);
+            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            
+            try {
+                // Direkt createVoucher endpoint'ini çağır
+                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
+                
+                if (response.data.success) {
+                    alert(`Voucher başarıyla kullanıldı! Voucher ID: ${response.data.voucherId}`);
+                    // Başarılı işlem sonrası form'u temizle
+                    resetBooking();
+                } else {
+                    alert('Voucher kullanılırken hata oluştu: ' + (response.data.error || 'Bilinmeyen hata'));
+                }
+            } catch (error) {
+                console.error('Voucher kullanılırken hata:', error);
+                alert('Voucher kullanılırken hata oluştu. Lütfen tekrar deneyin.');
+            }
+            return;
+        }
+        // BOOK FLIGHT FLOW (Stripe ile ödeme)
+        let bookingDateStr = selectedDate;
+        if (selectedDate instanceof Date && selectedTime) {
+            const [h, m, s] = selectedTime.split(":");
+            const localDate = new Date(selectedDate);
+            localDate.setHours(Number(h));
+            localDate.setMinutes(Number(m));
+            localDate.setSeconds(Number(s) || 0);
+            bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+        } else if (selectedDate instanceof Date) {
+            bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+        }
+        const bookingData = {
+            activitySelect,
+            chooseLocation,
+            chooseFlightType,
+            chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [], // Opsiyonel - boş array olabilir
+            passengerData,
+            additionalInfo,
+            recipientDetails,
+            selectedDate: bookingDateStr,
+            selectedTime: selectedTime || null,
+            totalPrice,
+            voucher_code: voucherCode,
+            flight_attempts: chooseFlightType?.flight_attempts || 0,
+            preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+            preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+        };
+        
+        try {
+            // Stripe Checkout Session başlat - BOOKING için
+            const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
+                totalPrice,
+                currency: 'GBP',
+                bookingData,
+                type: 'booking'
+            });
+            if (!sessionRes.data.success) {
+                alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                return;
+            }
+            const stripe = await stripePromise;
+            const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
+            if (error) {
+                alert('Stripe yönlendirme hatası: ' + error.message);
+            }
+            // Başarılı ödeme sonrası booking creation ve createBooking webhook ile tetiklenecek
+        } catch (error) {
+            console.error('Stripe Checkout başlatılırken hata:', error);
+            const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
+            const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
+            const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
+            alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+        }
     };
 
     useEffect(() => {
@@ -1957,6 +2274,125 @@ const Index = () => {
                 }
             `}</style>
             </div>
+            
+            {/* Desktop Bottom Center Book Button */}
+            {!isMobile && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    gap: '12px',
+                    alignItems: 'center'
+                }}>
+                    <button
+                        style={{
+                            background: '#f8f9fa',
+                            color: '#6c757d',
+                            fontWeight: 500,
+                            borderRadius: '8px',
+                            padding: '8px 22px',
+                            cursor: 'pointer',
+                            opacity: 1,
+                            border: '1px solid #dee2e6'
+                        }}
+                        onClick={resetBooking}
+                        type="button"
+                    >
+                        Clear
+                    </button>
+                    <button
+                        className="booking_btn final_booking-button"
+                        style={{
+                            background: isBookDisabled ? '#eee' : '#2d4263',
+                            color: '#fff',
+                            fontWeight: 500,
+                            borderRadius: '8px',
+                            padding: '8px 22px',
+                            cursor: isBookDisabled ? 'not-allowed' : 'pointer',
+                            opacity: isBookDisabled ? 0.5 : 1
+                        }}
+                        disabled={isBookDisabled}
+                        onClick={() => {
+                            if (isBookDisabled) {
+                                setShowWarning(true);
+                            } else {
+                                setShowWarning(false);
+                                handleBookData();
+                            }
+                        }}
+                        type="button"
+                    >
+                        Book
+                    </button>
+                </div>
+            )}
+            
+            {/* Warning Display for Desktop Bottom Center Book Button */}
+            {!isMobile && showWarning && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '80px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 1001,
+                    background: '#fff',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    maxWidth: '400px',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ color: 'red', fontSize: '14px' }}>
+                        {activitySelect === 'Book Flight' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Voucher Type<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect === 'Redeem Voucher' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect === 'Flight Voucher' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Experience<br/>
+                                • Passenger Information (All fields required)<br/>
+                                • Additional Information<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect === 'Buy Gift' && (
+                            <>
+                                Please complete all required fields:<br/>
+                                • Experience<br/>
+                                • Voucher Type<br/>
+                                • Recipient Details<br/>
+                                • Purchaser Information (All fields required)<br/>
+                                • Add to Booking
+                            </>
+                        )}
+                        {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && activitySelect !== 'Flight Voucher' && activitySelect !== 'Buy Gift' && (
+                            'Please fill in all required steps before booking.'
+                        )}
+                    </div>
+                </div>
+            )}
         </>
     )
 }
