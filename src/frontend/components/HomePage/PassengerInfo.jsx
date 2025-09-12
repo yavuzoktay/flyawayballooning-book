@@ -1051,12 +1051,16 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   </div>
 
                   <div className="form-presnger" style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+                    display: isMobile ? 'flex' : 'grid', 
+                    flexDirection: isMobile ? 'column' : undefined, 
                     gap: '16px',
-                    width: '100%'
+                    width: '100%',
+                    gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                    alignItems: isMobile ? undefined : 'start',
+                    maxWidth: isMobile ? '100%' : '860px',
+                    margin: isMobile ? '0' : '0 auto'
                   }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '16px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
@@ -1090,7 +1094,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           />
                           {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                         </div>
-
+ 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
                             fontSize: '13px',
@@ -1124,8 +1128,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
                         </div>
                       </div>
-
-                      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '12px' }}>
+ 
+                      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: isMobile ? '16px' : '12px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', width: '100%' }}>
                         {activitySelect !== 'Buy Gift' && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label style={{ 
@@ -1178,81 +1182,81 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                           </div>
                         )}
-
-                        {index === 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
-                            display: 'block'
-                          }}>Mobile Number*</label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={passenger.phone || ''}
-                            onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="Mobile Number"
-                            style={{
-                              ...(error?.phone ? { border: '1.5px solid red' } : {}),
-                              ...(isMobile ? {
-                                fontSize: '14px',
-                                padding: '10px 12px',
-                                minHeight: '40px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                backgroundColor: '#ffffff',
-                                color: '#374151',
-                                fontWeight: '400',
-                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                                transition: 'all 0.2s ease'
-                              } : {})
-                            }}
-                          />
-                          {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
-                        </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Email field - only show for first passenger */}
-                    {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ 
-                          fontSize: isMobile ? '14px' : '13px',
-                          fontWeight: isMobile ? '500' : '500',
-                          color: isMobile ? '#374151' : 'inherit',
-                          marginBottom: '6px',
-                          display: 'block'
-                        }}>Email*</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={passenger.email || ''}
-                          onChange={(e) => handlePassengerInputChange(index, e)}
-                          placeholder="Email"
-                          style={{
-                            ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
-                            ...(isMobile ? {
-                              fontSize: '14px',
-                              padding: '10px 12px',
-                              minHeight: '40px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              backgroundColor: '#ffffff',
-                              color: '#374151',
-                              fontWeight: '400',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                              transition: 'all 0.2s ease'
-                            } : {})
-                          }}
-                        />
-                        {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
-                        {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
-                      </div>
-                    )}
-                  </div>
+ 
+                         {index === 0 && (
+                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                           <label style={{ 
+                             fontSize: '13px',
+                             fontWeight: '500',
+                             color: '#374151',
+                             marginBottom: '4px',
+                             display: 'block'
+                           }}>Mobile Number*</label>
+                           <input
+                             type="tel"
+                             name="phone"
+                             value={passenger.phone || ''}
+                             onChange={(e) => handlePassengerInputChange(index, e)}
+                             placeholder="Mobile Number"
+                             style={{
+                               ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                               ...(isMobile ? {
+                                 fontSize: '14px',
+                                 padding: '10px 12px',
+                                 minHeight: '40px',
+                                 border: '1px solid #d1d5db',
+                                 borderRadius: '6px',
+                                 backgroundColor: '#ffffff',
+                                 color: '#374151',
+                                 fontWeight: '400',
+                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                 transition: 'all 0.2s ease'
+                               } : {})
+                             }}
+                           />
+                           {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
+                         </div>
+                         )}
+                       </div>
+                     </div>
+ 
+                     {/* Email field - only show for first passenger */}
+                     {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '1 / -1' }}>
+                         <label style={{ 
+                           fontSize: isMobile ? '14px' : '13px',
+                           fontWeight: isMobile ? '500' : '500',
+                           color: isMobile ? '#374151' : 'inherit',
+                           marginBottom: '6px',
+                           display: 'block'
+                         }}>Email*</label>
+                         <input
+                           type="email"
+                           name="email"
+                           value={passenger.email || ''}
+                           onChange={(e) => handlePassengerInputChange(index, e)}
+                           placeholder="Email"
+                           style={{
+                             ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
+                             ...(isMobile ? {
+                               fontSize: '14px',
+                               padding: '10px 12px',
+                               minHeight: '40px',
+                               border: '1px solid #d1d5db',
+                               borderRadius: '6px',
+                               backgroundColor: '#ffffff',
+                               color: '#374151',
+                               fontWeight: '400',
+                               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                               transition: 'all 0.2s ease'
+                             } : {})
+                           }}
+                         />
+                         {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
+                         {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                       </div>
+                     )}
+                   </div>
                 </div>
               );
             })}
