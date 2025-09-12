@@ -177,33 +177,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
   // Check if a passenger's details are complete
   const isPassengerComplete = (passenger, index) => {
-    if (activitySelect === 'Buy Gift') {
-      // For Buy Gift: All fields required
-      const hasFirstName = passenger.firstName?.trim();
-      const hasLastName = passenger.lastName?.trim();
-      const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
-      const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
-      
-      return hasFirstName && hasLastName && hasPhone && hasEmail;
-    } else if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher') {
-      // For other activity types: All fields required
-      const hasFirstName = passenger.firstName?.trim();
-      const hasLastName = passenger.lastName?.trim();
-      const hasWeight = passenger.weight?.trim();
-      const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
-      const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
-      
-      return hasFirstName && hasLastName && hasWeight && hasPhone && hasEmail;
-    } else {
-      // For other activity types, basic validation
-      const hasFirstName = passenger.firstName?.trim();
-      const hasLastName = passenger.lastName?.trim();
-      const hasPhone = passenger.phone?.trim();
-      const hasEmail = passenger.email?.trim();
-      const hasWeight = isFlightVoucher ? passenger.weight?.trim() : true;
-      
-      return hasFirstName && hasLastName && hasPhone && hasEmail && hasWeight;
-    }
+    // Only Mobile Number and Email are required (for first passenger only)
+    const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
+    const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
+    
+    return hasPhone && hasEmail;
   };
 
   // Auto-slide to next passenger when current one is complete
@@ -301,7 +279,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     return price;
   };
 
-  // Optional validation function for Buy Gift, strict for others
+  // Validation function - only Mobile Number and Email are required
   // When setErrors=false, perform a silent validation (no red borders yet)
   const validateFields = (setErrors = true) => {
     const errors = [];
@@ -314,90 +292,25 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       
       console.log(`👤 Validating passenger ${index + 1}:`, passenger);
       
-      if (activitySelect === 'Buy Gift') {
-        // For Buy Gift: All fields are required again (only first passenger needs phone/email)
-        console.log(`🎁 Buy Gift validation - all fields required for passenger ${index + 1}`);
-        
-        // First Name validation
-        if (!passenger.firstName?.trim()) {
-          passengerErrors.firstName = true;
-          console.log(`❌ Passenger ${index + 1} firstName failed:`, passenger.firstName);
+      // Only Mobile Number and Email are required (for first passenger only)
+      if (index === 0) {
+        // Phone validation for first passenger
+        if (!passenger.phone?.trim()) {
+          passengerErrors.phone = true;
+          console.log(`❌ First passenger phone failed:`, passenger.phone);
         }
         
-        // Last Name validation
-        if (!passenger.lastName?.trim()) {
-          passengerErrors.lastName = true;
-          console.log(`❌ Passenger ${index + 1} lastName failed:`, passenger.lastName);
-        }
-        
-        // Phone and Email validation (only for first passenger - purchaser)
-        if (index === 0) {
-          // Phone validation for first passenger
-          if (!passenger.phone?.trim()) {
-            passengerErrors.phone = true;
-            console.log(`❌ First passenger phone failed:`, passenger.phone);
-          }
-          
-          // Email validation for first passenger (format + required)
-          if (!passenger.email?.trim()) {
+        // Email validation for first passenger (format + required)
+        if (!passenger.email?.trim()) {
+          passengerErrors.email = true;
+          console.log(`❌ First passenger email failed (empty):`, passenger.email);
+        } else {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(passenger.email.trim())) {
             passengerErrors.email = true;
-            console.log(`❌ First passenger email failed (empty):`, passenger.email);
-          } else {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(passenger.email.trim())) {
-              passengerErrors.email = true;
-              console.log(`❌ First passenger email failed (format):`, passenger.email);
-            }
+            console.log(`❌ First passenger email failed (format):`, passenger.email);
           }
         }
-        
-      } else if (activitySelect === 'Book Flight' || activitySelect === 'Redeem Voucher' || activitySelect === 'Flight Voucher') {
-        // For other activity types: All fields required
-        
-        // First Name validation
-        if (!passenger.firstName?.trim()) {
-          passengerErrors.firstName = true;
-          console.log(`❌ Passenger ${index + 1} firstName failed:`, passenger.firstName);
-        }
-        
-        // Last Name validation
-        if (!passenger.lastName?.trim()) {
-          passengerErrors.lastName = true;
-          console.log(`❌ Passenger ${index + 1} lastName failed:`, passenger.lastName);
-        }
-        
-        // Phone and Email validation only for the first passenger (contact person)
-        if (index === 0) {
-          if (!passenger.phone?.trim()) {
-            passengerErrors.phone = true;
-            console.log(`❌ First passenger phone failed:`, passenger.phone);
-          }
-          if (!passenger.email?.trim()) {
-            passengerErrors.email = true;
-            console.log(`❌ First passenger email failed (empty):`, passenger.email);
-          } else {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(passenger.email.trim())) {
-              passengerErrors.email = true;
-              console.log(`❌ First passenger email failed (format):`, passenger.email);
-            }
-          }
-        }
-        
-        // Weight is required for Book Flight, Redeem Voucher, and Flight Voucher
-        if (!passenger.weight?.trim()) {
-          passengerErrors.weight = true;
-          console.log(`❌ Passenger ${index + 1} weight failed:`, passenger.weight);
-        }
-      } else {
-        // For other activity types, basic validation
-        if (!passenger.firstName?.trim()) passengerErrors.firstName = true;
-        if (!passenger.lastName?.trim()) passengerErrors.lastName = true;
-        if (!passenger.phone?.trim()) passengerErrors.phone = true;
-        if (!passenger.email?.trim()) passengerErrors.email = true;
-        
-        // Weight is required for Flight Voucher but not for Buy Gift
-        if (isFlightVoucher && !passenger.weight?.trim()) passengerErrors.weight = true;
       }
       
       if (Object.keys(passengerErrors).length > 0) {
@@ -414,7 +327,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       passengerCount: passengerData.length,
       errors,
       isValid,
-      note: activitySelect === 'Buy Gift' ? 'All fields optional for Buy Gift' : 'Standard validation applied'
+      note: 'Only Mobile Number and Email are required (first passenger only)'
     });
     
     if (setErrors) {
@@ -785,7 +698,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       color: isMobile ? '#374151' : 'inherit',
                       marginBottom: isMobile ? '6px' : '4px',
                       display: 'block'
-                    }}>First Name<span style={{ color: 'red' }}>*</span></label>
+                    }}>First Name</label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -799,7 +712,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       }}
                       placeholder="First Name"
                     />
-                    {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                   </div>
                   <div style={{ flex: 1, width: '100%' }}>
                     <label style={{
@@ -808,7 +720,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       color: isMobile ? '#374151' : 'inherit',
                       marginBottom: isMobile ? '6px' : '4px',
                       display: 'block'
-                    }}>Last Name<span style={{ color: 'red' }}>*</span></label>
+                    }}>Last Name</label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -822,7 +734,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       }}
                       placeholder="Last Name"
                     />
-                    {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
                   </div>
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
@@ -837,7 +748,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         color: isMobile ? '#374151' : 'inherit',
                         marginBottom: isMobile ? '6px' : '4px'
                       }}>
-                        Weight (Kg)<span style={{ color: 'red' }}>*</span>
+                        Weight (Kg)
                         <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                           <div className="info-icon-container" style={{ position: 'relative' }}>
                             <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
@@ -859,7 +770,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Max 18 Stone / 114Kg"
                       />
-                      {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                     </div>
                   )}
                 </div>
@@ -1069,7 +979,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             color: '#374151',
                             marginBottom: '4px',
                             display: 'block'
-                          }}>First Name*</label>
+                          }}>First Name</label>
                           <input
                             type="text"
                             name="firstName"
@@ -1092,7 +1002,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               } : {})
                             }}
                           />
-                          {error?.firstName && <span style={{ color: 'red', fontSize: 12 }}>First name is required</span>}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '2 / 3' }}>
                           <label style={{ 
@@ -1101,7 +1010,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             color: '#374151',
                             marginBottom: '4px',
                             display: 'block'
-                          }}>Last Name*</label>
+                          }}>Last Name</label>
                           <input
                             type="text"
                             name="lastName"
@@ -1124,7 +1033,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               } : {})
                             }}
                           />
-                          {error?.lastName && <span style={{ color: 'red', fontSize: 12 }}>Last name is required</span>}
                         </div>
                         {activitySelect !== 'Buy Gift' && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '3 / 4' }}>
@@ -1134,7 +1042,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               color: '#374151',
                               marginBottom: '4px',
                               display: 'block'
-                            }}>Weight (Kg) *</label>
+                            }}>Weight (Kg)</label>
                             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                               <input
                                 type="number"
@@ -1165,7 +1073,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               />
                               <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
                             </div>
-                            {error?.weight && <span style={{ color: 'red', fontSize: 12 }}>Weight is required</span>}
                           </div>
                         )}
                     </div>
