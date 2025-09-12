@@ -1062,7 +1062,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   }}>
                     <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '16px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '1 / -1' }}>
                           <label style={{ 
                             fontSize: '13px',
                             fontWeight: '500',
@@ -1221,42 +1221,45 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                      </div>
  
                      {/* Email field - only show for first passenger */}
-                     {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '1 / -1' }}>
-                         <label style={{ 
-                           fontSize: isMobile ? '14px' : '13px',
-                           fontWeight: isMobile ? '500' : '500',
-                           color: isMobile ? '#374151' : 'inherit',
-                           marginBottom: '6px',
-                           display: 'block'
-                         }}>Email*</label>
-                         <input
-                           type="email"
-                           name="email"
-                           value={passenger.email || ''}
-                           onChange={(e) => handlePassengerInputChange(index, e)}
-                           placeholder="Email"
-                           style={{
-                             ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
-                             ...(isMobile ? {
-                               fontSize: '14px',
-                               padding: '10px 12px',
-                               minHeight: '40px',
-                               border: '1px solid #d1d5db',
-                               borderRadius: '6px',
-                               backgroundColor: '#ffffff',
-                               color: '#374151',
-                               fontWeight: '400',
-                               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                               transition: 'all 0.2s ease'
-                             } : {})
-                           }}
-                         />
-                         {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
-                         {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                    {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gap: '6px', gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gridColumn: isMobile ? undefined : '1 / -1' }}>
+                        {/* On desktop, place Email next to Mobile by spanning two columns container */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isMobile ? undefined : '2 / 3' }}>
+                          <label style={{ 
+                            fontSize: isMobile ? '14px' : '13px',
+                            fontWeight: isMobile ? '500' : '500',
+                            color: isMobile ? '#374151' : 'inherit',
+                            marginBottom: '6px',
+                            display: 'block'
+                          }}>Email*</label>
+                          <input
+                            type="email"
+                            name="email"
+                            value={passenger.email || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="Email"
+                            style={{
+                              ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
+                              ...(isMobile ? {
+                                fontSize: '14px',
+                                padding: '10px 12px',
+                                minHeight: '40px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease'
+                              } : {})
+                            }}
+                          />
+                          {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
+                          {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                        </div>
                        </div>
                      )}
-                   </div>
+                  </div>
                 </div>
               );
             })}
