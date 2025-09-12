@@ -2128,7 +2128,7 @@ label {
     .book_data_label .info-icon-container:hover .hover-text {
         max-width: calc(100% - 12px) !important;
         min-width: 180px !important;
-        font-size: 10px !important;
+        font-size: 12px !important;
         padding: 8px 10px !important;
         transform: translateX(-50%) !important;
         word-break: break-word !important;
@@ -2247,9 +2247,11 @@ label {
         background: #2d4263;
         color: #fff;
         border: none;
-        border-radius: 10px;
-        padding: 8px 20px; /* slightly shorter to match popup width visually */
+        border-radius: 12px;
+        padding: 12px 26px; /* increase size on mobile */
         font-weight: 600;
+        text-align: center;
+        flex: 0 0 48%; /* make button longer next to summary */
     }
     .summary-sticky-book:disabled {
         background: #ddd;

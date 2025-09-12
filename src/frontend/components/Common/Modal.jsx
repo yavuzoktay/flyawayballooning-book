@@ -58,7 +58,7 @@ const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCl
                     width: '100%', 
                     boxSizing: 'border-box',
                     fontSize: window.innerWidth <= 768 ? '16px' : '20px',
-                    fontWeight: window.innerWidth <= 768 ? '400' : '600',
+                    fontWeight: window.innerWidth <= 768 ? '500' : '600',
                     lineHeight: window.innerWidth <= 768 ? '1.3' : '1.5',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',

@@ -1253,18 +1253,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     </button>
                                 </div>
                                 
-                                {/* Informational Text */}
-                                <div style={{ 
-                                    textAlign: 'center', 
-                                    marginTop: isMobile ? 8 : 16, 
-                                    color: '#666', 
-                                    fontSize: isMobile ? '14px' : '12px',
-                                    lineHeight: '1.3',
-                                    fontStyle: 'italic',
-                                    padding: isMobile ? '0 4px' : '0'
-                                }}>
-                                    Hot air balloons can only fly twice a day – around sunrise and sunset. Meeting times are set according to these times.
-                                </div>
+                                {/* Informational Text (hidden on mobile) */}
+                                {!isMobile && (
+                                    <div style={{ 
+                                        textAlign: 'center', 
+                                        marginTop: 16, 
+                                        color: '#666', 
+                                        fontSize: '12px',
+                                        lineHeight: '1.3',
+                                        fontStyle: 'italic'
+                                    }}>
+                                        Hot air balloons can only fly twice a day – around sunrise and sunset. Meeting times are set according to these times.
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

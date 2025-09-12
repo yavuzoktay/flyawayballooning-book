@@ -309,7 +309,7 @@
   }
 
   .activity-panel .book_data {
-    height: 180px;
+    height: auto !important; /* Match Buy Gift card natural height */
   }
 
   /* Force single-column for activity cards on small screens */
@@ -403,6 +403,49 @@
     margin-right: 0 !important;
   }
 } 
+
+/* Mobile-only: switch flip to show/hide so the card grows in flow */
+@media (max-width: 768px) {
+  /* Ensure Redeem Voucher card maintains consistent height in both states */
+  .activity-panel .book_data:nth-child(3) {
+    height: auto !important; /* same as Buy Gift card */
+    min-height: inherit !important;
+  }
+
+  /* Let the voucher card determine its own height when expanded */
+  .card-flip-container,
+  .card-flipper {
+    height: auto !important;
+  }
+
+  /* Remove 3D positioning so elements take normal flow space */
+  .card-front,
+  .card-back {
+    position: relative !important;
+    height: auto !important;
+    transform: none !important;
+  }
+
+  /* Disable the rotate on mobile */
+  .card-flip-container.flipped .card-flipper {
+    transform: none !important;
+  }
+
+  /* Show only one face at a time to avoid overlap */
+  .card-back { display: none !important; }
+  .card-flip-container.flipped .card-back { display: block !important; }
+  .card-flip-container.flipped .card-front { display: none !important; }
+
+  /* Ensure the front face (unclicked state) matches sibling card height */
+  .card-front .book_data_label {
+    height: 100% !important;
+    min-height: 160px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
 
 /* Mobile-only: ensure activity tooltips are fully visible and readable */
 @media (max-width: 768px) {

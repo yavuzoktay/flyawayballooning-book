@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useRef } from 'react';
 import Accordion from '../Common/Accordion';
 import axios from 'axios';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -180,6 +180,7 @@ const VoucherType = ({
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
+    const voucherContainerRef = useRef(null);
     
     // Helper: compute one slide width (+ gap) reliably on mobile
     const getMobileItemWidth = (container) => {
@@ -202,7 +203,7 @@ const VoucherType = ({
     useEffect(() => {
         if (!isMobile) return;
 
-        const container = document.querySelector('.voucher-cards-container');
+        const container = voucherContainerRef.current;
         if (!container) return;
 
         let scrollDebounceTimer = null;
@@ -1110,10 +1111,9 @@ const VoucherType = ({
         
         // For mobile devices, use horizontal scroll instead of view index changes
         if (isMobile) {
-            const container = document.querySelector('.voucher-cards-container');
+            const container = voucherContainerRef.current;
             if (container) {
-                const gap = 16; // Gap between items
-                const itemWidth = container.clientWidth - 8 + gap; // Item width + gap
+                const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                 
                 // Calculate target scroll position for previous item
                 const currentScrollLeft = container.scrollLeft;
@@ -1189,10 +1189,9 @@ const VoucherType = ({
         
         // For mobile devices, use horizontal scroll instead of view index changes
         if (isMobile) {
-            const container = document.querySelector('.voucher-cards-container');
+            const container = voucherContainerRef.current;
             if (container) {
-                const gap = 16; // Gap between items
-                const itemWidth = container.clientWidth - 8 + gap; // Item width + gap
+                const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                 
                 // Calculate target scroll position for next item
                 const currentScrollLeft = container.scrollLeft;
@@ -1562,7 +1561,6 @@ const VoucherType = ({
                                     <div style={{ 
                                         position: 'relative',
                                         width: '100%',
-                                        height: '400px',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center'
@@ -1570,58 +1568,27 @@ const VoucherType = ({
                                         {/* Navigation Arrows */}
                                         {activeVouchers.length > 1 && (
                                             <>
-                                                {/* Left Arrow */}
+                                                {/* Left Arrow (mobile, match ExperienceSection) */}
                                                 {canScrollLeft && (
-                                                    <div style={{ 
-                                                        position: 'absolute', 
-                                                        left: 10, 
-                                                        top: '50%', 
-                                                        transform: 'translateY(-50%)', 
-                                                        zIndex: 10,
-                                                        background: 'rgba(255,255,255,0.9)',
-                                                        borderRadius: '50%',
-                                                        width: 36,
-                                                        height: 36,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                        border: '1px solid #ddd',
-                                                        transition: 'all 0.2s ease'
+                                                    <div style={{
+                                                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                                                        background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
                                                     }} onClick={handlePrevVoucher}>
-                                                        <ArrowBackIosIcon style={{ 
-                                                            fontSize: 18, 
-                                                            color: '#666',
-                                                            marginLeft: 5
-                                                        }} />
+                                                        <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
                                                     </div>
                                                 )}
                                                 
-                                                {/* Right Arrow */}
+                                                {/* Right Arrow (mobile, match ExperienceSection) */}
                                                 {canScrollRight && (
-                                                    <div style={{ 
-                                                        position: 'absolute', 
-                                                        right: 10, 
-                                                        top: '50%', 
-                                                        transform: 'translateY(-50%)', 
-                                                        zIndex: 10,
-                                                        background: 'rgba(255,255,255,0.9)',
-                                                        borderRadius: '50%',
-                                                        width: 36,
-                                                        height: 36,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                        border: '1px solid #ddd',
-                                                        transition: 'all 0.2s ease'
+                                                    <div style={{
+                                                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                                                        background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
                                                     }} onClick={handleNextVoucher}>
-                                                        <ArrowForwardIosIcon style={{ 
-                                                            fontSize: 18, 
-                                                            color: '#666' 
-                                                        }} />
+                                                        <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
                                                     </div>
                                                 )}
                                             </>
@@ -1635,7 +1602,6 @@ const VoucherType = ({
                                             justifyContent: 'flex-start',
                                             alignItems: 'center',
                                             width: '100%',
-                                            height: '100%',
                                             overflowX: 'auto',
                                             paddingBottom: '10px',
                                             scrollBehavior: 'smooth',
@@ -1646,8 +1612,8 @@ const VoucherType = ({
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    minWidth: 'calc(100% - 32px)',
-                                                    maxWidth: 'calc(100% - 32px)',
+                                                    minWidth: '100%',
+                                                    maxWidth: '100%',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start'
                                                 }}>
@@ -1672,11 +1638,7 @@ const VoucherType = ({
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
                                                 gap: '8px',
-                                                marginTop: '20px',
-                                                position: 'absolute',
-                                                bottom: '10px',
-                                                left: '50%',
-                                                transform: 'translateX(-50%)'
+                                                marginTop: '8px'
                                             }}>
                                                 {activeVouchers.map((_, i) => {
                                                     const isActive = i === currentItemIndex;
@@ -1693,7 +1655,7 @@ const VoucherType = ({
                                                                 cursor: 'pointer'
                                                             }}
                                                             onClick={() => {
-                                                                const container = document.querySelector('.voucher-cards-container');
+                                                                const container = voucherContainerRef.current;
                                                                 if (container) {
                                                                     const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                                                                     const targetScrollLeft = i * itemWidth;
@@ -1746,7 +1708,7 @@ const VoucherType = ({
 
                             return (
                                 <>
-                                    {/* Navigation Arrows - Desktop Only */}
+                                    {/* Navigation Arrows - Desktop Only (unchanged for desktop) */}
                                     {activeVouchers.length > 2 && (
                                         <>
                                             {/* Left Arrow */}
@@ -1769,11 +1731,7 @@ const VoucherType = ({
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={handlePrevVoucher}>
-                                                    <ArrowBackIosIcon style={{ 
-                                                        fontSize: 20, 
-                                                        color: '#666',
-                                                        marginLeft: 5
-                                                    }} />
+                                                    <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
                                                 </div>
                                             )}
                                             
@@ -1797,17 +1755,14 @@ const VoucherType = ({
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={handleNextVoucher}>
-                                                    <ArrowForwardIosIcon style={{ 
-                                                        fontSize: 20, 
-                                                        color: '#666' 
-                                                    }} />
+                                                    <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
                                                 </div>
                                             )}
                                         </>
                                     )}
 
                                     {/* Voucher Cards */}
-                                    <div className="voucher-cards-container" style={{ 
+                                    <div ref={isMobile ? voucherContainerRef : undefined} className="voucher-cards-container" style={{ 
                                         display: 'flex', 
                                         flexDirection: isMobile ? 'row' : 'row', 
                                         gap: isMobile ? '16px' : '20px', 
@@ -1870,10 +1825,9 @@ const VoucherType = ({
                                                                 cursor: 'pointer'
                                                             }}
                                                             onClick={() => {
-                                                                const container = document.querySelector('.voucher-cards-container');
+                                                                const container = voucherContainerRef.current;
                                                                 if (container) {
-                                                                    const gap = 16;
-                                                                    const itemWidth = container.clientWidth - 8 + gap;
+                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                                                                     const targetScrollLeft = i * itemWidth;
                                                                     container.scrollTo({
                                                                         left: targetScrollLeft,
@@ -1996,7 +1950,7 @@ const VoucherType = ({
                                     )}
 
                                     {/* Voucher Cards */}
-                                    <div className="voucher-cards-container" style={{ 
+                                    <div ref={isMobile ? voucherContainerRef : undefined} className="voucher-cards-container" style={{ 
                                         display: 'flex', 
                                         flexDirection: isMobile ? 'row' : 'row', 
                                         gap: isMobile ? '16px' : '20px', 
@@ -2033,11 +1987,7 @@ const VoucherType = ({
                                             justifyContent: 'center',
                                             alignItems: 'center',
                                             gap: '8px',
-                                            marginTop: '20px',
-                                            position: 'absolute',
-                                            bottom: '10px',
-                                            left: '50%',
-                                            transform: 'translateX(-50%)'
+                                            marginTop: '8px'
                                         }}>
                                             {(() => {
                                                 // Create dots for each voucher item
@@ -2061,8 +2011,7 @@ const VoucherType = ({
                                                             onClick={() => {
                                                                 const container = document.querySelector('.voucher-cards-container');
                                                                 if (container) {
-                                                                    const gap = 16;
-                                                                    const itemWidth = container.clientWidth - 8 + gap;
+                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
                                                                     const targetScrollLeft = i * itemWidth;
                                                                     container.scrollTo({
                                                                         left: targetScrollLeft,
