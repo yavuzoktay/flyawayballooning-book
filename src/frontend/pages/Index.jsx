@@ -376,26 +376,62 @@ const Index = () => {
     // Book button validation logic (copied from RightInfoCard)
     const isAdditionalInfoValid = (info) => {
         if (!info || typeof info !== 'object') return false;
-        const hasFilledValue = Object.values(info).some(val => {
-            if (typeof val === 'string') return val.trim() !== '';
-            if (typeof val === 'boolean') return val;
-            if (Array.isArray(val)) return val.length > 0;
-            if (typeof val === 'object' && val !== null) return Object.values(val).some(v => v);
-            return val !== null && val !== undefined;
-        });
-        return hasFilledValue;
+        const requiredKeys = Array.isArray(info.__requiredKeys) ? info.__requiredKeys : [];
+        if (requiredKeys.length > 0) {
+            return requiredKeys.every((k) => {
+                const v = info[k];
+                return typeof v === 'string' ? v.trim() !== '' : !!v;
+            });
+        }
+        // Fallback to any filled value (for flows without required questions)
+        return Object.entries(info).some(([k, v]) => k !== '__requiredKeys' && (typeof v === 'string' ? v.trim() !== '' : !!v));
     };
 
     const isRecipientDetailsValid = (details) => {
-        if (!details || typeof details !== 'object') return false;
-        const hasFilledValue = Object.values(details).some(val => {
-            if (typeof val === 'string') return val.trim() !== '';
-            if (typeof val === 'boolean') return val;
-            if (Array.isArray(val)) return val.length > 0;
-            if (typeof val === 'object' && val !== null) return Object.values(val).some(v => v);
-            return val !== null && val !== undefined;
+        if (!details || typeof details !== 'object') {
+            console.log('❌ recipientDetails is null/undefined or not object:', details);
+            return false;
+        }
+        // If user intentionally skipped entering recipient details, treat as valid
+        if (details.isSkipped) {
+            return true;
+        }
+        
+        // Check each field individually with proper null/undefined checks
+        const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
+        const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
+        const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
+        const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
+        
+        // Email format validation
+        let emailFormatValid = true;
+        if (hasEmail) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            emailFormatValid = emailRegex.test(details.email.trim());
+        }
+        
+        // Date format validation
+        let dateFormatValid = true;
+        if (hasDate) {
+            const dateValue = new Date(details.date);
+            dateFormatValid = !isNaN(dateValue.getTime());
+        }
+        
+        const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
+        
+        console.log('🎁 recipientDetails required validation:', {
+            details,
+            hasName: { value: details.name, valid: hasName },
+            hasEmail: { value: details.email, valid: hasEmail },
+            hasPhone: { value: details.phone, valid: hasPhone },
+            hasDate: { value: details.date, valid: hasDate },
+            emailFormatValid,
+            dateFormatValid,
+            isComplete,
+            note: 'All fields are required for Buy Gift'
         });
-        return hasFilledValue;
+        
+        return isComplete;
     };
 
     const isPassengerInfoComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
@@ -439,6 +475,8 @@ const Index = () => {
             selectedDate &&
             selectedTime &&
             isPassengerInfoComplete
+            // additionalInfo is optional for Redeem Voucher
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isFlightVoucher
         ? !(
@@ -446,12 +484,15 @@ const Index = () => {
             selectedVoucherType &&
             isPassengerInfoComplete &&
             isAdditionalInfoValid(additionalInfo)
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
         ? !(
             chooseFlightType &&
             selectedVoucherType &&
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isBuyGiftPassengerComplete &&
+            // isAdditionalInfoValid(additionalInfo) - now optional for Buy Gift
             isRecipientDetailsValid(recipientDetails)
         )
         : !(
@@ -459,7 +500,9 @@ const Index = () => {
             chooseLocation &&
             chooseFlightType &&
             selectedVoucherType &&
+            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
+            // Enforce Additional Information required fields dynamically
             isAdditionalInfoValid(additionalInfo) &&
             selectedDate &&
             selectedTime
@@ -521,29 +564,7 @@ const Index = () => {
         const baseSequence = ['activity'];
         
         // Helper functions (mirrored from RightInfoCard.jsx)
-        const isAdditionalInfoValid = (info) => {
-            if (!info || typeof info !== 'object') return false;
-            const hasFilledValue = Object.values(info).some(val => {
-                if (typeof val === 'string') {
-                    const trimmed = val.trim();
-                    return trimmed !== '';
-                }
-                if (typeof val === 'object' && val !== null) {
-                    return Object.values(val).some(
-                        v => typeof v === 'string' ? v.trim() !== '' : !!v
-                    );
-                }
-                return !!val;
-            });
-            return hasFilledValue;
-        };
         
-        const isRecipientDetailsValid = (details) => {
-            return !!(details && details.name && details.name.trim() !== '' && 
-                     details.email && details.email.trim() !== '' && 
-                     details.phone && details.phone.trim() !== '' && 
-                     details.date && details.date.trim() !== '');
-        };
         
         const isPassengerInfoComplete = Array.isArray(currentPassengerData) && currentPassengerData.every((passenger, index) => {
             const isFirstPassenger = index === 0;
