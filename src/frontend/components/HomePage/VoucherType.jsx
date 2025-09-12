@@ -1446,48 +1446,6 @@ const VoucherType = ({
                                             ))}
                                         </div>
 
-                                        {/* Dot Navigation */}
-                                        {activeVouchers.length > 1 && (
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                marginTop: '8px'
-                                            }}>
-                                                {activeVouchers.map((_, i) => {
-                                                    const isActive = i === currentItemIndex;
-                                                    
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            style={{
-                                                                width: '8px',
-                                                                height: '8px',
-                                                                borderRadius: '50%',
-                                                                backgroundColor: isActive ? '#03a9f4' : '#ddd',
-                                                                transition: 'all 0.3s ease',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                            onClick={() => {
-                                                                const container = voucherContainerRef.current;
-                                                                if (container) {
-                                                                    const itemWidth = getMobileItemWidth(container) || container.clientWidth;
-                                                                    const targetScrollLeft = i * itemWidth;
-                                                                    container.scrollTo({
-                                                                        left: targetScrollLeft,
-                                                                        behavior: 'smooth'
-                                                                    });
-                                                                    setCurrentItemIndex(i);
-                                                                    setCanScrollLeft(i > 0);
-                                                                    setCanScrollRight(i < activeVouchers.length - 1);
-                                                                }
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             } else {
