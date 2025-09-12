@@ -48,6 +48,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const [loading, setLoading] = useState(false);
     const [experiences, setExperiences] = useState([]);
     const [experiencesLoading, setExperiencesLoading] = useState(false);
+    // Mobile carousel state for experiences
+    const [currentExperienceIndex, setCurrentExperienceIndex] = useState(0);
+    const [canScrollExperiencesLeft, setCanScrollExperiencesLeft] = useState(false);
+    const [canScrollExperiencesRight, setCanScrollExperiencesRight] = useState(true);
     
     // Terms & Conditions states
     const [showTermsModal, setShowTermsModal] = useState(false);
@@ -99,6 +103,75 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, []);
+
+    // Sync arrows/dots while swiping experiences on mobile
+    useEffect(() => {
+        if (!isMobile) return;
+        const container = document.querySelector('.experience-cards-container');
+        if (!container) return;
+
+        let animationFrameId = null;
+
+        const getItemWidth = () => {
+            const firstChild = container.children && container.children[0];
+            if (firstChild) {
+                const styles = window.getComputedStyle(container);
+                const gap = parseInt(styles.columnGap || styles.gap || '12', 10) || 12;
+                return firstChild.getBoundingClientRect().width + gap;
+            }
+            return container.clientWidth;
+        };
+
+        const computeAndSet = () => {
+            const { scrollLeft } = container;
+            const itemCount = container.children.length;
+            const itemWidth = getItemWidth();
+            const index = Math.round(scrollLeft / itemWidth);
+            const clamped = Math.max(0, Math.min(index, itemCount - 1));
+            setCurrentExperienceIndex(clamped);
+            setCanScrollExperiencesLeft(clamped > 0);
+            setCanScrollExperiencesRight(clamped < itemCount - 1);
+        };
+
+        const handleScroll = () => {
+            computeAndSet();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(computeAndSet);
+        };
+
+        const handleScrollEnd = () => {
+            setTimeout(computeAndSet, 100);
+        };
+
+        const handleTouchStart = () => computeAndSet();
+        const handleTouchMove = () => handleScroll();
+        const handleTouchEnd = () => {
+            setTimeout(computeAndSet, 50);
+            setTimeout(computeAndSet, 150);
+            setTimeout(computeAndSet, 300);
+        };
+
+        // initial
+        computeAndSet();
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        container.addEventListener('scrollend', handleScrollEnd, { passive: true });
+        container.addEventListener('touchstart', handleTouchStart, { passive: true });
+        container.addEventListener('touchmove', handleTouchMove, { passive: true });
+        container.addEventListener('touchend', handleTouchEnd, { passive: true });
+        container.addEventListener('pointerdown', handleTouchStart, { passive: true });
+        container.addEventListener('pointerup', handleTouchEnd, { passive: true });
+
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+            container.removeEventListener('scrollend', handleScrollEnd);
+            container.removeEventListener('touchstart', handleTouchStart);
+            container.removeEventListener('touchmove', handleTouchMove);
+            container.removeEventListener('touchend', handleTouchEnd);
+            container.removeEventListener('pointerdown', handleTouchStart);
+            container.removeEventListener('pointerup', handleTouchEnd);
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        };
+    }, [isMobile, experiences.length]);
 
     // Determine if Bristol pricing should be used
     const isBristol = useMemo(() => chooseLocation === 'Bristol Fiesta', [chooseLocation]);
@@ -639,18 +712,52 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 setActiveAccordion={setActiveAccordion}
             >
             {isMobile ? (
-                // Mobile: horizontal layout with horizontal scrolling
-                <div className="experience-scroll-outer" style={{ 
-                    width: '100%', 
-                    padding: '0 8px',
-                    margin: '0 -8px'
-                }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '12px', 
-                        width: 'max-content',
-                        padding: '0 8px'
+                // Mobile: horizontal layout with arrows and dots
+                <div style={{ position: 'relative', width: '100%' }}>
+                    {/* Left Arrow */}
+                    {canScrollExperiencesLeft && (
+                        <div style={{
+                            position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                            background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
+                        }} onClick={() => {
+                            const container = document.querySelector('.experience-cards-container');
+                            if (!container) return;
+                            const firstChild = container.children[0];
+                            const gap = 12;
+                            const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+                            container.scrollTo({ left: Math.max(0, container.scrollLeft - itemWidth), behavior: 'smooth' });
+                        }}>
+                            <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
+                        </div>
+                    )}
+                    {/* Right Arrow */}
+                    {canScrollExperiencesRight && (
+                        <div style={{
+                            position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                            background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
+                        }} onClick={() => {
+                            const container = document.querySelector('.experience-cards-container');
+                            if (!container) return;
+                            const firstChild = container.children[0];
+                            const gap = 12;
+                            const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+                            container.scrollTo({ left: container.scrollLeft + itemWidth, behavior: 'smooth' });
+                        }}>
+                            <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
+                        </div>
+                    )}
+
+                    <div className="experience-scroll-outer" style={{ 
+                        width: '100%', padding: '0 8px', margin: '0 -8px'
                     }}>
+                        <div className="experience-cards-container" style={{ 
+                            display: 'flex', gap: '12px', width: 'max-content', padding: '0 8px',
+                            overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory'
+                        }}>
                         {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
                             <div key={index} style={{ 
                                 background: '#fff', 
@@ -664,7 +771,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 padding: 0, 
                                 display: 'flex', 
                                 flexDirection: 'column', 
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                scrollSnapAlign: 'start'
                             }}>
                         <img 
                             src={experience.img || '/images/placeholder-experience.svg'} 
@@ -726,7 +834,28 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 )) : (
                     <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
                 )}
+                        </div>
                     </div>
+
+                    {/* Dots */}
+                    {filteredExperiences && filteredExperiences.length > 1 && (
+                        <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+                            {filteredExperiences.map((_, i) => (
+                                <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === currentExperienceIndex ? '#03a9f4' : '#ddd' }}
+                                    onClick={() => {
+                                        const container = document.querySelector('.experience-cards-container');
+                                        if (!container) return;
+                                        const firstChild = container.children[0];
+                                        const gap = 12;
+                                        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+                                        container.scrollTo({ left: i * itemWidth, behavior: 'smooth' });
+                                        setCurrentExperienceIndex(i);
+                                        setCanScrollExperiencesLeft(i > 0);
+                                        setCanScrollExperiencesRight(i < (container.children.length - 1));
+                                    }} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             ) : (
                 // Desktop: original flexbox layout
