@@ -197,13 +197,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         passengerCard.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.2)';
       }
       
-      // Small delay to let the user see the completion
+      // 4-second delay before auto-sliding to next passenger (mobile only)
       setTimeout(() => {
         if (index < passengerCount - 1) {
-          console.log(`✅ Passenger ${index + 1} complete, auto-sliding to Passenger ${index + 2}`);
+          console.log(`✅ Passenger ${index + 1} complete, auto-sliding to Passenger ${index + 2} after 4s delay`);
           handleNextPassenger();
         }
-      }, 1200); // 1200ms delay for better UX
+      }, 4000); // 4000ms delay for mobile UX
     }
   };
 
