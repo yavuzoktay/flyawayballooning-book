@@ -266,7 +266,7 @@ const VoucherType = ({
             container.removeEventListener('pointerup', handleTouchEnd);
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
         };
-    }, [isMobile, filteredVouchers.length, activeVouchers.length]);
+    }, [isMobile, voucherTypes.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
