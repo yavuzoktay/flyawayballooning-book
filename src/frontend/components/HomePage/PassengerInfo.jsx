@@ -194,7 +194,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       const passengerCard = document.querySelector(`#passenger-${index + 1}`);
       if (passengerCard) {
         passengerCard.style.borderColor = '#10b981';
-        passengerCard.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.2)';
       }
       
       // 4-second delay before auto-sliding to next passenger (mobile only)
@@ -499,8 +498,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 display: 'flex', 
                 flexDirection: 'row', 
                 gap: '16px', 
-                justifyContent: 'flex-start',
-                alignItems: 'center',
                 width: '100%',
                 overflowX: 'auto',
                 paddingBottom: '10px',
@@ -517,8 +514,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
               marginBottom: 0, 
               padding: activitySelect === 'Buy Gift' ? '16px' : '5px', 
-              background: '#ffffff',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
               width: 'calc(100% - 32px)',
               minWidth: 'calc(100% - 32px)',
               maxWidth: 'calc(100% - 32px)',

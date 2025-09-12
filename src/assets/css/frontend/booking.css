@@ -1588,11 +1588,7 @@ label {
     }
     
     .all-pressenger:not(:first-child) {
-        border-top: 4px solid #3b82f6 !important;
-        background: #f8fafc !important;
-        border: 2px solid #d1d5db !important;
-        border-radius: 20px !important;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+
     }
 
     .vaouch .loc_data {
