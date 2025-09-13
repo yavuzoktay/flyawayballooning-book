@@ -1010,6 +1010,7 @@ const Index = () => {
             activitySelect,
             chooseLocation,
             chooseFlightType,
+            selectedVoucherType, // Add selectedVoucherType for voucher code generation
             chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [], // Opsiyonel - boş array olabilir
             passengerData,
             additionalInfo,
