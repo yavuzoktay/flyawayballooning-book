@@ -229,6 +229,9 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                         transition: 'transform 0.3s ease',
                                         cursor: 'pointer'
                                     }} 
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                    }}
                                     onMouseEnter={(e) => {
                                         if (!isDisabled) {
                                             e.target.style.transform = 'scale(1.05)';
@@ -276,7 +279,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                                 filter: isDisabled ? 'grayscale(100%)' : 'none'
                                             }}
                                         >
-                                            <img src={loc.image} alt={loc.name} width="100%" />
+                                            <img src={loc.image} alt={loc.name} width="100%" onError={(e) => { e.target.style.display = 'none'; }} />
                                             <h3>{loc.name}</h3>
                                             <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
                                         </div>

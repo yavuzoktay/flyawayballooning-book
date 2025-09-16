@@ -151,10 +151,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             console.log('❌ recipientDetails is null/undefined or not object:', details);
             return false;
         }
-        // If user intentionally skipped entering recipient details, treat as valid
-        if (details.isSkipped) {
-            return true;
-        }
+        
+        // For Buy Gift, recipient details are ALWAYS required (no skipping allowed)
+        // Remove the isSkipped check for Buy Gift validation
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
@@ -187,7 +186,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields are required for Buy Gift'
+            note: 'All fields are required for Buy Gift - no skipping allowed'
         });
         
         return isComplete;
@@ -275,7 +274,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             hasPhone: !!(p.phone && p.phone.trim() !== ''),
             hasEmail: !!(p.email && p.email.trim() !== ''),
             contactInfoRequired: index === 0,
-            contactInfoValid: index === 0 ? !!(p.phone && p.phone.trim() !== '' && p.email && p.email.trim() !== '') : true
+            contactInfoValid: index === 0 ? !!(p.phone && p.phone.trim() !== '') : true
         })) : []
     });
     
@@ -298,9 +297,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
                    passenger.lastName && passenger.lastName.trim() !== '';
             
-            // Only first passenger needs: phone and email (matching UI behavior)
+            // Only first passenger needs: phone (email no longer required for Purchaser Information)
             const contactInfoValid = isFirstPassenger ? 
-                (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+                (passenger.phone && passenger.phone.trim() !== '') : 
                 true;
             
             const passengerValid = basicInfoValid && contactInfoValid;
@@ -405,11 +404,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             if (!firstPassenger?.firstName?.trim()) return false;
             if (!firstPassenger?.lastName?.trim()) return false;
             if (!firstPassenger?.phone?.trim()) return false;
-            if (!firstPassenger?.email?.trim()) return false;
-            
-            // Email format validation for first passenger
+            // Email not required for Purchaser Information
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(firstPassenger.email.trim())) return false;
             
             // Recipient details validation (all required)
             if (!recipientDetails?.name?.trim()) return false;
@@ -714,19 +710,20 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 numberOfPassengers: passengerData ? passengerData.length : 1,
+                passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+                additionalInfo: additionalInfo,
+                add_to_booking_items: (chooseAddOn && chooseAddOn.length > 0) ? chooseAddOn : null
             };
             
-            // Debug: Log the voucher data being sent
-            console.log('=== VOUCHER DATA BEING SENT ===');
-            console.log('voucherData:', voucherData);
-            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
-            console.log('=== NUMBER OF PASSENGERS DEBUG ===');
-            console.log('passengerData:', passengerData);
-            console.log('passengerData.length:', passengerData ? passengerData.length : 'passengerData is null/undefined');
-            console.log('numberOfPassengers being sent:', voucherData.numberOfPassengers);
+            // Sending voucher data to backend
+            console.log('RightInfoCard - chooseAddOn state:', chooseAddOn);
+            console.log('RightInfoCard - chooseAddOn length:', chooseAddOn ? chooseAddOn.length : 'null/undefined');
+            console.log('RightInfoCard - add_to_booking_items being sent:', voucherData.add_to_booking_items);
+            
+            
             
             try {
                 // Stripe Checkout Session başlat - VOUCHER için

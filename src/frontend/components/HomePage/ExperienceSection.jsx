@@ -781,6 +781,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             style={{ width: '100%', height: 140, objectFit: 'cover' }}
                             onError={(e) => {
                                 e.target.src = '/images/placeholder-experience.svg';
+                                e.target.style.display = 'none';
                             }}
                         />
                         <div style={{ padding: '12px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -868,6 +869,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 style={{ width: '100%', height: 160, objectFit: 'cover' }}
                                 onError={(e) => {
                                     e.target.src = '/images/placeholder-experience.svg';
+                                    e.target.style.display = 'none';
                                 }}
                             />
                             <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>

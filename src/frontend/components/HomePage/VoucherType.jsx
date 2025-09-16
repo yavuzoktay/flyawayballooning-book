@@ -440,7 +440,9 @@ const VoucherType = ({
             // Get only active private charter voucher types for frontend display
             // Include location to get activity-specific pricing
             const locationParam = chooseLocation ? `&location=${encodeURIComponent(chooseLocation)}` : '';
-            const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}`);
+            // Include passengers to receive tiered per-person pricing from backend
+            const selectedPassengers = 2; // default for card display; total recalculated on selection
+            const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}&passengers=${selectedPassengers}`);
             console.log('Private charter voucher types response status:', response.status);
             
             if (response.ok) {
@@ -656,8 +658,8 @@ const VoucherType = ({
                 // Use the enhanced pricing from the API (which includes activity-specific pricing)
                 if (vt.price_per_person && vt.price_per_person !== "0.00") {
                     basePrice = parseFloat(vt.price_per_person);
-                    priceUnit = vt.price_unit || 'pp';
-                    console.log(`VoucherType: Using enhanced API pricing for ${vt.title}: £${basePrice} per person`);
+                    priceUnit = vt.price_unit || 'total';
+                    console.log(`VoucherType: Using enhanced API pricing for ${vt.title}: £${basePrice} (unit: ${priceUnit})`);
                 } else {
                     // Fallback to activity data pricing if API doesn't have it
                     if (activityData && activityData.private_charter_pricing) {
@@ -677,9 +679,8 @@ const VoucherType = ({
                     }
                 }
                 
-                // Calculate total price for 2 passengers (default) to show in the card
-                const defaultPassengers = 2;
-                const totalPrice = basePrice * defaultPassengers;
+                // For Private Charter with total pricing, card should show the total
+                const totalPrice = basePrice;
 
                 // Handle image URL properly - check if it's a full URL or relative path
                 let imageUrl = weekdayMorningImg; // Default fallback
@@ -706,8 +707,8 @@ const VoucherType = ({
                     inclusions: features,
                     // Show terms only if provided; otherwise hide
                     weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
-                    price: totalPrice, // Show total price for default passengers
-                    basePrice: basePrice, // Store base price per person for calculations
+                    price: totalPrice, // Total price for selected tier
+                    basePrice: basePrice, // Store base price (total) for calculations
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
                     flightTime: vt.flight_time || 'AM & PM',
@@ -910,6 +911,40 @@ const VoucherType = ({
 
     // VoucherCard component for displaying individual voucher cards
     const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers, shouldAnimate }) => {
+        // Compute dynamic display price for Private Charter based on selected passengers
+        let privateCharterDisplayTotal = voucher.price;
+        if (chooseFlightType?.type === "Private Charter") {
+            const selectedPassengers = parseInt(quantities[voucher.title] || 2, 10);
+            // Try to get tiered price from activityData.private_charter_pricing
+            const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
+                if (!pricingDataRaw) return undefined;
+                let pricingData = pricingDataRaw;
+                try {
+                    if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
+                } catch {}
+                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                const titleNorm = normalize(voucherTitleRaw);
+                const resolveForTitle = (obj, title) => {
+                    if (obj[title] != null) return obj[title];
+                    if (obj[title?.trim?.()] != null) return obj[title.trim()];
+                    for (const k of Object.keys(obj)) { if (normalize(k) === titleNorm) return obj[k]; }
+                    return undefined;
+                };
+                const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+                if (byTitle == null) return undefined;
+                if (typeof byTitle === 'object') {
+                    const key = String([2,3,4,8].includes(passengers) ? passengers : 2);
+                    const v = byTitle[key] ?? byTitle['2'];
+                    const p = parseFloat(v);
+                    return Number.isNaN(p) ? undefined : p;
+                }
+                const p = parseFloat(byTitle);
+                return Number.isNaN(p) ? undefined : p;
+            };
+            const tier = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers);
+            if (tier !== undefined) privateCharterDisplayTotal = tier;
+            else privateCharterDisplayTotal = voucher.basePrice || voucher.price;
+        }
         return (
             <div style={{
                 background: '#fff',
@@ -1029,10 +1064,11 @@ const VoucherType = ({
                         </div>
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                        {chooseFlightType?.type === "Private Charter" && voucher.basePrice ? 
-                            `From £${voucher.basePrice} pp` : 
-                            (voucher.priceUnit === 'total' ? `£${voucher.price} total` : `From £${voucher.basePrice || voucher.price} pp`)
-                        }
+                        {chooseFlightType?.type === "Private Charter"
+                            ? `£${(privateCharterDisplayTotal || 0)} total`
+                            : (voucher.priceUnit === 'total'
+                                ? `£${voucher.price} total`
+                                : `From £${voucher.basePrice || voucher.price} pp`)}
                     </div>
                     <button 
                         style={{ 
@@ -1093,10 +1129,45 @@ const VoucherType = ({
         
         // Calculate total price based on price unit and experience type
         let totalPrice;
-        if (chooseFlightType?.type === "Private Charter" && voucher.basePrice) {
-            // For Private Charter, use basePrice per person
-            totalPrice = voucher.basePrice * quantity;
-            console.log('VoucherType: Private Charter pricing:', voucher.basePrice, '×', quantity, '=', totalPrice);
+        let effectiveBasePrice = voucher.basePrice;
+        if (chooseFlightType?.type === "Private Charter") {
+            // Use total price from activity tiered pricing; do NOT multiply by passenger count
+            const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
+                if (!pricingDataRaw) return undefined;
+                let pricingData = pricingDataRaw;
+                try {
+                    if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
+                } catch {}
+                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                const titleNorm = normalize(voucherTitleRaw);
+                let value = undefined;
+                const resolveForTitle = (obj, title) => {
+                    if (obj[title] != null) return obj[title];
+                    if (obj[title?.trim?.()] != null) return obj[title.trim()];
+                    for (const k of Object.keys(obj)) {
+                        if (normalize(k) === titleNorm) return obj[k];
+                    }
+                    return undefined;
+                };
+                const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+                if (byTitle == null) return undefined;
+                if (typeof byTitle === 'object') {
+                    const key = String([2,3,4,8].includes(passengers) ? passengers : 2);
+                    value = byTitle[key] ?? byTitle['2'];
+                } else {
+                    value = byTitle; // backward compatible single price (treated as pp)
+                }
+                const parsed = parseFloat(value);
+                return Number.isNaN(parsed) ? undefined : parsed;
+            };
+
+            const tierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, quantity);
+            if (tierPrice !== undefined) {
+                effectiveBasePrice = tierPrice;
+            }
+
+            totalPrice = (effectiveBasePrice || 0);
+            console.log('VoucherType: Private Charter total pricing (no per-passenger multiply):', totalPrice);
         } else if (voucher.priceUnit === 'total') {
             // For total pricing, the price is already the total for the group
             totalPrice = voucher.price;
@@ -1110,7 +1181,11 @@ const VoucherType = ({
         const voucherWithQuantity = {
             ...voucher,
             quantity: quantity,
-            totalPrice: totalPrice
+            totalPrice: totalPrice,
+            basePrice: effectiveBasePrice || voucher.basePrice,
+            priceUnit: voucher.priceUnit,
+            // Ensure summary uses the correct total price for Private Charter
+            price: (chooseFlightType?.type === "Private Charter") ? totalPrice : (voucher.priceUnit === 'total' ? voucher.price : (voucher.basePrice || voucher.price))
         };
         
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);

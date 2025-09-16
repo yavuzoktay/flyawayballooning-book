@@ -250,10 +250,19 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        setAdditionalInfo((prev) => ({
-            ...prev,
-            [name]: value, // Directly set the value instead of handling checkboxes
-        }));
+        console.log('=== ADDITIONAL INFO HANDLE CHANGE ===');
+        console.log('Field name:', name);
+        console.log('Field value:', value);
+        console.log('Current additionalInfo before update:', additionalInfo);
+
+        setAdditionalInfo((prev) => {
+            const newInfo = {
+                ...prev,
+                [name]: value, // Directly set the value instead of handling checkboxes
+            };
+            console.log('New additionalInfo after update:', newInfo);
+            return newInfo;
+        });
 
         // Clear validation error when user starts typing
         if (validationErrors[name]) {

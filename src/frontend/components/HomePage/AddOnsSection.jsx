@@ -295,13 +295,17 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
 
     // Handle checkbox toggle when div is clicked
     function handleAddOnChange(name, price) {
+        console.log('Add-on clicked:', { name, price });
+        
         setChooseAddOn(prev => {
             prev = Array.isArray(prev) ? prev : []; // Ensure prev is always an array
             const exists = prev.some(addOn => addOn.name === name);
-            return exists ? prev.filter(addOn => addOn.name !== name) : [...prev, { name, price }];
+            const newChooseAddOn = exists ? prev.filter(addOn => addOn.name !== name) : [...prev, { name, price }];
+            
+            console.log('New chooseAddOn:', newChooseAddOn);
+            return newChooseAddOn;
         });
-    }    
-    console.log('chooseAddOn?', chooseAddOn);
+    }
 
     // Debug section visibility logic
     console.log('🔍 Section visibility check:');
@@ -358,6 +362,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         }}
                                         onError={(e) => {
                                             e.target.src = AddOn1; // Fallback to default image
+                                            e.target.style.display = 'none'; // Hide broken image
                                         }}
                                     />
                                 </div>

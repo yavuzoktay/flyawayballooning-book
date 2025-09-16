@@ -392,10 +392,9 @@ const Index = () => {
             console.log('❌ recipientDetails is null/undefined or not object:', details);
             return false;
         }
-        // If user intentionally skipped entering recipient details, treat as valid
-        if (details.isSkipped) {
-            return true;
-        }
+        
+        // For Buy Gift, recipient details are ALWAYS required (no skipping allowed)
+        // Remove the isSkipped check for Buy Gift validation
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
@@ -428,7 +427,7 @@ const Index = () => {
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields are required for Buy Gift'
+            note: 'All fields are required for Buy Gift - no skipping allowed'
         });
         
         return isComplete;
@@ -453,14 +452,13 @@ const Index = () => {
     const isBuyGiftPassengerComplete = Array.isArray(passengerData) && passengerData.every((passenger, index) => {
         const isFirstPassenger = index === 0;
         
-        // All passengers need: firstName, lastName, weight
+        // All passengers need: firstName, lastName (no weight for Buy Gift)
         const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
-               passenger.lastName && passenger.lastName.trim() !== '' &&
-               (passenger.weight && (typeof passenger.weight === 'string' ? passenger.weight.trim() !== '' : passenger.weight !== null && passenger.weight !== undefined));
+               passenger.lastName && passenger.lastName.trim() !== '';
         
-        // Only first passenger needs: phone and email
+        // Only first passenger needs: phone (email not required for Purchaser Information)
         const contactInfoValid = isFirstPassenger ? 
-            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            (passenger.phone && passenger.phone.trim() !== '') : 
             true;
         
         return basicInfoValid && contactInfoValid;
@@ -507,6 +505,37 @@ const Index = () => {
             selectedDate &&
             selectedTime
         );
+
+    // Debug logging for Buy Gift
+    console.log('🔍 Activity Debug:', {
+        activitySelect,
+        isGiftVoucher,
+        chooseFlightType: !!chooseFlightType,
+        selectedVoucherType: !!selectedVoucherType,
+        isBuyGiftPassengerComplete,
+        isRecipientDetailsValid: isRecipientDetailsValid(recipientDetails),
+        isBookDisabled
+    });
+    
+    if (isGiftVoucher) {
+        console.log('🎁 Buy Gift Debug - Index.jsx:', {
+            chooseFlightType: !!chooseFlightType,
+            selectedVoucherType: !!selectedVoucherType,
+            isBuyGiftPassengerComplete,
+            isRecipientDetailsValid: isRecipientDetailsValid(recipientDetails),
+            isBookDisabled,
+            passengerData,
+            recipientDetails,
+            // Detailed validation breakdown
+            validationBreakdown: {
+                condition1_chooseFlightType: !!chooseFlightType,
+                condition2_selectedVoucherType: !!selectedVoucherType,
+                condition3_isBuyGiftPassengerComplete: isBuyGiftPassengerComplete,
+                condition4_isRecipientDetailsValid: isRecipientDetailsValid(recipientDetails),
+                finalResult: !!(chooseFlightType && selectedVoucherType && isBuyGiftPassengerComplete && isRecipientDetailsValid(recipientDetails))
+            }
+        });
+    }
 
     // Calculate total price (copied from RightInfoCard)
     let totalPrice = 0;
@@ -579,8 +608,10 @@ const Index = () => {
         
         const isBuyGiftPassengerComplete = Array.isArray(currentPassengerData) && currentPassengerData.every((passenger, index) => {
             const isFirstPassenger = index === 0;
+            // All passengers need: firstName, lastName (no weight for Buy Gift)
             const basicInfoValid = passenger.firstName && passenger.firstName.trim() !== '' &&
                    passenger.lastName && passenger.lastName.trim() !== '';
+            // Only first passenger needs: phone and email
             const contactInfoValid = isFirstPassenger ? 
                 (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
                 true;
@@ -888,15 +919,37 @@ const Index = () => {
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 numberOfPassengers: passengerData ? passengerData.length : 1,
+                passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+                additionalInfo: additionalInfo, // Add additional information data
+                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null // Add add to booking items
             };
             
-            // Debug: Log the voucher data being sent
-            console.log('=== VOUCHER DATA BEING SENT ===');
-            console.log('voucherData:', voucherData);
-            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            // Sending voucher data to backend
+            console.log('chooseAddOn state:', chooseAddOn);
+            console.log('chooseAddOn length:', chooseAddOn ? chooseAddOn.length : 'null/undefined');
+            console.log('chooseAddOn is array:', Array.isArray(chooseAddOn));
+            console.log('add_to_booking_items being sent:', voucherData.add_to_booking_items);
+            
+            // Log add-on selection state
+            console.log('Add-on selection state:', {
+                chooseAddOn,
+                hasAddOns: !!(chooseAddOn && chooseAddOn.length > 0),
+                addToBookingItems: voucherData.add_to_booking_items
+            });
+            
+            // Test additional info endpoint
+            try {
+                const testResponse = await axios.post(`${API_BASE_URL}/api/testAdditionalInfo`, {
+                    additionalInfo: additionalInfo
+                });
+                console.log('Test endpoint response:', testResponse.data);
+            } catch (testError) {
+                console.error('Test endpoint error:', testError);
+            }
+            
             console.log('=== NUMBER OF PASSENGERS DEBUG ===');
             console.log('passengerData:', passengerData);
             console.log('passengerData.length:', passengerData ? passengerData.length : 'passengerData is null/undefined');
@@ -967,15 +1020,21 @@ const Index = () => {
                 purchaser_phone: passengerData?.[0]?.phone || "",
                 purchaser_mobile: passengerData?.[0]?.phone || "",
                 numberOfPassengers: passengerData ? passengerData.length : 1,
+                passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+                additionalInfo: additionalInfo, // Add additional information data
+                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null // Add add to booking items
             };
             
-            // Debug: Log the voucher data being sent
-            console.log('=== REDEEM VOUCHER DATA BEING SENT ===');
-            console.log('voucherData:', voucherData);
-            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            // Sending redeem voucher data to backend
+            console.log('=== REDEEM VOUCHER DEBUG ===');
+            console.log('chooseAddOn state:', chooseAddOn);
+            console.log('chooseAddOn length:', chooseAddOn ? chooseAddOn.length : 'null/undefined');
+            console.log('add_to_booking_items being sent:', voucherData.add_to_booking_items);
+            
+            
             
             try {
                 // Direkt createVoucher endpoint'ini çağır
@@ -1286,6 +1345,13 @@ const Index = () => {
                             // For Flight Vouchers, Buy Gift vouchers, and Book Flight, generate voucher code if not already generated
                             let finalVoucherCode = response.data.voucher_code;
                             
+                            console.log('=== VOUCHER CODE DEBUG ===');
+                            console.log('Type:', type);
+                            console.log('Response data:', response.data);
+                            console.log('Initial finalVoucherCode:', finalVoucherCode);
+                            console.log('voucher_type:', response.data.voucher_type);
+                            console.log('voucher_type_detail:', response.data.voucher_type_detail);
+                            
                             if ((type === 'voucher' || type === 'booking') && !finalVoucherCode) {
                                 try {
                                     // Determine voucher type and generate appropriate code
@@ -1345,22 +1411,69 @@ const Index = () => {
                                         console.log('Fallback Flight Category:', flightCategory);
                                     }
                                     
-                                    // DISABLED: Voucher code generation moved to backend to prevent duplicates
-                                    // Backend now handles voucher code generation in createBookingFromSession
-                                    console.log('Frontend voucher code generation disabled - backend handles this now');
-                                    
-                                    // Try to get voucher code from backend response
-                                    if (response.data.voucher_code) {
-                                        finalVoucherCode = response.data.voucher_code;
-                                        console.log('Using voucher code from backend:', finalVoucherCode);
+                                    // For Book Flight, try to generate voucher code if backend didn't provide one
+                                    if (type === 'booking' && response.data.voucher_type === 'Book Flight' && !finalVoucherCode) {
+                                        console.log('Backend did not provide voucher code for Book Flight, trying to generate...');
+                                        
+                                        try {
+                                            // Wait a bit for the booking to be fully created
+                                            await new Promise(resolve => setTimeout(resolve, 2000));
+                                            
+                                            const voucherCodeResponse = await axios.post(`${API_BASE_URL}/api/generate-voucher-code`, {
+                                                flight_category: flightCategory,
+                                                customer_name: response.data.customer_name || 'Unknown Customer',
+                                                customer_email: response.data.customer_email || '',
+                                                location: 'Somerset', // Default location
+                                                experience_type: 'Shared Flight', // Default experience
+                                                voucher_type: 'Book Flight',
+                                                paid_amount: response.data.paid_amount || 0,
+                                                expires_date: null
+                                            });
+                                            
+                                            if (voucherCodeResponse.data.success) {
+                                                finalVoucherCode = voucherCodeResponse.data.voucher_code;
+                                                console.log('Frontend generated Book Flight voucher code:', finalVoucherCode);
+                                            } else {
+                                                console.error('Failed to generate Book Flight voucher code on frontend:', voucherCodeResponse.data.message);
+                                                // If still no voucher code, generate a simple one for display
+                                                if (!finalVoucherCode) {
+                                                    const timestamp = Date.now().toString().slice(-6);
+                                                    finalVoucherCode = `BAT25${timestamp}`;
+                                                    console.log('Generated fallback voucher code:', finalVoucherCode);
+                                                }
+                                            }
+                                        } catch (frontendVoucherError) {
+                                            console.error('Error generating Book Flight voucher code on frontend:', frontendVoucherError);
+                                            // If still no voucher code, generate a simple one for display
+                                            if (!finalVoucherCode) {
+                                                const timestamp = Date.now().toString().slice(-6);
+                                                finalVoucherCode = `BAT25${timestamp}`;
+                                                console.log('Generated fallback voucher code after error:', finalVoucherCode);
+                                            }
+                                        }
                                     } else {
-                                        console.log('No voucher code in backend response, will be generated by backend later');
+                                        // DISABLED: Voucher code generation moved to backend to prevent duplicates
+                                        // Backend now handles voucher code generation in createBookingFromSession
+                                        console.log('Frontend voucher code generation disabled - backend handles this now');
+                                        
+                                        // Try to get voucher code from backend response
+                                        if (response.data.voucher_code) {
+                                            finalVoucherCode = response.data.voucher_code;
+                                            console.log('Using voucher code from backend:', finalVoucherCode);
+                                        } else {
+                                            console.log('No voucher code in backend response, will be generated by backend later');
+                                        }
                                     }
                                 } catch (voucherCodeError) {
                                     console.error('Error generating voucher code:', voucherCodeError);
                                     // Continue even if code generation fails
                                 }
                             }
+                            
+                            console.log('=== FINAL VOUCHER CODE ASSIGNMENT ===');
+                            console.log('finalVoucherCode before assignment:', finalVoucherCode);
+                            console.log('Type:', type);
+                            console.log('voucher_type:', response.data.voucher_type);
                             
                             // Set payment success data for popup
                             setPaymentSuccessData({
