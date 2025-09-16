@@ -135,6 +135,18 @@ label {
     border-color: #03a9f4;
     transition: 0.3s all ease-in-out 0s;
 }
+/* Disable hover highlight on mobile - only show when active/selected */
+@media (max-width: 576px) {
+    .book_data_label:hover,
+    .location_data:hover {
+        border-color: transparent !important;
+        box-shadow: none !important;
+    }
+    .book_data_label.active-card-val,
+    .location_data.active-card-val {
+        border-color: #03a9f4 !important;
+    }
+}
 
 .location_data:hover {
     border-radius: 20px;
