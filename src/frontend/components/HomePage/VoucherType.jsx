@@ -1442,7 +1442,9 @@ const VoucherType = ({
                                 );
                             }
 
-                            // Show current view based on pagination - always show two vouchers when possible
+                            // Desktop pagination helpers
+                            const pageSize = 2; // desktop shows 2 private charter vouchers per page
+                            const startIndex = currentViewIndex * pageSize;
                             let vouchersToShow = [];
                             
                             // For mobile devices, show all vouchers in single container like PassengerInfo
@@ -1524,40 +1526,13 @@ const VoucherType = ({
                                     </div>
                                 );
                             } else {
-                                if (activeVouchers.length >= 4) {
-                                    // 4 or more voucher types - show two at a time
-                                    if (currentViewIndex === 0) {
-                                        // Show first two vouchers
-                                        vouchersToShow = activeVouchers.slice(0, 2);
-                                    } else if (currentViewIndex === 2) {
-                                        // Show next two vouchers
-                                        vouchersToShow = activeVouchers.slice(2, 4);
-                                    } else {
-                                        // Fallback to first two
-                                        vouchersToShow = activeVouchers.slice(0, 2);
-                                    }
-                                } else if (activeVouchers.length === 3) {
-                                    // 3 voucher types - show first two, then last one
-                                    if (currentViewIndex === 0) {
-                                        // Show first two vouchers
-                                        vouchersToShow = activeVouchers.slice(0, 2);
-                                    } else {
-                                        // Show last voucher
-                                        vouchersToShow = [activeVouchers[2]];
-                                    }
-                                } else if (activeVouchers.length === 2) {
-                                    // 2 voucher types - always show both
-                                    vouchersToShow = activeVouchers;
-                                } else {
-                                    // 1 voucher type - show single
-                                    vouchersToShow = activeVouchers;
-                                }
+                                vouchersToShow = activeVouchers.slice(startIndex, startIndex + pageSize);
                             }
 
                             return (
                                 <>
-                                    {/* Navigation Arrows - Desktop Only (unchanged for desktop) */}
-                                    {activeVouchers.length > 2 && (
+                                    {/* Navigation Arrows - Desktop Only */}
+                                    {(!isMobile && activeVouchers.length > pageSize) && (
                                         <>
                                             {/* Left Arrow */}
                                             {currentViewIndex > 0 && (
@@ -1578,13 +1553,13 @@ const VoucherType = ({
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
-                                                }} onClick={handlePrevVoucher}>
+                                                }} onClick={() => setCurrentViewIndex(Math.max(0, currentViewIndex - 1))}>
                                                     <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
                                                 </div>
                                             )}
                                             
                                             {/* Right Arrow */}
-                                            {currentViewIndex === 0 && (
+                                            {(startIndex + pageSize) < activeVouchers.length && (
                                                 <div style={{ 
                                                     position: 'absolute', 
                                                     right: 20, 
@@ -1602,7 +1577,7 @@ const VoucherType = ({
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
-                                                }} onClick={handleNextVoucher}>
+                                                }} onClick={() => setCurrentViewIndex(Math.min(currentViewIndex + 1, Math.ceil(activeVouchers.length / pageSize) - 1))}>
                                                     <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
                                                 </div>
                                             )}
@@ -1658,45 +1633,35 @@ const VoucherType = ({
                                 );
                             }
 
-                            // Show current view based on pagination - show two vouchers when possible
+                            // Desktop pagination: show 3 per page
+                            const sfPageSize = 3;
+                            const sfStartIndex = currentViewIndex * sfPageSize;
                             let vouchersToShow = [];
                             
                             // For mobile devices, show all vouchers for horizontal scroll
                             if (isMobile) {
                                 vouchersToShow = filteredVouchers;
                             } else {
-                                if (filteredVouchers.length >= 3) {
-                                    // 3 or more voucher types - show two at a time
-                                    if (currentViewIndex === 0) {
-                                        // Show first two vouchers
-                                        vouchersToShow = filteredVouchers.slice(0, 2);
-                                    } else {
-                                        // Show remaining vouchers
-                                        vouchersToShow = filteredVouchers.slice(2);
-                                    }
-                                } else {
-                                    // 1-2 voucher types - show all
-                                    vouchersToShow = filteredVouchers;
-                                }
+                                vouchersToShow = filteredVouchers.slice(sfStartIndex, sfStartIndex + sfPageSize);
                             }
 
                             return (
                                 <>
-                                    {/* Navigation Arrows */}
-                                    {(isMobile ? filteredVouchers.length > 1 : filteredVouchers.length > 2) && (
+                                    {/* Navigation Arrows - Desktop only */}
+                                    {(!isMobile && filteredVouchers.length > sfPageSize) && (
                                         <>
                                             {/* Left Arrow */}
-                                            {(isMobile ? canScrollVouchersLeft : currentViewIndex > 0) && (
+                                            {currentViewIndex > 0 && (
                                                 <div style={{ 
                                                     position: 'absolute', 
-                                                    left: isMobile ? 10 : 20, 
+                                                    left: 20, 
                                                     top: '50%', 
                                                     transform: 'translateY(-50%)', 
                                                     zIndex: 10,
                                                     background: 'rgba(255,255,255,0.9)',
                                                     borderRadius: '50%',
-                                                    width: isMobile ? 36 : 40,
-                                                    height: isMobile ? 36 : 40,
+                                                    width: 40,
+                                                    height: 40,
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -1704,27 +1669,23 @@ const VoucherType = ({
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
-                                                }} onClick={handlePrevVoucher}>
-                                                    <ArrowBackIosIcon style={{ 
-                                                        fontSize: isMobile ? 18 : 20, 
-                                                        color: '#666',
-                                                        marginLeft: 5
-                                                    }} />
+                                                }} onClick={() => setCurrentViewIndex(Math.max(0, currentViewIndex - 1))}>
+                                                    <ArrowBackIosIcon style={{ fontSize: 20, color: '#666', marginLeft: 5 }} />
                                                 </div>
                                             )}
                                             
                                             {/* Right Arrow */}
-                                            {(isMobile ? canScrollVouchersRight : currentViewIndex === 0) && (
+                                            {(sfStartIndex + sfPageSize) < filteredVouchers.length && (
                                                 <div style={{ 
                                                     position: 'absolute', 
-                                                    right: isMobile ? 10 : 20, 
+                                                    right: 20, 
                                                     top: '50%', 
                                                     transform: 'translateY(-50%)', 
                                                     zIndex: 10,
                                                     background: 'rgba(255,255,255,0.9)',
                                                     borderRadius: '50%',
-                                                    width: isMobile ? 36 : 40,
-                                                    height: isMobile ? 36 : 40,
+                                                    width: 40,
+                                                    height: 40,
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -1732,11 +1693,8 @@ const VoucherType = ({
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
-                                                }} onClick={handleNextVoucher}>
-                                                    <ArrowForwardIosIcon style={{ 
-                                                        fontSize: isMobile ? 18 : 20, 
-                                                        color: '#666' 
-                                                    }} />
+                                                }} onClick={() => setCurrentViewIndex(Math.min(currentViewIndex + 1, Math.ceil(filteredVouchers.length / sfPageSize) - 1))}>
+                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
                                                 </div>
                                             )}
                                         </>
