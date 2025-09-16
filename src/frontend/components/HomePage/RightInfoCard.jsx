@@ -677,19 +677,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             
             // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
             const computedNumberOfPassengers = (() => {
-                // Prefer selected voucher quantity if available
-                if (selectedVoucherType && typeof selectedVoucherType.quantity === 'number') {
-                    return selectedVoucherType.quantity;
-                }
-                // VoucherType component stores quantities by title for UI
-                if (selectedVoucherType && quantities && quantities[selectedVoucherType.title]) {
-                    const q = parseInt(quantities[selectedVoucherType.title], 10);
-                    if (!Number.isNaN(q) && q > 0) return q;
-                }
-                // Fallback to number of filled passengers
-                if (Array.isArray(passengerData) && passengerData.length > 0) {
-                    return passengerData.length;
-                }
+                // Prefer quantity attached to selected voucher by VoucherType component
+                const q = parseInt(selectedVoucherType?.quantity, 10);
+                if (!Number.isNaN(q) && q > 0) return q;
+                // Fallback to number of passengers entered in the form
+                if (Array.isArray(passengerData) && passengerData.length > 0) return passengerData.length;
                 return 1;
             })();
             const voucherData = {
