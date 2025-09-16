@@ -676,6 +676,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
             
             // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
+            const computedNumberOfPassengers = (selectedVoucherType && selectedVoucherType.quantity)
+                ? selectedVoucherType.quantity
+                : (Array.isArray(passengerData) ? passengerData.length : 1);
             const voucherData = {
                 // For Gift Vouchers: name/email/phone/mobile should be PURCHASER info (from PassengerInfo form)
                 // For Flight Vouchers: name/email/phone/mobile should be the main contact info
@@ -709,7 +712,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
-                numberOfPassengers: passengerData ? passengerData.length : 1,
+                numberOfPassengers: computedNumberOfPassengers,
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
