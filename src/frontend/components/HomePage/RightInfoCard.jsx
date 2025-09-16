@@ -1191,7 +1191,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 </div>
                                 <div className="summary-drawer-footer">
                                     <div className="summary-total">{totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ''}</div>
-                                    <button className="summary-primary" disabled={isBookDisabled} onClick={() => { if (!isBookDisabled) handleBookData(); }}>
+                                    <button
+                                        className="summary-primary"
+                                        disabled={isBookDisabled}
+                                        onClick={() => { if (!isBookDisabled) handleBookData(); }}
+                                        style={{
+                                            width: '72%',
+                                            maxWidth: 280,
+                                            alignSelf: 'center'
+                                        }}
+                                    >
                                         Book
                                     </button>
                                 </div>
