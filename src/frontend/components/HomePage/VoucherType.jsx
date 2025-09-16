@@ -1457,32 +1457,32 @@ const VoucherType = ({
                                         flexDirection: 'column',
                                         alignItems: 'center'
                                     }}>
-                                        {/* Navigation Arrows */}
+                                        {/* Navigation Arrows (always render on mobile when >1) */}
                                         {activeVouchers.length > 1 && (
                                             <>
-                                                {/* Left Arrow (mobile, match ExperienceSection) */}
-                                                {canScrollVouchersLeft && (
-                                                    <div style={{
-                                                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
-                                                    }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
-                                                    </div>
-                                                )}
+                                                {/* Left Arrow */}
+                                                <div style={{
+                                                    position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                                                    background: 'rgba(255,255,255,0.95)', borderRadius: '50%', width: 36, height: 36,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: canScrollVouchersLeft ? 'pointer' : 'default',
+                                                    opacity: canScrollVouchersLeft ? 1 : 0.4,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
+                                                }} onClick={() => { if (canScrollVouchersLeft) handlePrevVoucher(); }}>
+                                                    <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
+                                                </div>
                                                 
-                                                {/* Right Arrow (mobile, match ExperienceSection) */}
-                                                {canScrollVouchersRight && (
-                                                    <div style={{
-                                                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: 36, height: 36,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
-                                                    }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
-                                                    </div>
-                                                )}
+                                                {/* Right Arrow */}
+                                                <div style={{
+                                                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                                                    background: 'rgba(255,255,255,0.95)', borderRadius: '50%', width: 36, height: 36,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: canScrollVouchersRight ? 'pointer' : 'default',
+                                                    opacity: canScrollVouchersRight ? 1 : 0.4,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #ddd'
+                                                }} onClick={() => { if (canScrollVouchersRight) handleNextVoucher(); }}>
+                                                    <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
+                                                </div>
                                             </>
                                         )}
 
