@@ -1,10 +1,21 @@
 import React, { useState } from "react";
 
-const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, className }) => {
+const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, className, onBeforeClose }) => {
     const isOpen = activeAccordion === id;
 
     const toggleAccordion = () => {
-        setActiveAccordion(isOpen ? null : id); // Close if open, otherwise open it
+        if (isOpen) {
+            // If a guard is provided, allow it to cancel closing by returning false
+            if (typeof onBeforeClose === 'function') {
+                const canClose = onBeforeClose();
+                if (canClose === false) {
+                    return; // Prevent closing and keep the panel open
+                }
+            }
+            setActiveAccordion(null);
+        } else {
+            setActiveAccordion(id);
+        }
     };
 
     // Check if this is the "What would you like to do?" section

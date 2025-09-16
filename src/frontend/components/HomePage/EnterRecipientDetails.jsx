@@ -122,6 +122,18 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         validate: validateFields
     }));
 
+    // Warn on close if Buy Gift and required fields are empty
+    const onBeforeClose = () => {
+        if (!isGiftVoucher) return true;
+        if (skipRecipientDetails || recipientDetails?.isSkipped) return true;
+        const valid = validateFields();
+        if (!valid) {
+            alert('Recipient Details are required for Buy Gift. Please fill in all fields or choose "Don’t enter recipient details".');
+            return false; // prevent closing
+        }
+        return true;
+    };
+
     return (
         <Accordion 
             title="Recipient Details"  
@@ -130,6 +142,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             setActiveAccordion={setActiveAccordion} 
             className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`} 
             disabled={isBookFlight}
+            onBeforeClose={onBeforeClose}
         >
             <div className="Recipient">
                 {/* Skip Recipient Details Button */}
