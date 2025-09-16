@@ -1053,50 +1053,47 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 {totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ""}
                             </p>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
-                            <button
-                                className="booking_btn clear_booking-button"
-                                style={{
-                                    background: '#fff',
-                                    color: '#444',
-                                    border: '1.5px solid #bbb',
-                                    boxShadow: 'none',
-                                    fontWeight: 500,
-                                    borderRadius: '8px',
-                                    padding: '8px 22px',
-                                    cursor: 'pointer',
-                                    opacity: 1
-                                }}
-                                onClick={resetBooking}
-                                type="button"
-                            >
-                                Clear
-                            </button>
-                            <button
-                                className="booking_btn final_booking-button"
-                                style={{
-                                    background: isBookDisabled ? '#eee' : '#2d4263',
-                                    color: '#fff',
-                                    fontWeight: 500,
-                                    borderRadius: '8px',
-                                    padding: '8px 22px',
-                                    cursor: isBookDisabled ? 'not-allowed' : 'pointer',
-                                    opacity: isBookDisabled ? 0.5 : 1
-                                }}
-                                disabled={isBookDisabled}
-                                onClick={() => {
-                                    if (isBookDisabled) {
-                                        setShowWarning(true);
-                                    } else {
+                        {!isBookDisabled && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
+                                <button
+                                    className="booking_btn clear_booking-button"
+                                    style={{
+                                        background: '#fff',
+                                        color: '#444',
+                                        border: '1.5px solid #bbb',
+                                        boxShadow: 'none',
+                                        fontWeight: 500,
+                                        borderRadius: '8px',
+                                        padding: '8px 22px',
+                                        cursor: 'pointer',
+                                        opacity: 1
+                                    }}
+                                    onClick={resetBooking}
+                                    type="button"
+                                >
+                                    Clear
+                                </button>
+                                <button
+                                    className="booking_btn final_booking-button"
+                                    style={{
+                                        background: '#2d4263',
+                                        color: '#fff',
+                                        fontWeight: 500,
+                                        borderRadius: '8px',
+                                        padding: '8px 22px',
+                                        cursor: 'pointer',
+                                        opacity: 1
+                                    }}
+                                    onClick={() => {
                                         setShowWarning(false);
                                         handleBookData();
-                                    }
-                                }}
-                                type="button"
-                            >
-                                Book
-                            </button>
-                        </div>
+                                    }}
+                                    type="button"
+                                >
+                                    Book
+                                </button>
+                            </div>
+                        )}
                         {showWarning && (
                             <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
                                 {activitySelect === 'Book Flight' && (
@@ -1149,7 +1146,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             </div>
 
             {/* Mobile sticky summary + drawer - only show after activity is selected */}
-            {isMobile && activitySelect && (
+            {isMobile && activitySelect && !isBookDisabled && (
                 <>
                     <div className="summary-sticky" onClick={() => setIsDrawerOpen(true)}>
                         <div className="summary-sticky-left">
@@ -1158,14 +1155,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                         <button
                             className="summary-sticky-book"
-                            disabled={isBookDisabled}
-                            onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) handleBookData(); }}
+                            onClick={(e) => { e.stopPropagation(); handleBookData(); }}
                             onMouseEnter={() => {
                                 console.log('=== BOOK BUTTON HOVER DEBUG ===', {
-                                    isBookDisabled,
+                                    isBookDisabled: false,
                                     activitySelect,
                                     isGiftVoucher,
-                                    buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
+                                    buttonText: 'ENABLED'
                                 });
                             }}
                         >
