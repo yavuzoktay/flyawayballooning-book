@@ -1633,8 +1633,8 @@ const VoucherType = ({
                                 );
                             }
 
-                            // Desktop pagination: show 3 per page
-                            const sfPageSize = 3;
+                            // Desktop pagination: show 2 per page (third via next/back)
+                            const sfPageSize = 2;
                             const sfStartIndex = currentViewIndex * sfPageSize;
                             let vouchersToShow = [];
                             
