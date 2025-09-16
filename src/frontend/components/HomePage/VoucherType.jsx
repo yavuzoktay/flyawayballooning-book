@@ -1486,7 +1486,7 @@ const VoucherType = ({
                                         )}
 
                                         {/* Voucher Cards Container - Single container like PassengerInfo */}
-                                        <div className="voucher-cards-container" style={{ 
+                                        <div ref={voucherContainerRef} className="voucher-cards-container" style={{ 
                                             display: 'flex', 
                                             flexDirection: 'row', 
                                             gap: '16px', 
