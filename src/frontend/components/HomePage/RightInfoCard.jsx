@@ -1196,8 +1196,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         disabled={isBookDisabled}
                                         onClick={() => { if (!isBookDisabled) handleBookData(); }}
                                         style={{
-                                            width: '72%',
-                                            maxWidth: 280,
+                                            width: '55%',
+                                            maxWidth: 220,
+                                            minWidth: 160,
                                             alignSelf: 'center'
                                         }}
                                     >
