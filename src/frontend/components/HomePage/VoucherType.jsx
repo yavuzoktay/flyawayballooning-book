@@ -949,14 +949,18 @@ const VoucherType = ({
             const selectedPassengers = parseInt(quantities[voucher.title] || 2, 10);
             // Try to get tiered price from activityData.private_charter_pricing
             const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
-                if (!pricingDataRaw) return undefined;
+                if (pricingDataRaw == null) return undefined;
                 let pricingData = pricingDataRaw;
                 try {
                     if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
-                } catch {}
+                } catch {
+                    return undefined;
+                }
+                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return undefined;
                 const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
                 const titleNorm = normalize(voucherTitleRaw);
                 const resolveForTitle = (obj, title) => {
+                    if (!obj || typeof obj !== 'object') return undefined;
                     if (obj[title] != null) return obj[title];
                     if (obj[title?.trim?.()] != null) return obj[title.trim()];
                     for (const k of Object.keys(obj)) { if (normalize(k) === titleNorm) return obj[k]; }
