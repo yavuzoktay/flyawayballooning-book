@@ -156,9 +156,9 @@ const VoucherType = ({
     useEffect(() => {
         const titles = [];
         try {
-            // Gather voucher titles from both shared and private flows
-            if (Array.isArray(voucherTypes)) {
-                titles.push(...voucherTypes.map(v => v.title));
+            // Use raw lists available at this point to avoid TDZ on voucherTypes
+            if (Array.isArray(allVoucherTypes)) {
+                titles.push(...allVoucherTypes.map(v => v.title));
             }
             if (Array.isArray(privateCharterVoucherTypes)) {
                 titles.push(...privateCharterVoucherTypes.map(v => v.title));
@@ -176,7 +176,7 @@ const VoucherType = ({
             });
             return changed ? next : prev;
         });
-    }, [voucherTypes, privateCharterVoucherTypes]);
+    }, [allVoucherTypes, privateCharterVoucherTypes]);
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
