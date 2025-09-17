@@ -152,6 +152,26 @@ const VoucherType = ({
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
 
+    // (moved below state declarations to avoid TDZ)
+    const [showTerms, setShowTerms] = useState(false);
+    const [selectedVoucher, setSelectedVoucher] = useState(null);
+    const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [locationPricing, setLocationPricing] = useState({});
+    const [currentViewIndex, setCurrentViewIndex] = useState(0);
+    const [showTwoVouchers, setShowTwoVouchers] = useState(true);
+    const [slideDirection, setSlideDirection] = useState('right');
+    const [shouldAnimate, setShouldAnimate] = useState(false);
+    const [allVoucherTypes, setAllVoucherTypes] = useState([]);
+    const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
+    const [privateCharterVoucherTypes, setPrivateCharterVoucherTypes] = useState([]);
+    const [privateCharterVoucherTypesLoading, setPrivateCharterVoucherTypesLoading] = useState(true);
+    const [termsContent, setTermsContent] = useState('');
+    const [termsLoading, setTermsLoading] = useState(false);
+    const [activityData, setActivityData] = useState(null);
+    const [activityDataLoading, setActivityDataLoading] = useState(false);
+    const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+
     // Ensure default quantity=2 for every voucher title once data is available
     useEffect(() => {
         const titles = [];
@@ -177,24 +197,6 @@ const VoucherType = ({
             return changed ? next : prev;
         });
     }, [allVoucherTypes, privateCharterVoucherTypes]);
-    const [showTerms, setShowTerms] = useState(false);
-    const [selectedVoucher, setSelectedVoucher] = useState(null);
-    const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [locationPricing, setLocationPricing] = useState({});
-    const [currentViewIndex, setCurrentViewIndex] = useState(0);
-    const [showTwoVouchers, setShowTwoVouchers] = useState(true);
-    const [slideDirection, setSlideDirection] = useState('right');
-    const [shouldAnimate, setShouldAnimate] = useState(false);
-    const [allVoucherTypes, setAllVoucherTypes] = useState([]);
-    const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
-    const [privateCharterVoucherTypes, setPrivateCharterVoucherTypes] = useState([]);
-    const [privateCharterVoucherTypesLoading, setPrivateCharterVoucherTypesLoading] = useState(true);
-    const [termsContent, setTermsContent] = useState('');
-    const [termsLoading, setTermsLoading] = useState(false);
-    const [activityData, setActivityData] = useState(null);
-    const [activityDataLoading, setActivityDataLoading] = useState(false);
-    const [showCapacityWarning, setShowCapacityWarning] = useState(false);
     
     // Notification state for voucher type selection
     const [showNotification, setShowNotification] = useState(false);
