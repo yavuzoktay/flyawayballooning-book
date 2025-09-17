@@ -151,6 +151,32 @@ const VoucherType = ({
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
+
+    // Ensure default quantity=2 for every voucher title once data is available
+    useEffect(() => {
+        const titles = [];
+        try {
+            // Gather voucher titles from both shared and private flows
+            if (Array.isArray(voucherTypes)) {
+                titles.push(...voucherTypes.map(v => v.title));
+            }
+            if (Array.isArray(activeVouchers)) {
+                titles.push(...activeVouchers.map(v => v.title));
+            }
+        } catch {}
+        if (titles.length === 0) return;
+        setQuantities(prev => {
+            const next = { ...prev };
+            let changed = false;
+            titles.forEach(t => {
+                if (next[t] == null || Number.isNaN(parseInt(next[t], 10))) {
+                    next[t] = 2; // default passengers
+                    changed = true;
+                }
+            });
+            return changed ? next : prev;
+        });
+    }, [voucherTypes, activeVouchers]);
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
@@ -1122,7 +1148,8 @@ const VoucherType = ({
     };
 
     const handleSelectVoucher = async (voucher) => {
-        const quantity = quantities[voucher.title];
+        // Ensure quantity defaults to 2 when not explicitly changed in UI
+        const quantity = parseInt(quantities[voucher.title] || 2, 10);
         
         console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Quantity for', voucher.title, ':', quantity);
