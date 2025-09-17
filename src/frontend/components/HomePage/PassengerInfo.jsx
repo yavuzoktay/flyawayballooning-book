@@ -176,12 +176,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const [validationErrors, setValidationErrors] = useState([]);
 
   // Check if a passenger's details are complete
+  // Update: Require all visible passenger inputs for every passenger card
   const isPassengerComplete = (passenger, index) => {
-    // Only Mobile Number and Email are required (for first passenger only)
-    const hasPhone = index === 0 ? passenger.phone?.trim() : true; // Only first passenger needs phone
-    const hasEmail = index === 0 ? passenger.email?.trim() : true; // Only first passenger needs email
-    
-    return hasPhone && hasEmail;
+    const hasFirstName = !!(passenger.firstName && passenger.firstName.trim());
+    const hasLastName = !!(passenger.lastName && passenger.lastName.trim());
+    const needsWeight = activitySelect !== 'Buy Gift';
+    const hasWeight = needsWeight ? !!(passenger.weight || passenger.weight === 0 || (typeof passenger.weight === 'string' && passenger.weight.trim() !== '')) : true;
+    const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim()) : true;
+    const hasEmail = index === 0 ? !!(passenger.email && passenger.email.trim()) : true;
+    return hasFirstName && hasLastName && hasWeight && hasPhone && hasEmail;
   };
 
   // Auto-slide to next passenger when current one is complete
@@ -278,7 +281,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     return price;
   };
 
-  // Validation function - only Mobile Number and Email are required
+  // Validation function - require all fields for each passenger card
   // When setErrors=false, perform a silent validation (no red borders yet)
   const validateFields = (setErrors = true) => {
     const errors = [];
@@ -291,24 +294,23 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       
       console.log(`👤 Validating passenger ${index + 1}:`, passenger);
       
-      // Only Mobile Number and Email are required (for first passenger only)
-      if (index === 0) {
-        // Phone validation for first passenger
-        if (!passenger.phone?.trim()) {
-          passengerErrors.phone = true;
-          console.log(`❌ First passenger phone failed:`, passenger.phone);
+      // First name and last name required for all passengers
+      if (!passenger.firstName || !passenger.firstName.trim()) passengerErrors.firstName = true;
+      if (!passenger.lastName || !passenger.lastName.trim()) passengerErrors.lastName = true;
+      // Weight required for all passengers except Buy Gift flow
+      if (activitySelect !== 'Buy Gift') {
+        if (!(passenger.weight || passenger.weight === 0 || (typeof passenger.weight === 'string' && passenger.weight.trim() !== ''))) {
+          passengerErrors.weight = true;
         }
-        
-        // Email validation for first passenger (format + required)
+      }
+      // Phone and email required for first passenger
+      if (index === 0) {
+        if (!passenger.phone?.trim()) passengerErrors.phone = true;
         if (!passenger.email?.trim()) {
           passengerErrors.email = true;
-          console.log(`❌ First passenger email failed (empty):`, passenger.email);
         } else {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(passenger.email.trim())) {
-            passengerErrors.email = true;
-            console.log(`❌ First passenger email failed (format):`, passenger.email);
-          }
+          if (!emailRegex.test(passenger.email.trim())) passengerErrors.email = true;
         }
       }
       
@@ -326,7 +328,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       passengerCount: passengerData.length,
       errors,
       isValid,
-      note: 'Only Mobile Number and Email are required (first passenger only)'
+      note: 'All passengers must have First, Last, Weight (except Buy Gift), and P1 must have Phone & Email'
     });
     
     if (setErrors) {
@@ -340,12 +342,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     validate: validateFields
   }));
 
-  // Auto-trigger section completion when all fields are valid (fire once per validity session)
+  // Auto-trigger section completion when all passengers are valid (fire once per validity session)
   const completionFiredRef = useRef(false);
   useEffect(() => {
     if (!onSectionCompletion || passengerData.length === 0) return;
-    // Run silent validation here to avoid showing red borders on first open
-    const isValid = validateFields(false);
+    // Run silent validation for ALL passengers
+    const isValid = passengerData.every((p, idx) => isPassengerComplete(p, idx));
     if (isValid && !completionFiredRef.current) {
       completionFiredRef.current = true;
       console.log('✅ All passenger fields valid, triggering section completion');

@@ -145,15 +145,18 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
     
-    // Helper to check if recipient details are complete for Buy Gift (required again)
+    // Helper to check if recipient details are complete for Buy Gift (allow skip)
     const isRecipientDetailsValid = (details) => {
         if (!details || typeof details !== 'object') {
             console.log('❌ recipientDetails is null/undefined or not object:', details);
             return false;
         }
         
-        // For Buy Gift, recipient details are ALWAYS required (no skipping allowed)
-        // Remove the isSkipped check for Buy Gift validation
+        // If user clicked "Don't enter recipient details", treat as valid
+        if (details.isSkipped === true) {
+            console.log('✅ Recipient details marked as skipped – treating as valid');
+            return true;
+        }
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
@@ -177,7 +180,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
         
-        console.log('🎁 recipientDetails required validation:', {
+        console.log('🎁 recipientDetails validation (with skip support):', {
             details,
             hasName: { value: details.name, valid: hasName },
             hasEmail: { value: details.email, valid: hasEmail },
@@ -186,7 +189,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields are required for Buy Gift - no skipping allowed'
+            note: 'All fields required unless user chose to skip'
         });
         
         return isComplete;
@@ -390,7 +393,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         const condition2 = !!selectedVoucherType;
         const condition3 = isBuyGiftPassengerComplete;
         const condition4 = isAdditionalInfoValid(additionalInfo); // This stays optional
-        const condition5 = isRecipientDetailsValid(recipientDetails); // Required again
+        const condition5 = isRecipientDetailsValid(recipientDetails); // Skippable
         
         // Updated validation for Buy Gift - Recipient Details and Purchaser Info required, Additional Info optional
         strictValidation = (() => {
@@ -407,18 +410,18 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // Email not required for Purchaser Information
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             
-            // Recipient details validation (all required)
-            if (!recipientDetails?.name?.trim()) return false;
-            if (!recipientDetails?.email?.trim()) return false;
-            if (!recipientDetails?.phone?.trim()) return false;
-            if (!recipientDetails?.date?.trim()) return false;
-            
-            // Recipient email format validation
-            if (!emailRegex.test(recipientDetails.email.trim())) return false;
-            
-            // Date format validation
-            const dateValue = new Date(recipientDetails.date);
-            if (isNaN(dateValue.getTime())) return false;
+            // Recipient details can be skipped
+            if (!recipientDetails?.isSkipped) {
+                if (!recipientDetails?.name?.trim()) return false;
+                if (!recipientDetails?.email?.trim()) return false;
+                if (!recipientDetails?.phone?.trim()) return false;
+                if (!recipientDetails?.date?.trim()) return false;
+                // Recipient email format validation
+                if (!emailRegex.test(recipientDetails.email.trim())) return false;
+                // Date format validation
+                const dateValue = new Date(recipientDetails.date);
+                if (isNaN(dateValue.getTime())) return false;
+            }
             
             // Additional info is optional - no validation needed
             
@@ -443,7 +446,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 email: !!passengerData[0]?.email?.trim(),
                 emailFormat: passengerData[0]?.email ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(passengerData[0].email.trim()) : false
             } : 'No first passenger',
-            recipientCheck: {
+            recipientCheck: recipientDetails?.isSkipped ? 'SKIPPED' : {
                 name: !!recipientDetails?.name?.trim(),
                 email: !!recipientDetails?.email?.trim(),
                 phone: !!recipientDetails?.phone?.trim(),

@@ -162,7 +162,7 @@ const VoucherType = ({
     const [showTwoVouchers, setShowTwoVouchers] = useState(true);
     const [slideDirection, setSlideDirection] = useState('right');
     const [shouldAnimate, setShouldAnimate] = useState(false);
-    const [allVoucherTypes, setAllVoucherTypes] = useState([]);
+    const [allVoucherTypesState, setAllVoucherTypesState] = useState([]);
     const [allVoucherTypesLoading, setAllVoucherTypesLoading] = useState(true);
     const [privateCharterVoucherTypes, setPrivateCharterVoucherTypes] = useState([]);
     const [privateCharterVoucherTypesLoading, setPrivateCharterVoucherTypesLoading] = useState(true);
@@ -177,8 +177,8 @@ const VoucherType = ({
         const titles = [];
         try {
             // Use raw lists available at this point to avoid TDZ on voucherTypes
-            if (Array.isArray(allVoucherTypes)) {
-                titles.push(...allVoucherTypes.map(v => v.title));
+            if (Array.isArray(allVoucherTypesState)) {
+                titles.push(...allVoucherTypesState.map(v => v.title));
             }
             if (Array.isArray(privateCharterVoucherTypes)) {
                 titles.push(...privateCharterVoucherTypes.map(v => v.title));
@@ -196,7 +196,7 @@ const VoucherType = ({
             });
             return changed ? next : prev;
         });
-    }, [allVoucherTypes, privateCharterVoucherTypes]);
+    }, [allVoucherTypesState, privateCharterVoucherTypes]);
     
     // Notification state for voucher type selection
     const [showNotification, setShowNotification] = useState(false);
@@ -294,7 +294,7 @@ const VoucherType = ({
             container.removeEventListener('pointerup', handleTouchEnd);
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
         };
-    }, [isMobile, allVoucherTypes.length, privateCharterVoucherTypes.length]);
+    }, [isMobile, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
@@ -365,7 +365,7 @@ const VoucherType = ({
                 console.log('Regular voucher types data:', data);
                 
                 if (data.success) {
-                    setAllVoucherTypes(data.data);
+                    setAllVoucherTypesState(data.data);
                     
                     // Initialize quantities and pricing from API data
                     const newQuantities = {};
@@ -608,7 +608,7 @@ const VoucherType = ({
         console.log('VoucherType: voucherTypes useMemo triggered');
         console.log('VoucherType: chooseFlightType:', chooseFlightType);
         console.log('VoucherType: isPrivateCharter:', isPrivateCharter);
-        console.log('VoucherType: allVoucherTypes count:', allVoucherTypes.length);
+        console.log('VoucherType: allVoucherTypes count:', allVoucherTypesState.length);
         console.log('VoucherType: privateCharterVoucherTypes count:', privateCharterVoucherTypes.length);
         console.log('VoucherType: activityData for pricing:', activityData);
         console.log('VoucherType: locationPricing fallback:', locationPricing);
@@ -752,17 +752,17 @@ const VoucherType = ({
             return privateVouchers;
         } else {
             // For Shared Flight, show regular voucher types
-            if (allVoucherTypesLoading || allVoucherTypes.length === 0) {
+            if (allVoucherTypesLoading || allVoucherTypesState.length === 0) {
                 console.log('VoucherType: Shared Flight - no voucher types available yet');
                 return [];
             }
 
                             console.log('VoucherType: Creating regular voucher types with activityData:', activityData);
                 console.log('VoucherType: Creating regular voucher types with locationPricing (fallback):', locationPricing);
-                console.log('VoucherType: Raw voucher types data:', allVoucherTypes.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
+                console.log('VoucherType: Raw voucher types data:', allVoucherTypesState.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
             // Create voucher types for Shared Flight
-            const sharedFlightVouchers = allVoucherTypes.map(vt => {
+            const sharedFlightVouchers = allVoucherTypesState.map(vt => {
                 // Use the updated price_per_person from the voucher types API (which now includes activity pricing)
                 let basePrice = parseFloat(vt.price_per_person) || 180; // Use API price, fallback to default
                 let priceUnit = 'pp';
@@ -854,7 +854,7 @@ const VoucherType = ({
             })));
             return sharedFlightVouchers;
         }
-    }, [chooseFlightType?.type, allVoucherTypes, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
+    }, [chooseFlightType?.type, allVoucherTypesState, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
