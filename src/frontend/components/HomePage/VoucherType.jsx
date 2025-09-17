@@ -1166,15 +1166,21 @@ const VoucherType = ({
         if (chooseFlightType?.type === "Private Charter") {
             // Use total price from activity tiered pricing; do NOT multiply by passenger count
             const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
-                if (!pricingDataRaw) return undefined;
+                if (pricingDataRaw == null) return undefined;
                 let pricingData = pricingDataRaw;
                 try {
                     if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
-                } catch {}
+                } catch {
+                    return undefined;
+                }
+                // Ensure we have an object map; guard against null or arrays
+                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return undefined;
+
                 const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
                 const titleNorm = normalize(voucherTitleRaw);
                 let value = undefined;
                 const resolveForTitle = (obj, title) => {
+                    if (!obj || typeof obj !== 'object') return undefined;
                     if (obj[title] != null) return obj[title];
                     if (obj[title?.trim?.()] != null) return obj[title.trim()];
                     for (const k of Object.keys(obj)) {
