@@ -555,19 +555,24 @@ const VoucherType = ({
 
     // Fetch activity data to get individual pricing for private charter voucher types
     const fetchActivityData = async () => {
-        if (!chooseLocation) {
-            setActivityData(null);
-            return;
-        }
-        
         setActivityDataLoading(true);
         try {
             // Add timestamp to prevent caching
             const timestamp = Date.now();
-            const response = await axios.get(`${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}&t=${timestamp}`);
+            const url = chooseLocation
+                ? `${API_BASE_URL}/api/activities/flight-types?location=${encodeURIComponent(chooseLocation)}&t=${timestamp}`
+                : `${API_BASE_URL}/api/activities/flight-types?t=${timestamp}`;
+            const response = await axios.get(url);
             if (response.data.success && response.data.data.length > 0) {
-                // Get the first activity for this location
-                const activity = response.data.data[0];
+                // Prefer activity matching location; else first one that has private_charter_pricing; else first
+                let activity = response.data.data[0];
+                if (chooseLocation) {
+                    const matched = response.data.data.find(a => (a.location || '').toLowerCase() === (chooseLocation || '').toLowerCase());
+                    if (matched) activity = matched;
+                } else {
+                    const withPricing = response.data.data.find(a => a && a.private_charter_pricing);
+                    if (withPricing) activity = withPricing;
+                }
                 setActivityData(activity);
                 console.log('VoucherType: Activity data loaded:', activity);
                 console.log('VoucherType: Private charter pricing field:', activity.private_charter_pricing);
@@ -600,6 +605,13 @@ const VoucherType = ({
 
         return () => clearInterval(interval);
     }, [chooseLocation]);
+
+    // Ensure activity data is also available when switching flows (e.g., Flight Voucher / Buy Gift)
+    useEffect(() => {
+        if (chooseFlightType?.type === 'Private Charter' && !activityData) {
+            fetchActivityData();
+        }
+    }, [chooseFlightType?.type]);
 
     const voucherTypes = useMemo(() => {
         // Determine which voucher types to show based on selected experience
