@@ -512,6 +512,14 @@
   }
 }
 
+/* Mobile-only: show blue border on the selected card */
+@media (max-width: 768px) {
+  .book_data_label.active_book_data_label {
+    border: 2px solid #03a9f4 !important;
+    border-radius: 20px !important;
+  }
+}
+
 @media (max-width: 480px) {
   .info-icon-container .hover-text {
     max-width: calc(100% - 12px) !important;
