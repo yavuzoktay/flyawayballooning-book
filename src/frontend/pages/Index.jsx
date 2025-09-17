@@ -1509,32 +1509,7 @@ const Index = () => {
                     </div>
                 </div>
             )}
-            {/* Notification for accordion completion */}
-            {showNotification && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    zIndex: 9999,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    animation: 'slideUp 0.3s ease-out',
-                    maxWidth: '90vw',
-                    textAlign: 'center'
-                }}>
-                    <span style={{ fontSize: '18px' }}>✓</span>
-                    {notificationMessage}
-                </div>
-            )}
+            {/* Global accordion completion toast removed */}
             
             <div className="final-booking-wrap" style={{ 
                 overflowX: 'hidden', 
