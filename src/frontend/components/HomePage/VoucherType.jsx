@@ -1463,23 +1463,23 @@ const VoucherType = ({
                                                 {/* Left Arrow */}
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 44, height: 44,
+                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     cursor: canScrollVouchersLeft ? 'pointer' : 'default',
                                                     opacity: canScrollVouchersLeft ? 1 : 0.4,
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: 'none'
+                                                    boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                 }} onClick={() => { if (canScrollVouchersLeft) handlePrevVoucher(); }}>
-                                                    <span style={{ fontSize: 26, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
+                                                    <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
                                                 </div>
                                                 {/* Right Arrow */}
                                                 {canScrollVouchersRight && (
                                                     <div style={{
                                                         position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 44, height: 44,
+                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: 'none'
+                                                        boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: 26, color: '#fff', margin: 0, lineHeight: 1 }}>›</span>
+                                                        <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>›</span>
                                                     </div>
                                                 )}
                                             </>
@@ -1706,23 +1706,23 @@ const VoucherType = ({
                                             {canScrollVouchersLeft && (
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 44, height: 44,
+                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: 'none'
+                                                    boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                 }} onClick={handlePrevVoucher}>
-                                                    <span style={{ fontSize: 26, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
+                                                    <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
                                                 </div>
                                             )}
                                             {/* Right Arrow (mobile) - hide on last card */}
                                             <div style={{
                                                 position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 44, height: 44,
+                                                background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 cursor: canScrollVouchersRight ? 'pointer' : 'default',
                                                 opacity: canScrollVouchersRight ? 1 : 0.4,
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: 'none'
+                                                boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                             }} onClick={() => { if (canScrollVouchersRight) handleNextVoucher(); }}>
-                                                <span style={{ fontSize: 26, color: '#fff', margin: 0, lineHeight: 1 }}>›</span>
+                                                <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>›</span>
                                             </div>
                                         </>
                                     )}

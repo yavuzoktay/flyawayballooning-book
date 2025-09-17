@@ -453,19 +453,19 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   top: '50%', 
                   transform: 'translateY(-50%)', 
                   zIndex: 10,
-                  background: 'rgba(255,255,255,0.9)',
+                  background: 'rgb(3, 169, 244)',
                   borderRadius: '50%',
-                  width: 36,
-                  height: 36,
+                  width: 56,
+                  height: 56,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  border: '1px solid #ddd',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.18)',
+                  border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handlePrevPassenger}>
-                  <span style={{ fontSize: '18px', color: '#666' }}>‹</span>
+                  <span style={{ fontSize: '32px', color: '#fff', lineHeight: 1 }}>‹</span>
                 </div>
               )}
 
@@ -477,19 +477,19 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   top: '50%', 
                   transform: 'translateY(-50%)', 
                   zIndex: 10,
-                  background: 'rgba(255,255,255,0.9)',
+                  background: 'rgb(3, 169, 244)',
                   borderRadius: '50%',
-                  width: 36,
-                  height: 36,
+                  width: 56,
+                  height: 56,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  border: '1px solid #ddd',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.18)',
+                  border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handleNextPassenger}>
-                  <span style={{ fontSize: '18px', color: '#666' }}>›</span>
+                  <span style={{ fontSize: '32px', color: '#fff', lineHeight: 1 }}>›</span>
                 </div>
               )}
 
