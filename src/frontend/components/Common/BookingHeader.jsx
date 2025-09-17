@@ -126,6 +126,11 @@ const BookingHeader = ({ location, selectedDate, selectedTime, countdownSeconds,
     return null;
   }
 
+  // Mobile: hide header entirely (logo will remain in layout outside this component)
+  if (isMobile) {
+    return null;
+  }
+
   // Ensure location has a name property, otherwise use a fallback
   const locationName = location?.name || (typeof location === 'string' ? location : 'Selected Location');
 
