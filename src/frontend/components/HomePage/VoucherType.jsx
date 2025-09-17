@@ -160,8 +160,8 @@ const VoucherType = ({
             if (Array.isArray(voucherTypes)) {
                 titles.push(...voucherTypes.map(v => v.title));
             }
-            if (Array.isArray(activeVouchers)) {
-                titles.push(...activeVouchers.map(v => v.title));
+            if (Array.isArray(privateCharterVoucherTypes)) {
+                titles.push(...privateCharterVoucherTypes.map(v => v.title));
             }
         } catch {}
         if (titles.length === 0) return;
@@ -176,7 +176,7 @@ const VoucherType = ({
             });
             return changed ? next : prev;
         });
-    }, [voucherTypes, activeVouchers]);
+    }, [voucherTypes, privateCharterVoucherTypes]);
     const [showTerms, setShowTerms] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
