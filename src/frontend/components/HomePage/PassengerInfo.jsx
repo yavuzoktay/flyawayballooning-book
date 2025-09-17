@@ -791,7 +791,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         required
                         style={{
                           ...(error?.phone ? { border: '1.5px solid red' } : {}),
-                          ...(isMobile ? mobileInputBase : {})
+                          ...(isMobile ? { 
+                            ...mobileInputBase, 
+                            width: '100%', 
+                            maxWidth: '100%', 
+                            boxSizing: 'border-box', 
+                            alignSelf: 'stretch' 
+                          } : {})
                         }}
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
@@ -813,7 +819,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         required
                         style={{
                           ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
-                          ...(isMobile ? mobileInputBase : {})
+                          ...(isMobile ? { 
+                            ...mobileInputBase, 
+                            width: '100%', 
+                            maxWidth: '100%', 
+                            boxSizing: 'border-box', 
+                            alignSelf: 'stretch' 
+                          } : {})
                         }}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}

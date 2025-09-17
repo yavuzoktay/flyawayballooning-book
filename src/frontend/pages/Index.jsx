@@ -51,9 +51,7 @@ const Index = () => {
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     const [countdownSeconds, setCountdownSeconds] = useState(null);
     
-    // Notification states for accordion completion
-    const [showNotification, setShowNotification] = useState(false);
-    const [notificationMessage, setNotificationMessage] = useState("");
+    // Removed global accordion completion notification to avoid duplicate toasts
     const [showWarning, setShowWarning] = useState(false);
     
     // Flag to track if we're in a fresh start after activity change
@@ -704,27 +702,7 @@ const Index = () => {
             return;
         }
         
-        // Show notification for completed section
-        const sectionNames = {
-            'activity': 'Activity Type',
-            'location': 'Location',
-            'experience': 'Experience',
-            'voucher-type': 'Voucher Type',
-            'live-availability': 'Live Availability',
-            'passenger-info': 'Passenger Information',
-            'additional-info': 'Additional Information',
-            'recipient-details': 'Recipient Details',
-            'add-on': 'Add To Booking'
-        };
-        
-        const sectionName = sectionNames[completedSectionId] || completedSectionId;
-        setNotificationMessage(`${sectionName} Selected`);
-        setShowNotification(true);
-        
-        // Auto-hide notification after 3 seconds
-        setTimeout(() => {
-            setShowNotification(false);
-        }, 3000);
+        // Do not show global toast here; each section shows its own selection toast
         
         // Trigger Passenger Terms popup when Passenger Information is completed
         // Show after a 5s delay to avoid interrupting the flow immediately
