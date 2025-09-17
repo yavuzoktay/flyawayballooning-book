@@ -588,7 +588,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           color: "#fff",
                           fontFamily: 'Gilroy',
                           fontSize: isMobile ? "11px" : "14px",
-                          fontWeight: isMobile ? "500" : "500",
+                          fontWeight: isMobile ? "200" : "500",
                           minWidth: isMobile ? "60px" : "auto",
                           textAlign: "center",
                           display: "inline-block"

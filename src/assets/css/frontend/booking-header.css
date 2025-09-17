@@ -157,6 +157,10 @@
   .header-layout {
     padding-left: 0;
   }
+  /* Hide countdown timer on mobile */
+  .booking-header-timer {
+    display: none !important;
+  }
 }
 
 @media (max-width: 576px) {
