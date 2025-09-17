@@ -1126,8 +1126,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                            {error?.phone && <span style={{ color: 'red', fontSize: 12 }}>Mobile number is required</span>}
                          </div>
                          )}
-                        {/* Email next to Mobile */}
-                        {index === 0 && !(activitySelect === 'Buy Gift' && selectedVoucherType?.title === "Any Day Flight") && (
+                        {/* Email next to Mobile (always visible for first passenger, including Buy Gift + Any Day Flight) */}
+                        {index === 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ 
                             fontSize: isMobile ? '14px' : '13px',
