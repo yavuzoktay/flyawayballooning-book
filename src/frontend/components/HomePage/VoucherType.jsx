@@ -636,7 +636,7 @@ const VoucherType = ({
             
             // Helper to find a price in activity private_charter_pricing by tolerant title matching
             const findGroupPriceForTitle = (pricingDataRaw, voucherTitleRaw) => {
-                if (!pricingDataRaw) return undefined;
+                if (pricingDataRaw == null) return undefined;
                 let pricingData = pricingDataRaw;
                 try {
                     if (typeof pricingData === 'string') {
@@ -645,13 +645,17 @@ const VoucherType = ({
                 } catch {
                     return undefined;
                 }
+                // Guard: parsed value must be a plain object
+                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) {
+                    return undefined;
+                }
 
                 const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
                 const titleNorm = normalize(voucherTitleRaw);
 
-                // Direct hits
-                if (pricingData[voucherTitleRaw] != null) return pricingData[voucherTitleRaw];
-                if (pricingData[voucherTitleRaw?.trim?.()] != null) return pricingData[voucherTitleRaw.trim()];
+                // Direct hits (with optional chaining safety)
+                if (pricingData && pricingData[voucherTitleRaw] != null) return pricingData[voucherTitleRaw];
+                if (pricingData && pricingData[voucherTitleRaw?.trim?.()] != null) return pricingData[voucherTitleRaw.trim()];
 
                 // Normalized scan
                 for (const key of Object.keys(pricingData)) {
