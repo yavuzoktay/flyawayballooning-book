@@ -344,7 +344,8 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 padding: isMobile ? '16px 14px' : '15px',
                                 gap: isMobile ? '12px' : '20px',
                                 alignItems: isMobile ? 'stretch' : 'center',
-                                overflow: isMobile ? 'hidden' : 'visible'
+                                overflow: isMobile ? 'hidden' : 'visible',
+                                position: 'relative'
                             }}>
                                 {isMobile ? (
                                     <>
@@ -354,14 +355,14 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                             </div>
                                             <div className="vouch-text" style={{ flex: 1, minWidth: 0 }}>
                                                 <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
-                                                    <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{item.name}</p>
+                                                    <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'keep-all' }}>{item.name}</p>
                                                     <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 800, color: '#059669', fontSize: '16px', flexShrink: 0 }}>£{item.price}</p>
                                                 </div>
                                             </div>
                                         </div>
                                         {item.description && (
                                             <div style={{ width: '100%' }}>
-                                                <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{item.description}</p>
+                                                <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.description}</p>
                                             </div>
                                         )}
                                     </>
