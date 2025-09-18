@@ -339,29 +339,33 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                         const isSelected = Array.isArray(chooseAddOn) && chooseAddOn.some(addOn => addOn.name === item.name);
                         return (
                             <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)} style={{
-                                display: 'flex',
-                                flexDirection: isMobile ? 'column' : 'row',
+                                display: isMobile ? 'grid' : 'flex',
+                                gridTemplateColumns: isMobile ? '72px 1fr' : undefined,
+                                gridAutoRows: isMobile ? 'auto' : undefined,
+                                columnGap: isMobile ? '12px' : undefined,
+                                flexDirection: isMobile ? undefined : 'row',
                                 padding: isMobile ? '16px 14px' : '15px',
-                                gap: isMobile ? '12px' : '20px',
-                                alignItems: isMobile ? 'stretch' : 'center',
+                                gap: isMobile ? undefined : '20px',
+                                alignItems: isMobile ? 'start' : 'center',
                                 overflow: isMobile ? 'hidden' : 'visible',
                                 position: 'relative'
                             }}>
                                 {isMobile ? (
                                     <>
-                                        <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center', width: '100%' }}>
-                                            <div style={{ width: 72, height: 72, flexShrink: 0 }}>
-                                                <img src={item.image} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
-                                            </div>
-                                            <div className="vouch-text" style={{ flex: 1, minWidth: 0 }}>
-                                                <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
-                                                    <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'keep-all' }}>{item.name}</p>
-                                                    <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 800, color: '#059669', fontSize: '16px', flexShrink: 0 }}>£{item.price}</p>
-                                                </div>
+                                        {/* Image */}
+                                        <div style={{ gridColumn: '1 / 2', gridRow: '1', width: 72, height: 72 }}>
+                                            <img src={item.image} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
+                                        </div>
+                                        {/* Title + Price */}
+                                        <div className="vouch-text" style={{ gridColumn: '2 / 3', gridRow: '1', minWidth: 0 }}>
+                                            <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
+                                                <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, whiteSpace: 'normal' }}>{item.name}</p>
+                                                <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 800, color: '#059669', fontSize: '16px', flexShrink: 0 }}>£{item.price}</p>
                                             </div>
                                         </div>
+                                        {/* Description full width under header */}
                                         {item.description && (
-                                            <div style={{ width: '100%' }}>
+                                            <div style={{ gridColumn: '1 / -1', gridRow: '2' }}>
                                                 <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.description}</p>
                                             </div>
                                         )}
