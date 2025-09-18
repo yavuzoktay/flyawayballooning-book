@@ -347,7 +347,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 padding: isMobile ? '16px 14px' : '15px',
                                 gap: isMobile ? undefined : '20px',
                                 alignItems: isMobile ? 'start' : 'center',
-                                overflow: isMobile ? 'hidden' : 'visible',
+                                overflow: 'visible',
                                 position: 'relative'
                             }}>
                                 {isMobile ? (
@@ -365,7 +365,14 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         </div>
                                         {/* Description full width under header */}
                                         {item.description && (
-                                            <div style={{ gridColumn: '1 / -1', gridRow: '2' }}>
+                                            <div style={{ 
+                                                gridColumn: '1 / -1', 
+                                                gridRow: '2', 
+                                                maxHeight: '120px', 
+                                                overflowY: 'auto', 
+                                                WebkitOverflowScrolling: 'touch',
+                                                paddingRight: '4px'
+                                            }}>
                                                 <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.description}</p>
                                             </div>
                                         )}
