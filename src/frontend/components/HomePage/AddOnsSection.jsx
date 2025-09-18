@@ -341,94 +341,49 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                             <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)} style={{
                                 display: 'flex',
                                 flexDirection: isMobile ? 'column' : 'row',
-                                minHeight: isMobile ? 'auto' : 'auto',
                                 padding: isMobile ? '16px 14px' : '15px',
                                 gap: isMobile ? '12px' : '20px',
                                 alignItems: isMobile ? 'stretch' : 'center',
                                 overflow: isMobile ? 'hidden' : 'visible'
                             }}>
-                                <div style={{ width: isMobile ? '100%' : 'auto' }}>
-                                    <img 
-                                        src={item.image} 
-                                        alt={item.name} 
-                                        style={{
-                                            width: isMobile ? '100%' : '120px',
-                                            height: isMobile ? '140px' : '120px',
-                                            objectFit: 'cover',
-                                            borderRadius: isMobile ? '12px' : '8px',
-                                            border: isMobile ? '2px solid #e5e7eb' : '1px solid #e5e7eb',
-                                            flexShrink: 0,
-                                            boxShadow: isMobile ? '0 3px 6px rgba(0, 0, 0, 0.12)' : 'none'
-                                        }}
-                                        onError={(e) => {
-                                            e.target.src = AddOn1; // Fallback to default image
-                                            e.target.style.display = 'none'; // Hide broken image
-                                        }}
-                                    />
-                                </div>
-                                <div className="vouch-text" style={{
-                                    flex: 1,
-                                    minWidth: 0,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: isMobile ? '10px' : '0',
-                                    justifyContent: isMobile ? 'flex-start' : 'center',
-                                    height: isMobile ? 'auto' : 'auto',
-                                    overflow: 'visible',
-                                    paddingRight: 0,
-                                    width: '100%'
-                                }}>
-                                    <div className="vouch-header" style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: isMobile ? 'center' : 'center',
-                                        justifyContent: isMobile ? 'space-between' : 'space-between',
-                                        gap: isMobile ? '8px' : '15px',
-                                        marginBottom: isMobile ? '4px' : '8px',
-                                        width: '100%'
-                                    }}>
-                                        <p className="vouch-title" style={{
-                                            margin: 0,
-                                            fontWeight: isMobile ? '700' : '500',
-                                            color: isMobile ? '#1f2937' : '#333',
-                                            fontSize: isMobile ? '15px' : '14px',
-        								lineHeight: isMobile ? '1.3' : '1.4',
-                                            flex: 1,
-                                            minWidth: 0,
-                                            wordBreak: 'break-word',
-                                            overflowWrap: 'anywhere'
-                                        }}>{item.name}</p>
-                                        <p className="vouch-price" style={{
-                                            margin: 0,
-                                            whiteSpace: 'nowrap',
-                                            fontWeight: isMobile ? '800' : '500',
-                                            color: isMobile ? '#059669' : '#222',
-                                            fontSize: isMobile ? '16px' : '14px',
-                                            marginLeft: isMobile ? '8px' : '10px',
-                                            flexShrink: 0
-                                        }}>£{item.price}</p>
-                                    </div>
-                                    {item.description && (
-                                        <div style={{
-                                            flex: 1,
-                                            overflow: 'visible',
-                                            maxHeight: 'none',
-                                            width: '100%'
-                                        }}>
-                                            <p className="vouch-desc" style={{
-                                                fontSize: isMobile ? '14px' : '12px',
-                                                color: isMobile ? '#374151' : '#666',
-                                                margin: 0,
-                                                lineHeight: isMobile ? '1.5' : '1.3',
-                                                display: 'block',
-                                                fontWeight: '400',
-                                                paddingRight: 0,
-                                                wordBreak: 'break-word',
-                                                overflowWrap: 'anywhere'
-                                            }}>{item.description}</p>
+                                {isMobile ? (
+                                    <>
+                                        <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', alignItems: 'center', width: '100%' }}>
+                                            <div style={{ width: 72, height: 72, flexShrink: 0 }}>
+                                                <img src={item.image} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
+                                            </div>
+                                            <div className="vouch-text" style={{ flex: 1, minWidth: 0 }}>
+                                                <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
+                                                    <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{item.name}</p>
+                                                    <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 800, color: '#059669', fontSize: '16px', flexShrink: 0 }}>£{item.price}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
+                                        {item.description && (
+                                            <div style={{ width: '100%' }}>
+                                                <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{item.description}</p>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <img src={item.image} alt={item.name} style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e5e7eb', flexShrink: 0 }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
+                                        </div>
+                                        <div className="vouch-text" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0', justifyContent: 'center' }}>
+                                            <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', marginBottom: '8px', width: '100%' }}>
+                                                <p className="vouch-title" style={{ margin: 0, fontWeight: 500, color: '#333', fontSize: '14px', lineHeight: '1.4', flex: 1, minWidth: 0 }}>{item.name}</p>
+                                                <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 500, color: '#222', fontSize: '14px', flexShrink: 0 }}>£{item.price}</p>
+                                            </div>
+                                            {item.description && (
+                                                <div>
+                                                    <p className="vouch-desc" style={{ fontSize: '12px', color: '#666', margin: 0, lineHeight: '1.3' }}>{item.description}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                                
                                 <span className={`add-on-input ${isSelected ? 'active-add-on' : ""}`} style={{
                                     position: 'absolute',
                                     right: isMobile ? '12px' : '15px',
