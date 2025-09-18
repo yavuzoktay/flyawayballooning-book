@@ -341,7 +341,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                             <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)} style={{
                                 display: isMobile ? 'grid' : 'flex',
                                 gridTemplateColumns: isMobile ? '72px 1fr' : undefined,
-                                gridAutoRows: isMobile ? 'auto' : undefined,
+                                gridTemplateRows: isMobile ? 'auto auto' : undefined,
                                 columnGap: isMobile ? '12px' : undefined,
                                 flexDirection: isMobile ? undefined : 'row',
                                 padding: isMobile ? '16px 14px' : '15px',
@@ -368,7 +368,8 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                             <div style={{ 
                                                 gridColumn: '1 / -1', 
                                                 gridRow: '2', 
-                                                maxHeight: '120px', 
+                                                marginTop: '8px',
+                                                maxHeight: '140px', 
                                                 overflowY: 'auto', 
                                                 WebkitOverflowScrolling: 'touch',
                                                 paddingRight: '4px'
