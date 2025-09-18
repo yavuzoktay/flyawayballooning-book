@@ -365,15 +365,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         </div>
                                         {/* Description full width under header */}
                                         {item.description && (
-                                            <div style={{ 
-                                                gridColumn: '1 / -1', 
-                                                gridRow: '2', 
-                                                marginTop: '8px',
-                                                maxHeight: '140px', 
-                                                overflowY: 'auto', 
-                                                WebkitOverflowScrolling: 'touch',
-                                                paddingRight: '4px'
-                                            }}>
+                                            <div className="vouch-desc-wrap" style={{ gridColumn: '1 / -1', gridRow: '2' }}>
                                                 <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.description}</p>
                                             </div>
                                         )}

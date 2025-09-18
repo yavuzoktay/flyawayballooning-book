@@ -1182,6 +1182,7 @@ label {
         align-items: flex-start !important;
         position: relative !important;
         flex-direction: row !important;
+        flex-wrap: wrap !important;
         width: 100% !important;
         margin-bottom: 0 !important;
         border: 2px solid #e5e7eb !important;
@@ -1191,6 +1192,16 @@ label {
         transition: all 0.2s ease !important;
         min-height: 160px !important;
         overflow: hidden !important;
+    }
+    /* Description wrap spans full width under header */
+    .add-on-card .vouch-desc-wrap {
+        flex-basis: 100% !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+        max-height: 140px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-right: 4px !important;
     }
     .add-on-card .loc_data:hover {
         border-color: #3b82f6 !important;
