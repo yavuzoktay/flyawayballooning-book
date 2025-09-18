@@ -339,26 +339,26 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                         const isSelected = Array.isArray(chooseAddOn) && chooseAddOn.some(addOn => addOn.name === item.name);
                         return (
                             <div className={`loc_data ${isSelected ? 'active-add-on-wrap' : ""}`} key={index} onClick={() => handleAddOnChange(item.name, item.price)} style={{
-                                minHeight: isMobile ? '160px' : 'auto',
-                                padding: isMobile ? '20px 16px' : '15px',
-                                gap: isMobile ? '20px' : '20px',
-                                alignItems: isMobile ? 'flex-start' : 'center',
+                                display: 'flex',
+                                flexDirection: isMobile ? 'column' : 'row',
+                                minHeight: isMobile ? 'auto' : 'auto',
+                                padding: isMobile ? '16px 14px' : '15px',
+                                gap: isMobile ? '12px' : '20px',
+                                alignItems: isMobile ? 'stretch' : 'center',
                                 overflow: isMobile ? 'hidden' : 'visible'
                             }}>
-                                <div>
+                                <div style={{ width: isMobile ? '100%' : 'auto' }}>
                                     <img 
                                         src={item.image} 
                                         alt={item.name} 
                                         style={{
-                                            width: isMobile ? '80px' : '120px',
-                                            height: isMobile ? '80px' : '120px',
+                                            width: isMobile ? '100%' : '120px',
+                                            height: isMobile ? '140px' : '120px',
                                             objectFit: 'cover',
-                                            borderRadius: isMobile ? '10px' : '8px',
+                                            borderRadius: isMobile ? '12px' : '8px',
                                             border: isMobile ? '2px solid #e5e7eb' : '1px solid #e5e7eb',
                                             flexShrink: 0,
-                                            boxShadow: isMobile ? '0 3px 6px rgba(0, 0, 0, 0.12)' : 'none',
-                                            minWidth: isMobile ? '80px' : '120px',
-                                            minHeight: isMobile ? '80px' : '120px'
+                                            boxShadow: isMobile ? '0 3px 6px rgba(0, 0, 0, 0.12)' : 'none'
                                         }}
                                         onError={(e) => {
                                             e.target.src = AddOn1; // Fallback to default image
@@ -371,30 +371,32 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     minWidth: 0,
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: isMobile ? '12px' : '0',
+                                    gap: isMobile ? '10px' : '0',
                                     justifyContent: isMobile ? 'flex-start' : 'center',
-                                    height: isMobile ? '120px' : 'auto',
-                                    overflow: isMobile ? 'auto' : 'visible',
-                                    paddingRight: isMobile ? '4px' : '0',
-                                    width: isMobile ? 'calc(100% - 100px)' : 'auto'
+                                    height: isMobile ? 'auto' : 'auto',
+                                    overflow: 'visible',
+                                    paddingRight: 0,
+                                    width: '100%'
                                 }}>
                                     <div className="vouch-header" style={{
                                         display: 'flex',
-                                        flexDirection: isMobile ? 'row' : 'row',
+                                        flexDirection: 'row',
                                         alignItems: isMobile ? 'center' : 'center',
                                         justifyContent: isMobile ? 'space-between' : 'space-between',
                                         gap: isMobile ? '8px' : '15px',
-                                        marginBottom: isMobile ? '8px' : '8px',
+                                        marginBottom: isMobile ? '4px' : '8px',
                                         width: '100%'
                                     }}>
                                         <p className="vouch-title" style={{
                                             margin: 0,
                                             fontWeight: isMobile ? '700' : '500',
                                             color: isMobile ? '#1f2937' : '#333',
-                                            fontSize: isMobile ? '14px' : '14px',
-                                            lineHeight: isMobile ? '1.4' : '1.4',
+                                            fontSize: isMobile ? '15px' : '14px',
+        								lineHeight: isMobile ? '1.3' : '1.4',
                                             flex: 1,
-                                            minWidth: 0
+                                            minWidth: 0,
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'anywhere'
                                         }}>{item.name}</p>
                                         <p className="vouch-price" style={{
                                             margin: 0,
@@ -409,17 +411,20 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     {item.description && (
                                         <div style={{
                                             flex: 1,
-                                            overflow: isMobile ? 'auto' : 'visible',
-                                            maxHeight: isMobile ? '80px' : 'none'
+                                            overflow: 'visible',
+                                            maxHeight: 'none',
+                                            width: '100%'
                                         }}>
                                             <p className="vouch-desc" style={{
                                                 fontSize: isMobile ? '14px' : '12px',
                                                 color: isMobile ? '#374151' : '#666',
                                                 margin: 0,
-                                                lineHeight: isMobile ? '1.4' : '1.3',
-                                                display: isMobile ? 'block' : 'block',
-                                                fontWeight: isMobile ? '400' : '400',
-                                                paddingRight: isMobile ? '2px' : '0'
+                                                lineHeight: isMobile ? '1.5' : '1.3',
+                                                display: 'block',
+                                                fontWeight: '400',
+                                                paddingRight: 0,
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'anywhere'
                                             }}>{item.description}</p>
                                         </div>
                                     )}
