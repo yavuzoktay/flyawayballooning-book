@@ -1166,13 +1166,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                         <button
                             className="summary-sticky-book"
-                            onClick={(e) => { e.stopPropagation(); handleBookData(); }}
+                            disabled={isBookDisabled}
+                            onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) handleBookData(); }}
                             onMouseEnter={() => {
-                                console.log('=== BOOK BUTTON HOVER DEBUG ===', {
-                                    isBookDisabled: false,
+                                console.log('=== MOBILE STICKY BOOK (HOVER) ===', {
+                                    isBookDisabled,
                                     activitySelect,
                                     isGiftVoucher,
-                                    buttonText: 'ENABLED'
+                                    buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
                                 });
                             }}
                         >
