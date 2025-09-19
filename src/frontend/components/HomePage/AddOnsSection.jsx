@@ -356,14 +356,14 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         <div style={{ gridColumn: '1 / 2', gridRow: '1', width: 72, height: 72 }}>
                                             <img src={item.image} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
                                         </div>
-                                        {/* Title + Price */}
+                                        {/* Title + Price (mobile only) */}
                                         <div className="vouch-text" style={{ gridColumn: '2 / 3', gridRow: '1', minWidth: 0 }}>
                                             <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
                                                 <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#1f2937', fontSize: '15px', lineHeight: '1.3', flex: 1, minWidth: 0, whiteSpace: 'normal' }}>{item.name}</p>
                                                 <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 800, color: '#059669', fontSize: '16px', flexShrink: 0 }}>£{item.price}</p>
                                             </div>
                                         </div>
-                                        {/* Description full width under header */}
+                                        {/* Description full width under header (mobile only) */}
                                         {item.description && (
                                             <div className="vouch-desc-wrap" style={{ gridColumn: '1 / -1', gridRow: '2' }}>
                                                 <p className="vouch-desc" style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5', whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.description}</p>
