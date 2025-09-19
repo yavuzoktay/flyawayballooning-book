@@ -1516,16 +1516,17 @@ const VoucherType = ({
                                         {activeVouchers.length > 1 && (
                                             <>
                                                 {/* Left Arrow */}
-                                                <div style={{
-                                                    position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: canScrollVouchersLeft ? 'pointer' : 'default',
-                                                    opacity: canScrollVouchersLeft ? 1 : 0.4,
-                                                    boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
-                                                }} onClick={() => { if (canScrollVouchersLeft) handlePrevVoucher(); }}>
-                                                    <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
-                                                </div>
+                                                {(currentItemIndex > 0) && (
+                                                    <div style={{
+                                                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
+                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                                        opacity: 1,
+                                                        boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
+                                                    }} onClick={handlePrevVoucher}>
+                                                        <span style={{ fontSize: 32, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
+                                                    </div>
+                                                )}
                                                 {/* Right Arrow */}
                                                 {canScrollVouchersRight && (
                                                     <div style={{
@@ -1758,7 +1759,7 @@ const VoucherType = ({
                                     {(isMobile && filteredVouchers.length > 1) && (
                                         <>
                                             {/* Left Arrow (mobile) - hide on first card */}
-                                            {canScrollVouchersLeft && (
+                                            {(currentItemIndex > 0) && (
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                     background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
