@@ -705,12 +705,15 @@ const Index = () => {
         // Do not show global toast here; each section shows its own selection toast
         
         // Trigger Passenger Terms popup when Passenger Information is completed
-        // Show after a 5s delay to avoid interrupting the flow immediately
+        // Show after a delay to avoid interrupting the flow immediately
         if (completedSectionId === 'passenger-info') {
             const journeyLabel = activitySelect; // e.g., local labels
             setTimeout(() => {
-            fetchPassengerTermsForJourney(journeyLabel);
+                fetchPassengerTermsForJourney(journeyLabel);
             }, 10000);
+            // Do NOT auto-close or auto-open for Passenger Information; keep the section open
+            console.log('⏸ Keeping Passenger Information open; skipping auto-close/open');
+            return;
         }
 
         // Close current section
