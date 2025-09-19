@@ -1516,7 +1516,7 @@ const VoucherType = ({
                                         {activeVouchers.length > 1 && (
                                             <>
                                                 {/* Left Arrow */}
-                                                {(currentItemIndex > 0) && (
+                                                {(currentItemIndex > 0 || canScrollVouchersLeft) && (
                                                     <div style={{
                                                         position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                         background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
@@ -1759,7 +1759,7 @@ const VoucherType = ({
                                     {(isMobile && filteredVouchers.length > 1) && (
                                         <>
                                             {/* Left Arrow (mobile) - hide on first card */}
-                                            {(currentItemIndex > 0) && (
+                                            {(currentItemIndex > 0 || canScrollVouchersLeft) && (
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                     background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
