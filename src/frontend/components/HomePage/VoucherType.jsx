@@ -1151,10 +1151,17 @@ const VoucherType = ({
         const container = voucherContainerRef.current;
         if (!container) return;
         
-        const firstChild = container.children[0];
-        const gap = 12;
-        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
-        container.scrollTo({ left: Math.max(0, container.scrollLeft - itemWidth), behavior: 'smooth' });
+    const firstChild = container.children[0];
+    const gap = 12;
+    const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+    const newLeft = Math.max(0, container.scrollLeft - itemWidth);
+    container.scrollTo({ left: newLeft, behavior: 'smooth' });
+    // Optimistically update index/arrows so back button appears immediately
+    const itemCount = container.children.length;
+    setCurrentItemIndex(prev => Math.max(0, prev - 1));
+    const tempIndex = Math.max(0, currentItemIndex - 1);
+    setCanScrollVouchersLeft(tempIndex > 0);
+    setCanScrollVouchersRight(tempIndex < itemCount - 1);
     };
 
     const handleNextVoucher = () => {
@@ -1163,10 +1170,17 @@ const VoucherType = ({
         const container = voucherContainerRef.current;
         if (!container) return;
         
-        const firstChild = container.children[0];
-        const gap = 12;
-        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
-        container.scrollTo({ left: container.scrollLeft + itemWidth, behavior: 'smooth' });
+    const firstChild = container.children[0];
+    const gap = 12;
+    const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+    const newLeft = container.scrollLeft + itemWidth;
+    container.scrollTo({ left: newLeft, behavior: 'smooth' });
+    // Optimistically update index/arrows so back button appears immediately
+    const itemCount = container.children.length;
+    setCurrentItemIndex(prev => Math.min(prev + 1, itemCount - 1));
+    const tempIndex = Math.min(currentItemIndex + 1, itemCount - 1);
+    setCanScrollVouchersLeft(tempIndex > 0);
+    setCanScrollVouchersRight(tempIndex < itemCount - 1);
     };
 
     const handleSelectVoucher = async (voucher) => {
@@ -1513,10 +1527,10 @@ const VoucherType = ({
                                         alignItems: 'center'
                                     }}>
                                         {/* Navigation Arrows (mobile) - hide back on first, next on last */}
-                                        {activeVouchers.length > 1 && (
+                                        {isMobile && activeVouchers.length > 1 && (
                                             <>
                                                 {/* Left Arrow - show only after first item on mobile */}
-                                                {(currentItemIndex > 0 || canScrollVouchersLeft) && (
+                                                {(currentItemIndex > 0) && (
                                                     <div style={{
                                                         position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                         background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
@@ -1760,7 +1774,7 @@ const VoucherType = ({
                                     {(isMobile && filteredVouchers.length > 1) && (
                                         <>
                                             {/* Left Arrow (mobile) - show only after first item */}
-                                            {(currentItemIndex > 0 || canScrollVouchersLeft) && (
+                                            {(currentItemIndex > 0) && (
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                     background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 56, height: 56,
