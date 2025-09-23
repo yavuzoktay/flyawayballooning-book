@@ -681,9 +681,9 @@ const Index = () => {
         // Build sequence exactly like mobileSections in RightInfoCard.jsx
         if (activityType === 'Book Flight') {
             const sequence = [...baseSequence];
+            // Required order: Location → Experience → Voucher Type → Live Availability
             sequence.push('location');
             sequence.push('experience');
-            // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
             if (currentLocation !== 'Bristol Fiesta') {
                 sequence.push('voucher-type');
             }

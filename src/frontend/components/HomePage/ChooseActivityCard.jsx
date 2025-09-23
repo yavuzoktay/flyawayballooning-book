@@ -158,10 +158,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             setShowNotification(false);
         }, 3000);
         
-        // Trigger section completion to close current section and open next one
-        if (onSectionCompletion) {
-            onSectionCompletion('activity');
-        }
+        // Do NOT trigger onSectionCompletion here.
+        // Parent Index.jsx listens to activitySelect change and
+        // resets flow + opens the first section for the new flight type.
         
         // If Redeem Voucher is clicked, always ensure it's flipped
         if (label === "Redeem Voucher") {

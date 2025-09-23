@@ -998,6 +998,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const mobileSections = [
         { id: 'activity', title: 'Flight Type', value: activitySelect ? (activitySelect === 'Redeem Voucher' && voucherCode ? `${activitySelect} - ${voucherStatus === 'invalid' ? 'Invalid' : voucherCode}` : activitySelect) : 'Not Selected', completed: !!activitySelect && (activitySelect !== 'Redeem Voucher' || voucherStatus === 'valid') },
         ...(activitySelect === 'Book Flight' ? [
+            // Required order: Location → Experience → Voucher Type (if applicable) → Live Availability
             { id: 'location', title: 'Location', value: chooseLocation || 'Not Selected', completed: !!chooseLocation },
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
             ...(chooseLocation !== 'Bristol Fiesta' ? [{ id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType }] : []),
