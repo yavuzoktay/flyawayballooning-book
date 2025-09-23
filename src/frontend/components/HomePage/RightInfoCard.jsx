@@ -137,8 +137,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         if (selectedVoucherType) {
             totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
         }
+    } else if (activitySelect === 'Redeem Voucher') {
+        // For Redeem Voucher, total price should be 0 since voucher covers the cost
+        // Only add-ons and weather refund should be charged
+        totalPrice = parseFloat(addOnPrice) + weatherRefundPrice;
     } else {
-        // For other activity types (like Redeem Voucher), include all components
+        // For other activity types, include all components
         totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
     }
 
@@ -379,7 +383,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     console.log('📊 BOOK DISABLED CALCULATION:', {
         activitySelect,
         isGiftVoucher,
+        isRedeemVoucher,
         isBookDisabled,
+        chooseLocation,
+        chooseFlightType,
+        selectedVoucherType,
+        selectedDate,
+        selectedTime,
+        isPassengerInfoComplete,
         timestamp: new Date().toLocaleTimeString()
     });
 
@@ -777,54 +788,108 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 return;
             }
             
-            // Voucher data preparation for Redeem Voucher
-            const voucherData = {
-                name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
-                weight: passengerData?.[0]?.weight || "",
-                flight_type: chooseFlightType?.type || "",
-                voucher_type: "Redeem Voucher",
-                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
-                email: passengerData?.[0]?.email || "",
-                phone: passengerData?.[0]?.phone || "",
-                mobile: passengerData?.[0]?.phone || "",
-                redeemed: "Yes", // Redeem Voucher için redeemed = "Yes"
-                paid: 0, // Redeem Voucher için ödeme yok
-                offer_code: voucherCode || "",
-                voucher_ref: voucherCode || "",
-                recipient_name: "",
-                recipient_email: "",
-                recipient_phone: "",
-                recipient_gift_date: "",
-                // Purchaser information (same as main contact for Redeem Voucher)
-                purchaser_name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
-                purchaser_email: passengerData?.[0]?.email || "",
-                purchaser_phone: passengerData?.[0]?.phone || "",
-                purchaser_mobile: passengerData?.[0]?.phone || "",
-                numberOfPassengers: passengerData ? passengerData.length : 1,
+            // Booking data preparation for Redeem Voucher
+            let bookingDateStr = selectedDate;
+            if (selectedDate instanceof Date && selectedTime) {
+                const [h, m, s] = selectedTime.split(":");
+                const localDate = new Date(selectedDate);
+                localDate.setHours(Number(h));
+                localDate.setMinutes(Number(m));
+                localDate.setSeconds(Number(s) || 0);
+                bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+            } else if (selectedDate instanceof Date) {
+                bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+            }
+            
+            const bookingData = {
+                activitySelect: "Redeem Voucher",
+                chooseLocation,
+                chooseFlightType,
+                selectedVoucherType,
+                chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
+                passengerData,
+                additionalInfo,
+                recipientDetails: null, // Not applicable for Redeem Voucher
+                selectedDate: bookingDateStr,
+                selectedTime: selectedTime || null,
+                totalPrice: totalPrice,
+                voucher_code: voucherCode,
+                flight_attempts: 0,
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+                selectedVoucherType: selectedVoucherType ? {
+                    id: selectedVoucherType.id || null,
+                    title: selectedVoucherType.title,
+                    quantity: selectedVoucherType.quantity,
+                    totalPrice: selectedVoucherType.totalPrice || totalPrice
+                } : null,
+                voucher_type: selectedVoucherType?.title || null
             };
             
-            // Debug: Log the voucher data being sent
-            console.log('=== REDEEM VOUCHER DATA BEING SENT ===');
-            console.log('voucherData:', voucherData);
-            console.log('voucher_type_detail being sent:', voucherData.voucher_type_detail);
+            // Debug: Log the booking data being sent
+            console.log('=== REDEEM VOUCHER BOOKING DATA BEING SENT ===');
+            console.log('bookingData:', bookingData);
             
-            try {
-                // Direkt createVoucher endpoint'ini çağır
-                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
+        try {
+            // Call simplified createRedeemBooking endpoint for Redeem Voucher
+            const redeemBookingData = {
+                activitySelect,
+                chooseLocation,
+                chooseFlightType,
+                passengerData,
+                additionalInfo,
+                selectedDate,
+                selectedTime,
+                voucher_code: voucherCode,
+                totalPrice
+            };
+            
+            console.log('=== REDEEM BOOKING DATA ===');
+            console.log('Redeem Booking Data:', redeemBookingData);
+            
+            const response = await axios.post(`${API_BASE_URL}/api/createRedeemBooking`, redeemBookingData);
                 
                 if (response.data.success) {
-                    alert(`Voucher başarıyla kullanıldı! Voucher ID: ${response.data.voucherId}`);
+                    console.log('=== BOOKING CREATED SUCCESSFULLY ===');
+                    console.log('Booking ID:', response.data.bookingId);
+                    
+                    // Mark the original voucher as redeemed
+                    try {
+                        console.log('=== MARKING VOUCHER AS REDEEMED ===');
+                        console.log('Voucher Code:', voucherCode);
+                        console.log('Booking ID:', response.data.bookingId);
+                        
+                        const redeemResponse = await axios.post(`${API_BASE_URL}/api/redeem-voucher`, {
+                            voucher_code: voucherCode,
+                            booking_id: response.data.bookingId
+                        });
+                        
+                        console.log('=== REDEEM VOUCHER RESPONSE ===');
+                        console.log('Success:', redeemResponse.data.success);
+                        console.log('Message:', redeemResponse.data.message);
+                        
+                        if (redeemResponse.data.success) {
+                            alert(`Voucher başarıyla kullanıldı ve işaretlendi! Booking ID: ${response.data.bookingId}`);
+                        } else {
+                            alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemResponse.data.message}`);
+                        }
+                    } catch (redeemError) {
+                        console.error('=== REDEEM VOUCHER ERROR ===');
+                        console.error('Error:', redeemError);
+                        console.error('Response:', redeemError.response?.data);
+                        alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemError.response?.data?.message || redeemError.message}`);
+                    }
                     // Başarılı işlem sonrası form'u temizle
                     resetBooking();
                 } else {
-                    alert('Voucher kullanılırken hata oluştu: ' + (response.data.error || 'Bilinmeyen hata'));
+                    alert('Booking oluşturulurken hata oluştu: ' + (response.data.error || response.data.message || 'Bilinmeyen hata'));
                 }
             } catch (error) {
-                console.error('Voucher kullanılırken hata:', error);
-                alert('Voucher kullanılırken hata oluştu. Lütfen tekrar deneyin.');
+                console.error('Booking oluşturulurken hata:', error);
+                console.error('Error response:', error.response?.data);
+                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Bilinmeyen hata';
+                alert('Booking oluşturulurken hata oluştu: ' + errorMessage);
             }
             return;
         }
@@ -939,28 +1004,28 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
-            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: true }
         ] : []),
         ...(activitySelect === 'Redeem Voucher' ? [
             { id: 'location', title: 'Location', value: chooseLocation || 'Not Selected', completed: !!chooseLocation },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : 'Not Selected', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
-            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: true }
         ] : []),
         ...(activitySelect === 'Flight Voucher' ? [
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : 'Not Provided', completed: isAdditionalInfoValid(additionalInfo) },
-            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: true }
         ] : []),
         ...(activitySelect === 'Buy Gift' ? [
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || 'Not Selected', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : 'Not Selected', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : 'Not Provided', completed: isBuyGiftPassengerComplete },
             { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : 'Not Provided', completed: !!recipientDetails?.name },
-            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: Array.isArray(chooseAddOn) && chooseAddOn.length > 0 }
+            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : 'Not Selected', completed: true }
         ] : [])
     ];
 
@@ -1023,7 +1088,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : <p>Not Provided</p>}</div></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : <p>Not Provided</p>}</div></div></div></div>
                                 {/* Preferences REMOVED for Redeem Voucher */}
-                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 active-card-val`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : <p style={{paddingTop: "10px"}}>Not Selected</p>}</div></div></div></div>
                             </>
                         )}
                         {activitySelect === 'Buy Gift' && (
@@ -1060,9 +1125,24 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         )}
                         <div className="bottom_main">
                             <h3>Total</h3>
-                            <p style={{ fontWeight: 500, fontSize: '1.2rem' }}>
-                                {totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ""}
-                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                {activitySelect === 'Redeem Voucher' && voucherData && (
+                                    <p style={{ 
+                                        textDecoration: 'line-through', 
+                                        color: '#999', 
+                                        fontSize: '0.9rem',
+                                        margin: '0 0 4px 0'
+                                    }}>
+                                        £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                    </p>
+                                )}
+                                <p style={{ fontWeight: 500, fontSize: '1.2rem', margin: 0 }}>
+                                    {activitySelect === 'Redeem Voucher' ? 
+                                        `£${totalPrice.toFixed(2)}` : 
+                                        (totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : "")
+                                    }
+                                </p>
+                            </div>
                         </div>
                         {!isBookDisabled && (
                             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
@@ -1162,7 +1242,23 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     <div className="summary-sticky" onClick={() => setIsDrawerOpen(true)}>
                         <div className="summary-sticky-left">
                             <strong>Summary</strong>
-                            <span style={{ color: '#666', marginLeft: 8 }}>{totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ''}</span>
+                            <div style={{ marginLeft: 8, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {activitySelect === 'Redeem Voucher' && voucherData && (
+                                    <span style={{ 
+                                        textDecoration: 'line-through', 
+                                        color: '#999', 
+                                        fontSize: '0.9rem' 
+                                    }}>
+                                        £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                    </span>
+                                )}
+                                <span style={{ color: '#666' }}>
+                                    {activitySelect === 'Redeem Voucher' ? 
+                                        `£${totalPrice.toFixed(2)}` : 
+                                        (totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : '')
+                                    }
+                                </span>
+                            </div>
                         </div>
                         <button
                             className="summary-sticky-book"
@@ -1202,7 +1298,24 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     ))}
                                 </div>
                                 <div className="summary-drawer-footer">
-                                    <div className="summary-total">{totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : ''}</div>
+                                    <div className="summary-total" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                        {activitySelect === 'Redeem Voucher' && voucherData && (
+                                            <span style={{ 
+                                                textDecoration: 'line-through', 
+                                                color: '#999', 
+                                                fontSize: '0.9rem',
+                                                marginBottom: '4px'
+                                            }}>
+                                                £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                            </span>
+                                        )}
+                                        <span>
+                                            {activitySelect === 'Redeem Voucher' ? 
+                                                `£${totalPrice.toFixed(2)}` : 
+                                                (totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : '')
+                                            }
+                                        </span>
+                                    </div>
                                     <button
                                         className="summary-primary"
                                         disabled={isBookDisabled}

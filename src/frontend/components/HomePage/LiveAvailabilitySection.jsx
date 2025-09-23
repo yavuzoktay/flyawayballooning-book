@@ -1142,9 +1142,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         
                                         return (
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
+                                            <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
                                                 <button
-                                                    key={slot.id}
                                                     style={{
                                                         background: isSelectable ? '#61D836' : '#ccc',
                                                         color: '#fff',

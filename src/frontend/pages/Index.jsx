@@ -313,6 +313,53 @@ const Index = () => {
                 }
                 
                 console.log('Voucher code validated successfully:', response.data.data);
+                
+                // Set chooseFlightType and selectedVoucherType from voucher data for Redeem Voucher
+                if (activitySelect === 'Redeem Voucher' && response.data.data) {
+                    const voucherInfo = response.data.data;
+                    
+                    // Set flight type from voucher experience_type
+                    if (voucherInfo.experience_type) {
+                        setChooseFlightType({
+                            type: voucherInfo.experience_type,
+                            passengerCount: "1", // Default to 1 passenger
+                            price: voucherInfo.final_amount || 0
+                        });
+                    }
+                    
+                    // Set voucher type from voucher data
+                    if (voucherInfo.voucher_type) {
+                        // Map voucher type to valid backend types
+                        let mappedVoucherType = voucherInfo.voucher_type;
+                        
+                        // Ensure the voucher type matches backend validation
+                        const validTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight'];
+                        if (!validTypes.includes(mappedVoucherType)) {
+                            // Default to 'Any Day Flight' if the type doesn't match
+                            mappedVoucherType = 'Any Day Flight';
+                            console.warn('Voucher type not in valid list, defaulting to Any Day Flight:', voucherInfo.voucher_type);
+                        }
+                        
+                        setSelectedVoucherType({
+                            title: mappedVoucherType,
+                            quantity: 1, // Default to 1 passenger
+                            price: voucherInfo.final_amount || 0
+                        });
+                    }
+                    
+                    console.log('Set chooseFlightType and selectedVoucherType for Redeem Voucher:', {
+                        chooseFlightType: {
+                            type: voucherInfo.experience_type,
+                            passengerCount: "1",
+                            price: voucherInfo.final_amount || 0
+                        },
+                        selectedVoucherType: {
+                            title: voucherInfo.voucher_type,
+                            quantity: 1,
+                            price: voucherInfo.final_amount || 0
+                        }
+                    });
+                }
             } else {
                 setVoucherStatus('invalid');
                 setVoucherData(null);
@@ -503,6 +550,21 @@ const Index = () => {
             selectedDate &&
             selectedTime
         );
+
+    // Debug: Log the book disabled status for Redeem Voucher
+    if (isRedeemVoucher) {
+        console.log('🔍 REDEEM VOUCHER BOOK DISABLED DEBUG:', {
+            activitySelect,
+            chooseLocation,
+            chooseFlightType,
+            selectedVoucherType,
+            selectedDate,
+            selectedTime,
+            isPassengerInfoComplete,
+            isBookDisabled,
+            timestamp: new Date().toLocaleTimeString()
+        });
+    }
 
     // Debug logging for Buy Gift
     console.log('🔍 Activity Debug:', {
@@ -1017,20 +1079,104 @@ const Index = () => {
             
             
             
+            // Convert to booking data format for createBooking endpoint
+            let bookingDateStr = selectedDate;
+            if (selectedDate instanceof Date && selectedTime) {
+                const [h, m, s] = selectedTime.split(":");
+                const localDate = new Date(selectedDate);
+                localDate.setHours(Number(h));
+                localDate.setMinutes(Number(m));
+                localDate.setSeconds(Number(s) || 0);
+                bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+            } else if (selectedDate instanceof Date) {
+                bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+            }
+            
+            const bookingData = {
+                activitySelect: "Redeem Voucher",
+                chooseLocation,
+                chooseFlightType,
+                selectedVoucherType,
+                chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
+                passengerData,
+                additionalInfo,
+                recipientDetails: null,
+                selectedDate: bookingDateStr,
+                selectedTime: selectedTime || null,
+                totalPrice: 0, // Redeem voucher is free
+                voucher_code: voucherCode,
+                flight_attempts: 0,
+                preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
+                preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
+                preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+                selectedVoucherType: selectedVoucherType ? {
+                    id: selectedVoucherType.id || null,
+                    title: selectedVoucherType.title,
+                    quantity: selectedVoucherType.quantity,
+                    totalPrice: selectedVoucherType.totalPrice || 0
+                } : null,
+                voucher_type: selectedVoucherType?.title || null
+            };
+
             try {
-                // Direkt createVoucher endpoint'ini çağır
-                const response = await axios.post(`${API_BASE_URL}/api/createVoucher`, voucherData);
+                // Call simplified createRedeemBooking endpoint for Redeem Voucher
+                const redeemBookingData = {
+                    activitySelect,
+                    chooseLocation,
+                    chooseFlightType,
+                    passengerData,
+                    additionalInfo,
+                    selectedDate,
+                    selectedTime,
+                    voucher_code: voucherCode,
+                    totalPrice
+                };
+                
+                console.log('=== REDEEM BOOKING DATA (Index.jsx) ===');
+                console.log('Redeem Booking Data:', redeemBookingData);
+                
+                const response = await axios.post(`${API_BASE_URL}/api/createRedeemBooking`, redeemBookingData);
                 
                 if (response.data.success) {
-                    alert(`Voucher başarıyla kullanıldı! Voucher ID: ${response.data.voucherId}`);
+                    console.log('=== BOOKING CREATED SUCCESSFULLY (Index.jsx) ===');
+                    console.log('Booking ID:', response.data.bookingId);
+                    
+                    // Mark the original voucher as redeemed
+                    try {
+                        console.log('=== MARKING VOUCHER AS REDEEMED (Index.jsx) ===');
+                        console.log('Voucher Code:', voucherCode);
+                        console.log('Booking ID:', response.data.bookingId);
+                        
+                        const redeemResponse = await axios.post(`${API_BASE_URL}/api/redeem-voucher`, {
+                            voucher_code: voucherCode,
+                            booking_id: response.data.bookingId
+                        });
+                        
+                        console.log('=== REDEEM VOUCHER RESPONSE (Index.jsx) ===');
+                        console.log('Success:', redeemResponse.data.success);
+                        console.log('Message:', redeemResponse.data.message);
+                        
+                        if (redeemResponse.data.success) {
+                            alert(`Voucher başarıyla kullanıldı ve işaretlendi! Booking ID: ${response.data.bookingId}`);
+                        } else {
+                            alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemResponse.data.message}`);
+                        }
+                    } catch (redeemError) {
+                        console.error('=== REDEEM VOUCHER ERROR (Index.jsx) ===');
+                        console.error('Error:', redeemError);
+                        console.error('Response:', redeemError.response?.data);
+                        alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemError.response?.data?.message || redeemError.message}`);
+                    }
                     // Başarılı işlem sonrası form'u temizle
                     resetBooking();
                 } else {
-                    alert('Voucher kullanılırken hata oluştu: ' + (response.data.error || 'Bilinmeyen hata'));
+                    alert('Booking oluşturulurken hata oluştu: ' + (response.data.error || response.data.message || 'Bilinmeyen hata'));
                 }
             } catch (error) {
-                console.error('Voucher kullanılırken hata:', error);
-                alert('Voucher kullanılırken hata oluştu. Lütfen tekrar deneyin.');
+                console.error('Booking oluşturulurken hata:', error);
+                console.error('Error response:', error.response?.data);
+                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Bilinmeyen hata';
+                alert('Booking oluşturulurken hata oluştu: ' + errorMessage);
             }
             return;
         }
