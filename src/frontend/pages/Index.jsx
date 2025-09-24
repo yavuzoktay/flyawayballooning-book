@@ -372,15 +372,15 @@ const Index = () => {
                 
                 // Kullanıcıya daha açıklayıcı mesaj göster
                 if (errorMessage.includes('usage limit reached')) {
-                    alert(`Bu voucher code artık kullanılamaz: ${errorMessage}`);
+                    alert(`This voucher code can no longer be used: ${errorMessage}`);
                 } else if (errorMessage.includes('expired')) {
-                    alert(`Bu voucher code süresi dolmuş: ${errorMessage}`);
+                    alert(`This voucher code has expired: ${errorMessage}`);
                 } else if (errorMessage.includes('not yet valid')) {
-                    alert(`Bu voucher code henüz geçerli değil: ${errorMessage}`);
+                    alert(`This voucher code is not yet valid: ${errorMessage}`);
                 } else if (errorMessage.includes('inactive')) {
-                    alert(`Bu voucher code aktif değil: ${errorMessage}`);
+                    alert(`This voucher code is inactive: ${errorMessage}`);
                 } else {
-                    alert(`Voucher code hatası: ${errorMessage}`);
+                    alert(`Voucher code error: ${errorMessage}`);
                 }
             }
         } catch (error) {
