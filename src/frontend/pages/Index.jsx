@@ -2511,8 +2511,8 @@ const Index = () => {
             `}</style>
             </div>
             
-            {/* Desktop Bottom Center Book Button */}
-            {!isMobile && (
+            {/* Desktop Bottom Center Book Button - only show when all required fields complete */}
+            {!isMobile && !isBookDisabled && (
                 <div style={{
                     position: 'fixed',
                     bottom: '20px',
@@ -2540,24 +2540,18 @@ const Index = () => {
                         Clear
                     </button>
                     <button
-                        className="booking_btn final_booking-button"
                         style={{
-                            background: isBookDisabled ? '#eee' : '#2d4263',
+                            background: '#2d4263',
                             color: '#fff',
                             fontWeight: 500,
                             borderRadius: '8px',
                             padding: '8px 22px',
-                            cursor: isBookDisabled ? 'not-allowed' : 'pointer',
-                            opacity: isBookDisabled ? 0.5 : 1
+                            cursor: 'pointer',
+                            opacity: 1
                         }}
-                        disabled={isBookDisabled}
                         onClick={() => {
-                            if (isBookDisabled) {
-                                setShowWarning(true);
-                            } else {
-                                setShowWarning(false);
-                                handleBookData();
-                            }
+                            setShowWarning(false);
+                            handleBookData();
                         }}
                         type="button"
                     >

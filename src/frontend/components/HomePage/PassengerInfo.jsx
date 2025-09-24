@@ -425,6 +425,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       id="passenger-info" 
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}
+      onBeforeClose={() => {
+        // Validate all passenger inputs before allowing section to close
+        const ok = validateFields(true);
+        return ok; // returning false prevents close and keeps errors visible
+      }}
     >
       <div className="tab_box presger-scroll" style={{ 
         // Make Purchaser Information (Buy Gift) more compact without affecting other steps

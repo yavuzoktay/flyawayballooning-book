@@ -294,7 +294,17 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     }));
 
     return (
-        <Accordion title="Additional Information" id="additional-info" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
+        <Accordion 
+            title="Additional Information" 
+            id="additional-info" 
+            activeAccordion={activeAccordion} 
+            setActiveAccordion={setActiveAccordion}
+            onBeforeClose={() => {
+                const ok = validateFields();
+                // Prevent closing if there are missing required fields
+                return ok; // returning false keeps section open
+            }}
+        >
             <div className="add-info p-4">
                 <div className="addition-info-notes">
                     <label className="block mb-2 text-base font-semibold">Additional Notes:</label>
@@ -413,6 +423,9 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                         })()}
                                     </select>
                                 )}
+                                {validationErrors[fieldName] && (
+                                    <div className="text-red-500 text-sm mt-1">This field is required.</div>
+                                )}
                                 
                                 {question.question_type === 'text' && (
                                     <textarea
@@ -451,6 +464,9 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                             }
                                         }}
                                     />
+                                )}
+                                {validationErrors[fieldName] && (
+                                    <div className="text-red-500 text-sm mt-1">This field is required.</div>
                                 )}
                                 
                                 {question.question_type === 'radio' && (
@@ -493,6 +509,9 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                             }
                                         })()}
                                     </div>
+                                )}
+                                {validationErrors[fieldName] && (
+                                    <div className="text-red-500 text-sm mt-1">Please select an option.</div>
                                 )}
                                 
                                 {question.question_type === 'checkbox' && (
@@ -548,6 +567,9 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
                                             }
                                         })()}
                                     </div>
+                                )}
+                                {validationErrors[fieldName] && (
+                                    <div className="text-red-500 text-sm mt-1">Please select at least one option.</div>
                                 )}
                                 
                                 {question.help_text && (

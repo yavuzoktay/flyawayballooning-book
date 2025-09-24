@@ -1140,6 +1140,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
                                         // Selectable only if there are seats and rules met
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
+                                        // Format time to 12-hour with AM/PM for display
+                                        const formattedTime = (() => {
+                                            try {
+                                                const [hh, mm] = slot.time.split(':');
+                                                const d = new Date();
+                                                d.setHours(Number(hh) || 0, Number(mm) || 0, 0, 0);
+                                                return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                                            } catch (e) {
+                                                return slot.time?.split(':').slice(0, 2).join(':');
+                                            }
+                                        })();
                                         
                                         return (
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
@@ -1186,7 +1197,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                             fontSize: '16px',
                                                             lineHeight: 1
                                                         }}>
-                                                            {slot.time.split(':').slice(0, 2).join(':')}
+                                                            {formattedTime}
                                                         </span>
                                                         <span style={{ 
                                                             fontWeight: 600, 
@@ -1201,7 +1212,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     // Desktop layout - horizontal
                                                     <>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                            <span style={{ fontWeight: 700, fontSize: '18px' }}>{slot.time.split(':').slice(0, 2).join(':')}</span>
+                                                            <span style={{ fontWeight: 700, fontSize: '18px' }}>{formattedTime}</span>
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
                                                             <div style={{ fontWeight: 600, fontSize: '16px' }}>
