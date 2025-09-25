@@ -449,6 +449,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         word-break: break-word !important; 
                         line-height: 1.4 !important; 
                         box-sizing: border-box !important; 
+                        /* Show tooltip above card on mobile */
+                        top: auto !important; 
+                        bottom: calc(100% + 8px) !important; 
                     }
                     .tab_box .book_data { 
                         width: 100% !important; 
