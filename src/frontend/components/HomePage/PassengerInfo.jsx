@@ -694,7 +694,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 )}
               </div>
               <div className="form-presnger" style={{ gap: activitySelect === 'Buy Gift' ? '8px' : '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: 'column' }}>
                   <div style={{ flex: 1, width: '100%' }}>
                     <label style={{
                       fontSize: isMobile ? '14px' : '12px',
@@ -777,9 +777,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     </div>
                   )}
                 </div>
-                {/* Mobile Number ve Email sadece ilk yolcu için, üstteki satırın ALTINDA yan yana gösterilecek */}
+                {/* Mobile Number ve Email sadece ilk yolcu için */}
                 {index === 0 && (
-                  <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? (activitySelect === 'Buy Gift' ? 'row' : 'column') : 'row' }}>
+                  <>
                     <div style={{ flex: 1, width: '100%' }}>
                       <label style={{
                         fontSize: isMobile ? '14px' : '12px',
@@ -828,7 +828,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {error?.email && <span style={{ color: 'red', fontSize: 12 }}>Email is required</span>}
                       {emailErrors[index] && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
