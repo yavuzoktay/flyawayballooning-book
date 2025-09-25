@@ -710,7 +710,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       required
                       style={{
                         ...(error?.firstName ? { border: '1.5px solid red' } : {}),
-                        ...(isMobile ? mobileInputBase : {})
+                        ...(isMobile ? { ...mobileInputBase, width: '100%' } : {})
                       }}
                       placeholder="First Name"
                     />
@@ -732,7 +732,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       required
                       style={{
                         ...(error?.lastName ? { border: '1.5px solid red' } : {}),
-                        ...(isMobile ? mobileInputBase : {})
+                        ...(isMobile ? { ...mobileInputBase, width: '100%' } : {})
                       }}
                       placeholder="Last Name"
                     />
