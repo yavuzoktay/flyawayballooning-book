@@ -777,8 +777,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     </div>
                   )}
                 </div>
-                {/* Mobile Number ve Email sadece ilk yolcu için */}
-                {index === 0 && (
+                {/* Mobile Number ve Email - Buy Gift için tüm yolcular, diğerleri için sadece ilk yolcu */}
+                {(activitySelect === 'Buy Gift' || index === 0) && (
                   <>
                     <div style={{ flex: 1, width: '100%' }}>
                       <label style={{
