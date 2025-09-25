@@ -1298,7 +1298,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         letterSpacing: isMobile ? 0.1 : 0.4,
                                                         color: '#ffffff',
                                                         textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)',
+                                                        whiteSpace: 'nowrap'
                                                     }}>
                                                         Spaces Running Low
                                                     </div>
