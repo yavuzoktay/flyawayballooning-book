@@ -443,19 +443,20 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     }
                     /* Prevent tooltip clipping on mobile */
                     .info-icon-container .hover-text { 
-                        max-width: 92vw !important; 
-                        min-width: 300px !important;
+                        max-width: 95vw !important; 
+                        min-width: 350px !important;
                         width: max-content !important; 
                         white-space: normal !important; 
                         word-break: break-word !important; 
-                        line-height: 1.5 !important; 
+                        line-height: 1.6 !important; 
                         box-sizing: border-box !important; 
-                        padding: 16px 20px !important;
-                        font-size: 15px !important;
+                        padding: 20px 24px !important;
+                        font-size: 16px !important;
+                        min-height: 80px !important;
                         /* Show tooltip above card on mobile */
                         position: absolute !important;
                         top: auto !important; 
-                        bottom: calc(100% + 16px) !important;
+                        bottom: calc(100% + 20px) !important;
                         left: 50% !important;
                         transform: translateX(-50%) !important;
                         z-index: 10003 !important;
