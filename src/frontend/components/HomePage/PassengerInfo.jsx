@@ -694,7 +694,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 )}
               </div>
               <div className="form-presnger" style={{ gap: activitySelect === 'Buy Gift' ? '8px' : '15px', display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '16px' : '15px', width: '100%', maxWidth: '100%', margin: 0, flexDirection: 'column' }}>
                   <div style={{ flex: 1, width: '100%' }}>
                     <label style={{
                       fontSize: isMobile ? '14px' : '12px',
