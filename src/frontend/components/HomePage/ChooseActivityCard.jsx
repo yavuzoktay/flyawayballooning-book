@@ -454,10 +454,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         font-size: 16px !important;
                         min-height: 80px !important;
                         /* Show tooltip above card on mobile */
-                        position: fixed !important;
-                        top: 50% !important;
+                        position: absolute !important;
+                        top: -140px !important;
                         left: 50% !important;
-                        transform: translate(-50%, -50%) !important;
+                        transform: translateX(-50%) !important;
                         z-index: 100000 !important;
                         background: rgba(0,0,0,0.95) !important;
                         border-radius: 12px !important;
