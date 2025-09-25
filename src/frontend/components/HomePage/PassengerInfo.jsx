@@ -777,7 +777,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 </div>
                 {/* Mobile Number ve Email sadece ilk yolcu için, üstteki satırın ALTINDA yan yana gösterilecek */}
                 {index === 0 && (
-                  <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? 'column' : 'row' }}>
+                  <div style={{ display: 'flex', gap: isMobile ? '10px' : '15px', width: '100%', flexDirection: isMobile ? (activitySelect === 'Buy Gift' ? 'row' : 'column') : 'row' }}>
                     <div style={{ flex: 1, width: '100%' }}>
                       <label style={{
                         fontSize: isMobile ? '14px' : '12px',
