@@ -458,11 +458,13 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         top: 50% !important;
                         left: 50% !important;
                         transform: translate(-50%, -50%) !important;
-                        z-index: 10004 !important;
+                        z-index: 100000 !important;
                         background: rgba(0,0,0,0.95) !important;
                         border-radius: 12px !important;
                         box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
                     }
+                    /* Ensure cards don't cover the tooltip */
+                    .tab_box .book_data { position: relative !important; z-index: 1 !important; }
                     .tab_box .book_data { 
                         width: 100% !important; 
                         min-height: 140px !important; 
