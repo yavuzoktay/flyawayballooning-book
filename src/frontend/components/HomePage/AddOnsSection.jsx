@@ -377,7 +377,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                         </div>
                                         <div className="vouch-text" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0', justifyContent: 'center' }}>
                                             <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', marginBottom: '8px', width: '100%' }}>
-                                                <p className="vouch-title" style={{ margin: 0, fontWeight: 500, color: '#333', fontSize: '14px', lineHeight: '1.4', flex: 1, minWidth: 0 }}>{item.name}</p>
+                                                <p className="vouch-title" style={{ margin: 0, fontWeight: 700, color: '#333', fontSize: '14px', lineHeight: '1.4', flex: 1, minWidth: 0 }}>{item.name}</p>
                                                 <p className="vouch-price" style={{ margin: 0, whiteSpace: 'nowrap', fontWeight: 500, color: '#222', fontSize: '14px', flexShrink: 0 }}>£{item.price}</p>
                                             </div>
                                             {item.description && (
