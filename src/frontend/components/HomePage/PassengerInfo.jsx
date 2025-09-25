@@ -416,7 +416,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     outline: 'none',
     appearance: 'none',
     WebkitAppearance: 'none',
-    transition: 'all 0.2s ease'
+    transition: 'all 0.2s ease',
+    width: '100%',
+    boxSizing: 'border-box'
   };
 
   return (
