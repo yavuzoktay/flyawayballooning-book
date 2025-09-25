@@ -455,8 +455,8 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         min-height: 80px !important;
                         /* Show tooltip above card on mobile */
                         position: absolute !important;
-                        top: auto !important; 
-                        bottom: calc(100% + 20px) !important;
+                        top: -120px !important;
+                        bottom: auto !important;
                         left: 50% !important;
                         transform: translateX(-50%) !important;
                         z-index: 10003 !important;
