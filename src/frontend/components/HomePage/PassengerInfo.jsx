@@ -700,7 +700,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       color: isMobile ? '#374151' : 'inherit',
                       marginBottom: isMobile ? '6px' : '4px',
                       display: 'block'
-                    }}>First Name</label>
+                    }}>First Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -722,7 +722,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       color: isMobile ? '#374151' : 'inherit',
                       marginBottom: isMobile ? '6px' : '4px',
                       display: 'block'
-                    }}>Last Name</label>
+                    }}>Last Name<span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="text"
                       onInput={e => e.target.value = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '')}
@@ -750,7 +750,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         color: isMobile ? '#374151' : 'inherit',
                         marginBottom: isMobile ? '6px' : '4px'
                       }}>
-                        Weight (Kg)
+                        Weight (Kg)<span style={{ color: 'red' }}>*</span>
                         <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
                           <div className="info-icon-container" style={{ position: 'relative' }}>
                             <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
@@ -1056,7 +1056,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               color: '#374151',
                               marginBottom: '4px',
                               display: 'block'
-                            }}>Weight (Kg)</label>
+                            }}>Weight (Kg)<span style={{ color: 'red' }}>*</span></label>
                             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                               <input
                                 type="number"
