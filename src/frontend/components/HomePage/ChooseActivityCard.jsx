@@ -416,6 +416,24 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             );
             })}
             <style>{`
+                /* Ensure info hover appears above cards on all breakpoints */
+                .book_data_label, .card-front, .card-back { overflow: visible !important; }
+                .info-icon-container { position: relative !important; z-index: 10001 !important; }
+                .info-icon-container .hover-text {
+                    position: absolute !important;
+                    left: 50% !important;
+                    top: calc(100% + 8px) !important;
+                    transform: translateX(-50%) !important;
+                    z-index: 10002 !important;
+                    padding: 10px 12px;
+                    background: rgba(0,0,0,0.85);
+                    color: #fff;
+                    border-radius: 10px;
+                    line-height: 1.4;
+                    width: max-content;
+                    max-width: 320px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                }
                 @media (max-width: 768px) {
                     .tab_box { 
                         gap: 8px !important; 
@@ -424,28 +442,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         display: flex !important;
                     }
                     /* Prevent tooltip clipping on mobile */
-                    .book_data_label,
-                    .card-front,
-                    .card-back { 
-                        overflow: visible !important; 
-                    }
-                    .info-icon-container { 
-                        position: relative !important; 
-                        z-index: 10001 !important; 
-                    }
                     .info-icon-container .hover-text { 
-                        position: absolute !important; 
-                        left: 50% !important; 
-                        top: calc(100% + 8px) !important; 
-                        transform: translateX(-50%) !important; 
                         max-width: 92vw !important; 
                         width: max-content !important; 
                         white-space: normal !important; 
                         word-break: break-word !important; 
                         line-height: 1.4 !important; 
-                        padding: 10px 12px !important; 
-                        border-radius: 10px !important; 
-                        z-index: 10002 !important; 
                         box-sizing: border-box !important; 
                     }
                     .tab_box .book_data { 
