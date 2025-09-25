@@ -444,14 +444,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     /* Prevent tooltip clipping on mobile */
                     .info-icon-container .hover-text { 
                         max-width: 92vw !important; 
+                        min-width: 280px !important;
                         width: max-content !important; 
                         white-space: normal !important; 
                         word-break: break-word !important; 
                         line-height: 1.4 !important; 
                         box-sizing: border-box !important; 
+                        padding: 12px 16px !important;
+                        font-size: 14px !important;
                         /* Show tooltip above card on mobile */
                         top: auto !important; 
-                        bottom: calc(100% + 8px) !important; 
+                        bottom: calc(100% + 12px) !important; 
                     }
                     .tab_box .book_data { 
                         width: 100% !important; 
