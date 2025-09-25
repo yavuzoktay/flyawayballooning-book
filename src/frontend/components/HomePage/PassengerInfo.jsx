@@ -1083,7 +1083,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               />
                               <BsInfoCircle 
                                 data-tooltip-id={`weight-tooltip-${index}`}
-                                style={{ position: 'absolute', right: '12px', color: '#3b82f6', cursor: 'pointer', fontSize: '16px' }} 
+                                style={{ position: 'absolute', right: '12px', color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
                               />
                               <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
                             </div>
