@@ -454,12 +454,14 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         font-size: 16px !important;
                         min-height: 80px !important;
                         /* Show tooltip above card on mobile */
-                        position: absolute !important;
-                        top: -120px !important;
-                        bottom: auto !important;
+                        position: fixed !important;
+                        top: 50% !important;
                         left: 50% !important;
-                        transform: translateX(-50%) !important;
-                        z-index: 10003 !important;
+                        transform: translate(-50%, -50%) !important;
+                        z-index: 10004 !important;
+                        background: rgba(0,0,0,0.95) !important;
+                        border-radius: 12px !important;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
                     }
                     .tab_box .book_data { 
                         width: 100% !important; 
