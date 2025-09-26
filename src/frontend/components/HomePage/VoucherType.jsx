@@ -1475,7 +1475,6 @@ const VoucherType = ({
                         if (privateCharterVoucherTypesLoading || allVoucherTypesLoading || activityDataLoading) {
                             return (
                                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
                                     <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>Loading Voucher Types...</h3>
                                     <p style={{ color: '#9ca3af' }}>Please wait while we fetch available options and pricing</p>
                                 </div>
