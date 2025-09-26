@@ -23,7 +23,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, countdownSeconds, setCountdownSeconds, onTimeout, onSectionCompletion }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -169,9 +169,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [selectedDateForTime, setSelectedDateForTime] = useState(null);
     const [tempSelectedTime, setTempSelectedTime] = useState(null);
     
-    // Countdown timer state
-    const [countdownTimer, setCountdownTimer] = useState(null);
-    const [showTimeoutModal, setShowTimeoutModal] = useState(false);
+    // Timeout functionality removed
     
     // Removed capacity warning modal approach; we'll indicate issues inline in time picker
     
@@ -360,82 +358,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             onSectionCompletion('live-availability');
         }
         
-        // Start countdown timer when date and time are selected
-        startCountdownTimer();
+        // Countdown timer removed - no automatic timeout
     };
     
-    // Start countdown timer
-    const startCountdownTimer = () => {
-        console.log('Starting countdown timer...');
-        
-        // Clear any existing timer
-        if (countdownTimer) {
-            clearInterval(countdownTimer);
-        }
-        
-        // Reset countdown to 5 minutes
-        setCountdownSeconds(300);
-        console.log('Countdown set to 300 seconds');
-        
-        // Start new countdown
-        const timer = setInterval(() => {
-            setCountdownSeconds(prev => {
-                console.log(`Countdown: ${prev} seconds remaining`);
-                
-                if (prev <= 1) {
-                    // Time's up - clear selection and show timeout modal
-                    console.log('Countdown finished - showing timeout modal');
-                    clearInterval(timer);
-                    setCountdownTimer(null);
-                    setCountdownSeconds(300);
-                    
-                    // Call parent timeout handler
-                    if (onTimeout) {
-                        onTimeout();
-                    }
-                    
-                    // Show timeout modal
-                    setShowTimeoutModal(true);
-                    
-                    return 300;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        
-        setCountdownTimer(timer);
-        console.log('Countdown timer started');
-    };
+    // Countdown timer functions removed - no automatic timeout
     
-    // Stop countdown timer
-    const stopCountdownTimer = () => {
-        console.log('Stopping countdown timer...');
-        if (countdownTimer) {
-            clearInterval(countdownTimer);
-            setCountdownTimer(null);
-            console.log('Countdown timer cleared');
-        }
-        if (setCountdownSeconds) {
-            setCountdownSeconds(300);
-            console.log('Countdown seconds reset to 300');
-        }
-    };
+    // Countdown timer cleanup removed - no automatic timeout
     
-    // Clear countdown when component unmounts or when booking is completed
-    useEffect(() => {
-        return () => {
-            if (countdownTimer) {
-                clearInterval(countdownTimer);
-            }
-        };
-    }, [countdownTimer]);
-    
-    // Stop countdown when date/time selection is cleared
-    useEffect(() => {
-        if (!selectedDate || !selectedTime) {
-            stopCountdownTimer();
-        }
-    }, [selectedDate, selectedTime]);
+    // Countdown timer cleanup removed - no automatic timeout
 
     // Check if form is valid for submission
     const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate;
@@ -1294,8 +1224,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         transform: 'translate(-50%, -50%)',
                                                         pointerEvents: 'none',
                                                         fontWeight: 800,
-                                                        fontSize: isMobile ? 7 : 14,
-                                                        letterSpacing: isMobile ? 0.1 : 0.4,
+                                                        fontSize: isMobile ? 10 : 14,
+                                                        letterSpacing: isMobile ? 0.2 : 0.4,
                                                         color: '#ffffff',
                                                         textTransform: 'uppercase',
                                                         textShadow: '0 1px 2px rgba(0,0,0,0.35)',
@@ -1508,64 +1438,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             
             {/* Removed standalone capacity warning modal */}
             
-            {/* Timeout Modal */}
-            <Modal
-                isOpen={showTimeoutModal}
-                onClose={() => setShowTimeoutModal(false)}
-            >
-                <div style={{ textAlign: 'center', padding: '20px', position: 'relative' }}>
-                    {/* Close Button (X) */}
-                    <button
-                        onClick={() => setShowTimeoutModal(false)}
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '15px',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '24px',
-                            cursor: 'pointer',
-                            color: '#666',
-                            fontWeight: 'bold',
-                            lineHeight: '1',
-                            padding: '0',
-                            width: '30px',
-                            height: '30px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        title="Close"
-                    >
-                        ×
-                    </button>
-                    
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c', marginBottom: '20px' }}>
-                        ⏰ Time Expired
-                    </div>
-                    <div style={{ fontSize: '16px', color: '#333', marginBottom: '20px' }}>
-                        You did not complete the booking within 5 minutes. Your selected date and time have been cancelled.
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
-                        Please select a new date and time to complete your booking.
-                    </div>
-                    <button
-                        onClick={() => setShowTimeoutModal(false)}
-                        style={{
-                            background: '#2d4263',
-                            color: 'white',
-                            border: 'none',
-                            padding: '12px 24px',
-                            borderRadius: '8px',
-                            fontSize: '16px',
-                            cursor: 'pointer',
-                            fontWeight: '500'
-                        }}
-                    >
-                        OK
-                    </button>
-                </div>
-            </Modal>
+            {/* Timeout Modal removed - no automatic timeout */}
         </>
     );
 };

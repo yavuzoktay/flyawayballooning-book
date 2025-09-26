@@ -86,12 +86,7 @@ const Index = () => {
         window.location.href = 'https://flyawayballooning.com/';
     };
     
-    // Handle countdown timeout
-    const handleCountdownTimeout = () => {
-        setSelectedDate(null);
-        setSelectedTime(null);
-        setCountdownSeconds(null);
-    };
+    // Timeout functionality removed
     
     // Calculate available capacity for selected date and time
     const getAvailableCapacityForSelection = () => {
@@ -1682,7 +1677,6 @@ const Index = () => {
                                     selectedDate={selectedDate} 
                                     selectedTime={selectedTime} 
                                     countdownSeconds={countdownSeconds}
-                                    onTimeout={handleCountdownTimeout}
                                 />
                             )}
 
@@ -1788,7 +1782,6 @@ const Index = () => {
                                                 chooseFlightType={chooseFlightType}
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
-                                                onTimeout={handleCountdownTimeout}
                                                 onSectionCompletion={handleSectionCompletion}
                                             />
                                             <PassengerInfo
@@ -1881,7 +1874,6 @@ const Index = () => {
                                                 chooseFlightType={chooseFlightType}
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
-                                                onTimeout={handleCountdownTimeout}
                                                 onSectionCompletion={handleSectionCompletion}
                                             />
                                             <PassengerInfo

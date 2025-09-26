@@ -2152,7 +2152,7 @@ label {
 @media (max-width: 480px) {
     .book_data_label .info-icon-container:hover .hover-text {
         max-width: calc(100% - 12px) !important;
-        min-width: 180px !important;
+        min-width: 200px !important;
         font-size: 12px !important;
         padding: 8px 10px !important;
         transform: translateX(-50%) !important;
