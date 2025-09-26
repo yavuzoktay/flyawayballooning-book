@@ -1415,9 +1415,6 @@ const VoucherType = ({
                 title={
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '8px' }}>
                         <span>Voucher Type</span>
-                        {(privateCharterVoucherTypesLoading || allVoucherTypesLoading || activityDataLoading) && (
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>🔄</span>
-                        )}
                     </div>
                 }
                 id="voucher-type"
@@ -1476,7 +1473,6 @@ const VoucherType = ({
                             return (
                                 <div style={{ textAlign: 'center', padding: '40px' }}>
                                     <h3 style={{ color: '#6b7280', marginBottom: '8px' }}>Loading Voucher Types...</h3>
-                                    <p style={{ color: '#9ca3af' }}>Please wait while we fetch available options and pricing</p>
                                 </div>
                             );
                         }
