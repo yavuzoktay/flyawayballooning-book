@@ -384,16 +384,16 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
   const activeCheckStyle = {
     ...checkStyle,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#ffffff',
     borderColor: '#3b82f6',
-    boxShadow: isMobile ? '0 4px 8px rgba(59, 130, 246, 0.3)' : 'none',
+    boxShadow: isMobile ? '0 4px 8px rgba(59, 130, 246, 0.2)' : 'none',
   };
   const checkIconStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    color: 'white',
+    color: '#61D836',
     fontSize: isMobile ? '14px' : '12px',
     fontWeight: 'bold',
     pointerEvents: 'none',
