@@ -464,8 +464,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   zIndex: 10,
                   background: 'rgb(3, 169, 244)',
                   borderRadius: '50%',
-                  width: isMobile ? 48 : 56,
-                  height: isMobile ? 48 : 56,
+                  width: isMobile ? 36 : 56,
+                  height: isMobile ? 36 : 56,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -474,7 +474,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handlePrevPassenger}>
-                  <span style={{ fontSize: isMobile ? '36px' : '32px', color: '#fff', lineHeight: 1 }}>‹</span>
+                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
                 </div>
               )}
 
@@ -488,8 +488,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   zIndex: 10,
                   background: 'rgb(3, 169, 244)',
                   borderRadius: '50%',
-                  width: isMobile ? 48 : 56,
-                  height: isMobile ? 48 : 56,
+                  width: isMobile ? 36 : 56,
+                  height: isMobile ? 36 : 56,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -498,7 +498,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handleNextPassenger}>
-                  <span style={{ fontSize: isMobile ? '36px' : '32px', color: '#fff', lineHeight: 1 }}>›</span>
+                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
                 </div>
               )}
 

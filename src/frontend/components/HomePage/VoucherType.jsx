@@ -1528,13 +1528,13 @@ const VoucherType = ({
                                                 {(currentItemIndex > 0) && (
                                                     <div style={{
                                                         position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 48 : 56, height: isMobile ? 48 : 56,
+                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                         cursor: 'pointer',
                                                         opacity: 1,
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 36 : 32, color: '#fff', margin: 0, lineHeight: 1 }}>‹</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
                                                     </div>
                                                 )}
                                                 {/* Right Arrow - hide on last item on mobile */}
@@ -1545,7 +1545,7 @@ const VoucherType = ({
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 36 : 32, color: '#fff', margin: 0, lineHeight: 1 }}>›</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
                                                     </div>
                                                 )}
                                             </>
