@@ -1534,7 +1534,7 @@ const VoucherType = ({
                                                         opacity: 1,
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>‹</span>
                                                     </div>
                                                 )}
                                                 {/* Right Arrow - hide on last item on mobile */}
@@ -1545,7 +1545,7 @@ const VoucherType = ({
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>›</span>
                                                     </div>
                                                 )}
                                             </>

@@ -729,7 +729,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
                             container.scrollTo({ left: Math.max(0, container.scrollLeft - itemWidth), behavior: 'smooth' });
                         }}>
-                            <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
+                            <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>‹</span>
                         </div>
                     )}
                     {/* Right Arrow */}
@@ -747,7 +747,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
                             container.scrollTo({ left: container.scrollLeft + itemWidth, behavior: 'smooth' });
                         }}>
-                            <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
+                            <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>›</span>
                         </div>
                     )}
 

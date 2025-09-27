@@ -475,7 +475,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handlePrevPassenger}>
-                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
+                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>‹</span>
                 </div>
               )}
 
@@ -499,7 +499,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   border: 'none',
                   transition: 'all 0.2s ease'
                 }} onClick={handleNextPassenger}>
-                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
+                  <span style={{ fontSize: isMobile ? '27px' : '32px', color: '#fff', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>›</span>
                 </div>
               )}
 
