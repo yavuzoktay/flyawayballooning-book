@@ -417,7 +417,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     appearance: 'none',
     WebkitAppearance: 'none',
     transition: 'all 0.2s ease',
-    width: '100%',
+    width: isMobile ? '90%' : '100%',
+    maxWidth: isMobile ? '90%' : '100%',
     boxSizing: 'border-box'
   };
 
@@ -744,10 +745,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       style={{
                         ...(error?.firstName ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
-                          ...mobileInputBase, 
-                          width: '100%',
-                          maxWidth: '100%',
-                          boxSizing: 'border-box'
+                          ...mobileInputBase
                         } : {
                           fontSize: '12px',
                           padding: '6px 8px',
@@ -779,10 +777,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       style={{
                         ...(error?.lastName ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
-                          ...mobileInputBase, 
-                          width: '100%',
-                          maxWidth: '100%',
-                          boxSizing: 'border-box'
+                          ...mobileInputBase
                         } : {
                           fontSize: '12px',
                           padding: '6px 8px',
@@ -823,10 +818,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         style={{
                           ...(error?.weight ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
-                          ...mobileInputBase, 
-                          width: '100%',
-                          maxWidth: '100%',
-                          boxSizing: 'border-box'
+                          ...mobileInputBase
                         } : {
                           fontSize: '12px',
                           padding: '6px 8px',
@@ -877,10 +869,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         style={{
                           ...(error?.phone ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
-                          ...mobileInputBase, 
-                          width: '100%',
-                          maxWidth: '100%',
-                          boxSizing: 'border-box'
+                          ...mobileInputBase
                         } : {
                           fontSize: '12px',
                           padding: '6px 8px',
@@ -911,10 +900,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         style={{
                           ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
-                          ...mobileInputBase, 
-                          width: '100%',
-                          maxWidth: '100%',
-                          boxSizing: 'border-box'
+                          ...mobileInputBase
                         } : {
                           fontSize: '12px',
                           padding: '6px 8px',
