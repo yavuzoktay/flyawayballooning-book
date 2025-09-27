@@ -1595,6 +1595,8 @@ label {
         flex-direction: column;
         gap: 10px;
         align-items: center;
+        max-width: 100% !important;
+        overflow: hidden;
     }
 
     .form-presnger form {
@@ -1603,6 +1605,7 @@ label {
 
     .form-presnger form input {
         width: 90% !important;
+        max-width: 90% !important;
     }
 
     .all-pressenger {
