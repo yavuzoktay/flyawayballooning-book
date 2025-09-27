@@ -536,13 +536,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
-                flexDirection: 'row',
-                gap: '8px',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '12px' : '8px',
                 flexWrap: 'nowrap',
                 width: '100%',
                 minWidth: '100%'
               }}>
-                <div className="presnger-tag" style={{ flex: '0 0 auto', minWidth: 'fit-content' }}>
+                <div className="presnger-tag" style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: 'fit-content', width: isMobile ? '100%' : 'auto' }}>
                   <h3 style={{ 
                     margin: '0', 
                     lineHeight: 1.2,
@@ -559,12 +559,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '4px', 
-                  width: 'auto',
-                  justifyContent: 'flex-end',
-                  flex: '0 0 auto',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: isMobile ? 'flex-start' : 'flex-end',
+                  flex: isMobile ? 'none' : '0 0 auto',
                   minWidth: 'fit-content',
                   maxWidth: 'fit-content',
-                  marginLeft: 'auto'
+                  marginLeft: isMobile ? '0' : 'auto'
                 }}>
                   <label className="passenger_weather-refund" htmlFor={`weatherRefund-${index}`} style={{ 
                     cursor: "pointer", 
@@ -856,7 +856,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     minWidth: 'max-content'
                   }}>
                     {/* Mobile Number */}
-                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '160px', width: isMobile ? '100%' : 'auto' }}>
+                    <div style={{ flex: '0 0 auto', minWidth: isMobile ? '140px' : '160px' }}>
                       <label style={{
                         fontSize: isMobile ? '12px' : '11px',
                         fontWeight: isMobile ? '500' : '500',
