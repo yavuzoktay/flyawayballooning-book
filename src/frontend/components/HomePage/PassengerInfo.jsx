@@ -852,7 +852,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     width: '100%',
                     flexDirection: isMobile ? 'column' : 'row',
                     flexWrap: 'nowrap',
-                    marginTop: '8px',
+                    marginTop: isMobile ? '0px' : '8px',
                     minWidth: 'max-content'
                   }}>
                     {/* Mobile Number */}
