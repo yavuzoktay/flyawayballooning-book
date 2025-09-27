@@ -709,7 +709,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 gap: activitySelect === 'Buy Gift' ? '8px' : '15px', 
                 display: 'flex', 
                 flexWrap: 'nowrap', 
-                flexDirection: 'row',
+                flexDirection: isMobile ? 'column' : 'row',
                 width: '100%',
                 overflowX: 'auto'
               }}>
@@ -718,12 +718,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   display: 'flex', 
                   gap: isMobile ? '8px' : '12px', 
                   width: '100%', 
-                  flexDirection: 'row',
+                  flexDirection: isMobile ? 'column' : 'row',
                   flexWrap: 'nowrap',
                   minWidth: 'max-content'
                 }}>
                   {/* First Name */}
-                  <div style={{ flex: '0 0 auto', minWidth: isMobile ? '120px' : '140px' }}>
+                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '140px', width: isMobile ? '100%' : 'auto' }}>
                     <label style={{
                       fontSize: isMobile ? '12px' : '11px',
                       fontWeight: isMobile ? '500' : '500',
@@ -759,7 +759,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   </div>
                   
                   {/* Last Name */}
-                  <div style={{ flex: '0 0 auto', minWidth: isMobile ? '120px' : '140px' }}>
+                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '140px', width: isMobile ? '100%' : 'auto' }}>
                     <label style={{
                       fontSize: isMobile ? '12px' : '11px',
                       fontWeight: isMobile ? '500' : '500',
@@ -796,7 +796,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
-                    <div style={{ flex: '0 0 auto', minWidth: isMobile ? '140px' : '160px' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '160px', width: isMobile ? '100%' : 'auto' }}>
                       <label style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -850,13 +850,13 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     display: 'flex',
                     gap: isMobile ? '8px' : '12px',
                     width: '100%',
-                    flexDirection: 'row',
+                    flexDirection: isMobile ? 'column' : 'row',
                     flexWrap: 'nowrap',
                     marginTop: '8px',
                     minWidth: 'max-content'
                   }}>
                     {/* Mobile Number */}
-                    <div style={{ flex: '0 0 auto', minWidth: isMobile ? '140px' : '160px' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '160px', width: isMobile ? '100%' : 'auto' }}>
                       <label style={{
                         fontSize: isMobile ? '12px' : '11px',
                         fontWeight: isMobile ? '500' : '500',
@@ -894,7 +894,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {error?.phone && <span style={{ color: 'red', fontSize: 10 }}>Mobile number is required</span>}
                     </div>
                     {/* Email */}
-                    <div style={{ flex: '0 0 auto', minWidth: isMobile ? '160px' : '180px' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '180px', width: isMobile ? '100%' : 'auto' }}>
                       <label style={{
                         fontSize: isMobile ? '12px' : '11px',
                         fontWeight: isMobile ? '500' : '500',
