@@ -1231,7 +1231,6 @@ label {
         flex-direction: column !important;
         gap: 12px !important;
         justify-content: flex-start !important;
-        height: 120px !important;
         overflow: auto !important;
         padding-right: 8px !important;
     }
