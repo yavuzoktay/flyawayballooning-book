@@ -403,11 +403,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   
   // Shared input style for mobile consistency
   const mobileInputBase = {
-    fontSize: '14px',
-    padding: '10px 12px',
-    minHeight: '40px',
+    fontSize: '12px',
+    padding: '8px 10px',
+    minHeight: '36px',
     border: '1.5px solid #d1d5db',
-    borderRadius: '8px',
+    borderRadius: '6px',
     backgroundColor: '#ffffff',
     color: '#374151',
     fontWeight: '500',
@@ -558,7 +558,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 <div className="final_pax-label-wrap" style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '4px', 
+                  gap: '4px',
                   width: isMobile ? '100%' : 'auto',
                   justifyContent: isMobile ? 'flex-start' : 'flex-end',
                   flex: isMobile ? 'none' : '0 0 auto',
@@ -745,9 +745,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           ...mobileInputBase, 
                           width: '100%',
                           maxWidth: '100%',
-                          fontSize: '12px',
-                          padding: '8px 10px',
-                          minHeight: '36px',
                           boxSizing: 'border-box'
                         } : {
                           fontSize: '12px',
@@ -783,9 +780,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           ...mobileInputBase, 
                           width: '100%',
                           maxWidth: '100%',
-                          fontSize: '12px',
-                          padding: '8px 10px',
-                          minHeight: '36px',
                           boxSizing: 'border-box'
                         } : {
                           fontSize: '12px',
@@ -830,9 +824,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           ...mobileInputBase, 
                           width: '100%',
                           maxWidth: '100%',
-                          fontSize: '12px',
-                          padding: '8px 10px',
-                          minHeight: '36px',
                           boxSizing: 'border-box'
                         } : {
                           fontSize: '12px',
@@ -887,9 +878,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           ...mobileInputBase, 
                           width: '100%',
                           maxWidth: '100%',
-                          fontSize: '12px',
-                          padding: '8px 10px',
-                          minHeight: '36px',
                           boxSizing: 'border-box'
                         } : {
                           fontSize: '12px',
@@ -924,9 +912,6 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           ...mobileInputBase, 
                           width: '100%',
                           maxWidth: '100%',
-                          fontSize: '12px',
-                          padding: '8px 10px',
-                          minHeight: '36px',
                           boxSizing: 'border-box'
                         } : {
                           fontSize: '12px',
@@ -1109,78 +1094,78 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     }}>
                       {/* First Name */}
                       <div style={{ width: '100%', minWidth: 0 }}>
-                        <label style={{ 
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          color: '#374151',
-                          marginBottom: '4px',
-                          display: 'block',
-                          whiteSpace: 'nowrap'
-                        }}>First Name<span style={{ color: 'red' }}>*</span></label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={passenger.firstName || ''}
-                          onChange={(e) => handlePassengerInputChange(index, e)}
-                          placeholder="First Name"
-                          style={{
-                            ...(error?.firstName ? { border: '1.5px solid red' } : {}),
-                            fontSize: '13px',
-                            padding: '8px 10px',
-                            minHeight: '36px',
-                            width: '100%',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            fontWeight: '400',
-                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                            transition: 'all 0.2s ease'
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Last Name */}
-                      <div style={{ width: '100%', minWidth: 0 }}>
-                        <label style={{ 
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          color: '#374151',
-                          marginBottom: '4px',
-                          display: 'block',
-                          whiteSpace: 'nowrap'
-                        }}>Last Name<span style={{ color: 'red' }}>*</span></label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          value={passenger.lastName || ''}
-                          onChange={(e) => handlePassengerInputChange(index, e)}
-                          placeholder="Last Name"
-                          style={{
-                            ...(error?.lastName ? { border: '1.5px solid red' } : {}),
-                            fontSize: '13px',
-                            padding: '8px 10px',
-                            minHeight: '36px',
-                            width: '100%',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            backgroundColor: '#ffffff',
-                            color: '#374151',
-                            fontWeight: '400',
-                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                            transition: 'all 0.2s ease'
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
-                      {activitySelect !== 'Buy Gift' && (
-                        <div style={{ width: '100%', minWidth: 0 }}>
                           <label style={{ 
                             fontSize: '13px',
                             fontWeight: '500',
                             color: '#374151',
                             marginBottom: '4px',
+                          display: 'block',
+                          whiteSpace: 'nowrap'
+                        }}>First Name<span style={{ color: 'red' }}>*</span></label>
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={passenger.firstName || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="First Name"
+                            style={{
+                              ...(error?.firstName ? { border: '1.5px solid red' } : {}),
+                            fontSize: '13px',
+                            padding: '8px 10px',
+                            minHeight: '36px',
+                            width: '100%',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease'
+                            }}
+                          />
+                        </div>
+                      
+                      {/* Last Name */}
+                      <div style={{ width: '100%', minWidth: 0 }}>
+                          <label style={{ 
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
+                          display: 'block',
+                          whiteSpace: 'nowrap'
+                        }}>Last Name<span style={{ color: 'red' }}>*</span></label>
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={passenger.lastName || ''}
+                            onChange={(e) => handlePassengerInputChange(index, e)}
+                            placeholder="Last Name"
+                            style={{
+                              ...(error?.lastName ? { border: '1.5px solid red' } : {}),
+                            fontSize: '13px',
+                            padding: '8px 10px',
+                            minHeight: '36px',
+                            width: '100%',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease'
+                            }}
+                          />
+                        </div>
+                      
+                      {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
+                        {activitySelect !== 'Buy Gift' && (
+                        <div style={{ width: '100%', minWidth: 0 }}>
+                            <label style={{ 
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              color: '#374151',
+                              marginBottom: '4px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
@@ -1193,29 +1178,29 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             />
                             <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
                           </label>
-                          <input
-                            type="number"
-                            name="weight"
-                            value={passenger.weight || ''}
-                            onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="Max 18 Stone / 114Kg"
-                            style={{
-                              ...(error?.weight ? { border: '1.5px solid red' } : {}),
+                              <input
+                                type="number"
+                                name="weight"
+                                value={passenger.weight || ''}
+                                onChange={(e) => handlePassengerInputChange(index, e)}
+                                placeholder="Max 18 Stone / 114Kg"
+                                style={{
+                                  ...(error?.weight ? { border: '1.5px solid red' } : {}),
                               fontSize: '13px',
                               padding: '8px 10px',
                               minHeight: '36px',
                               width: '100%',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              backgroundColor: '#ffffff',
-                              color: '#374151',
-                              fontWeight: '400',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    backgroundColor: '#ffffff',
+                                    color: '#374151',
+                                    fontWeight: '400',
+                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                               transition: 'all 0.2s ease'
                             }}
                           />
-                        </div>
-                      )}
+                          </div>
+                        )}
                       
                     </div>
                     {/* Row 2: Mobile + Email (only Passenger 1 and Buy Gift) */}
@@ -1232,37 +1217,37 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       }}>
                         {/* Mobile Number */}
                         <div style={{ flex: '0 0 auto', minWidth: 'clamp(160px, 18vw, 220px)' }}>
-                          <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
+                           <label style={{ 
+                             fontSize: '13px',
+                             fontWeight: '500',
+                             color: '#374151',
+                             marginBottom: '4px',
                             display: 'block',
                             whiteSpace: 'nowrap'
                           }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={passenger.phone || ''}
-                            onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="Mobile Number"
-                            style={{
-                              ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                           <input
+                             type="tel"
+                             name="phone"
+                             value={passenger.phone || ''}
+                             onChange={(e) => handlePassengerInputChange(index, e)}
+                             placeholder="Mobile Number"
+                             style={{
+                               ...(error?.phone ? { border: '1.5px solid red' } : {}),
                               fontSize: '13px',
                               padding: '8px 10px',
                               minHeight: '36px',
                               width: '100%',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              backgroundColor: '#ffffff',
-                              color: '#374151',
-                              fontWeight: '400',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                              transition: 'all 0.2s ease'
-                            }}
-                          />
+                                 border: '1px solid #d1d5db',
+                                 borderRadius: '6px',
+                                 backgroundColor: '#ffffff',
+                                 color: '#374151',
+                                 fontWeight: '400',
+                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                 transition: 'all 0.2s ease'
+                             }}
+                           />
                           {error?.phone && <span style={{ color: 'red', fontSize: 11 }}>Mobile number is required</span>}
-                        </div>
+                         </div>
                         {/* Email */}
                         <div style={{ flex: '0 0 auto', minWidth: 'clamp(200px, 26vw, 320px)' }}>
                           <label style={{ 
@@ -1285,20 +1270,20 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               padding: '8px 10px',
                               minHeight: '36px',
                               width: '100%',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              backgroundColor: '#ffffff',
-                              color: '#374151',
-                              fontWeight: '400',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                              transition: 'all 0.2s ease'
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffffff',
+                                color: '#374151',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease'
                             }}
                           />
                           {error?.email && <span style={{ color: 'red', fontSize: 11 }}>Email is required</span>}
                           {emailErrors[index] && <span style={{ color: 'red', fontSize: 11 }}>Invalid email format</span>}
                         </div>
-                      </div>
-                    )}
+                        </div>
+                        )}
                   </div>
                 </div>
               );
