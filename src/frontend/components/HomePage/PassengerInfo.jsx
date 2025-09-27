@@ -720,10 +720,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   width: '100%', 
                   flexDirection: isMobile ? 'column' : 'row',
                   flexWrap: 'nowrap',
-                  minWidth: 'max-content'
+                  minWidth: isMobile ? '0' : 'max-content',
+                  maxWidth: '100%',
+                  overflow: 'hidden'
                 }}>
                   {/* First Name */}
-                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '140px', width: isMobile ? '100%' : 'auto' }}>
+                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : '140px', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                     <label style={{
                       fontSize: isMobile ? '12px' : '11px',
                       fontWeight: isMobile ? '500' : '500',
@@ -758,7 +760,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   </div>
                   
                   {/* Last Name */}
-                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '140px', width: isMobile ? '100%' : 'auto' }}>
+                  <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : '140px', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                     <label style={{
                       fontSize: isMobile ? '12px' : '11px',
                       fontWeight: isMobile ? '500' : '500',
@@ -794,7 +796,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
                   {activitySelect !== 'Buy Gift' && (
-                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '160px', width: isMobile ? '100%' : 'auto' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : '160px', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                       <label style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -853,7 +855,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     minWidth: 'max-content'
                   }}>
                     {/* Mobile Number */}
-                    <div style={{ flex: '0 0 auto', minWidth: isMobile ? '140px' : '160px' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : '160px', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                       <label style={{
                         fontSize: isMobile ? '12px' : '11px',
                         fontWeight: isMobile ? '500' : '500',
@@ -890,7 +892,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       {error?.phone && <span style={{ color: 'red', fontSize: 10 }}>Mobile number is required</span>}
                     </div>
                     {/* Email */}
-                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : '180px', width: isMobile ? '100%' : 'auto' }}>
+                    <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : '180px', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                       <label style={{
                         fontSize: isMobile ? '12px' : '11px',
                         fontWeight: isMobile ? '500' : '500',
@@ -1217,7 +1219,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         overflowX: 'hidden'
                       }}>
                         {/* Mobile Number */}
-                        <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : 'clamp(160px, 18vw, 220px)', width: isMobile ? '100%' : 'auto' }}>
+                        <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : 'clamp(160px, 18vw, 220px)', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                            <label style={{ 
                              fontSize: '13px',
                              fontWeight: '500',
@@ -1250,7 +1252,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           {error?.phone && <span style={{ color: 'red', fontSize: 11 }}>Mobile number is required</span>}
                          </div>
                         {/* Email */}
-                        <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '100%' : 'clamp(200px, 26vw, 320px)', width: isMobile ? '100%' : 'auto' }}>
+                        <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : 'clamp(200px, 26vw, 320px)', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
                           <label style={{ 
                             fontSize: '13px',
                             fontWeight: '500',
