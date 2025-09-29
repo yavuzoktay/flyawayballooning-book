@@ -1723,7 +1723,7 @@ const VoucherType = ({
                                                     top: '50%', 
                                                     transform: 'translateY(-50%)', 
                                                     zIndex: 10,
-                                                    background: 'rgba(255,255,255,0.9)',
+                                                    background: 'rgb(3, 169, 244)',
                                                     borderRadius: '50%',
                                                     width: 40,
                                                     height: 40,
@@ -1732,10 +1732,10 @@ const VoucherType = ({
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                    border: '1px solid #ddd',
+                                                    border: '1px solid #0288d1',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.max(0, currentViewIndex - 1))}>
-                                                    <ArrowBackIosIcon style={{ fontSize: 20, color: '#666', marginLeft: 5 }} />
+                                                    <ArrowBackIosIcon style={{ fontSize: 20, color: '#fff', marginLeft: 5 }} />
                                                 </div>
                                             )}
                                             
@@ -1747,7 +1747,7 @@ const VoucherType = ({
                                                     top: '50%', 
                                                     transform: 'translateY(-50%)', 
                                                     zIndex: 10,
-                                                    background: 'rgba(255,255,255,0.9)',
+                                                    background: 'rgb(3, 169, 244)',
                                                     borderRadius: '50%',
                                                     width: 40,
                                                     height: 40,
@@ -1756,10 +1756,10 @@ const VoucherType = ({
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                    border: '1px solid #ddd',
+                                                    border: '1px solid #0288d1',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.min(currentViewIndex + 1, Math.ceil(filteredVouchers.length / sfPageSize) - 1))}>
-                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#666' }} />
+                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#fff' }} />
                                                 </div>
                                             )}
                                         </>
