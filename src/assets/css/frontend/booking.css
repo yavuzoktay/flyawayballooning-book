@@ -1267,7 +1267,7 @@ label {
         color: #1f2937 !important;
         margin: 0 !important;
         line-height: 1.4 !important;
-        font-family: 'Gilroy' !important;
+        font-family: 'Gilroy', sans-serif !important;;
         flex: 1 !important;
         min-width: 0 !important;
     }
