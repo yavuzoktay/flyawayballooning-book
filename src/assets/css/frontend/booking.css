@@ -1642,6 +1642,15 @@ label {
 
     }
 
+    /* Passenger Information → Weight tooltip: smaller text on mobile */
+    .weight-info-wrapper .info-icon-container .hover-text {
+        font-size: 11px !important;
+        padding: 6px 8px !important;
+        max-width: calc(100% - 16px) !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
     .vaouch .loc_data {
         width: 32%;
     }
@@ -1756,6 +1765,12 @@ label {
     .num_count select {
         width: 75px;
         height: 35px;
+    }
+
+    /* Even smaller on very small phones */
+    .weight-info-wrapper .info-icon-container .hover-text {
+        font-size: 10px !important;
+        padding: 6px 8px !important;
     }
     
     .shared-row ul li {
