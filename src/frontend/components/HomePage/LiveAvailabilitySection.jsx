@@ -752,7 +752,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         gap: isMobile ? '12px' : '0'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8 }}>
-                            <div className='calender-prev calender-arrow' onClick={handlePrevMonth} style={!isMobile ? { background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 35, height: 35, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #0288d1' } : {}}><ArrowBackIosIcon style={!isMobile ? { color: '#fff' } : {}} /></div>
+                            <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
                             <h2 style={{ 
                                 margin: '0 4px', 
                                 fontWeight: 500, 
@@ -762,7 +762,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }}>
                                 {format(currentDate, 'MMMM yyyy')}
                             </h2>
-                            <div className='calender-next calender-arrow' onClick={handleNextMonth} style={!isMobile ? { background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 35, height: 35, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #0288d1' } : {}}><ArrowForwardIosIcon style={!isMobile ? { color: '#fff' } : {}} /></div>
+                            <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
                         </div>
                         
                         {/* Real-time availability badge - responsive */}
