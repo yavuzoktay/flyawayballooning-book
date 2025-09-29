@@ -1861,6 +1861,10 @@ label {
         word-break: break-word !important;
         box-sizing: border-box !important;
     }
+    /* Reduce paragraph text size inside tooltips on mobile */
+    .hover-text p {
+        font-size: 11px !important;
+    }
     
     /* Ensure tooltips don't go off-screen on mobile */
     .info-icon-container {
