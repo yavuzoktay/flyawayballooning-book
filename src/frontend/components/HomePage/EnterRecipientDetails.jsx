@@ -125,6 +125,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
     // Warn on close if Buy Gift and required fields are empty
     const onBeforeClose = () => {
         if (!isGiftVoucher) return true;
+        // If user chose to skip, allow closing without validation
         if (skipRecipientDetails || recipientDetails?.isSkipped) return true;
         const valid = validateFields();
         if (!valid) {

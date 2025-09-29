@@ -433,8 +433,11 @@ const Index = () => {
             return false;
         }
         
-        // For Buy Gift, recipient details are ALWAYS required (no skipping allowed)
-        // Remove the isSkipped check for Buy Gift validation
+        // If user chose "Don't enter recipient details", treat as valid for Buy Gift flow
+        if (details.isSkipped === true) {
+            console.log('✅ Recipient details explicitly skipped – treating as valid');
+            return true;
+        }
         
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
@@ -458,7 +461,7 @@ const Index = () => {
         
         const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
         
-        console.log('🎁 recipientDetails required validation:', {
+        console.log('🎁 recipientDetails validation (with skip support):', {
             details,
             hasName: { value: details.name, valid: hasName },
             hasEmail: { value: details.email, valid: hasEmail },
@@ -467,7 +470,7 @@ const Index = () => {
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields are required for Buy Gift - no skipping allowed'
+            note: 'All fields required unless user chose to skip recipient details'
         });
         
         return isComplete;
