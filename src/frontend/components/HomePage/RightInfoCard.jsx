@@ -702,6 +702,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 if (Array.isArray(passengerData) && passengerData.length > 0) return passengerData.length;
                 return 1;
             })();
+            const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
             const voucherData = {
                 // For Gift Vouchers: name/email/phone/mobile should be PURCHASER info (from PassengerInfo form)
                 // For Flight Vouchers: name/email/phone/mobile should be the main contact info
@@ -711,7 +712,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
                 voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
-                voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
+                // For Private Charter, keep the selected title (e.g., Proposal Flight); backend now accepts any detail
+                voucher_type_detail: selectedVoucherType?.title?.trim() || "",
                 email: isGiftVoucher ? 
                     (passengerData?.[0]?.email || "").trim() :
                     (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
@@ -722,7 +724,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     (passengerData?.[0]?.phone || "").trim() :
                     (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
                 redeemed: "No",
-                paid: totalPrice, // This is already calculated correctly above
+                paid: totalPrice, // already computed correctly for both Shared and Private
                 offer_code: "",
                 voucher_ref: voucherCode || "",
                 // Recipient information (only for Gift Vouchers)
@@ -736,6 +738,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 numberOfPassengers: computedNumberOfPassengers,
+                // Persist selection context needed for Private Charter code generation
+                preferred_location: chooseLocation || '',
+                experience_type: chooseFlightType?.type || '',
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,

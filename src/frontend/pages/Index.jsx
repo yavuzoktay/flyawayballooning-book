@@ -322,6 +322,23 @@ const Index = () => {
                         });
                     }
                     
+                    // Use numberOfPassengers if provided by backend to pre-fill Passenger Information
+                    const resolvedPassengerCount = parseInt(voucherInfo.numberOfPassengers, 10);
+                    if (!Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0) {
+                        // Ensure passengerData array has exact count
+                        setPassengerData(prev => {
+                            const base = Array.isArray(prev) ? [...prev] : [];
+                            const target = resolvedPassengerCount;
+                            // grow
+                            while (base.length < target) {
+                                base.push({ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false });
+                            }
+                            // shrink
+                            if (base.length > target) base.length = target;
+                            return base;
+                        });
+                    }
+
                     // Set voucher type from voucher data
                     if (voucherInfo.voucher_type) {
                         // Map voucher type to valid backend types
@@ -337,7 +354,7 @@ const Index = () => {
                         
                         setSelectedVoucherType({
                             title: mappedVoucherType,
-                            quantity: 1, // Default to 1 passenger
+                            quantity: !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 ? resolvedPassengerCount : 1,
                             price: voucherInfo.final_amount || 0
                         });
                     }
