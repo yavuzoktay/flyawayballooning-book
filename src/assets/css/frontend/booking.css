@@ -1873,16 +1873,20 @@ label {
         z-index: 10001 !important;
     }
     
+    /* Force tooltips to open below and stay inside section on mobile */
     .info-icon-container .hover-text {
         position: absolute !important;
-        top: calc(100% + 8px) !important;
+        top: calc(100% + 10px) !important; /* always below icon */
+        bottom: auto !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
         max-width: calc(100vw - 24px) !important;
         width: max-content !important;
-        min-width: 180px !important;
+        min-width: 160px !important;
         z-index: 10002 !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
     }
 }
 
