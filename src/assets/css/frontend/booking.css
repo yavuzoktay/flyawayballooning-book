@@ -1891,20 +1891,22 @@ label {
 
     /* Extra enforcement specifically for Weight tooltip on mobile */
     .weight-info-wrapper .info-icon-container .hover-text {
-        /* Center in viewport for better readability on mobile */
+        /* Center within layout (viewport with equal side gutters) */
         position: fixed !important;
         top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        right: auto !important;
+        left: 16px !important;
+        right: 16px !important;
+        transform: translateY(-50%) !important;
         bottom: auto !important;
-        width: calc(100vw - 32px) !important;
+        width: auto !important;
         max-width: 520px !important;
         min-height: 160px !important; /* increased height */
         max-height: 70vh !important;
         overflow-y: auto !important;
         white-space: normal !important;
         z-index: 10005 !important;
+        margin: 0 auto !important;
+        text-align: left !important;
     }
 }
 
