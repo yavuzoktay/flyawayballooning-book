@@ -1629,6 +1629,17 @@ label {
         max-width: 90% !important;
     }
 
+    /* Prevent mobile zoom on input focus (iOS Safari requires >=16px) */
+    .passenger-cards-container .form-presnger input,
+    .passenger-cards-container .form-presnger select,
+    .passenger-cards-container .form-presnger textarea,
+    .all-pressenger .form-presnger input,
+    .all-pressenger .form-presnger select,
+    .all-pressenger .form-presnger textarea {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100% !important;
+    }
+
     .all-pressenger {
         width: 100% !important;
         min-width: 100% !important;
