@@ -1058,60 +1058,66 @@ const VoucherType = ({
                             marginBottom: isMobile ? '4px' : '0'
                         }}>Passengers:</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <button
-                                type="button"
-                                onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
-                                style={{ 
-                                    padding: isMobile ? '8px 12px' : '4px 8px', 
-                                    border: '1px solid #ddd', 
-                                    background: '#f9f9f9', 
-                                    borderRadius: 4, 
-                                    cursor: 'pointer',
-                                    fontSize: isMobile ? '14px' : '14px',
-                                    minHeight: isMobile ? '40px' : 'auto',
-                                    minWidth: isMobile ? '40px' : 'auto'
-                                }}
-                            >
-                                −
-                            </button>
-                            <input 
-                                type="number" 
-                                min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                max={availableCapacity !== null && selectedDate && selectedTime ? 
-                                    Math.min(
-                                        availableCapacity, 
-                                        chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8)
-                                    ) : 
-                                    (chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8))
-                                }
-                                value={quantities[voucher.title] || 2} 
-                                onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                style={{ 
-                                    width: isMobile ? '60px' : '50px', 
-                                    padding: isMobile ? '8px 6px' : '4px 6px', 
-                                    border: '1px solid #ddd', 
-                                    borderRadius: 4, 
-                                    fontSize: isMobile ? 14 : 13, 
-                                    textAlign: 'center',
-                                    minHeight: isMobile ? '40px' : 'auto'
-                                }} 
-                            />
-                            <button
-                                type="button"
-                                onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
-                                style={{ 
-                                    padding: isMobile ? '8px 12px' : '4px 8px', 
-                                    border: '1px solid #ddd', 
-                                    background: '#f9f9f9', 
-                                    borderRadius: 4, 
-                                    cursor: 'pointer',
-                                    fontSize: isMobile ? '14px' : '14px',
-                                    minHeight: isMobile ? '40px' : 'auto',
-                                    minWidth: isMobile ? '40px' : 'auto'
-                                }}
-                            >
-                                +
-                            </button>
+                            {voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (
+                                <span style={{ fontWeight: 700 }}>2</span>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
+                                        style={{ 
+                                            padding: isMobile ? '8px 12px' : '4px 8px', 
+                                            border: '1px solid #ddd', 
+                                            background: '#f9f9f9', 
+                                            borderRadius: 4, 
+                                            cursor: 'pointer',
+                                            fontSize: isMobile ? '14px' : '14px',
+                                            minHeight: isMobile ? '40px' : 'auto',
+                                            minWidth: isMobile ? '40px' : 'auto'
+                                        }}
+                                    >
+                                        −
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
+                                        max={availableCapacity !== null && selectedDate && selectedTime ? 
+                                            Math.min(
+                                                availableCapacity, 
+                                                chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8)
+                                            ) : 
+                                            (chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8))
+                                        }
+                                        value={quantities[voucher.title] || 2} 
+                                        onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
+                                        style={{ 
+                                            width: isMobile ? '60px' : '50px', 
+                                            padding: isMobile ? '8px 6px' : '4px 6px', 
+                                            border: '1px solid #ddd', 
+                                            borderRadius: 4, 
+                                            fontSize: isMobile ? 14 : 13, 
+                                            textAlign: 'center',
+                                            minHeight: isMobile ? '40px' : 'auto'
+                                        }} 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
+                                        style={{ 
+                                            padding: isMobile ? '8px 12px' : '4px 8px', 
+                                            border: '1px solid #ddd', 
+                                            background: '#f9f9f9', 
+                                            borderRadius: 4, 
+                                            cursor: 'pointer',
+                                            fontSize: isMobile ? '14px' : '14px',
+                                            minHeight: isMobile ? '40px' : 'auto',
+                                            minWidth: isMobile ? '40px' : 'auto'
+                                        }}
+                                    >
+                                        +
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
@@ -1188,7 +1194,9 @@ const VoucherType = ({
 
     const handleSelectVoucher = async (voucher) => {
         // Ensure quantity defaults to 2 when not explicitly changed in UI
-        const quantity = parseInt(quantities[voucher.title] || 2, 10);
+        // For Proposal Flight, force quantity to 2
+        const isProposal = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal');
+        const quantity = isProposal ? 2 : parseInt(quantities[voucher.title] || 2, 10);
         
         console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Quantity for', voucher.title, ':', quantity);
