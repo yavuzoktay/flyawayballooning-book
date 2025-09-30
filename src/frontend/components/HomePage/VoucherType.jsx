@@ -1059,7 +1059,7 @@ const VoucherType = ({
                         }}>Passengers:</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (
-                                <span style={{ fontWeight: 700 }}>2</span>
+                                <span style={{ fontWeight: 600 }}>2</span>
                             ) : (
                                 <>
                                     <button

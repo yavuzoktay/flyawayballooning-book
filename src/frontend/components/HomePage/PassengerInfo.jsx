@@ -15,7 +15,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     }
     // If Redeem Voucher and selectedVoucherType.quantity is numeric, use it (populated from backend count)
     if (activitySelect === 'Redeem Voucher') {
-      const q = parseInt(selectedVoucherType?.quantity, 10);
+      const q = parseInt(selectedVoucherType?.quantity ?? chooseFlightType?.passengerCount, 10);
       if (!Number.isNaN(q) && q > 0) return q;
     }
     const isVoucherDriven = chooseFlightType?.type === 'Flight Voucher' || activitySelect === 'Book Flight';

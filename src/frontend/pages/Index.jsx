@@ -313,17 +313,20 @@ const Index = () => {
                 if (activitySelect === 'Redeem Voucher' && response.data.data) {
                     const voucherInfo = response.data.data;
                     
+                    // Resolve passenger count from voucher
+                    const resolvedPassengerCount = parseInt(voucherInfo.numberOfPassengers, 10);
                     // Set flight type from voucher experience_type
                     if (voucherInfo.experience_type) {
                         setChooseFlightType({
                             type: voucherInfo.experience_type,
-                            passengerCount: "1", // Default to 1 passenger
+                            passengerCount: !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 
+                                ? String(resolvedPassengerCount) 
+                                : "1",
                             price: voucherInfo.final_amount || 0
                         });
                     }
                     
                     // Use numberOfPassengers if provided by backend to pre-fill Passenger Information
-                    const resolvedPassengerCount = parseInt(voucherInfo.numberOfPassengers, 10);
                     if (!Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0) {
                         // Ensure passengerData array has exact count
                         setPassengerData(prev => {
