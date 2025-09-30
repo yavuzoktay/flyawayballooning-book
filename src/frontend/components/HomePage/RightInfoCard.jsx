@@ -1143,7 +1143,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         fontSize: '0.9rem',
                                         margin: '0 0 4px 0'
                                     }}>
-                                        £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                        £{(parseFloat(voucherData.paid_amount || voucherData.detail?.paid || voucherData.final_amount || 100)).toFixed(2)}
                                     </p>
                                 )}
                                 <p style={{ fontWeight: 500, fontSize: '1.2rem', margin: 0 }}>
@@ -1259,7 +1259,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         color: '#999', 
                                         fontSize: '0.9rem' 
                                     }}>
-                                        £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                        £{(parseFloat(voucherData.paid_amount || voucherData.detail?.paid || voucherData.final_amount || 100)).toFixed(2)}
                                     </span>
                                 )}
                                 <span style={{ color: '#666' }}>
@@ -1316,7 +1316,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                                 fontSize: '0.9rem',
                                                 marginBottom: '4px'
                                             }}>
-                                                £{(parseFloat(voucherData.final_amount || 100)).toFixed(2)}
+                                                £{(parseFloat(voucherData.paid_amount || voucherData.detail?.paid || voucherData.final_amount || 100)).toFixed(2)}
                                             </span>
                                         )}
                                         <span>
