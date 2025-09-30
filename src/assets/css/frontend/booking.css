@@ -1888,6 +1888,18 @@ label {
         overflow-wrap: break-word !important;
         word-break: break-word !important;
     }
+
+    /* Extra enforcement specifically for Weight tooltip on mobile */
+    .weight-info-wrapper .info-icon-container .hover-text {
+        position: absolute !important;
+        top: calc(100% + 10px) !important; /* show below icon */
+        bottom: auto !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        max-width: calc(100vw - 24px) !important;
+        white-space: normal !important;
+    }
 }
 
 @media (max-width: 480px) {
