@@ -607,7 +607,11 @@ const Index = () => {
     } else if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
         // For Flight Voucher and Buy Gift, only show total when voucher type is selected
         if (selectedVoucherType) {
-            const voucherTypePrice = selectedVoucherType?.price || 0;
+            const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+            // For Private Charter, selectedVoucherType.price already reflects the correct total (set in VoucherType)
+            const voucherTypePrice = isPrivateCharter
+                ? (selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0)
+                : (selectedVoucherType?.price ?? 0);
             const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
             const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
             totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;

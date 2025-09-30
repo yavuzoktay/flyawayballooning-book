@@ -135,7 +135,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     } else if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
         // For Flight Voucher and Buy Gift, only show total when voucher type is selected
         if (selectedVoucherType) {
-            totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
+            const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+            const vtPrice = isPrivateCharter
+                ? (selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0)
+                : voucherTypePrice;
+            totalPrice = parseFloat(vtPrice) + parseFloat(addOnPrice) + weatherRefundPrice;
         }
     } else if (activitySelect === 'Redeem Voucher') {
         // For Redeem Voucher, total price should be 0 since voucher covers the cost
