@@ -886,7 +886,9 @@ const VoucherType = ({
         
         // For Private Charter, only allow specific passenger counts: 2, 3, 4, 8
         if (chooseFlightType?.type === "Private Charter") {
-            const allowedPassengers = [2, 3, 4, 8];
+            // For Proposal Flight, cap at 2 passengers only
+            const isProposal = typeof voucherTitle === 'string' && voucherTitle.toLowerCase().includes('proposal');
+            const allowedPassengers = isProposal ? [2] : [2, 3, 4, 8];
             let finalValue = newValue;
             
             // If it's a manual input, find the closest allowed value
@@ -940,6 +942,7 @@ const VoucherType = ({
     // Helper function to get next allowed passenger count
     const getNextAllowedPassenger = (current, direction) => {
         // For Private Charter, only 2,3,4,8 are valid steps so the + button should jump 4 -> 8
+        const isProposal = typeof current === 'number' ? false : false; // current unused for detection here
         const allowedPassengers = (chooseFlightType?.type === "Private Charter")
             ? [2, 3, 4, 8]
             : [1, 2, 3, 4, 5, 6, 7, 8];
@@ -1077,9 +1080,9 @@ const VoucherType = ({
                                 max={availableCapacity !== null && selectedDate && selectedTime ? 
                                     Math.min(
                                         availableCapacity, 
-                                        chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8)
+                                        chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8)
                                     ) : 
-                                    (chooseFlightType?.type === "Private Charter" ? 8 : (voucher.maxPassengers || 8))
+                                    (chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8))
                                 }
                                 value={quantities[voucher.title] || 2} 
                                 onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
