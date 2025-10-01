@@ -1011,7 +1011,6 @@ const VoucherType = ({
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
-                height: isMobile ? 'auto' : 560,
                 animation: shouldAnimate ? (slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none') : 'none',
                 border: isSelected ? '2px solid #03a9f4' : 'none',
                 scrollSnapAlign: isMobile ? 'start' : 'none'
@@ -1056,8 +1055,7 @@ const VoucherType = ({
                     boxSizing: 'border-box', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    height: isMobile ? 'auto' : 'calc(560px - 180px)',
-                    overflow: 'hidden' 
+                    height: '100%' 
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
