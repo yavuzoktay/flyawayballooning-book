@@ -1032,7 +1032,7 @@ const VoucherType = ({
                             left: 16,
                             right: 16,
                             bottom: 16,
-                            background: 'rgba(0, 160, 80, 0.85)',
+                            background: '#61D836',
                             color: '#fff',
                             padding: '8px 12px',
                             borderRadius: 8,
