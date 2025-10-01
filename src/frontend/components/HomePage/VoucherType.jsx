@@ -745,6 +745,7 @@ const VoucherType = ({
                     title: vt.title,
                     description: vt.description || 'Exclusive private balloon experience for your group. Perfect for special occasions and intimate groups.',
                     image: imageUrl,
+                    imageTextTag: vt.image_text_tag || '',
                     refundability: 'Non-Refundable',
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
@@ -838,6 +839,7 @@ const VoucherType = ({
                     title: vt.title,
                     description: vt.description || 'Shared balloon experience with other passengers. Perfect for individuals and small groups.',
                     image: imageUrl,
+                    imageTextTag: vt.image_text_tag || '',
                     refundability: 'Non-Refundable',
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
@@ -1013,15 +1015,37 @@ const VoucherType = ({
                 border: isSelected ? '2px solid #03a9f4' : 'none',
                 scrollSnapAlign: isMobile ? 'start' : 'none'
             }}>
-                <img
-                    src={voucher.image}
-                    alt={voucher.title}
-                    style={{
-                        width: '100%',
-                        height: 180,
-                        objectFit: 'cover',
-                    }}
-                />
+                <div style={{ position: 'relative', width: '100%', height: 180, overflow: 'hidden' }}>
+                    <img
+                        src={voucher.image}
+                        alt={voucher.title}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block'
+                        }}
+                    />
+                    {voucher.imageTextTag && (
+                        <div style={{
+                            position: 'absolute',
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                            background: 'rgba(0, 160, 80, 0.85)',
+                            color: '#fff',
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            lineHeight: 1.2,
+                            backdropFilter: 'blur(2px)'
+                        }}>
+                            {voucher.imageTextTag}
+                        </div>
+                    )}
+                </div>
                 <div style={{ 
                     padding: '16px', 
                     width: '100%', 
