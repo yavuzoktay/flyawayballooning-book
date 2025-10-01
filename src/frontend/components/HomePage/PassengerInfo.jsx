@@ -389,16 +389,18 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
   const activeCheckStyle = {
     ...checkStyle,
-    backgroundColor: '#ffffff',
-    borderColor: '#3b82f6',
-    boxShadow: isMobile ? '0 4px 8px rgba(59, 130, 246, 0.2)' : 'none',
+    // Mobile: match Add To Booking green filled circle with white tick
+    backgroundColor: isMobile ? '#22c55e' : '#ffffff',
+    borderColor: isMobile ? '#22c55e' : '#3b82f6',
+    boxShadow: isMobile ? '0 4px 10px rgba(34, 197, 94, 0.35)' : 'none',
   };
   const checkIconStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    color: '#61D836',
+    // Mobile: white tick on green filled circle; Desktop: existing green tick
+    color: isMobile ? '#ffffff' : '#61D836',
     fontSize: isMobile ? '14px' : '12px',
     fontWeight: 'bold',
     pointerEvents: 'none',
