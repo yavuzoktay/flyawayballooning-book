@@ -1924,39 +1924,6 @@ label {
     }
 }
 
-/* Mobile: Make Recipient Details inputs identical to Purchaser Information */
-@media (max-width: 768px) {
-  .Recipient label {
-    display: block;
-    font-weight: 600;
-    color: #111827;
-    margin: 8px 0 6px;
-  }
-  .Recipient input[type="text"],
-  .Recipient input[type="email"],
-  .Recipient input[type="tel"],
-  .Recipient input[type="date"],
-  .Recipient select,
-  .Recipient textarea {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 16px;
-    line-height: 1.25;
-    background: #ffffff;
-    outline: none;
-    margin: 0 0 16px 0;
-    min-height: 52px;
-  }
-  .Recipient input::placeholder,
-  .Recipient textarea::placeholder {
-    color: #9ca3af;
-  }
-}
-
 @media (max-width: 480px) {
     .hover-text {
         min-width: 160px;

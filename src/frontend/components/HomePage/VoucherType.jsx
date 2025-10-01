@@ -1029,18 +1029,21 @@ const VoucherType = ({
                     {voucher.imageTextTag && (
                         <div style={{
                             position: 'absolute',
-                            left: 16,
-                            right: 16,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
                             bottom: 16,
-                            background: '#61D836',
+                            background: 'rgb(97, 216, 54)',
                             color: '#fff',
-                            padding: '8px 12px',
-                            borderRadius: 8,
-                            fontSize: 14,
-                            fontWeight: 600,
+                            padding: '6px 12px',
+                            borderRadius: 10,
+                            fontSize: 13,
+                            fontWeight: 700,
                             textAlign: 'center',
                             lineHeight: 1.2,
-                            backdropFilter: 'blur(2px)'
+                            maxWidth: '72%',
+                            whiteSpace: 'normal',
+                            wordBreak: 'break-word',
+                            boxShadow: '0 4px 10px rgba(97, 216, 54, 0.35)'
                         }}>
                             {voucher.imageTextTag}
                         </div>
