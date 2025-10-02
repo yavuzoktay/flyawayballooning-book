@@ -688,6 +688,17 @@ label {
     margin-top: 10px;
     padding: 0px 10px;
     box-sizing: border-box;
+    font-family: 'Gilroy', sans-serif;
+    font-size: 16px;
+    color: #111827; /* same as recipient fields */
+}
+
+/* Make Purchaser Information inputs match Recipient Details input fonts/colors */
+.Purchaser input,
+.Purchaser input::placeholder {
+    font-family: 'Gilroy', sans-serif !important;
+    font-size: 16px !important;
+    color: #111827 !important;
 }
 
 
@@ -1172,13 +1183,11 @@ label {
 @media (max-width: 576px) {
     .add-on-card.scroll-box.vouch {
         gap: 16px !important;
-        padding: 12px 8px 20px 8px !important;
         display: flex !important;
         flex-direction: column !important;
     }
     .add-on-card .loc_data {
         gap: 20px !important;
-        padding: 20px 16px !important;
         align-items: flex-start !important;
         position: relative !important;
         flex-direction: row !important;
