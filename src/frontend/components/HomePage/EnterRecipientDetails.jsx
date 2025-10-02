@@ -197,69 +197,145 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     </div>
                 )}
 
-                <form onSubmit={(e) => e.preventDefault()}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
-                        <div className="info-icon-container recipient-tooltip">
-                            <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
-                            <div className="hover-text recipient-hover-text">
-                                <p>Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser.</p>
+                <div className="form-presnger" style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '12px',
+                    width: '100%',
+                    maxWidth: '100%',
+                    margin: '0',
+                    padding: '0 8px'
+                }}>
+                    {/* Recipient Name */}
+                    <div style={{ width: '100%', minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <label style={{ 
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                color: '#374151',
+                                marginBottom: '4px',
+                                display: 'block',
+                            }}>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                            <div className="info-icon-container recipient-tooltip">
+                                <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
+                                <div className="hover-text recipient-hover-text">
+                                    <p>Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser.</p>
+                                </div>
                             </div>
                         </div>
+                        <input
+                            type="text"
+                            name="name"
+                            required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                            value={recipientDetails.name}
+                            onChange={handleChange}
+                            placeholder="Recipient Name"
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                fontSize: '16px',
+                                minHeight: '52px',
+                                boxSizing: 'border-box',
+                                ...(validationErrors.name ? { border: '1.5px solid red' } : {})
+                            }}
+                        />
+                        {validationErrors.name && <span style={{ color: 'red', fontSize: 12 }}>Recipient name is required</span>}
                     </div>
-                    {/* Reduced spacing to match other fields */}
-                    <input
-                        type="text"
-                        name="name"
-                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                        value={recipientDetails.name}
-                        onChange={handleChange}
-                        placeholder="Recipient Name"
-                        style={validationErrors.name ? { border: '1.5px solid red' } : {}}
-                    />
-                    {validationErrors.name && <span style={{ color: 'red', fontSize: 12 }}>Recipient name is required</span>}
-                    <br /><br />
 
-                    <label>Recipient Email{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
-                    <input
-                        type="email"
-                        name="email"
-                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                        value={recipientDetails.email}
-                        onChange={handleChange}
-                        placeholder="Recipient Email"
-                        style={(emailError || validationErrors.email) ? { border: '1.5px solid red' } : {}}
-                    />
-                    {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
-                    {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Recipient email is required</span>}
-                    <br /><br />
+                    {/* Recipient Email */}
+                    <div style={{ width: '100%', minWidth: 0 }}>
+                        <label style={{ 
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
+                            display: 'block',
+                        }}>Recipient Email{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        <input
+                            type="email"
+                            name="email"
+                            required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                            value={recipientDetails.email}
+                            onChange={handleChange}
+                            placeholder="Recipient Email"
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                fontSize: '16px',
+                                minHeight: '52px',
+                                boxSizing: 'border-box',
+                                ...((emailError || validationErrors.email) ? { border: '1.5px solid red' } : {})
+                            }}
+                        />
+                        {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
+                        {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Recipient email is required</span>}
+                    </div>
 
-                    <label>Recipient Phone Number{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
-                    <input
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        name="phone"
-                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                        value={recipientDetails.phone}
-                        onChange={handleChange}
-                        placeholder="Recipient Phone Number"
-                        style={validationErrors.phone ? { border: '1.5px solid red' } : {}}
-                    />
-                    {validationErrors.phone && <span style={{ color: 'red', fontSize: 12 }}>Recipient phone number is required</span>}
-                    <br /><br />
+                    {/* Recipient Phone Number */}
+                    <div style={{ width: '100%', minWidth: 0 }}>
+                        <label style={{ 
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
+                            display: 'block',
+                        }}>Recipient Phone Number{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        <input
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            name="phone"
+                            required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                            value={recipientDetails.phone}
+                            onChange={handleChange}
+                            placeholder="Recipient Phone Number"
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                fontSize: '16px',
+                                minHeight: '52px',
+                                boxSizing: 'border-box',
+                                ...(validationErrors.phone ? { border: '1.5px solid red' } : {})
+                            }}
+                        />
+                        {validationErrors.phone && <span style={{ color: 'red', fontSize: 12 }}>Recipient phone number is required</span>}
+                    </div>
 
-                    <label>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label><br />
-                    <input
-                        type="date"
-                        name="date"
-                        value={recipientDetails.date || ''}
-                        onChange={handleChange}
-                        required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                        style={validationErrors.date ? { border: '1.5px solid red' } : {}}
-                    />
-                    {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
-                </form>
+                    {/* Date Voucher to be Gifted */}
+                    <div style={{ width: '100%', minWidth: 0 }}>
+                        <label style={{ 
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#374151',
+                            marginBottom: '4px',
+                            display: 'block',
+                        }}>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        <input
+                            type="date"
+                            name="date"
+                            value={recipientDetails.date || ''}
+                            onChange={handleChange}
+                            required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                fontSize: '16px',
+                                minHeight: '52px',
+                                boxSizing: 'border-box',
+                                ...(validationErrors.date ? { border: '1.5px solid red' } : {})
+                            }}
+                        />
+                        {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
+                    </div>
+                </div>
             </div>
         </Accordion>
     );
