@@ -1078,15 +1078,21 @@ const VoucherType = ({
                         marginBottom: 12, 
                         gap: isMobile ? '8px' : '8px' 
                     }}>
-                        <label style={{ 
-                            fontSize: isMobile ? 16 : 13, 
-                            color: '#666', 
-                            fontWeight: isMobile ? 500 : 500,
-                            marginBottom: isMobile ? '4px' : '0'
-                        }}>Passengers:</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: isMobile ? '4px' : '8px',
+                            flexWrap: isMobile ? 'nowrap' : 'wrap'
+                        }}>
+                            <label style={{ 
+                                fontSize: isMobile ? 16 : 13, 
+                                color: '#666', 
+                                fontWeight: isMobile ? 500 : 500,
+                                marginBottom: '0',
+                                whiteSpace: isMobile ? 'nowrap' : 'normal'
+                            }}>Passengers:</label>
                             {voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (
-                                <span style={{ fontWeight: 600 }}>2</span>
+                                <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>2</span>
                             ) : (
                                 <>
                                     <button
