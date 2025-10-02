@@ -870,6 +870,67 @@ const Index = () => {
         setActiveAccordion(sectionId); // Aktivite seçildiyse normal davran
     };
 
+    // Accordion'ların hangi sıraya göre enabled/disabled olacağını belirleyen fonksiyon
+    const getAccordionState = (sectionId) => {
+        // Eğer aktivite seçilmemişse sadece activity accordion'u enabled
+        if (activitySelect === null) {
+            return sectionId === 'activity' ? { isEnabled: true } : { isEnabled: false };
+        }
+
+        // Mevcut sequence'ı al
+        const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
+        
+        // Tamamlanmış section'ları belirle
+        const completedSections = [];
+        if (activitySelect) completedSections.push('activity');
+        if (chooseLocation) completedSections.push('location');
+        if (chooseFlightType?.type) completedSections.push('experience');
+        if (selectedVoucherType) completedSections.push('voucher-type');
+        if (selectedDate && selectedTime) completedSections.push('live-availability');
+        if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+        if (additionalInfo?.notes) completedSections.push('additional-info');
+        if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
+        if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
+
+        // Section'ın sequence'daki pozisyonunu bul
+        const sectionIndex = sequence.indexOf(sectionId);
+        
+        // Eğer section sequence'da yoksa disabled
+        if (sectionIndex === -1) {
+            return { isEnabled: false };
+        }
+
+        // İlk section (activity) her zaman enabled
+        if (sectionIndex === 0) {
+            return { isEnabled: true };
+        }
+
+        // Önceki tüm section'lar tamamlanmış mı kontrol et
+        const previousSections = sequence.slice(0, sectionIndex);
+        const allPreviousCompleted = previousSections.every(section => completedSections.includes(section));
+        
+        return { isEnabled: allPreviousCompleted };
+    };
+
+    // handleSetActiveAccordion fonksiyonunu güncelle - disabled accordion'lara tıklanmasını engelle
+    const handleSetActiveAccordionWithValidation = (sectionId) => {
+        if (activitySelect === null) {
+            return; // Eğer aktivite seçilmediyse, hiçbir şey yapma
+        }
+
+        // Accordion'ın enabled olup olmadığını kontrol et
+        const { isEnabled } = getAccordionState(sectionId);
+        if (!isEnabled) {
+            console.log('❌ Accordion disabled, cannot open:', sectionId);
+            return;
+        }
+
+        // Prefetch passenger terms when Passenger Information is opened so modal can show instantly
+        if (sectionId === 'passenger-info') {
+            fetchPassengerTermsForJourney(activitySelect, { openModal: false, preferCache: false });
+        }
+        setActiveAccordion(sectionId); // Aktivite seçildiyse ve enabled ise normal davran
+    };
 
     // Handle voucher code submission
     const handleVoucherSubmit = (code) => {
@@ -1752,13 +1813,14 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 setChooseLocation={setChooseLocation} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 setActivityId={setActivityId} 
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('location').isEnabled}
                                             />
                                             <ExperienceSection 
                                                 isRedeemVoucher={isRedeemVoucher} 
@@ -1766,7 +1828,7 @@ const Index = () => {
                                                 addPassenger={addPassenger} 
                                                 setAddPassenger={setAddPassenger} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 setAvailableSeats={setAvailableSeats}
                                                 voucherCode={voucherCode}
                                                 chooseLocation={chooseLocation}
@@ -1774,11 +1836,12 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('experience').isEnabled}
                                             />
                                             {chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     selectedVoucherType={selectedVoucherType} 
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
@@ -1789,6 +1852,7 @@ const Index = () => {
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 />
                                             )}
                                             <LiveAvailabilitySection 
@@ -1797,7 +1861,7 @@ const Index = () => {
                                                 selectedDate={selectedDate} 
                                                 setSelectedDate={setSelectedDate} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 selectedActivity={selectedActivity} 
                                                 availableSeats={availableSeats} 
                                                 chooseLocation={chooseLocation}
@@ -1810,6 +1874,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -1817,7 +1882,7 @@ const Index = () => {
                                                 passengerData={passengerData}
                                                 setPassengerData={setPassengerData}
                                                 activeAccordion={activeAccordion}
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 chooseFlightType={chooseFlightType}
                                                 addPassenger={addPassenger}
                                                 setAddPassenger={setAddPassenger}
@@ -1828,6 +1893,7 @@ const Index = () => {
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('passenger-info').isEnabled}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -1837,9 +1903,10 @@ const Index = () => {
                                                 additionalInfo={additionalInfo} 
                                                 setAdditionalInfo={setAdditionalInfo} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 flightType={chooseFlightType.type}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
                                             
                                             <AddOnsSection 
@@ -1849,13 +1916,14 @@ const Index = () => {
                                                 chooseAddOn={chooseAddOn} 
                                                 setChooseAddOn={setChooseAddOn} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
                                                 disabled={false}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('add-on').isEnabled}
                                             />
                                             {console.log('🔍 AddOnsSection called with:', {
                                                 activitySelect,
@@ -1875,13 +1943,14 @@ const Index = () => {
                                                 chooseLocation={chooseLocation} 
                                                 setChooseLocation={setChooseLocation} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 setActivityId={setActivityId} 
                                                 setSelectedActivity={setSelectedActivity}
                                                 setAvailabilities={setAvailabilities}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('location').isEnabled}
                                             />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -1889,7 +1958,7 @@ const Index = () => {
                                                 selectedDate={selectedDate} 
                                                 setSelectedDate={setSelectedDate} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 selectedActivity={selectedActivity} 
                                                 availableSeats={availableSeats} 
                                                 chooseLocation={chooseLocation}
@@ -1902,6 +1971,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
                                                 isGiftVoucher={isGiftVoucher}
@@ -1909,7 +1979,7 @@ const Index = () => {
                                                 passengerData={passengerData}
                                                 setPassengerData={setPassengerData}
                                                 activeAccordion={activeAccordion}
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 chooseFlightType={chooseFlightType}
                                                 addPassenger={addPassenger}
                                                 setAddPassenger={setAddPassenger}
@@ -1920,6 +1990,7 @@ const Index = () => {
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('passenger-info').isEnabled}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -1929,9 +2000,10 @@ const Index = () => {
                                                 additionalInfo={additionalInfo} 
                                                 setAdditionalInfo={setAdditionalInfo} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 flightType={chooseFlightType.type}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
                                             <AddOnsSection 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -1940,12 +2012,13 @@ const Index = () => {
                                                 chooseAddOn={chooseAddOn} 
                                                 setChooseAddOn={setChooseAddOn} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('add-on').isEnabled}
                                             />
                                             {console.log('🔍 AddOnsSection (Redeem Voucher) called with:', {
                                                 activitySelect,
@@ -1964,7 +2037,7 @@ const Index = () => {
                                                 addPassenger={addPassenger} 
                                                 setAddPassenger={setAddPassenger} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 setAvailableSeats={setAvailableSeats}
                                                 voucherCode={voucherCode}
                                                 chooseLocation={chooseLocation}
@@ -1972,11 +2045,12 @@ const Index = () => {
                                                 isBookFlight={isBookFlight}
                                                 isGiftVoucher={isGiftVoucher}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('experience').isEnabled}
                                             />
                                             {chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     selectedVoucherType={selectedVoucherType} 
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
@@ -1987,6 +2061,7 @@ const Index = () => {
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 />
                                             )}
                                             <PassengerInfo
@@ -1995,7 +2070,7 @@ const Index = () => {
                                                 passengerData={passengerData}
                                                 setPassengerData={setPassengerData}
                                                 activeAccordion={activeAccordion}
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 chooseFlightType={chooseFlightType}
                                                 addPassenger={addPassenger}
                                                 setAddPassenger={setAddPassenger}
@@ -2003,6 +2078,7 @@ const Index = () => {
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('passenger-info').isEnabled}
                                             />
                                             <AdditionalInfo 
                                                 ref={additionalInfoRef}
@@ -2013,10 +2089,11 @@ const Index = () => {
                                                 additionalInfo={additionalInfo} 
                                                 setAdditionalInfo={setAdditionalInfo} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 flightType={chooseFlightType.type}
                                                 location={chooseLocation}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             <AddOnsSection 
@@ -2026,12 +2103,13 @@ const Index = () => {
                                                 chooseAddOn={chooseAddOn} 
                                                 setChooseAddOn={setChooseAddOn} 
                                                 activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 chooseLocation={chooseLocation} 
                                                 chooseFlightType={chooseFlightType} 
                                                 activitySelect={activitySelect}
                                                 flightType={chooseFlightType.type}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('add-on').isEnabled}
                                             />
                                             {console.log('🔍 AddOnsSection (Flight Voucher) called with:', {
                                                 activitySelect,
@@ -2051,7 +2129,7 @@ const Index = () => {
                                                     chooseLocation={chooseLocation} 
                                                     setChooseLocation={setChooseLocation} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     setActivityId={setActivityId} 
                                                     setSelectedActivity={setSelectedActivity}
                                                     setAvailabilities={setAvailabilities}
@@ -2067,7 +2145,7 @@ const Index = () => {
                                                     addPassenger={addPassenger} 
                                                     setAddPassenger={setAddPassenger} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     setAvailableSeats={setAvailableSeats}
                                                     voucherCode={voucherCode}
                                                     chooseLocation={chooseLocation}
@@ -2080,7 +2158,7 @@ const Index = () => {
                                             {activitySelect === "Buy Gift" && chooseLocation !== "Bristol Fiesta" && (
                                                 <VoucherType 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     selectedVoucherType={selectedVoucherType} 
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
@@ -2091,6 +2169,7 @@ const Index = () => {
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
@@ -2100,7 +2179,7 @@ const Index = () => {
                                                     selectedDate={selectedDate} 
                                                     setSelectedDate={setSelectedDate} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     selectedActivity={selectedActivity} 
                                                     availableSeats={availableSeats} 
                                                     chooseLocation={chooseLocation}
@@ -2121,7 +2200,7 @@ const Index = () => {
                                                     chooseAddOn={chooseAddOn} 
                                                     setChooseAddOn={setChooseAddOn} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     chooseLocation={chooseLocation} 
                                                     chooseFlightType={chooseFlightType} 
                                                     activitySelect={activitySelect}
@@ -2145,7 +2224,7 @@ const Index = () => {
                                                 passengerData={passengerData}
                                                 setPassengerData={setPassengerData}
                                                 activeAccordion={activeAccordion}
-                                                setActiveAccordion={handleSetActiveAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 chooseFlightType={chooseFlightType}
                                                 addPassenger={addPassenger}
                                                 setAddPassenger={setAddPassenger}
@@ -2156,6 +2235,7 @@ const Index = () => {
                                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('passenger-info').isEnabled}
                                             />
                                             {activitySelect === "Buy Gift" && (
                                                 <EnterRecipientDetails 
@@ -2167,8 +2247,9 @@ const Index = () => {
                                                     recipientDetails={recipientDetails} 
                                                     setRecipientDetails={setRecipientDetails} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion}
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('recipient-details').isEnabled}
                                                 />
                                             )}
 
@@ -2181,12 +2262,13 @@ const Index = () => {
                                                     chooseAddOn={chooseAddOn} 
                                                     setChooseAddOn={setChooseAddOn} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                     chooseLocation={chooseLocation} 
                                                     chooseFlightType={chooseFlightType} 
                                                     activitySelect={activitySelect}
                                                     flightType={chooseFlightType.type}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('add-on').isEnabled}
                                                 />
                                             )}
 
@@ -2200,10 +2282,11 @@ const Index = () => {
                                                     additionalInfo={additionalInfo} 
                                                     setAdditionalInfo={setAdditionalInfo} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion}
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                     flightType={chooseFlightType.type}
                                                     location={chooseLocation}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('additional-info').isEnabled}
                                                 />
                                             )}
                                             {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher") && (
@@ -2213,7 +2296,7 @@ const Index = () => {
                                                     preference={preference} 
                                                     setPreference={setPreference} 
                                                     activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordion}
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
                                                 />
                                             )}
 

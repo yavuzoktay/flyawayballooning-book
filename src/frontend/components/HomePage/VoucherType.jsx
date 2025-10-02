@@ -147,7 +147,8 @@ const VoucherType = ({
     availableCapacity,
     selectedDate,
     selectedTime,
-    onSectionCompletion
+    onSectionCompletion,
+    isDisabled = false
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -1464,6 +1465,7 @@ const VoucherType = ({
                 id="voucher-type"
                 activeAccordion={activeAccordion}
                 setActiveAccordion={setActiveAccordion}
+                isDisabled={isDisabled}
             >
                 {showTerms && selectedVoucher && (
                     <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>

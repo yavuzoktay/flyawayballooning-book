@@ -3,7 +3,7 @@ import React, { useState, forwardRef, useImperativeHandle } from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 
-const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion }, ref) => {
+const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
     const [emailError, setEmailError] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [skipRecipientDetails, setSkipRecipientDetails] = useState(false);
@@ -141,7 +141,8 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             id="recipient-details" 
             activeAccordion={activeAccordion} 
             setActiveAccordion={setActiveAccordion} 
-            className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`} 
+            className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`}
+            isDisabled={isDisabled} 
             disabled={isBookFlight}
             onBeforeClose={onBeforeClose}
         >

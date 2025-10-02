@@ -17,7 +17,7 @@ const imageMap = {
 
 const API_BASE_URL = config.API_BASE_URL;
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType, onSectionCompletion }) => {
+const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType, onSectionCompletion, isDisabled = false }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
@@ -200,7 +200,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                 </div>
             )}
             
-            <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`}>
+            <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`} isDisabled={isDisabled}>
                 <div className="tab_box scroll-box">
 
                     

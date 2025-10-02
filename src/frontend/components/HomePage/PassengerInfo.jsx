@@ -4,7 +4,7 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion }, ref) => {
+const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion, isDisabled = false }, ref) => {
   // Determine passengerCount
   // - For Buy Gift: fixed to 1
   // - For Flight Voucher and Book Flight: prefer quantity from selected voucher type
@@ -436,6 +436,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       id="passenger-info" 
       activeAccordion={activeAccordion} 
       setActiveAccordion={setActiveAccordion}
+      isDisabled={isDisabled}
       onBeforeClose={() => {
         // Validate all passenger inputs before allowing section to close
         const ok = validateFields(true);

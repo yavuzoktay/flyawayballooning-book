@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 
-const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, className, onBeforeClose }) => {
+const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, className, onBeforeClose, isDisabled = false }) => {
     const isOpen = activeAccordion === id;
 
     const toggleAccordion = () => {
+        // Eğer accordion disabled ise hiçbir şey yapma
+        if (isDisabled) {
+            return;
+        }
+        
         if (isOpen) {
             // If a guard is provided, allow it to cancel closing by returning false
             if (typeof onBeforeClose === 'function') {
@@ -22,11 +27,26 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
     const isActivitySection = id === "activity";
 
     return (
-        <div className={`accordion-section ${className || ""}`}>
+        <div 
+            className={`accordion-section ${className || ""}`}
+            style={{
+                ...(isDisabled ? {
+                    opacity: '0.5',
+                    pointerEvents: 'none',
+                    cursor: 'not-allowed'
+                } : {})
+            }}
+        >
             <button 
-                className={`accordion ${isOpen ? "active" : ""} ${isActivitySection ? "activity-accordion" : ""}`} 
+                className={`accordion ${isOpen ? "active" : ""} ${isActivitySection ? "activity-accordion" : ""} ${isDisabled ? "disabled" : ""}`} 
                 onClick={toggleAccordion}
-                style={isActivitySection ? { fontSize: '22px', fontWeight: '500' } : {}}
+                style={{
+                    ...(isActivitySection ? { fontSize: '22px', fontWeight: '500' } : {}),
+                    ...(isDisabled ? { 
+                        cursor: 'not-allowed'
+                    } : {})
+                }}
+                disabled={isDisabled}
             >
                 {title}
                 <span className="accordion-icon">{isOpen ? "-" : "+"}</span>

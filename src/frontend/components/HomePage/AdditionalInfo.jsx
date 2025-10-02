@@ -2,7 +2,7 @@ import React, { useState, forwardRef, useImperativeHandle, useEffect } from "rea
 import Accordion from "../Common/Accordion";
 import config from '../../../config';
 
-const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {} }, ref) => {
+const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {}, isDisabled = false }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [additionalInfoQuestions, setAdditionalInfoQuestions] = useState([]);
     const [additionalInfoLoading, setAdditionalInfoLoading] = useState(true);
@@ -299,6 +299,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
             id="additional-info" 
             activeAccordion={activeAccordion} 
             setActiveAccordion={setActiveAccordion}
+            isDisabled={isDisabled}
             onBeforeClose={() => {
                 const ok = validateFields();
                 // Prevent closing if there are missing required fields

@@ -3,7 +3,7 @@ import Accordion from "../Common/Accordion";
 import AddOn1 from '../../../assets/images/addOn1.png';
 import config from '../../../config';
 
-const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect, flightType }) => {
+const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect, flightType, isDisabled = false }) => {
     const [addToBookingItems, setAddToBookingItems] = useState([]);
     const [addToBookingLoading, setAddToBookingLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
@@ -324,7 +324,7 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
     console.log('   - Items to display:', filteredItems.map(item => item.name));
 
     return (
-        <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion}>
+        <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} isDisabled={isDisabled}>
             <div className="tab_box add-on-card scroll-box vouch">
                 {addToBookingLoading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>

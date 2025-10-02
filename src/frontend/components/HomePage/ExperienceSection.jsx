@@ -31,7 +31,7 @@ const getNormalizedImageUrl = (exp) => {
     }
 };
 
-const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher, onSectionCompletion }) => {
+const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger, setAddPassenger, activeAccordion, setActiveAccordion, setAvailableSeats, chooseLocation, isFlightVoucher, isGiftVoucher, onSectionCompletion, isDisabled = false }) => {
     // Safety check for required props - log error but don't return early to avoid hook violations
     const hasRequiredProps = setChooseFlightType && setAddPassenger && setActiveAccordion && setAvailableSeats;
     if (!hasRequiredProps) {
@@ -710,6 +710,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 id="experience"
                 activeAccordion={activeAccordion}
                 setActiveAccordion={setActiveAccordion}
+                isDisabled={isDisabled}
             >
             {isMobile ? (
                 // Mobile: horizontal layout with arrows and dots
