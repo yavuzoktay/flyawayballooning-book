@@ -281,7 +281,7 @@ label {
 }
 
 .main-content {
-    padding: 0 15px;
+
 }
 
 .main_booking {
@@ -2416,7 +2416,6 @@ label {
         width: 100% !important;
         box-sizing: border-box;
     }
-    .main-content { padding: 0 12px; }
     .summary-sticky, .summary-drawer { box-sizing: border-box; }
     img { max-width: 100%; height: auto; }
 }
