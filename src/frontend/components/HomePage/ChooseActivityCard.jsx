@@ -269,8 +269,8 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                 console.log('Rendering item:', item.label, 'index:', index, 'isMobile:', isMobile);
                 return (
                 <div className="book_data" key={item.value} style={{ 
-                    height: isMobile ? "160px" : "220px", 
-                    minHeight: isMobile ? "150px" : "220px", 
+                    height: isMobile ? "120px" : "220px", 
+                    minHeight: isMobile ? "110px" : "220px", 
                     flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
                     margin: isMobile ? '0 0 8px 0' : '0 0 20px 0', 
                     width: isMobile ? '100%' : 'calc(50% - 20px)', 
