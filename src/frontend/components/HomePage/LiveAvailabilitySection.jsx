@@ -519,7 +519,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 const { total, soldOut, slots } = getSpacesForDate(dateCopy);
                 // Fix: isAvailable should be true if there are slots (even if sold out)
                 const isAvailable = total > 0 || soldOut;
-                const pulse = isAvailable && total <= 4 && total > 0 && !soldOut;
+                const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive
                 const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected && !soldOut;
@@ -547,8 +547,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             position: 'relative',
                             border: isSelected ? '2px solid #56C1FF' : 'none',
                             boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
-                            // Disable pulsing shadow for past dates entirely
-                            animation: (!isPastDate && pulse) ? 'pulseAnim 1.2s infinite' : 'none',
+                            // Disable pulsing shadow
+                            animation: 'none',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -1389,11 +1389,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     outline: 3px solid #56C1FF;
                     box-shadow: 0 0 0 4px rgba(86,193,255,0.35);
                 }
-                @keyframes pulseAnim { 
-                    0% { box-shadow: 0 0 0 0 #ff9800; } 
-                    70% { box-shadow: 0 0 0 8px rgba(255,152,0,0); } 
-                    100% { box-shadow: 0 0 0 0 rgba(255,152,0,0); } 
-                }
+                /* pulse animation disabled */
                 
                 @media (max-width: 768px) {
                     .days-grid {

@@ -439,7 +439,7 @@
   /* Ensure the front face (unclicked state) matches sibling card height */
   .card-front .book_data_label {
     height: 100% !important;
-    min-height: 160px !important;
+    min-height: 120px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
