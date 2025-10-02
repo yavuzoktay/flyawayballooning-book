@@ -687,10 +687,15 @@ label {
     width: 100%;
     margin-top: 10px;
     padding: 0px 10px;
-    box-sizing: border-box;
     font-family: 'Gilroy', sans-serif;
     font-size: 16px;
     color: #111827; /* same as recipient fields */
+}
+
+.Recipient input::placeholder {
+    font-family: 'Gilroy', sans-serif !important;
+    font-size: 16px !important;
+    color: #111827 !important;
 }
 
 /* Make Purchaser Information inputs match Recipient Details input fonts/colors */
@@ -699,6 +704,42 @@ label {
     font-family: 'Gilroy', sans-serif !important;
     font-size: 16px !important;
     color: #111827 !important;
+}
+
+/* Mobile-specific styling for Recipient Details date input */
+@media (max-width: 768px) {
+    .recipient-date-input {
+        background-color: #ffffff !important;
+        border: 2px solid #3b82f6 !important;
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+    }
+    
+    .recipient-date-input::-webkit-calendar-picker-indicator {
+        background-color: #3b82f6 !important;
+        border-radius: 4px !important;
+        padding: 4px !important;
+        margin-right: 8px !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        filter: brightness(1) !important;
+    }
+    
+    .recipient-date-input::-webkit-calendar-picker-indicator:hover {
+        background-color: #2563eb !important;
+    }
+    
+    .recipient-date-input::-webkit-datetime-edit-text {
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+    }
+    
+    .recipient-date-input::-webkit-datetime-edit-month-field,
+    .recipient-date-input::-webkit-datetime-edit-day-field,
+    .recipient-date-input::-webkit-datetime-edit-year-field {
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+    }
 }
 
 

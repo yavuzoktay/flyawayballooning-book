@@ -234,9 +234,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 width: '100%',
                                 padding: '12px 16px',
                                 border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
+                                borderRadius: 'px',
                                 fontSize: '16px',
-                                minHeight: '52px',
+                                minHeight: '35px',
                                 boxSizing: 'border-box',
                                 ...(validationErrors.name ? { border: '1.5px solid red' } : {})
                             }}
@@ -264,9 +264,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 width: '100%',
                                 padding: '12px 16px',
                                 border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
+                                borderRadius: '6px',
                                 fontSize: '16px',
-                                minHeight: '52px',
+                                minHeight: '35px',
                                 boxSizing: 'border-box',
                                 ...((emailError || validationErrors.email) ? { border: '1.5px solid red' } : {})
                             }}
@@ -297,9 +297,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 width: '100%',
                                 padding: '12px 16px',
                                 border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
+                                borderRadius: '6px',
                                 fontSize: '16px',
-                                minHeight: '52px',
+                                minHeight: '35px',
                                 boxSizing: 'border-box',
                                 ...(validationErrors.phone ? { border: '1.5px solid red' } : {})
                             }}
@@ -326,12 +326,13 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 width: '100%',
                                 padding: '12px 16px',
                                 border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
+                                borderRadius: '6px',
                                 fontSize: '16px',
-                                minHeight: '52px',
+                                minHeight: '35px',
                                 boxSizing: 'border-box',
                                 ...(validationErrors.date ? { border: '1.5px solid red' } : {})
                             }}
+                            className="recipient-date-input"
                         />
                         {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
                     </div>
