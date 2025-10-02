@@ -936,7 +936,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 gap: '8px',
                 marginTop: '20px',
                 position: 'absolute',
-                bottom: '10px',
+                bottom: '-50px',
                 left: '50%',
                 transform: 'translateX(-50%)'
               }}>

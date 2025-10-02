@@ -373,7 +373,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     }
                     
                     .tab_box .loc_data.location_data img {
-                        height: 100px !important;
                         width: calc(100% + 20px) !important;
                         transition: transform 0.3s ease !important;
                         cursor: pointer !important;
@@ -414,7 +413,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     }
                     
                     .tab_box .loc_data.location_data img {
-                        height: 90px !important;
                         transition: transform 0.3s ease !important;
                         cursor: pointer !important;
                     }
