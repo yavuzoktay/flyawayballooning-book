@@ -1564,23 +1564,6 @@ const VoucherType = ({
                         const isPrivate = chooseFlightType?.type === 'Private Charter';
                         return (
                             <div style={{width:'100%', maxWidth: 960, margin:'0 auto'}}>
-                                {isShared && activitySelect !== 'Buy Gift' && (
-                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:12}}>
-                                        <label style={{display:'flex',alignItems:'center',gap:8,margin:0}}>
-                                            <input type="checkbox" checked={Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund)} onChange={(e)=>{
-                                                const checked = e.target.checked;
-                                                if (Array.isArray(passengerData) && setPassengerData) {
-                                                    const updated = passengerData.map((p, idx)=> idx===0 ? {...p, weatherRefund: checked} : p);
-                                                    setPassengerData(updated);
-                                                }
-                                            }} />
-                                            <span style={{fontWeight:600}}>Make me weather refundable</span>
-                                            {Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund) && (
-                                                <span style={{background:'#10b981',color:'#fff',padding:'2px 6px',borderRadius:8,fontSize:12}}>+£47.50</span>
-                                            )}
-                                        </label>
-                                    </div>
-                                )}
                                 {isPrivate && (
                                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:12}}>
                                         <label style={{display:'flex',alignItems:'center',gap:8,margin:0}}>
