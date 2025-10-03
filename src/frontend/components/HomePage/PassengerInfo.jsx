@@ -873,53 +873,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         width: isMobile ? '100%' : 'auto'
                       }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
                     </div>
-                    {/* Weather Refundable: Hide for Buy Gift + Any Day Flight (purchaser info) */}
-                    {selectedVoucherType?.title === "Any Day Flight" && activitySelect !== 'Buy Gift' && (
-                <div className="final_pax-label-wrap" style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  width: 'auto',
-                  justifyContent: 'flex-end',
-                  marginLeft: 'auto'
-                }}>
-                  <label style={{ 
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                    margin: 0
-                  }}>
-                        <span
-                          style={passenger.weatherRefund ? activeCheckStyle : checkStyle}
-                          onClick={() => handleWeatherRefundChange(index)}
-                          tabIndex={0}
-                          role="checkbox"
-                          aria-checked={passenger.weatherRefund}
-                        >
-                          {passenger.weatherRefund && (
-                            <span style={checkIconStyle}>✓</span>
-                          )}
-                        </span>
-                        Weather Refundable
-                        {passenger.weatherRefund && (
-                          <span style={{
-                            background: '#61D836',
-                            padding: '2px 6px',
-                            borderRadius: '6px',
-                            color: '#fff',
-                            fontFamily: 'Gilroy',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            whiteSpace: 'nowrap'
-                          }}>+£47.50</span>
-                        )}
-                      </label>
-                    </div>
-                    )}
+                    {/* Weather Refundable controls removed (handled in Voucher Type) */}
                   </div>
 
                   <div className="form-presnger" style={{ 
