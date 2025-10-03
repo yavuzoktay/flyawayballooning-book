@@ -1215,7 +1215,7 @@ const VoucherType = ({
                                             <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                                 <BsInfoCircle size={14} color="#0070f3" />
                                                 <div className="hover-text">
-                                                    Add weather refundable protection to your booking for an additional fee
+                                                    <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
                                                 </div>
                                             </span>
                                         </div>
@@ -1253,7 +1253,7 @@ const VoucherType = ({
                                             <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
                                                 <BsInfoCircle size={14} color="#0070f3" />
                                                 <div className="hover-text">
-                                                    Add weather refundable protection to your booking for an additional fee
+                                                    <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
                                                 </div>
                                             </span>
                                         </div>
