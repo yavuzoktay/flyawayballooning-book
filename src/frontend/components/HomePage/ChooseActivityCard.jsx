@@ -418,13 +418,13 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
                 .book_data_label, .card-front, .card-back { overflow: visible !important; }
-                .info-icon-container { position: relative !important; z-index: 10001 !important; }
+                .info-icon-container { position: relative !important; z-index: 100000 !important; }
                 .info-icon-container .hover-text {
                     position: absolute !important;
                     left: 50% !important;
                     top: calc(100% + 8px) !important;
                     transform: translateX(-50%) !important;
-                    z-index: 10002 !important;
+                    z-index: 999999 !important;
                     padding: 10px 12px;
                     background: rgba(0,0,0,0.85);
                     color: #fff;
@@ -441,7 +441,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         width: 100% !important;
                         display: flex !important;
                     }
-                    /* Prevent tooltip clipping on mobile */
+                    /* Prevent tooltip clipping on mobile and position above cards */
                     .info-icon-container .hover-text { 
                         max-width: 95vw !important; 
                         min-width: 350px !important;
@@ -454,10 +454,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         font-size: 16px !important;
                         min-height: 80px !important;
                         /* Show tooltip above card on mobile */
-                        position: absolute !important;
                         top: -140px !important;
-                        left: 50% !important;
-                        transform: translateX(-50%) !important;
                         z-index: 100000 !important;
                         background: rgba(0,0,0,0.95) !important;
                         border-radius: 12px !important;
@@ -548,6 +545,26 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     to {
                         opacity: 1;
                         transform: translateX(-50%) translateY(0);
+                    }
+                }
+                
+                /* Mobile specific: Position tooltip above cards to prevent being covered */
+                @media (max-width: 768px) {
+                    .info-icon-container .hover-text {
+                        top: -160px !important;
+                        position: absolute !important;
+                        z-index: 999999 !important;
+                        left: 50% !important;
+                        transform: translateX(-50%) !important;
+                        /* Ensure tooltip is above all other elements */
+                        margin-top: 0 !important;
+                    }
+                    
+                    /* Ensure parent container allows tooltip to show above */
+                    .tab_box {
+                        overflow: visible !important;
+                        position: relative !important;
+                        z-index: 1 !important;
                     }
                 }
             `}</style>
