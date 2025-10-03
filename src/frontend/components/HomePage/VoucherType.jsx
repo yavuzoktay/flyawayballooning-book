@@ -1076,6 +1076,45 @@ const VoucherType = ({
                     {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
                         <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                     )}
+                    {/* Make me weather refundable - per voucher item (above Select button) */}
+                    {(() => {
+                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                        if (!isAnyDay) return null;
+                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect !== 'Buy Gift') {
+                            const enabled = Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund);
+                            return (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
+                                    <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
+                                    <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
+                                        <span onClick={()=>{
+                                            if (Array.isArray(passengerData) && setPassengerData) {
+                                                const updated = passengerData.map((p, idx)=> idx===0 ? {...p, weatherRefund: !enabled} : p);
+                                                setPassengerData(updated);
+                                            }
+                                        }} style={{width:42,height:24,background: enabled? '#7c3aed':'#e5e7eb',borderRadius:999,position:'relative',transition:'all .2s ease'}}>
+                                            <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',transition:'left .2s ease'}}/>
+                                        </span>
+                                        {enabled && <span style={{background:'#10b981',color:'#fff',padding:'2px 6px',borderRadius:8,fontSize:12}}>+£47.50</span>}
+                                    </label>
+                                </div>
+                            );
+                        }
+                        if (chooseFlightType?.type === 'Private Charter') {
+                            const enabled = !!privateCharterWeatherRefund;
+                            return (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
+                                    <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
+                                    <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
+                                        <span onClick={()=> setPrivateCharterWeatherRefund && setPrivateCharterWeatherRefund(!enabled)} style={{width:42,height:24,background: enabled? '#7c3aed':'#e5e7eb',borderRadius:999,position:'relative',transition:'all .2s ease'}}>
+                                            <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',transition:'left .2s ease'}}/>
+                                        </span>
+                                        <span style={{background: enabled? '#10b981':'#e5e7eb',color: enabled? '#fff':'#374151',padding:'2px 6px',borderRadius:8,fontSize:12}}>+10%</span>
+                                    </label>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
                     <div style={{ 
                         display: 'flex', 
                         flexDirection: isMobile ? 'column' : 'row', 
