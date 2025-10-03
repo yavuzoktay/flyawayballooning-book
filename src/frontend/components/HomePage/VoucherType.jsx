@@ -1659,8 +1659,8 @@ const VoucherType = ({
                         const isSharedEnabled = (chooseFlightType?.type === 'Shared Flight') && !!localSharedWeatherRefund;
                         const isPrivateAnyEnabled = (chooseFlightType?.type === 'Private Charter') && Object.values(privateWeatherRefundByVoucher || {}).some(Boolean);
                         const showRefundableMsg = isSharedEnabled || isPrivateAnyEnabled;
-                        const msg1 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.";
-                        const msg2 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
+                        const msg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
+                        const msg2 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
                         return (
                             <div style={{
                                 width:'100%',
