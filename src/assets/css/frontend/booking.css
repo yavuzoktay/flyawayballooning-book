@@ -1863,9 +1863,9 @@ label {
     position: fixed;
     text-align: center;
     min-width: 300px;
-    max-width: none;
+    max-width: 720px;
     width: auto;
-    height: auto;
+    max-height: 60vh;
     margin: 0 auto;
     padding: 16px 20px;
     left: 50%;
@@ -1884,7 +1884,7 @@ label {
     border-left: 4px solid #0070f3;
     word-wrap: break-word;
     white-space: normal;
-    overflow: visible;
+    overflow: auto;
 }
 
 .hover-text p {
