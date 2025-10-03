@@ -7,6 +7,7 @@ import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
 import config from '../../../config';
+import { BsInfoCircle } from 'react-icons/bs';
 
 // Add CSS animations for slide effects
 const slideAnimations = `
@@ -1209,7 +1210,15 @@ const VoucherType = ({
                             return (
                                 <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
-                                        <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                                            <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                                <BsInfoCircle size={14} color="#0070f3" />
+                                                <div className="hover-text">
+                                                    Add weather refundable protection to your booking for an additional fee
+                                                </div>
+                                            </span>
+                                        </div>
                                         <label className="switch" style={{margin:0}}>
                                             <input
                                                 type="checkbox"
@@ -1239,7 +1248,15 @@ const VoucherType = ({
                             return (
                                 <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
-                                        <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                                            <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                                <BsInfoCircle size={14} color="#0070f3" />
+                                                <div className="hover-text">
+                                                    Add weather refundable protection to your booking for an additional fee
+                                                </div>
+                                            </span>
+                                        </div>
                                         <label className="switch" style={{margin:0}}>
                                             <input
                                                 type="checkbox"
