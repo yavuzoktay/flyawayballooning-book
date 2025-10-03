@@ -767,7 +767,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 width: '260px',
                                 minWidth: '260px',
                                 // Reduce overall card height on mobile
-                                minHeight: 460,
+                                minHeight: 380,
                                 flexShrink: 0,
                                 padding: 0, 
                                 display: 'flex', 
@@ -779,16 +779,26 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             src={experience.img || '/images/placeholder-experience.svg'} 
                             alt={experience.title} 
                             // Reduce image height to make the card shorter on mobile
-                            style={{ width: '100%', height: 140, objectFit: 'cover' }}
+                            style={{ width: '100%', height: 120, objectFit: 'cover' }}
                             onError={(e) => {
                                 e.target.src = '/images/placeholder-experience.svg';
                                 e.target.style.display = 'none';
                             }}
                         />
-                        <div style={{ padding: '12px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
-                            <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 10px 0' }} />
-                            <div style={{ fontSize: 13, color: '#444', marginBottom: 8, lineHeight: '1.35', flex: '1' }}>{experience.desc}</div>
+                        <div style={{ padding: '10px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 4, color: '#4a4a4a' }}>{experience.title}</h2>
+                            <div style={{ borderBottom: '1px solid #e0e0e0', margin: '4px 0 8px 0' }} />
+                            <div style={{ fontSize: 13, color: '#444', marginBottom: 6, lineHeight: '1.3', flex: '1' }}>
+                                {isMobile ? 
+                                    // Mobil için kısaltılmış açıklama
+                                    (experience.desc && experience.desc.length > 80 ? 
+                                        experience.desc.substring(0, 80) + '...' : 
+                                        experience.desc) 
+                                    : 
+                                    // Desktop için tam açıklama
+                                    experience.desc
+                                }
+                            </div>
                             <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 8 }}>
                                 {experience.title === 'Shared Flight' 
                                     ? `From £${experience.price} per person` 
@@ -801,7 +811,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
-                                    padding: '9px 0',
+                                    padding: '8px 0',
                                     fontSize: 15,
                                     fontWeight: 600,
                                     cursor: 'pointer',
