@@ -1207,9 +1207,9 @@ const VoucherType = ({
                             if (!isAnyDay) return null;
                             const enabled = localSharedWeatherRefund;
                             return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
-                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                    <div className="toggle-right-wrap">
+                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
+                                        <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
                                         <label className="switch" style={{margin:0}}>
                                             <input
                                                 type="checkbox"
@@ -1225,17 +1225,21 @@ const VoucherType = ({
                                             />
                                             <span className="slider round"></span>
                                         </label>
-                                        {enabled && <span className="toggle-price-pill">+£47.50 per passenger</span>}
                                     </div>
+                                    {enabled && (
+                                        <div style={{textAlign:'right'}}>
+                                            <span className="toggle-price-pill">+£47.50 per passenger</span>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         }
                         if (chooseFlightType?.type === 'Private Charter') {
                             const enabled = !!privateWeatherRefundByVoucher[voucher.title];
                             return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
-                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                    <div className="toggle-right-wrap">
+                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
+                                        <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
                                         <label className="switch" style={{margin:0}}>
                                             <input
                                                 type="checkbox"
@@ -1256,8 +1260,12 @@ const VoucherType = ({
                                             />
                                             <span className="slider round"></span>
                                         </label>
-                                        {enabled && <span className="toggle-price-pill">+ 10%</span>}
                                     </div>
+                                    {enabled && (
+                                        <div style={{textAlign:'right'}}>
+                                            <span className="toggle-price-pill">+ 10%</span>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         }
@@ -1631,14 +1639,14 @@ const VoucherType = ({
                             </div>
                         );
                     })()}
-                    <div style={{ 
-                        display: 'flex', 
-                        flexDirection: isMobile ? 'column' : 'row', 
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        position: 'relative',
-                        minHeight: '400px'
-                    }}>
+                <div style={{ 
+                    display: 'flex', 
+                    flexDirection: isMobile ? 'column' : 'row', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                    minHeight: '400px'
+                }}>
 
                     {/* Removed old left-side Private Charter weather refundable banner */}
                     {(() => {
