@@ -176,6 +176,29 @@ const VoucherType = ({
     const [activityData, setActivityData] = useState(null);
     const [activityDataLoading, setActivityDataLoading] = useState(false);
     const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+    // Local UI state for instant weather refundable toggle feedback
+    const [localSharedWeatherRefund, setLocalSharedWeatherRefund] = useState(false);
+    // For Private Charter: per-voucher toggle state (title -> boolean)
+    const [privateWeatherRefundByVoucher, setPrivateWeatherRefundByVoucher] = useState({});
+
+    // Sync local shared toggle from passengerData
+    useEffect(() => {
+        const enabled = Array.isArray(passengerData) && passengerData.some(p => p && p.weatherRefund);
+        setLocalSharedWeatherRefund(!!enabled);
+    }, [passengerData]);
+
+    // Keep global privateCharterWeatherRefund in sync with the currently selected voucher's toggle
+    useEffect(() => {
+        try {
+            const currentTitle = selectedVoucherType?.title || selectedVoucher?.title;
+            if (!currentTitle) return;
+            const currentLocal = !!privateWeatherRefundByVoucher[currentTitle];
+            if (setPrivateCharterWeatherRefund) {
+                setPrivateCharterWeatherRefund(currentLocal);
+            }
+        } catch {}
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedVoucherType, selectedVoucher, privateWeatherRefundByVoucher]);
 
     // Ensure default quantity=2 for every voucher title once data is available
     useEffect(() => {
@@ -1076,58 +1099,7 @@ const VoucherType = ({
                     {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
                         <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
                     )}
-                    {/* Make me weather refundable - per voucher item (above Select button) */}
-                    {(() => {
-                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                        if (!isAnyDay) return null;
-                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect !== 'Buy Gift') {
-                            const enabled = Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund);
-                            return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
-                                    <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
-                                    <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
-                                        <div style={{position:'relative',width:42,height:24}}>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={enabled} 
-                                                onChange={() => {
-                                                    if (Array.isArray(passengerData) && setPassengerData) {
-                                                        const next = !enabled;
-                                                        const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
-                                                        setPassengerData(updated);
-                                                    }
-                                                }} 
-                                                style={{appearance:'none',WebkitAppearance:'none',width:42,height:24,background: enabled? '#03a9f4':'#e5e7eb',borderRadius:999,outline:'none',cursor:'pointer'}}
-                                            />
-                                            <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',pointerEvents:'none',transition:'left .2s ease'}}/>
-                                        </div>
-                                        {enabled && <span style={{background:'#10b981',color:'#fff',padding:'2px 6px',borderRadius:8,fontSize:12}}>+£47.50</span>}
-                                    </label>
-                                </div>
-                            );
-                        }
-                        if (chooseFlightType?.type === 'Private Charter') {
-                            const enabled = !!privateCharterWeatherRefund;
-                            return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
-                                    <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
-                                    <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
-                                        <div style={{position:'relative',width:42,height:24}}>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={enabled} 
-                                                onChange={() => setPrivateCharterWeatherRefund && setPrivateCharterWeatherRefund(!enabled)} 
-                                                style={{appearance:'none',WebkitAppearance:'none',width:42,height:24,background: enabled? '#03a9f4':'#e5e7eb',borderRadius:999,outline:'none',cursor:'pointer'}}
-                                            />
-                                            <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',pointerEvents:'none',transition:'left .2s ease'}}/>
-                                        </div>
-                                        <span style={{background: enabled? '#10b981':'#e5e7eb',color: enabled? '#fff':'#374151',padding:'2px 6px',borderRadius:8,fontSize:12}}>+10%</span>
-                                    </label>
-                                </div>
-                            );
-                        }
-                        return null;
-                    })()}
+                    {/* Weather refundable toggle moved below price, above Select */}
                     <div style={{ 
                         display: 'flex', 
                         flexDirection: isMobile ? 'column' : 'row', 
@@ -1217,6 +1189,68 @@ const VoucherType = ({
                                 ? `£${voucher.price} total`
                                 : `From £${voucher.basePrice || voucher.price} pp`)}
                     </div>
+                    {(() => {
+                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect !== 'Buy Gift') {
+                            if (!isAnyDay) return null;
+                            const enabled = localSharedWeatherRefund;
+                            return (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
+                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                    <div className="toggle-right-wrap">
+                                        <label className="switch" style={{margin:0}}>
+                                            <input
+                                                type="checkbox"
+                                                checked={enabled}
+                                                onChange={() => {
+                                                    const next = !enabled;
+                                                    setLocalSharedWeatherRefund(next);
+                                                    if (Array.isArray(passengerData) && setPassengerData) {
+                                                        const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
+                                                        setPassengerData(updated);
+                                                    }
+                                                }}
+                                            />
+                                            <span className="slider round"></span>
+                                        </label>
+                                        {enabled && <span className="toggle-price-pill">+ £47.50</span>}
+                                    </div>
+                                </div>
+                            );
+                        }
+                        if (chooseFlightType?.type === 'Private Charter') {
+                            const enabled = !!privateWeatherRefundByVoucher[voucher.title];
+                            return (
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
+                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                    <div className="toggle-right-wrap">
+                                        <label className="switch" style={{margin:0}}>
+                                            <input
+                                                type="checkbox"
+                                                checked={enabled}
+                                                onChange={() => {
+                                                    const next = !enabled;
+                                                    // Enforce mutual exclusivity across voucher items
+                                                    setPrivateWeatherRefundByVoucher(() => {
+                                                        const state = {};
+                                                        if (next) state[voucher.title] = true; // only this one on
+                                                        return state; // all others implicitly off
+                                                    });
+                                                    // If this card is selected, reflect to global for summary
+                                                    if (isSelected && setPrivateCharterWeatherRefund) {
+                                                        setPrivateCharterWeatherRefund(next);
+                                                    }
+                                                }}
+                                            />
+                                            <span className="slider round"></span>
+                                        </label>
+                                        {enabled && <span className="toggle-price-pill">+ 10%</span>}
+                                    </div>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
                     <button 
                         style={{ 
                             width: '100%', 
@@ -1560,16 +1594,32 @@ const VoucherType = ({
                         </div>
                     </div>
                 )}
-                {/* Voucher Type Selection */}
-                <div style={{ 
-                    display: 'flex', 
-                    flexDirection: isMobile ? 'column' : 'row', 
-                    gap: '20px', 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'relative',
-                    minHeight: '400px'
-                }}>
+                {/* Voucher Type Selection - wrapped with local container under panel */}
+                <div style={{ width:'100%', maxWidth:960, margin:'0 auto' }}>
+                    <div style={{
+                        width:'100%',
+                        margin:'6px 0 14px 0',
+                        fontSize:13,
+                        color:'#374151',
+                        lineHeight:1.5,
+                        textAlign:'left',
+                        background:'#f8fafc',
+                        border:'1px solid #e5e7eb',
+                        borderRadius:12,
+                        padding:'10px 12px'
+                    }}>
+                        In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.
+                    </div>
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: isMobile ? 'column' : 'row', 
+                        gap: '20px', 
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'relative',
+                        minHeight: '400px'
+                    }}>
+
                     {/* Weather Refundable toggles moved from Passenger Information */}
                     {(() => {
                         const anyDay = (title) => typeof title === 'string' && title.includes('Any Day');
@@ -1951,6 +2001,7 @@ const VoucherType = ({
                             );
                         }
                     })()}
+                    </div>
                 </div>
             </Accordion>
 

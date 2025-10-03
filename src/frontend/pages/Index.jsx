@@ -622,7 +622,11 @@ const Index = () => {
         // For Book Flight, only include voucher type price and add-ons
         const voucherTypePrice = selectedVoucherType?.price || 0;
         const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
-        const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+        // Weather refundable: 10% one-time for Private Charter, else £47.50 per selected passenger
+        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+        const weatherRefundPrice = isPrivateCharter
+            ? (privateCharterWeatherRefund ? (voucherTypePrice * 0.1) : 0)
+            : (Array.isArray(passengerData) ? passengerData.reduce((sum, p) => sum + (p && p.weatherRefund ? 47.50 : 0), 0) : 0);
         totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
     } else if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
         // For Flight Voucher and Buy Gift, only show total when voucher type is selected
@@ -633,7 +637,9 @@ const Index = () => {
                 ? (selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0)
                 : (selectedVoucherType?.price ?? 0);
             const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
-            const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+            const weatherRefundPrice = isPrivateCharter
+                ? (privateCharterWeatherRefund ? (voucherTypePrice * 0.1) : 0)
+                : (Array.isArray(passengerData) ? passengerData.reduce((sum, p) => sum + (p && p.weatherRefund ? 47.50 : 0), 0) : 0);
             totalPrice = parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
         }
     } else {
@@ -641,7 +647,10 @@ const Index = () => {
         const flightTypePrice = chooseFlightType?.price || 0;
         const voucherTypePrice = selectedVoucherType?.price || 0;
         const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
-        const weatherRefundPrice = passengerData?.some(p => p.weatherRefund) ? 47.50 : 0;
+        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+        const weatherRefundPrice = isPrivateCharter
+            ? (privateCharterWeatherRefund ? (voucherTypePrice * 0.1) : 0)
+            : (Array.isArray(passengerData) ? passengerData.reduce((sum, p) => sum + (p && p.weatherRefund ? 47.50 : 0), 0) : 0);
         totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
     }
 
