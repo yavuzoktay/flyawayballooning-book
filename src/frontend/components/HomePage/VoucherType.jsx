@@ -1083,17 +1083,21 @@ const VoucherType = ({
                         if (chooseFlightType?.type === 'Shared Flight' && activitySelect !== 'Buy Gift') {
                             const enabled = Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund);
                             return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
+                                <div
+                                    onClick={() => {
+                                        if (Array.isArray(passengerData) && setPassengerData) {
+                                            const next = !enabled;
+                                            const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
+                                            setPassengerData(updated);
+                                        }
+                                    }}
+                                    role="switch"
+                                    aria-checked={enabled}
+                                    style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10,cursor:'pointer'}}
+                                >
                                     <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
                                     <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
-                                        <input type="checkbox" checked={enabled} onChange={()=>{
-                                            if (Array.isArray(passengerData) && setPassengerData) {
-                                                const next = !enabled;
-                                                // Apply the same selection to ALL passengers so summary reflects immediately
-                                                const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
-                                                setPassengerData(updated);
-                                            }
-                                        }} style={{display:'none'}}/>
+                                        <input type="checkbox" checked={enabled} readOnly style={{display:'none'}}/>
                                         <span style={{width:42,height:24,background: enabled? '#7c3aed':'#e5e7eb',borderRadius:999,position:'relative',transition:'all .2s ease'}}>
                                             <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',transition:'left .2s ease'}}/>
                                         </span>
@@ -1105,10 +1109,15 @@ const VoucherType = ({
                         if (chooseFlightType?.type === 'Private Charter') {
                             const enabled = !!privateCharterWeatherRefund;
                             return (
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10}}>
+                                <div
+                                    onClick={() => setPrivateCharterWeatherRefund && setPrivateCharterWeatherRefund(!enabled)}
+                                    role="switch"
+                                    aria-checked={enabled}
+                                    style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'8px 10px',marginBottom:10,cursor:'pointer'}}
+                                >
                                     <span style={{fontWeight:600,fontSize:14}}>Make me weather refundable</span>
                                     <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
-                                        <input type="checkbox" checked={enabled} onChange={()=> setPrivateCharterWeatherRefund && setPrivateCharterWeatherRefund(!enabled)} style={{display:'none'}}/>
+                                        <input type="checkbox" checked={enabled} readOnly style={{display:'none'}}/>
                                         <span style={{width:42,height:24,background: enabled? '#7c3aed':'#e5e7eb',borderRadius:999,position:'relative',transition:'all .2s ease'}}>
                                             <span style={{position:'absolute',top:3,left: enabled? 22:3,width:18,height:18,background:'#fff',borderRadius:'50%',boxShadow:'0 1px 3px rgba(0,0,0,.2)',transition:'left .2s ease'}}/>
                                         </span>
