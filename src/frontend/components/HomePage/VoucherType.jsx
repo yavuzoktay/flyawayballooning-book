@@ -148,7 +148,11 @@ const VoucherType = ({
     selectedDate,
     selectedTime,
     onSectionCompletion,
-    isDisabled = false
+    isDisabled = false,
+    passengerData,
+    setPassengerData,
+    privateCharterWeatherRefund,
+    setPrivateCharterWeatherRefund
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -1514,6 +1518,42 @@ const VoucherType = ({
                     position: 'relative',
                     minHeight: '400px'
                 }}>
+                    {/* Weather Refundable toggles moved from Passenger Information */}
+                    {(() => {
+                        const anyDay = (title) => typeof title === 'string' && title.includes('Any Day');
+                        const isShared = chooseFlightType?.type === 'Shared Flight';
+                        const isPrivate = chooseFlightType?.type === 'Private Charter';
+                        return (
+                            <div style={{width:'100%', maxWidth: 960, margin:'0 auto'}}>
+                                {isShared && activitySelect !== 'Buy Gift' && (
+                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:12}}>
+                                        <label style={{display:'flex',alignItems:'center',gap:8,margin:0}}>
+                                            <input type="checkbox" checked={Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund)} onChange={(e)=>{
+                                                const checked = e.target.checked;
+                                                if (Array.isArray(passengerData) && setPassengerData) {
+                                                    const updated = passengerData.map((p, idx)=> idx===0 ? {...p, weatherRefund: checked} : p);
+                                                    setPassengerData(updated);
+                                                }
+                                            }} />
+                                            <span style={{fontWeight:600}}>Make me weather refundable</span>
+                                            {Array.isArray(passengerData) && passengerData.some(p=>p.weatherRefund) && (
+                                                <span style={{background:'#10b981',color:'#fff',padding:'2px 6px',borderRadius:8,fontSize:12}}>+£47.50</span>
+                                            )}
+                                        </label>
+                                    </div>
+                                )}
+                                {isPrivate && (
+                                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:12}}>
+                                        <label style={{display:'flex',alignItems:'center',gap:8,margin:0}}>
+                                            <input type="checkbox" checked={!!privateCharterWeatherRefund} onChange={(e)=> setPrivateCharterWeatherRefund && setPrivateCharterWeatherRefund(e.target.checked)} />
+                                            <span style={{fontWeight:600}}>Make me weather refundable</span>
+                                            <span style={{background: privateCharterWeatherRefund? '#10b981':'#e5e7eb',color: privateCharterWeatherRefund? '#fff':'#374151',padding:'2px 6px',borderRadius:8,fontSize:12}}>+10%</span>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
                     {(() => {
                         if (privateCharterVoucherTypesLoading || allVoucherTypesLoading || activityDataLoading) {
                             return (

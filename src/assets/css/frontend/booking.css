@@ -1686,7 +1686,7 @@ label {
     .all-pressenger .form-presnger input,
     .all-pressenger .form-presnger select,
     .all-pressenger .form-presnger textarea {
-        font-size: 16px !important;
+        font-size: 14px !important;
         -webkit-text-size-adjust: 100% !important;
     }
 

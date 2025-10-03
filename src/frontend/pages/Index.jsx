@@ -1852,6 +1852,10 @@ const Index = () => {
                                                     selectedDate={selectedDate}
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    passengerData={passengerData}
+                                                    setPassengerData={setPassengerData}
+                                                    privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                    setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                     isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 />
                                             )}

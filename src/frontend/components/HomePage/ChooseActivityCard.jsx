@@ -32,45 +32,59 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Mobile tooltip positioning fix: use fixed coordinates to avoid being clipped under cards
+    // Mobile tooltip positioning fix
     useEffect(() => {
         if (!isMobile) return;
 
-        const positionTooltip = (iconEl, tooltipEl) => {
-            if (!iconEl || !tooltipEl) return;
-            const rect = iconEl.getBoundingClientRect();
-            const gap = 10;
-            tooltipEl.style.position = 'fixed';
-            tooltipEl.style.zIndex = '1000000';
-            // Default under the icon
-            let top = rect.bottom + gap;
-            // If bottom area is small, try above
-            if (top + (tooltipEl.offsetHeight || 120) > window.innerHeight - 12) {
-                top = Math.max(12, rect.top - (tooltipEl.offsetHeight || 120) - gap);
-            }
-            const maxWidth = Math.min(360, window.innerWidth - 24);
-            tooltipEl.style.maxWidth = `${maxWidth}px`;
-            let left = rect.left + rect.width / 2 - (tooltipEl.offsetWidth || maxWidth) / 2;
-            left = Math.max(12, Math.min(left, window.innerWidth - (tooltipEl.offsetWidth || maxWidth) - 12));
-            tooltipEl.style.top = `${top}px`;
-            tooltipEl.style.left = `${left}px`;
-            tooltipEl.style.transform = 'none';
-        };
-
-        const attach = () => {
-            document.querySelectorAll('.info-icon-container').forEach(icon => {
-                const tooltip = icon.querySelector('.hover-text');
-                if (!tooltip) return;
-                const show = () => positionTooltip(icon, tooltip);
-                icon.addEventListener('mouseenter', show, { passive: true });
-                icon.addEventListener('touchstart', show, { passive: true });
-                // Reposition while visible on resize/scroll
-                window.addEventListener('resize', () => positionTooltip(icon, tooltip));
-                window.addEventListener('scroll', () => positionTooltip(icon, tooltip), { passive: true });
+        const adjustTooltips = () => {
+            const tooltips = document.querySelectorAll('.info-icon-container .hover-text');
+            tooltips.forEach(tooltip => {
+                // Position tooltip directly under the title text
+                const iconContainer = tooltip.closest('.info-icon-container');
+                if (iconContainer) {
+                    const cardTitle = iconContainer.closest('h3');
+                    if (cardTitle) {
+                        // Center the tooltip under the title text
+                        tooltip.style.left = '70%';
+                        tooltip.style.right = 'auto';
+                        tooltip.style.transform = 'translateX(-50%)';
+                        tooltip.style.top = 'calc(100% + 8px)';
+                        
+                        // Check if it goes off screen and adjust if needed
+                        const rect = tooltip.getBoundingClientRect();
+                        const viewportWidth = window.innerWidth;
+                        
+                        if (rect.left < 12) {
+                            tooltip.style.left = '15px';
+                            tooltip.style.right = 'auto';
+                            tooltip.style.transform = 'none';
+                        } else if (rect.right > viewportWidth - 12) {
+                            tooltip.style.left = 'auto';
+                            tooltip.style.right = '15px';
+                            tooltip.style.transform = 'none';
+                        }
+                    }
+                }
             });
         };
 
-        attach();
+        // Adjust tooltips on hover and touch
+        const infoIcons = document.querySelectorAll('.info-icon-container');
+        infoIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', adjustTooltips);
+            icon.addEventListener('mouseleave', adjustTooltips);
+            icon.addEventListener('touchstart', adjustTooltips);
+            icon.addEventListener('touchend', adjustTooltips);
+        });
+
+        return () => {
+            infoIcons.forEach(icon => {
+                icon.removeEventListener('mouseenter', adjustTooltips);
+                icon.removeEventListener('mouseleave', adjustTooltips);
+                icon.removeEventListener('touchstart', adjustTooltips);
+                icon.removeEventListener('touchend', adjustTooltips);
+            });
+        };
     }, [isMobile]);
 
     // Fetch voucher types from API
@@ -404,13 +418,13 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
                 .book_data_label, .card-front, .card-back { overflow: visible !important; }
-                .info-icon-container { position: relative !important; z-index: 100000 !important; }
+                .info-icon-container { position: relative !important; z-index: 10001 !important; }
                 .info-icon-container .hover-text {
                     position: absolute !important;
                     left: 50% !important;
                     top: calc(100% + 8px) !important;
                     transform: translateX(-50%) !important;
-                    z-index: 999999 !important;
+                    z-index: 10002 !important;
                     padding: 10px 12px;
                     background: rgba(0,0,0,0.85);
                     color: #fff;
@@ -427,7 +441,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         width: 100% !important;
                         display: flex !important;
                     }
-                    /* Prevent tooltip clipping on mobile and position above cards */
+                    /* Prevent tooltip clipping on mobile */
                     .info-icon-container .hover-text { 
                         max-width: 95vw !important; 
                         min-width: 350px !important;
@@ -440,7 +454,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         font-size: 16px !important;
                         min-height: 80px !important;
                         /* Show tooltip above card on mobile */
+                        position: absolute !important;
                         top: -140px !important;
+                        left: 50% !important;
+                        transform: translateX(-50%) !important;
                         z-index: 100000 !important;
                         background: rgba(0,0,0,0.95) !important;
                         border-radius: 12px !important;
@@ -531,26 +548,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     to {
                         opacity: 1;
                         transform: translateX(-50%) translateY(0);
-                    }
-                }
-                
-                /* Mobile specific: Position tooltip above cards to prevent being covered */
-                @media (max-width: 768px) {
-                    .info-icon-container .hover-text {
-                        top: -160px !important;
-                        position: absolute !important;
-                        z-index: 999999 !important;
-                        left: 50% !important;
-                        transform: translateX(-50%) !important;
-                        /* Ensure tooltip is above all other elements */
-                        margin-top: 0 !important;
-                    }
-                    
-                    /* Ensure parent container allows tooltip to show above */
-                    .tab_box {
-                        overflow: visible !important;
-                        position: relative !important;
-                        z-index: 1 !important;
                     }
                 }
             `}</style>
