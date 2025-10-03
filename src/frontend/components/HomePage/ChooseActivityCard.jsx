@@ -32,59 +32,45 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Mobile tooltip positioning fix
+    // Mobile tooltip positioning fix: use fixed coordinates to avoid being clipped under cards
     useEffect(() => {
         if (!isMobile) return;
 
-        const adjustTooltips = () => {
-            const tooltips = document.querySelectorAll('.info-icon-container .hover-text');
-            tooltips.forEach(tooltip => {
-                // Position tooltip directly under the title text
-                const iconContainer = tooltip.closest('.info-icon-container');
-                if (iconContainer) {
-                    const cardTitle = iconContainer.closest('h3');
-                    if (cardTitle) {
-                        // Center the tooltip under the title text
-                        tooltip.style.left = '70%';
-                        tooltip.style.right = 'auto';
-                        tooltip.style.transform = 'translateX(-50%)';
-                        tooltip.style.top = 'calc(100% + 8px)';
-                        
-                        // Check if it goes off screen and adjust if needed
-                        const rect = tooltip.getBoundingClientRect();
-                        const viewportWidth = window.innerWidth;
-                        
-                        if (rect.left < 12) {
-                            tooltip.style.left = '15px';
-                            tooltip.style.right = 'auto';
-                            tooltip.style.transform = 'none';
-                        } else if (rect.right > viewportWidth - 12) {
-                            tooltip.style.left = 'auto';
-                            tooltip.style.right = '15px';
-                            tooltip.style.transform = 'none';
-                        }
-                    }
-                }
+        const positionTooltip = (iconEl, tooltipEl) => {
+            if (!iconEl || !tooltipEl) return;
+            const rect = iconEl.getBoundingClientRect();
+            const gap = 10;
+            tooltipEl.style.position = 'fixed';
+            tooltipEl.style.zIndex = '1000000';
+            // Default under the icon
+            let top = rect.bottom + gap;
+            // If bottom area is small, try above
+            if (top + (tooltipEl.offsetHeight || 120) > window.innerHeight - 12) {
+                top = Math.max(12, rect.top - (tooltipEl.offsetHeight || 120) - gap);
+            }
+            const maxWidth = Math.min(360, window.innerWidth - 24);
+            tooltipEl.style.maxWidth = `${maxWidth}px`;
+            let left = rect.left + rect.width / 2 - (tooltipEl.offsetWidth || maxWidth) / 2;
+            left = Math.max(12, Math.min(left, window.innerWidth - (tooltipEl.offsetWidth || maxWidth) - 12));
+            tooltipEl.style.top = `${top}px`;
+            tooltipEl.style.left = `${left}px`;
+            tooltipEl.style.transform = 'none';
+        };
+
+        const attach = () => {
+            document.querySelectorAll('.info-icon-container').forEach(icon => {
+                const tooltip = icon.querySelector('.hover-text');
+                if (!tooltip) return;
+                const show = () => positionTooltip(icon, tooltip);
+                icon.addEventListener('mouseenter', show, { passive: true });
+                icon.addEventListener('touchstart', show, { passive: true });
+                // Reposition while visible on resize/scroll
+                window.addEventListener('resize', () => positionTooltip(icon, tooltip));
+                window.addEventListener('scroll', () => positionTooltip(icon, tooltip), { passive: true });
             });
         };
 
-        // Adjust tooltips on hover and touch
-        const infoIcons = document.querySelectorAll('.info-icon-container');
-        infoIcons.forEach(icon => {
-            icon.addEventListener('mouseenter', adjustTooltips);
-            icon.addEventListener('mouseleave', adjustTooltips);
-            icon.addEventListener('touchstart', adjustTooltips);
-            icon.addEventListener('touchend', adjustTooltips);
-        });
-
-        return () => {
-            infoIcons.forEach(icon => {
-                icon.removeEventListener('mouseenter', adjustTooltips);
-                icon.removeEventListener('mouseleave', adjustTooltips);
-                icon.removeEventListener('touchstart', adjustTooltips);
-                icon.removeEventListener('touchend', adjustTooltips);
-            });
-        };
+        attach();
     }, [isMobile]);
 
     // Fetch voucher types from API
