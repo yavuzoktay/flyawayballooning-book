@@ -1225,7 +1225,7 @@ const VoucherType = ({
                                             />
                                             <span className="slider round"></span>
                                         </label>
-                                        {enabled && <span className="toggle-price-pill">+ £47.50</span>}
+                                        {enabled && <span className="toggle-price-pill">+£47.50 per passenger</span>}
                                     </div>
                                 </div>
                             );
