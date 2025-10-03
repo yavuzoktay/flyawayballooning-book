@@ -894,7 +894,7 @@ const VoucherType = ({
             })));
             console.log('VoucherType: Final pricing summary for shared flight vouchers:', sharedFlightVouchers.map(vt => ({
                 title: vt.title,
-                displayPrice: `From £${vt.basePrice} pp`,
+            displayPrice: `£${vt.basePrice} pp`,
                 totalPrice: vt.price,
                 basePrice: vt.basePrice
             })));
@@ -1187,7 +1187,7 @@ const VoucherType = ({
                             ? `£${(privateCharterDisplayTotal || 0)} total`
                             : (voucher.priceUnit === 'total'
                                 ? `£${voucher.price} total`
-                                : `From £${voucher.basePrice || voucher.price} pp`)}
+                                : `£${voucher.basePrice || voucher.price} pp`)}
                     </div>
                     {(() => {
                         const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
@@ -1613,7 +1613,6 @@ const VoucherType = ({
                     <div style={{ 
                         display: 'flex', 
                         flexDirection: isMobile ? 'column' : 'row', 
-                        gap: '20px', 
                         justifyContent: 'center',
                         alignItems: 'center',
                         position: 'relative',
