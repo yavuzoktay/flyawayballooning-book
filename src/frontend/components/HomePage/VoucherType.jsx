@@ -1655,6 +1655,29 @@ const VoucherType = ({
                 )}
                 {/* Voucher Type Selection - wrapped with local container under panel */}
                 <div style={{ width:'100%', maxWidth:960, margin:'0 auto' }}>
+                    {(() => {
+                        const isSharedEnabled = (chooseFlightType?.type === 'Shared Flight') && !!localSharedWeatherRefund;
+                        const isPrivateAnyEnabled = (chooseFlightType?.type === 'Private Charter') && Object.values(privateWeatherRefundByVoucher || {}).some(Boolean);
+                        const showRefundableMsg = isSharedEnabled || isPrivateAnyEnabled;
+                        const msg1 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
+                        const msg2 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
+                        return (
+                            <div style={{
+                                width:'100%',
+                                margin:'6px 0 14px 0',
+                                fontSize:13,
+                                color:'#374151',
+                                lineHeight:1.5,
+                                textAlign:'left',
+                                background:'#f8fafc',
+                                border:'1px solid #e5e7eb',
+                                borderRadius:12,
+                                padding:'10px 12px'
+                            }}>
+                                {showRefundableMsg ? msg2 : msg1}
+                            </div>
+                        );
+                    })()}
                 <div style={{ 
                     display: 'flex', 
                     flexDirection: isMobile ? 'column' : 'row', 
