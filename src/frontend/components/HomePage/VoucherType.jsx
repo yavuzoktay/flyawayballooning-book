@@ -1088,7 +1088,9 @@ const VoucherType = ({
                                     <label style={{display:'inline-flex',alignItems:'center',gap:8,margin:0,cursor:'pointer'}}>
                                         <span onClick={()=>{
                                             if (Array.isArray(passengerData) && setPassengerData) {
-                                                const updated = passengerData.map((p, idx)=> idx===0 ? {...p, weatherRefund: !enabled} : p);
+                                                const next = !enabled;
+                                                // Apply the same selection to ALL passengers so summary reflects immediately
+                                                const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
                                                 setPassengerData(updated);
                                             }
                                         }} style={{width:42,height:24,background: enabled? '#7c3aed':'#e5e7eb',borderRadius:999,position:'relative',transition:'all .2s ease'}}>
