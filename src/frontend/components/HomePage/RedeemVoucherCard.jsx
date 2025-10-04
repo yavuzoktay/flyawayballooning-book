@@ -104,14 +104,14 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           color: "white", 
           border: "none",
           borderRadius: "4px",
-          padding: "8px 24px",
+          padding: "8px 16px",
           fontSize: "14px",
           fontWeight: "500",
           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           cursor: "pointer",
           lineHeight: "1.4",
           marginBottom: "12px",
-          minWidth: "80px"
+          minWidth: "60px"
         }}
       >
         Redeem

@@ -983,7 +983,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
                           </label>
                               <input
-                                type="number"
+                                type="text"
                                 name="weight"
                                 value={passenger.weight || ''}
                                 onChange={(e) => handlePassengerInputChange(index, e)}

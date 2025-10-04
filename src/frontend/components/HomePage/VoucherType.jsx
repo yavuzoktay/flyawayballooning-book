@@ -1109,9 +1109,57 @@ const VoucherType = ({
                             <div key={i} style={{ marginBottom: 3 }}>{inclusion}</div>
                         ))}
                     </div>
-                    {voucher.weatherClause && activitySelect !== 'Buy Gift' && (
-                        <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 12, lineHeight: '1.2' }}>{voucher.weatherClause}</div>
-                    )}
+                    {/* Dynamic cancellation policy message for Any Day Flight and Private Charter */}
+                    {(() => {
+                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                        const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+                        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+                        const isPrivateVoucher = isPrivateCharter && voucher.title;
+                        
+                        // Any Day Flight message
+                        if (isSharedFlight && isAnyDay && activitySelect === 'Book Flight') {
+                            const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.";
+                            const anyDayMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
+                            
+                            return (
+                                <div style={{
+                                    fontSize: isMobile ? 14 : 13,
+                                    color: '#666',
+                                    marginBottom: 12,
+                                    lineHeight: '1.2',
+                                    background: '#f8fafc',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: 8,
+                                    padding: '8px 10px'
+                                }}>
+                                    {localSharedWeatherRefund ? anyDayMsg2 : anyDayMsg1}
+                                </div>
+                            );
+                        }
+                        
+                        // Private Charter message
+                        if (isPrivateVoucher && activitySelect === 'Book Flight') {
+                            const privateMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
+                            const privateMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
+                            
+                            return (
+                                <div style={{
+                                    fontSize: isMobile ? 14 : 13,
+                                    color: '#666',
+                                    marginBottom: 12,
+                                    lineHeight: '1.2',
+                                    background: '#f8fafc',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: 8,
+                                    padding: '8px 10px'
+                                }}>
+                                    {privateWeatherRefundByVoucher?.[voucher.title] ? privateMsg2 : privateMsg1}
+                                </div>
+                            );
+                        }
+                        
+                        return null;
+                    })()}
                     {/* Weather refundable toggle moved below price, above Select */}
                     <div style={{ 
                         display: 'flex', 
@@ -1196,15 +1244,31 @@ const VoucherType = ({
                         </div>
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
-                        {chooseFlightType?.type === "Private Charter"
-                            ? `£${(privateCharterDisplayTotal || 0)} total`
-                            : (voucher.priceUnit === 'total'
-                                ? `£${voucher.price} total`
-                                : `£${voucher.basePrice || voucher.price} pp`)}
+                        {(() => {
+                            const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                            const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+                            const weatherRefundEnabled = isSharedFlight && isAnyDay && localSharedWeatherRefund;
+                            
+                            if (chooseFlightType?.type === "Private Charter") {
+                                return `£${(privateCharterDisplayTotal || 0)} total`;
+                            } else if (voucher.priceUnit === 'total') {
+                                return `£${voucher.price} total`;
+                            } else {
+                                const basePrice = voucher.basePrice || voucher.price;
+                                if (weatherRefundEnabled) {
+                                    const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
+                                    const weatherRefundCost = 47.50 * passengerCount;
+                                    const totalPrice = (basePrice * passengerCount) + weatherRefundCost;
+                                    return `£${totalPrice.toFixed(2)} total`;
+                                } else {
+                                    return `£${basePrice} pp`;
+                                }
+                            }
+                        })()}
                     </div>
                     {(() => {
                         const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect !== 'Buy Gift') {
+                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight') {
                             if (!isAnyDay) return null;
                             const enabled = localSharedWeatherRefund;
                             return (
@@ -1248,13 +1312,15 @@ const VoucherType = ({
                                     </div>
                                     {enabled && (
                                         <div style={{textAlign:'right'}}>
-                                            <span className="toggle-price-pill">+£47.50 per passenger</span>
+                                            <span className="toggle-price-pill">
+                                                +£{(47.50 * (parseInt(quantities[voucher.title] || 2, 10))).toFixed(2)} total
+                                            </span>
                                         </div>
                                     )}
                                 </div>
                             );
                         }
-                        if (chooseFlightType?.type === 'Private Charter') {
+                        if (chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight') {
                             const enabled = !!privateWeatherRefundByVoucher[voucher.title];
                             return (
                                 <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
@@ -1655,31 +1721,6 @@ const VoucherType = ({
                 )}
                 {/* Voucher Type Selection - wrapped with local container under panel */}
                 <div style={{ width:'100%', maxWidth:960, margin:'0 auto' }}>
-                    {/* Dynamic cancellation policy banner */}
-                    {(() => {
-                        const isSharedEnabled = (chooseFlightType?.type === 'Shared Flight') && !!localSharedWeatherRefund;
-                        const isPrivateAnyEnabled = (chooseFlightType?.type === 'Private Charter') && Object.values(privateWeatherRefundByVoucher || {}).some(Boolean);
-                        const showRefundableMsg = isSharedEnabled || isPrivateAnyEnabled;
-                        const msg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
-                        const msg2 = "In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
-                        
-                        return (
-                            <div key={`policy-${localSharedWeatherRefund}-${JSON.stringify(privateWeatherRefundByVoucher)}`} style={{
-                                width:'100%',
-                                margin:'6px 0 14px 0',
-                                fontSize:13,
-                                color:'#374151',
-                                lineHeight:1.5,
-                                textAlign:'left',
-                                background:'#f8fafc',
-                                border:'1px solid #e5e7eb',
-                                borderRadius:12,
-                                padding:'10px 12px'
-                            }}>
-                                {showRefundableMsg ? msg2 : msg1}
-                            </div>
-                        );
-                    })()}
                 <div style={{ 
                     display: 'flex', 
                     flexDirection: isMobile ? 'column' : 'row', 

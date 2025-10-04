@@ -192,9 +192,9 @@
 
 .voucher-card-container button {
   display: block;
-  width: 90%;
+  width: auto;
   margin: 16px auto 24px auto;
-  padding: 12px 0;
+  padding: 8px 16px;
   text-align: center;
 }
 
@@ -250,12 +250,12 @@
   background-color: #2196f3;
   color: white;
   border: none;
-  padding: 10px 30px;
+  padding: 8px 16px;
   border-radius: 4px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  min-width: 140px;
+  min-width: 60px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
 }
