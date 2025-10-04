@@ -1105,9 +1105,19 @@ const VoucherType = ({
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
                     <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
-                        {voucher.inclusions.map((inclusion, i) => (
-                            <div key={i} style={{ marginBottom: 3 }}>{inclusion}</div>
-                        ))}
+                        {voucher.inclusions.map((inclusion, i) => {
+                            const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                            return (
+                                <div key={i} style={{ marginBottom: 3 }}>
+                                    {inclusion}
+                                    {inclusion === 'Flight Certificate' && !isAnyDay && (
+                                        <div style={{ marginTop: 6, fontSize: isMobile ? 13 : 12, color: '#666', lineHeight: '1.2' }}>
+                                            ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                     {/* Dynamic cancellation policy message for Any Day Flight and Private Charter */}
                     {(() => {

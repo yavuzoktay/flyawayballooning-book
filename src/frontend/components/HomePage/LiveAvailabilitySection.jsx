@@ -1127,13 +1127,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         <span style={{ 
                                                             fontWeight: 700, 
                                                             fontSize: '16px',
+                                                            fontFamily: 'Gilroy Sans Serif, sans-serif',
                                                             lineHeight: 1
                                                         }}>
                                                             {formattedTime}
                                                         </span>
                                                         <span style={{ 
-                                                            fontWeight: 600, 
-                                                            fontSize: '11px',
+                                                            fontWeight: 700, 
+                                                            fontSize: '16px',
+                                                            fontFamily: 'Gilroy Sans Serif, sans-serif',
                                                             lineHeight: 1,
                                                             opacity: 0.9
                                                         }}>
@@ -1144,10 +1146,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     // Desktop layout - horizontal
                                                     <>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                            <span style={{ fontWeight: 700, fontSize: '18px' }}>{formattedTime}</span>
+                                                            <span style={{ fontWeight: 700, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>{formattedTime}</span>
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
-                                                            <div style={{ fontWeight: 600, fontSize: '16px' }}>
+                                                            <div style={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>
                                                                 {slot.available} Space{slot.available > 1 ? 's' : ''}
                                                             </div>
                                                         </div>
@@ -1165,8 +1167,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         fontSize: isMobile ? 16 : 16,
                                                         letterSpacing: isMobile ? 0.2 : 0.5,
                                                         color: '#ffffff',
-                                                        textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                        textTransform: 'uppercase'
                                                     }}>
                                                         Sold Out
                                                     </div>
@@ -1181,8 +1182,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         fontSize: isMobile ? 16 : 16,
                                                         letterSpacing: isMobile ? 0.2 : 0.5,
                                                         color: '#ffffff',
-                                                        textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                        textTransform: 'uppercase'
                                                     }}>
                                                         Too few seats
                                                     </div>
@@ -1197,8 +1197,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         fontSize: isMobile ? 16 : 16,
                                                         letterSpacing: isMobile ? 0.2 : 0.5,
                                                         color: '#ffffff',
-                                                        textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                        textTransform: 'uppercase'
                                                     }}>
                                                         Call to Book
                                                     </div>
@@ -1209,12 +1208,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         left: '50%',
                                                         transform: 'translate(-50%, -50%)',
                                                         pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 16,
+                                                        fontWeight: 700,
+                                                        fontSize: '16px',
+                                                        fontFamily: 'Gilroy Sans Serif, sans-serif',
                                                         letterSpacing: isMobile ? 0.2 : 0.5,
                                                         color: '#ffffff',
-                                                        textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)'
+                                                        textTransform: 'uppercase'
                                                     }}>
                                                         High Demand
                                                     </div>
@@ -1225,12 +1224,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         left: '50%',
                                                         transform: 'translate(-50%, -50%)',
                                                         pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 14,
+                                                        fontWeight: 700,
+                                                        fontSize: '16px',
+                                                        fontFamily: 'Gilroy Sans Serif, sans-serif',
                                                         letterSpacing: isMobile ? 0.2 : 0.4,
                                                         color: '#ffffff',
                                                         textTransform: 'uppercase',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.35)',
                                                         whiteSpace: 'nowrap'
                                                     }}>
                                                         Spaces Running Low
