@@ -1272,11 +1272,7 @@ const VoucherType = ({
                                     fontSize: isMobile ? 13 : 12,
                                     color: '#666',
                                     marginBottom: 12,
-                                    lineHeight: '1.2',
-                                    background: '#f8fafc',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: 8,
-                                    padding: '8px 10px'
+                                    lineHeight: '1.2'
                                 }}>
                                     ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
                                 </div>
