@@ -1231,10 +1231,7 @@ const VoucherType = ({
                                     color: '#666',
                                     marginBottom: 12,
                                     lineHeight: '1.2',
-                                    background: '#f8fafc',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: 8,
-                                    padding: '8px 10px'
+                
                                 }}>
                                     {localSharedWeatherRefund ? anyDayMsg2 : anyDayMsg1}
                                 </div>
@@ -1264,6 +1261,30 @@ const VoucherType = ({
                         
                         return null;
                     })()}
+                    {/* Cancellation policy for Flexible Weekday and Weekday Morning */}
+                    {(() => {
+                        const isFlexibleWeekday = voucher.title === 'Flexible Weekday';
+                        const isWeekdayMorning = voucher.title === 'Weekday Morning';
+                        
+                        if (isFlexibleWeekday || isWeekdayMorning) {
+                            return (
+                                <div style={{
+                                    fontSize: isMobile ? 13 : 12,
+                                    color: '#666',
+                                    marginBottom: 12,
+                                    lineHeight: '1.2',
+                                    background: '#f8fafc',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: 8,
+                                    padding: '8px 10px'
+                                }}>
+                                    ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
+                    
                     {/* Weather refundable toggle moved below price, above Select */}
                     <div style={{ 
                         display: 'flex', 
