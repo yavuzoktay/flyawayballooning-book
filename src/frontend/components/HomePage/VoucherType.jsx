@@ -1270,7 +1270,7 @@ const VoucherType = ({
                         if ((isFlexibleWeekday || isWeekdayMorning) && isBookFlight) {
                             return (
                                 <div style={{
-                                    fontSize: isMobile ? 13 : 12,
+                                    fontSize: isMobile ? 13 : 13,
                                     color: '#666',
                                     marginBottom: 12,
                                     lineHeight: '1.2'
