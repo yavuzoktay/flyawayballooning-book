@@ -394,6 +394,13 @@ const VoucherType = ({
                 console.log('Regular voucher types data:', data);
                 
                 if (data.success) {
+                    // Log the raw features data for debugging
+                    console.log('Raw voucher types features data:', data.data.map(vt => ({ 
+                        title: vt.title, 
+                        features: vt.features,
+                        featuresType: typeof vt.features 
+                    })));
+                    
                     setAllVoucherTypesState(data.data);
                     
                     // Initialize quantities and pricing from API data
@@ -713,12 +720,34 @@ const VoucherType = ({
                 // Parse features from JSON string
                 let features = [];
                 try {
-                    features = JSON.parse(vt.features || '[]');
+                    // Clean up the JSON string first - fix common syntax errors
+                    let featuresJson = vt.features || '[]';
+                    
+                    // Fix common JSON syntax errors
+                    featuresJson = featuresJson
+                        .replace(/\."/g, '",')  // Replace ." with ,"
+                        .replace(/,$/, '')      // Remove trailing comma
+                        .replace(/,\s*]/g, ']'); // Remove comma before closing bracket
+                    
+                    features = JSON.parse(featuresJson);
                     console.log(`VoucherType: ${vt.title} - Parsed features from JSON:`, features);
                 } catch (e) {
                     console.warn(`VoucherType: ${vt.title} - Failed to parse features JSON:`, vt.features, 'Error:', e);
-                    // If JSON parsing fails, try to use empty array instead of hardcoded features
-                    features = [];
+                    console.warn(`VoucherType: ${vt.title} - Attempting to parse as array manually...`);
+                    
+                    // Try to parse as a simple array by splitting on commas
+                    try {
+                        const cleanedFeatures = vt.features
+                            .replace(/[\[\]"]/g, '') // Remove brackets and quotes
+                            .split(',')
+                            .map(f => f.trim())
+                            .filter(f => f.length > 0);
+                        features = cleanedFeatures;
+                        console.log(`VoucherType: ${vt.title} - Manually parsed features:`, features);
+                    } catch (manualError) {
+                        console.warn(`VoucherType: ${vt.title} - Manual parsing also failed:`, manualError);
+                        features = [];
+                    }
                 }
                 
                 // If no features are available, log a warning but don't use hardcoded fallback
@@ -815,6 +844,12 @@ const VoucherType = ({
                 console.log('VoucherType: Raw voucher types data:', allVoucherTypesState.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
             // Create voucher types for Shared Flight
+            console.log('VoucherType: Processing shared flight voucher types with raw data:', allVoucherTypesState.map(vt => ({ 
+                title: vt.title, 
+                features: vt.features,
+                featuresType: typeof vt.features 
+            })));
+            
             const sharedFlightVouchers = allVoucherTypesState.map(vt => {
                 // Use the updated price_per_person from the voucher types API (which now includes activity pricing)
                 let basePrice = parseFloat(vt.price_per_person) || 180; // Use API price, fallback to default
@@ -863,13 +898,45 @@ const VoucherType = ({
 
                 // Parse features from JSON string
                 let features = [];
+                
+                // Debug: Log the raw features data
+                console.log(`VoucherType: ${vt.title} - Raw features data:`, {
+                    features: vt.features,
+                    type: typeof vt.features,
+                    length: vt.features ? vt.features.length : 0
+                });
+                
                 try {
-                    features = JSON.parse(vt.features || '[]');
-                    console.log(`VoucherType: ${vt.title} - Parsed features from JSON:`, features);
+                    // Clean up the JSON string first - fix common syntax errors
+                    let featuresJson = vt.features || '[]';
+                    
+                    // Fix common JSON syntax errors
+                    featuresJson = featuresJson
+                        .replace(/\."/g, '",')  // Replace ." with ,"
+                        .replace(/,$/, '')      // Remove trailing comma
+                        .replace(/,\s*]/g, ']'); // Remove comma before closing bracket
+                    
+                    console.log(`VoucherType: ${vt.title} - Cleaned features JSON:`, featuresJson);
+                    
+                    features = JSON.parse(featuresJson);
+                    console.log(`VoucherType: ${vt.title} - Successfully parsed features from JSON:`, features);
                 } catch (e) {
                     console.warn(`VoucherType: ${vt.title} - Failed to parse features JSON:`, vt.features, 'Error:', e);
-                    // If JSON parsing fails, try to use empty array instead of hardcoded features
-                    features = [];
+                    console.warn(`VoucherType: ${vt.title} - Attempting to parse as array manually...`);
+                    
+                    // Try to parse as a simple array by splitting on commas
+                    try {
+                        const cleanedFeatures = vt.features
+                            .replace(/[\[\]"]/g, '') // Remove brackets and quotes
+                            .split(',')
+                            .map(f => f.trim())
+                            .filter(f => f.length > 0);
+                        features = cleanedFeatures;
+                        console.log(`VoucherType: ${vt.title} - Manually parsed features:`, features);
+                    } catch (manualError) {
+                        console.warn(`VoucherType: ${vt.title} - Manual parsing also failed:`, manualError);
+                        features = [];
+                    }
                 }
                 
                 // If no features are available, log a warning but don't use hardcoded fallback
@@ -900,6 +967,7 @@ const VoucherType = ({
 
             console.log('VoucherType: Shared Flight voucher types created:', sharedFlightVouchers.length);
             console.log('VoucherType: Shared Flight weather clauses:', sharedFlightVouchers.map(vt => ({ title: vt.title, weatherClause: vt.weatherClause })));
+            console.log('VoucherType: Shared Flight features:', sharedFlightVouchers.map(vt => ({ title: vt.title, inclusions: vt.inclusions })));
             console.log('VoucherType: Shared Flight pricing details:', sharedFlightVouchers.map(vt => ({ 
                 title: vt.title, 
                 basePrice: vt.basePrice, 
@@ -1119,19 +1187,31 @@ const VoucherType = ({
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
                     <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
-                        {voucher.inclusions.map((inclusion, i) => {
-                            const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                            return (
-                                <div key={i} style={{ marginBottom: 3 }}>
-                                    {inclusion}
-                                    {inclusion === 'Flight Certificate' && !isAnyDay && (
-                                        <div style={{ marginTop: 6, fontSize: isMobile ? 13 : 12, color: '#666', lineHeight: '1.2' }}>
-                                            ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {(() => {
+                            console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
+                            
+                            if (!voucher.inclusions || voucher.inclusions.length === 0) {
+                                return (
+                                    <div style={{ fontStyle: 'italic', color: '#999' }}>
+                                        Features will be loaded from the admin panel...
+                                    </div>
+                                );
+                            }
+                            
+                            return voucher.inclusions.map((inclusion, i) => {
+                                const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                                return (
+                                    <div key={i} style={{ marginBottom: 3 }}>
+                                        {inclusion}
+                                        {inclusion === 'Flight Certificate' && !isAnyDay && (
+                                            <div style={{ marginTop: 6, fontSize: isMobile ? 13 : 12, color: '#666', lineHeight: '1.2' }}>
+                                                ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            });
+                        })()}
                     </div>
                     {/* Dynamic cancellation policy message for Any Day Flight and Private Charter */}
                     {(() => {
