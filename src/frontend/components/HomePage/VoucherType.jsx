@@ -714,9 +714,16 @@ const VoucherType = ({
                 let features = [];
                 try {
                     features = JSON.parse(vt.features || '[]');
+                    console.log(`VoucherType: ${vt.title} - Parsed features from JSON:`, features);
                 } catch (e) {
-                    // Default features for private charter
-                    features = ['Private Balloon', 'Flexible Timing', 'Personalized Experience', 'Complimentary Drinks', 'Professional Photos', '3D Flight Track'];
+                    console.warn(`VoucherType: ${vt.title} - Failed to parse features JSON:`, vt.features, 'Error:', e);
+                    // If JSON parsing fails, try to use empty array instead of hardcoded features
+                    features = [];
+                }
+                
+                // If no features are available, log a warning but don't use hardcoded fallback
+                if (!features || features.length === 0) {
+                    console.warn(`VoucherType: ${vt.title} - No features available in database. Please check the Features (JSON Array) field in the admin panel.`);
                 }
 
                 // For private charter, use the enhanced pricing from the API (which includes activity-specific pricing)
@@ -858,9 +865,16 @@ const VoucherType = ({
                 let features = [];
                 try {
                     features = JSON.parse(vt.features || '[]');
+                    console.log(`VoucherType: ${vt.title} - Parsed features from JSON:`, features);
                 } catch (e) {
-                    // Default features for shared flight
-                    features = ['Shared Balloon', 'Professional Pilot', 'Safety Briefing', 'Flight Certificate'];
+                    console.warn(`VoucherType: ${vt.title} - Failed to parse features JSON:`, vt.features, 'Error:', e);
+                    // If JSON parsing fails, try to use empty array instead of hardcoded features
+                    features = [];
+                }
+                
+                // If no features are available, log a warning but don't use hardcoded fallback
+                if (!features || features.length === 0) {
+                    console.warn(`VoucherType: ${vt.title} - No features available in database. Please check the Features (JSON Array) field in the admin panel.`);
                 }
 
                 return {
