@@ -1261,12 +1261,13 @@ const VoucherType = ({
                         
                         return null;
                     })()}
-                    {/* Cancellation policy for Flexible Weekday and Weekday Morning */}
+                    {/* Cancellation policy for Flexible Weekday and Weekday Morning - only for Book Flight Date */}
                     {(() => {
                         const isFlexibleWeekday = voucher.title === 'Flexible Weekday';
                         const isWeekdayMorning = voucher.title === 'Weekday Morning';
+                        const isBookFlight = activitySelect === 'Book Flight';
                         
-                        if (isFlexibleWeekday || isWeekdayMorning) {
+                        if ((isFlexibleWeekday || isWeekdayMorning) && isBookFlight) {
                             return (
                                 <div style={{
                                     fontSize: isMobile ? 13 : 12,
