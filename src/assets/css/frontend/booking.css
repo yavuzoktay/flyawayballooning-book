@@ -685,7 +685,6 @@ label {
 .Recipient input {
     height: 40px;
     width: 100%;
-    margin-top: 10px;
     padding: 0px 10px;
     font-family: 'Gilroy', sans-serif;
     font-size: 16px;
@@ -709,10 +708,20 @@ label {
 /* Mobile-specific styling for Recipient Details date input */
 @media (max-width: 768px) {
     .recipient-date-input {
+        /* Match other recipient inputs on mobile */
+        width: 100% !important;
+        box-sizing: border-box !important;
+        height: 40px !important;
+        padding: 0 10px !important;
+        border-radius: 8px !important;
         background-color: #ffffff !important;
-        border: 2px solid #3b82f6 !important;
-        color: #1f2937 !important;
+        border: 1px solid #e5e7eb !important; /* same border as other inputs */
+        color: #111827 !important; /* ensure value text is visible */
+        font-size: 16px !important; /* same size as other inputs */
         font-weight: 500 !important;
+        -webkit-appearance: none !important; /* prevent oversized native styling */
+        appearance: none !important;
+        min-width: 0 !important; /* avoid overflow on small screens */
     }
     
     .recipient-date-input::-webkit-calendar-picker-indicator {
@@ -730,15 +739,17 @@ label {
     }
     
     .recipient-date-input::-webkit-datetime-edit-text {
-        color: #1f2937 !important;
+        color: #111827 !important;
         font-weight: 500 !important;
+        font-size: 16px !important;
     }
     
     .recipient-date-input::-webkit-datetime-edit-month-field,
     .recipient-date-input::-webkit-datetime-edit-day-field,
     .recipient-date-input::-webkit-datetime-edit-year-field {
-        color: #1f2937 !important;
+        color: #111827 !important; /* match other recipient inputs */
         font-weight: 500 !important;
+        font-size: 16px !important;
     }
 }
 
