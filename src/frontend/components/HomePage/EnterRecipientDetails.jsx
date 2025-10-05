@@ -1,10 +1,37 @@
 // EnterRecipientDetails.js
-import React, { useState, forwardRef, useImperativeHandle } from "react";
+import React, { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 
 const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
     const [emailError, setEmailError] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    // Detect mobile viewport; only affects rendering of the gift date input
+    useEffect(() => {
+        const media = window.matchMedia('(max-width: 768px)');
+        const setFlag = () => setIsMobile(media.matches);
+        setFlag();
+        try {
+            media.addEventListener('change', setFlag);
+        } catch (_) {
+            // Safari fallback
+            media.addListener(setFlag);
+        }
+        return () => {
+            try {
+                media.removeEventListener('change', setFlag);
+            } catch (_) {
+                media.removeListener(setFlag);
+            }
+        };
+    }, []);
+
+    const handleGiftDateFocus = (e) => {
+        // When focusing the mobile text-field, switch to native date picker
+        if (isMobile && e.target.type === 'text') {
+            e.target.type = 'date';
+        }
+    };
     const [validationErrors, setValidationErrors] = useState({});
     const [skipRecipientDetails, setSkipRecipientDetails] = useState(false);
 
@@ -317,24 +344,49 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             marginBottom: '4px',
                             display: 'block',
                         }}>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
-                        <input
-                            type="date"
-                            name="date"
-                            value={recipientDetails.date || ''}
-                            onChange={handleChange}
-                            required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px',
-                                fontSize: '16px',
-                                minHeight: '35px',
-                                boxSizing: 'border-box',
-                                ...(validationErrors.date ? { border: '1.5px solid red' } : {})
-                            }}
-                            className="recipient-date-input"
-                        />
+                        {isMobile ? (
+                            <input
+                                type={recipientDetails.date ? 'date' : 'text'}
+                                inputMode="numeric"
+                                pattern="\\d{2}\\.\\d{2}\\.\\d{4}"
+                                placeholder="dd.mm.yyyy"
+                                name="date"
+                                value={recipientDetails.date || ''}
+                                onFocus={handleGiftDateFocus}
+                                onChange={handleChange}
+                                required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    fontSize: '16px',
+                                    minHeight: '35px',
+                                    boxSizing: 'border-box',
+                                    ...(validationErrors.date ? { border: '1.5px solid red' } : {})
+                                }}
+                                className="recipient-date-input"
+                            />
+                        ) : (
+                            <input
+                                type="date"
+                                name="date"
+                                value={recipientDetails.date || ''}
+                                onChange={handleChange}
+                                required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    fontSize: '16px',
+                                    minHeight: '35px',
+                                    boxSizing: 'border-box',
+                                    ...(validationErrors.date ? { border: '1.5px solid red' } : {})
+                                }}
+                                className="recipient-date-input"
+                            />
+                        )}
                         {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
                     </div>
                 </div>
