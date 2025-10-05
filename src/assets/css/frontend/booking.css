@@ -712,13 +712,10 @@ label {
         width: 100% !important;
         box-sizing: border-box !important;
         height: 40px !important;
-        padding: 0 10px !important;
-        border-radius: 8px !important;
         background-color: #ffffff !important;
         border: 1px solid #e5e7eb !important; /* same border as other inputs */
         color: #111827 !important; /* ensure value text is visible */
         font-size: 16px !important; /* same size as other inputs */
-        font-weight: 500 !important;
         -webkit-appearance: none !important; /* prevent oversized native styling */
         appearance: none !important;
         min-width: 0 !important; /* avoid overflow on small screens */
