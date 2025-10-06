@@ -765,7 +765,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             
             
             try {
-                // Stripe Checkout Session başlat - VOUCHER için
+                // Start Stripe Checkout Session - for VOUCHER
                 const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                     totalPrice,
                     currency: 'GBP',
@@ -773,21 +773,21 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     type: 'voucher'
                 });
                 if (!sessionRes.data.success) {
-                    alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                    alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
                     return;
                 }
                 const stripe = await stripePromise;
                 const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
                 if (error) {
-                    alert('Stripe yönlendirme hatası: ' + error.message);
+                    alert('Stripe redirect error: ' + error.message);
                 }
-                // Başarılı ödeme sonrası voucher code generation ve createVoucher webhook ile tetiklenecek
+                // After successful payment, voucher code generation and createVoucher will be triggered via webhook
             } catch (error) {
-                console.error('Stripe Checkout başlatılırken hata:', error);
+                console.error('Error while starting Stripe Checkout:', error);
                 const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
                 const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
-                const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
-                alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+                const finalMsg = backendMsg || error?.message || 'Unknown error';
+                alert(`An error occurred while starting payment. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
             }
             return;
         }
@@ -887,26 +887,26 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         console.log('Message:', redeemResponse.data.message);
                         
                         if (redeemResponse.data.success) {
-                            alert(`Voucher başarıyla kullanıldı ve işaretlendi! Booking ID: ${response.data.bookingId}`);
+                            alert(`Voucher successfully redeemed and marked! Booking ID: ${response.data.bookingId}`);
                         } else {
-                            alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemResponse.data.message}`);
+                            alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
                         }
                     } catch (redeemError) {
                         console.error('=== REDEEM VOUCHER ERROR ===');
                         console.error('Error:', redeemError);
                         console.error('Response:', redeemError.response?.data);
-                        alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemError.response?.data?.message || redeemError.message}`);
+                        alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
                     }
-                    // Başarılı işlem sonrası form'u temizle
+                    // Clear form after successful operation
                     resetBooking();
                 } else {
-                    alert('Booking oluşturulurken hata oluştu: ' + (response.data.error || response.data.message || 'Bilinmeyen hata'));
+                    alert('An error occurred while creating the booking: ' + (response.data.error || response.data.message || 'Unknown error'));
                 }
             } catch (error) {
-                console.error('Booking oluşturulurken hata:', error);
+                console.error('Error while creating booking:', error);
                 console.error('Error response:', error.response?.data);
-                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Bilinmeyen hata';
-                alert('Booking oluşturulurken hata oluştu: ' + errorMessage);
+                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Unknown error';
+                alert('An error occurred while creating the booking: ' + errorMessage);
             }
             return;
         }
@@ -948,7 +948,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             voucher_type: selectedVoucherType?.title || null
         };
         try {
-            // Stripe Checkout Session başlat
+            // Start Stripe Checkout Session
             // localStorage.setItem('pendingBookingData', JSON.stringify(bookingData)); // ARTIK GEREK YOK
             const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                 totalPrice,
@@ -961,39 +961,39 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             
             // Response kontrolü
             if (!sessionRes.data || !sessionRes.data.success) {
-                const errorMessage = sessionRes.data?.message || 'Bilinmeyen hata';
+                const errorMessage = sessionRes.data?.message || 'Unknown error';
                 console.error('Backend error:', errorMessage);
-                alert('Ödeme başlatılamadı: ' + errorMessage);
+                alert('Payment could not be initiated: ' + errorMessage);
                 return;
             }
             
             if (!sessionRes.data.sessionId) {
                 console.error('Session ID not found in response');
-                alert('Ödeme başlatılamadı: Session ID bulunamadı');
+                alert('Payment could not be initiated: Session ID not found');
                 return;
             }
             const stripe = await stripePromise;
             console.log('Redirecting to Stripe with sessionId:', sessionRes.data.sessionId);
             
             try {
-                // Stripe'ın yeni versiyonunda farklı yaklaşım
+                // New approach in Stripe SDK
                 const result = await stripe.redirectToCheckout({ 
                     sessionId: sessionRes.data.sessionId 
                 });
                 
                 if (result.error) {
                     console.error('Stripe redirect error:', result.error);
-                    alert('Stripe yönlendirme hatası: ' + result.error.message);
+                    alert('Stripe redirect error: ' + result.error.message);
                 } else {
                     console.log('Stripe redirect successful');
                 }
             } catch (stripeError) {
                 console.error('Stripe redirect failed:', stripeError);
-                alert('Stripe yönlendirme başarısız: ' + stripeError.message);
+                alert('Stripe redirect failed: ' + stripeError.message);
             }
             // Başarılı ödeme sonrası createBooking çağrısı success_url ile tetiklenecek (webhook veya frontend ile)
         } catch (error) {
-            console.error('Stripe Checkout başlatılırken hata:', error);
+            console.error('Error while starting Stripe Checkout:', error);
             console.error('Error details:', {
                 message: error.message,
                 stack: error.stack,
@@ -1001,8 +1001,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             });
             const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
             const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
-            const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
-            alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+            const finalMsg = backendMsg || error?.message || 'Unknown error';
+            alert(`An error occurred while starting payment. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
         }
     }
 

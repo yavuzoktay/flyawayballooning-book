@@ -1099,21 +1099,21 @@ const Index = () => {
                     type: 'voucher'
                 });
                 if (!sessionRes.data.success) {
-                    alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                    alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
                     return;
                 }
                 const stripe = await stripePromise;
                 const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
                 if (error) {
-                    alert('Stripe yönlendirme hatası: ' + error.message);
+                    alert('Stripe redirect error: ' + error.message);
                 }
                 // Başarılı ödeme sonrası voucher code generation ve createVoucher webhook ile tetiklenecek
             } catch (error) {
                 console.error('Stripe Checkout başlatılırken hata:', error);
                 const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
                 const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
-                const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
-                alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+                const finalMsg = backendMsg || error?.message || 'Unknown error';
+                alert(`An error occurred while starting payment. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
             }
             return;
         }
@@ -1249,26 +1249,26 @@ const Index = () => {
                         console.log('Message:', redeemResponse.data.message);
                         
                         if (redeemResponse.data.success) {
-                            alert(`Voucher başarıyla kullanıldı ve işaretlendi! Booking ID: ${response.data.bookingId}`);
+                            alert(`Voucher successfully redeemed and marked! Booking ID: ${response.data.bookingId}`);
                         } else {
-                            alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemResponse.data.message}`);
+                            alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
                         }
                     } catch (redeemError) {
                         console.error('=== REDEEM VOUCHER ERROR (Index.jsx) ===');
                         console.error('Error:', redeemError);
                         console.error('Response:', redeemError.response?.data);
-                        alert(`Booking oluşturuldu (ID: ${response.data.bookingId}) ama voucher işaretlenemedi: ${redeemError.response?.data?.message || redeemError.message}`);
+                        alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
                     }
                     // Başarılı işlem sonrası form'u temizle
                     resetBooking();
                 } else {
-                    alert('Booking oluşturulurken hata oluştu: ' + (response.data.error || response.data.message || 'Bilinmeyen hata'));
+                    alert('An error occurred while creating the booking: ' + (response.data.error || response.data.message || 'Unknown error'));
                 }
             } catch (error) {
-                console.error('Booking oluşturulurken hata:', error);
+                console.error('Error while creating booking:', error);
                 console.error('Error response:', error.response?.data);
-                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Bilinmeyen hata';
-                alert('Booking oluşturulurken hata oluştu: ' + errorMessage);
+                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Unknown error';
+                alert('An error occurred while creating the booking: ' + errorMessage);
             }
             return;
         }
@@ -1312,21 +1312,21 @@ const Index = () => {
                 type: 'booking'
             });
             if (!sessionRes.data.success) {
-                alert('Ödeme başlatılamadı: ' + (sessionRes.data.message || 'Bilinmeyen hata'));
+                alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
                 return;
             }
             const stripe = await stripePromise;
             const { error } = await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
             if (error) {
-                alert('Stripe yönlendirme hatası: ' + error.message);
+                alert('Stripe redirect error: ' + error.message);
             }
             // Başarılı ödeme sonrası booking creation ve createBooking webhook ile tetiklenecek
         } catch (error) {
             console.error('Stripe Checkout başlatılırken hata:', error);
             const backendMsg = error?.response?.data?.message || error?.response?.data?.error?.message;
             const stripeMsg = error?.response?.data?.error?.type ? `${error.response.data.error.type}${error.response.data.error.code ? ' ('+error.response.data.error.code+')' : ''}` : '';
-            const finalMsg = backendMsg || error?.message || 'Bilinmeyen hata';
-            alert(`Ödeme başlatılırken hata oluştu. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
+            const finalMsg = backendMsg || error?.message || 'Unknown error';
+            alert(`An error occurred while starting payment. ${stripeMsg ? '['+stripeMsg+'] ' : ''}${finalMsg}`);
         }
     };
 
@@ -1722,7 +1722,7 @@ const Index = () => {
             // URL'den payment parametresini temizle
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (params.get('payment') === 'cancel') {
-            alert('Ödeme iptal edildi.');
+            alert('Payment cancelled.');
             // URL'den payment parametresini temizle
             window.history.replaceState({}, document.title, window.location.pathname);
         }
