@@ -620,10 +620,17 @@ const Index = () => {
     
     if (activitySelect === 'Book Flight') {
         // For Book Flight, only include voucher type price and add-ons
-        const voucherTypePrice = selectedVoucherType?.price || 0;
+        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+        const voucherTypePrice = (() => {
+            if (!selectedVoucherType) return 0;
+            if (isPrivateCharter) return selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0;
+            if (selectedVoucherType?.priceUnit === 'total') return selectedVoucherType?.price ?? 0;
+            const basePrice = selectedVoucherType?.basePrice ?? selectedVoucherType?.price ?? 0;
+            const quantity = selectedVoucherType?.quantity ?? 1;
+            return basePrice * quantity;
+        })();
         const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
         // Weather refundable: 10% one-time for Private Charter, else £47.50 per selected passenger
-        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
         const weatherRefundPrice = isPrivateCharter
             ? (privateCharterWeatherRefund ? (voucherTypePrice * 0.1) : 0)
             : (Array.isArray(passengerData) ? passengerData.reduce((sum, p) => sum + (p && p.weatherRefund ? 47.50 : 0), 0) : 0);
@@ -632,10 +639,14 @@ const Index = () => {
         // For Flight Voucher and Buy Gift, only show total when voucher type is selected
         if (selectedVoucherType) {
             const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
-            // For Private Charter, selectedVoucherType.price already reflects the correct total (set in VoucherType)
-            const voucherTypePrice = isPrivateCharter
-                ? (selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0)
-                : (selectedVoucherType?.price ?? 0);
+            // Match RightInfoCard logic: total vs per-person pricing
+            const voucherTypePrice = (() => {
+                if (isPrivateCharter) return selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0;
+                if (selectedVoucherType?.priceUnit === 'total') return selectedVoucherType?.price ?? 0;
+                const basePrice = selectedVoucherType?.basePrice ?? selectedVoucherType?.price ?? 0;
+                const quantity = selectedVoucherType?.quantity ?? 1;
+                return basePrice * quantity;
+            })();
             const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
             const weatherRefundPrice = isPrivateCharter
                 ? (privateCharterWeatherRefund ? (voucherTypePrice * 0.1) : 0)
@@ -645,7 +656,15 @@ const Index = () => {
     } else {
         // For other activity types (like Redeem Voucher), include all components
         const flightTypePrice = chooseFlightType?.price || 0;
-        const voucherTypePrice = selectedVoucherType?.price || 0;
+        const voucherTypePrice = (() => {
+            if (!selectedVoucherType) return 0;
+            const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+            if (isPrivateCharter) return selectedVoucherType?.totalPrice ?? selectedVoucherType?.price ?? 0;
+            if (selectedVoucherType?.priceUnit === 'total') return selectedVoucherType?.price ?? 0;
+            const basePrice = selectedVoucherType?.basePrice ?? selectedVoucherType?.price ?? 0;
+            const quantity = selectedVoucherType?.quantity ?? 1;
+            return basePrice * quantity;
+        })();
         const addOnPrice = chooseAddOn?.reduce((sum, addon) => sum + (addon.price || 0), 0) || 0;
         const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
         const weatherRefundPrice = isPrivateCharter
