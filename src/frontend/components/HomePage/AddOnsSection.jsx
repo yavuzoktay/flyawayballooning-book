@@ -313,15 +313,9 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
     console.log('   - filteredItems.length:', filteredItems.length);
     console.log('   - Will show section:', !addToBookingLoading && filteredItems.length > 0);
 
-    // If no items to show, don't render the section at all
-    if (!addToBookingLoading && filteredItems.length === 0) {
-        console.log('❌ No add to booking items to display, hiding section');
-        return null;
-    }
-
+    // Always render the section so users can open it and see there are no items
     console.log('✅ Rendering Add to Booking section with', filteredItems.length, 'items');
-    console.log('   - Section will be visible');
-    console.log('   - Items to display:', filteredItems.map(item => item.name));
+    console.log('   - Items to display:', filteredItems.map ? filteredItems.map(item => item.name) : []);
 
     return (
         <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} isDisabled={isDisabled}>
