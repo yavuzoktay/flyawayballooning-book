@@ -168,6 +168,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
     const [selectedDateForTime, setSelectedDateForTime] = useState(null);
     const [tempSelectedTime, setTempSelectedTime] = useState(null);
+    // Hover state for time buttons (desktop only)
+    const [hoveredTime, setHoveredTime] = useState(null);
     
     // Timeout functionality removed
     
@@ -1101,10 +1103,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: isMobile ? 'center' : 'space-between',
-                                                        transition: 'all 0.2s ease',
-                                                        transform: tempSelectedTime === slot.time ? (isMobile ? 'scale(1)' : 'scale(1.02)') : 'scale(1)',
+                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                                        transform: (() => {
+                                                            if (tempSelectedTime === slot.time) return isMobile ? 'scale(1)' : 'scale(1.02)';
+                                                            if (!isMobile && hoveredTime === slot.time && isSelectable) return 'translateY(-2px) scale(1.03)';
+                                                            return 'scale(1)';
+                                                        })(),
+                                                        boxShadow: (!isMobile && hoveredTime === slot.time && isSelectable) ? '0 8px 18px rgba(0,0,0,0.15), 0 0 0 3px rgba(86,193,255,0.35)' : (tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none'),
                                                         position: 'relative',
-                                                        boxShadow: tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none',
                                                         boxSizing: 'border-box',
                                                         marginBottom: isMobile ? 6 : 0,
                                                         marginLeft: isMobile ? '2px' : '0',
@@ -1112,6 +1118,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         minHeight: isMobile ? '40px' : 'auto'
                                                     }}
                                                     onClick={() => isSelectable && setTempSelectedTime(slot.time)}
+                                                    onMouseEnter={() => { if (!isMobile) setHoveredTime(slot.time); }}
+                                                    onMouseLeave={() => { if (!isMobile) setHoveredTime(null); }}
                                                     disabled={!isSelectable}
                                                 >
                                                 {isMobile ? (
