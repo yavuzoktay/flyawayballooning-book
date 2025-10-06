@@ -215,7 +215,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     console.log("additionalInfo:", additionalInfo);
     // Helper to check additionalInfo - only valid if actually filled
     const isAdditionalInfoValid = (info) => {
-      if (!info || typeof info !== 'object') return false;
+      if (!info || typeof info !== 'object') return true; // Optional by default
       const requiredKeys = Array.isArray(info.__requiredKeys) ? info.__requiredKeys : [];
       if (requiredKeys.length > 0) {
         return requiredKeys.every((k) => {
@@ -223,8 +223,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
           return typeof v === 'string' ? v.trim() !== '' : !!v;
         });
       }
-      // Fallback to any filled value (for flows without required questions)
-      return Object.entries(info).some(([k, v]) => k !== '__requiredKeys' && (typeof v === 'string' ? v.trim() !== '' : !!v));
+      // No required questions => section is optional
+      return true;
     };
 
     // Book button enable logic:

@@ -301,14 +301,14 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
             setActiveAccordion={setActiveAccordion}
             isDisabled={isDisabled}
             onBeforeClose={() => {
+                // Only block closing if API-driven required questions are missing
                 const ok = validateFields();
-                // Prevent closing if there are missing required fields
-                return ok; // returning false keeps section open
+                return ok;
             }}
         >
             <div className="add-info p-4">
                 <div className="addition-info-notes">
-                    <label className="block mb-2 text-base font-semibold">Additional Notes:</label>
+                    <label className="block mb-2 text-base font-semibold">Additional Notes: <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
                     <textarea
                         name="notes"
                         rows="3"
