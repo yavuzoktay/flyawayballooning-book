@@ -859,7 +859,8 @@ const Index = () => {
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
-                if (additionalInfo?.notes) completedSections.push('additional-info');
+                // Additional Information is optional unless API marks specific questions required
+                if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
@@ -916,7 +917,8 @@ const Index = () => {
         if (selectedVoucherType) completedSections.push('voucher-type');
         if (selectedDate && selectedTime) completedSections.push('live-availability');
         if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
-        if (additionalInfo?.notes) completedSections.push('additional-info');
+        // Additional Information is optional unless API marks specific questions required
+        if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
         if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
         if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
 
@@ -1523,7 +1525,8 @@ const Index = () => {
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
-                if (additionalInfo?.notes) completedSections.push('additional-info');
+                // Additional Information is optional unless API marks specific questions required
+                if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
