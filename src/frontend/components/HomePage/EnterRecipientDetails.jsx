@@ -199,7 +199,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 minHeight: '36px'
                             }}
                         >
-                            Don’t enter recipient details
+                            Skip Recipient Details.
                         </button>
                     </div>
                 )}
