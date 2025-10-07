@@ -1593,6 +1593,9 @@ const Index = () => {
                         }
                         
                         // Ask backend first if this session was already processed
+                        // Give the webhook a short window to populate the in-memory session store
+                        // before we check the status or invoke the fallback
+                        await new Promise(r => setTimeout(r, 1200));
                         const statusResp = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
                         if (statusResp.data?.processed) {
                             console.log('Session already processed on server, skipping fallback creation.');
