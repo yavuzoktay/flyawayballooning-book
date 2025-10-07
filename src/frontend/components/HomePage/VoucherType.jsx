@@ -1121,10 +1121,11 @@ const VoucherType = ({
                 padding: 0,
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: 'hidden',
+                overflow: isMobile ? 'hidden' : 'visible',
                 animation: shouldAnimate ? (slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none') : 'none',
                 border: isSelected ? '2px solid #03a9f4' : 'none',
-                scrollSnapAlign: isMobile ? 'start' : 'none'
+                scrollSnapAlign: isMobile ? 'start' : 'none',
+                position: 'relative'
             }}>
                 <div style={{ position: 'relative', width: '100%', height: 180, overflow: 'hidden' }}>
                     <img
@@ -1166,7 +1167,9 @@ const VoucherType = ({
                     boxSizing: 'border-box', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    height: '100%' 
+                    height: '100%',
+                    overflow: 'visible',
+                    position: 'relative'
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
@@ -1394,24 +1397,13 @@ const VoucherType = ({
                             if (!isAnyDay) return null;
                             const enabled = localSharedWeatherRefund;
                             return (
-                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10,overflow:'visible',position:'relative'}}>
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
                                             <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                            <span className="info-icon-container">
                                                 <BsInfoCircle size={14} color="#0070f3" />
-                                                <div className="hover-text" style={{ 
-                                                    position: 'fixed', 
-                                                    top: '20px', 
-                                                    left: '50%', 
-                                                    transform: 'translateX(-50%)', 
-                                                    zIndex: 999999,
-                                                    width: 'auto',
-                                                    minWidth: '300px',
-                                                    maxWidth: 'none',
-                                                    height: 'auto',
-                                                    overflow: 'visible'
-                                                }}>
+                                                <div className="hover-text">
                                                     <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
                                                 </div>
                                             </span>
@@ -1445,24 +1437,13 @@ const VoucherType = ({
                         if (chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight') {
                             const enabled = !!privateWeatherRefundByVoucher[voucher.title];
                             return (
-                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10}}>
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10,overflow:'visible',position:'relative'}}>
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
                                             <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                            <span className="info-icon-container">
                                                 <BsInfoCircle size={14} color="#0070f3" />
-                                                <div className="hover-text" style={{ 
-                                                    position: 'fixed', 
-                                                    top: '20px', 
-                                                    left: '50%', 
-                                                    transform: 'translateX(-50%)', 
-                                                    zIndex: 999999,
-                                                    width: 'auto',
-                                                    minWidth: '300px',
-                                                    maxWidth: 'none',
-                                                    height: 'auto',
-                                                    overflow: 'visible'
-                                                }}>
+                                                <div className="hover-text">
                                                     <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
                                                 </div>
                                             </span>
@@ -1945,12 +1926,14 @@ const VoucherType = ({
                                             alignItems: 'center',
                                             width: '100%',
                                             overflowX: 'auto',
+                                            overflowY: 'visible',
                                             paddingBottom: '10px',
                                             scrollBehavior: 'smooth',
                                             scrollSnapType: 'x mandatory',
                                             scrollPadding: '0 8px',
                                             WebkitOverflowScrolling: 'touch',
-                                            overscrollBehavior: 'contain'
+                                            overscrollBehavior: 'contain',
+                                            position: 'relative'
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{

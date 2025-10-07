@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
@@ -12,6 +13,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const [voucherTypesLoading, setVoucherTypesLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const cardBackRef = useRef(null);
+    const [mobileTooltip, setMobileTooltip] = useState({ visible: false, text: "" });
     
     // Notification state for flight type selection
     const [showNotification, setShowNotification] = useState(false);
@@ -229,6 +231,32 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     
     return (
         <>
+            {/* Mobile-only global tooltip rendered via portal to avoid clipping/stacking issues */}
+            {isMobile && mobileTooltip.visible && createPortal(
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        maxWidth: 'calc(100vw - 40px)',
+                        width: 'auto',
+                        background: 'rgba(0,0,0,0.85)',
+                        color: '#fff',
+                        padding: '8px 10px',
+                        borderRadius: 16,
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+                        lineHeight: 1.7,
+                        fontSize: 15,
+                        textAlign: 'center',
+                        zIndex: 2147483647
+                    }}
+                    onClick={() => setMobileTooltip({ visible: false, text: "" })}
+                >
+                    {mobileTooltip.text}
+                </div>,
+                document.body
+            )}
             {/* Notification for flight type selection */}
             {showNotification && (
                 <div style={{
@@ -326,11 +354,23 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         </div>
                                         <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                             {item.displayLabel || item.label}
-                                            <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                            <span
+                                                className="info-icon-container"
+                                                style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
+                                                onTouchStart={(e) => {
+                                                    e.preventDefault();
+                                                    if (isMobile) setMobileTooltip({ visible: true, text: 'Redeem flight or gift voucher' });
+                                                }}
+                                                onTouchEnd={(e) => {
+                                                    e.preventDefault();
+                                                }}
+                                            >
                                                 <BsInfoCircle size={14} color="#0070f3" />
-                                                <div className="hover-text">
-                                                    Redeem flight or gift voucher
-                                                </div>
+                                                {!isMobile && (
+                                                    <div className="hover-text">
+                                                        Redeem flight or gift voucher
+                                                    </div>
+                                                )}
                                             </span>
                                         </h3>
                                         {item.subText && <p>{item.subText}</p>}
@@ -402,11 +442,26 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                             <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                 {item.displayLabel || item.label}
-                                <span className="info-icon-container" style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+                                <span
+                                    className="info-icon-container"
+                                    style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
+                                    onTouchStart={(e) => {
+                                        e.preventDefault();
+                                        if (isMobile) {
+                                            const txt = (item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code');
+                                            setMobileTooltip({ visible: true, text: txt });
+                                        }
+                                    }}
+                                    onTouchEnd={(e) => {
+                                        e.preventDefault();
+                                    }}
+                                >
                                     <BsInfoCircle size={14} color="#0070f3" />
-                                    <div className="hover-text">
-                                        {(item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code')}
-                                    </div>
+                                    {!isMobile && (
+                                        <div className="hover-text">
+                                            {(item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code')}
+                                        </div>
+                                    )}
                                 </span>
                             </h3>
                             {item.subText && <p>{item.subText}</p>}
