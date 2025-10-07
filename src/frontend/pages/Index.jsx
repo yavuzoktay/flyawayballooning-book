@@ -66,6 +66,31 @@ const Index = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Start/maintain 5-minute countdown when a date and time are selected
+    useEffect(() => {
+        let intervalId;
+        if (selectedDate && selectedTime) {
+            // Initialize timer if not set
+            setCountdownSeconds(prev => (prev === null || prev === undefined ? 300 : prev));
+            intervalId = setInterval(() => {
+                setCountdownSeconds(prev => {
+                    if (prev === null || prev === undefined) return prev;
+                    if (prev <= 1) {
+                        clearInterval(intervalId);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } else {
+            // Clear when selection is reset
+            setCountdownSeconds(null);
+        }
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [selectedDate, selectedTime]);
+
     // Debug selectedVoucherType changes
     useEffect(() => {
         console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);
