@@ -687,13 +687,13 @@ label {
     width: 100%;
     padding: 0px 10px;
     font-family: 'Gilroy', sans-serif;
-    font-size: 14px !important;
+    font-size: 13px !important;
     color: #111827; /* same as recipient fields */
 }
 
 .Recipient input::placeholder {
     font-family: 'Gilroy', sans-serif !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     color: #111827 !important;
 }
 
@@ -701,7 +701,7 @@ label {
 .Purchaser input,
 .Purchaser input::placeholder {
     font-family: 'Gilroy', sans-serif !important;
-    font-size: 16px !important;
+    font-size: 13px !important;
     color: #111827 !important;
 }
 
@@ -715,7 +715,7 @@ label {
         background-color: #ffffff !important;
         border: 1px solid #e5e7eb !important; /* same border as other inputs */
         color: #111827 !important; /* ensure value text is visible */
-        font-size: 16px !important; /* same size as other inputs */
+        font-size: 13px !important; /* same size as other inputs */
         -webkit-appearance: none !important; /* prevent oversized native styling */
         appearance: none !important;
         min-width: 0 !important; /* avoid overflow on small screens */
