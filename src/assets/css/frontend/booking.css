@@ -2,6 +2,99 @@ body {
     background: #F3F3F9;
 }
 
+/* Desktop-only: Activity chooser tooltips should overlay cards and not be constrained */
+@media (min-width: 769px) {
+    /* Ensure activity section containers don't clip the tooltip */
+    .tab_box,
+    .tab_box .book_data,
+    .tab_box .book_data_label,
+    .tab_box .card-front,
+    .tab_box .card-back {
+        overflow: visible !important;
+    }
+
+    /* Make tooltip position relative to the whole card label to keep inside section */
+    .tab_box .book_data_label { position: relative !important; }
+    .tab_box .info-icon-container { position: static !important; }
+
+    /* Render tooltip within section, expanding beyond card but not outside the section */
+    .tab_box .info-icon-container .hover-text {
+        position: absolute !important; /* now relative to .book_data_label */
+        top: calc(100% + 10px) !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) scale(0.98) !important;
+        min-width: 360px !important;
+        max-width: calc(100% - 48px) !important; /* never exceed card/section width */
+        width: auto !important;
+        height: auto !important;
+        padding: 18px 22px !important;
+        border-radius: 12px !important;
+        background: #333 !important;
+        color: #fff !important;
+        text-align: center !important;
+        line-height: 1.7 !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
+        border-left: 4px solid #0070f3 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        z-index: 10005 !important;
+        visibility: hidden;
+        opacity: 0;
+        transition: transform .18s ease, opacity .18s ease, visibility .18s ease;
+        box-sizing: border-box !important;
+        pointer-events: auto !important;
+    }
+
+    .tab_box .info-icon-container:hover .hover-text,
+    .tab_box .info-icon-container .hover-text:hover {
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(-50%) scale(1) !important;
+    }
+
+    /* Optional arrow for aesthetic (centered on top) */
+    .tab_box .info-icon-container .hover-text::after {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -6px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: transparent transparent #333 transparent;
+    }
+}
+
+/* Desktop-only: Place activity tooltips inside each card just under the title */
+@media (min-width: 769px) {
+    /* Center tooltip in the middle of the card on desktop */
+    .tab_box .book_data_label { position: relative !important; }
+    .tab_box .book_data_label .info-icon-container { position: relative !important; }
+    .tab_box .book_data_label .info-icon-container .hover-text {
+        position: absolute !important; /* relative to the card label */
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        /* Character-based sizing for balanced layout */
+        width: auto !important;
+        max-width: 48ch !important;  /* widen for fewer lines */
+        min-width: 34ch !important;  /* avoid narrow columns */
+        padding: 12px 18px !important; /* reduce vertical padding */
+        line-height: 1.4 !important;   /* reduce line-height to cut height */
+        max-height: 56vh !important;
+        overflow: auto !important;
+        box-sizing: border-box !important;
+        z-index: 10010 !important; /* above card content */
+    }
+    .tab_box .book_data_label .info-icon-container:hover .hover-text {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    /* Hide arrow when centered */
+    .tab_box .book_data_label .info-icon-container .hover-text::after { display: none !important; }
+}
+
 @font-face {
     font-family: 'Gilroy';
     src: url('../../font-fmly/gilroy-bold/Gilroy-Bold.ttf');

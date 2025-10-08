@@ -89,6 +89,30 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         };
     }, [isMobile]);
 
+    // Mobile tooltip dismiss handlers: tap outside, scroll, escape, route changes
+    useEffect(() => {
+        if (!isMobile || !mobileTooltip.visible) return;
+
+        const handleGlobalTouch = (e) => {
+            const icon = e.target && (e.target.closest && e.target.closest('.info-icon-container'));
+            if (!icon) setMobileTooltip({ visible: false, text: "" });
+        };
+        const handleScroll = () => setMobileTooltip({ visible: false, text: "" });
+        const handleKey = (e) => { if (e.key === 'Escape') setMobileTooltip({ visible: false, text: "" }); };
+
+        document.addEventListener('touchstart', handleGlobalTouch, { passive: true });
+        document.addEventListener('click', handleGlobalTouch);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('keydown', handleKey);
+
+        return () => {
+            document.removeEventListener('touchstart', handleGlobalTouch, { passive: true });
+            document.removeEventListener('click', handleGlobalTouch);
+            window.removeEventListener('scroll', handleScroll, { passive: true });
+            window.removeEventListener('keydown', handleKey);
+        };
+    }, [isMobile, mobileTooltip.visible]);
+
     // Fetch voucher types from API
     useEffect(() => {
         const fetchVoucherTypes = async () => {
