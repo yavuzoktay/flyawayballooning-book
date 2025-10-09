@@ -1817,7 +1817,7 @@ const Index = () => {
                         <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
                             <button 
                                 onClick={() => setPassengerTermsModalOpen(false)}
-                                style={{background:'#10b981',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}}
+                                style={{background:'#00eb5b',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}}
                             >
                                 Agree and Proceed
                             </button>
