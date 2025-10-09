@@ -773,7 +773,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div className="realtime-badge-wrap">
                             <div className="realtime-badge" style={{
                                 fontSize: isMobile ? 14 : 14,
-                                padding: isMobile ? '6px 10px' : '8px 12px'
+                                padding: isMobile ? '6px 10px' : '8px 12px',
+                                background: '#00eb5b'
                             }}>
                                 <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
                                 <span className="realtime-badge-text">Real-time availability</span>
