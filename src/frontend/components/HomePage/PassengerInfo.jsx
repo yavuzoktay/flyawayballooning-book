@@ -697,14 +697,25 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         whiteSpace: 'nowrap'
                       }}>
                         Weight (Kg)<span style={{ color: 'red' }}>*</span>
-                        <span className="weight-info-wrapper" style={{ display: 'inline-flex', position: 'relative', zIndex: 10 }}>
-                          <div className="info-icon-container" style={{ position: 'relative' }}>
-                            <BsInfoCircle size={12} style={{ width: 12, height: 12 }} />
-                            <div className="hover-text">
-                              <p>If unknown, enter 0 and contact us before your flight. If exceeding the weight limit please contact the office.</p>
-                            </div>
-                          </div>
-                        </span>
+                        <BsInfoCircle 
+                          data-tooltip-id={`weight-tooltip-mobile-${index}`}
+                          style={{ color: '#3b82f6', cursor: 'pointer', width: 12, height: 12 }} 
+                        />
+                        <ReactTooltip
+                          id={`weight-tooltip-mobile-${index}`}
+                          place="top"
+                          content="If unknown, enter 0 and contact us before your flight. If exceeding the weight limit please contact the office."
+                          style={{
+                            maxWidth: '280px',
+                            fontSize: '13px',
+                            textAlign: 'center',
+                            backgroundColor: '#1f2937',
+                            color: '#ffffff',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            zIndex: 9999
+                          }}
+                        />
                       </label>
                       <input
                         type="text"
