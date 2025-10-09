@@ -861,7 +861,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             color: '#888',
                             lineHeight: isMobile ? 1.3 : 1.4
                         }}>
-                            Reschedule your flight for free up to 5 days before your scheduled date.
+                            ✅ Reschedule your flight for free up to 5 days before your scheduled date.
                         </span>
                     </div>
 

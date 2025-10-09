@@ -1105,7 +1105,8 @@ const Index = () => {
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
                 additionalInfo: additionalInfo, // Add additional information data
-                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null // Add add to booking items
+                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null, // Add add to booking items
+                selectedVoucherType: selectedVoucherType // Include the full selectedVoucherType object for backend fallback
             };
             
             // Sending voucher data to backend
@@ -1206,7 +1207,8 @@ const Index = () => {
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
                 additionalInfo: additionalInfo, // Add additional information data
-                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null // Add add to booking items
+                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null, // Add add to booking items
+                selectedVoucherType: selectedVoucherType // Include the full selectedVoucherType object for backend fallback
             };
             
             // Sending redeem voucher data to backend
@@ -1264,10 +1266,11 @@ const Index = () => {
                     chooseFlightType,
                     passengerData,
                     additionalInfo,
-                    selectedDate,
+                    selectedDate: bookingDateStr,  // Use formatted date string, not raw Date object
                     selectedTime,
                     voucher_code: voucherCode,
-                    totalPrice
+                    totalPrice,
+                    activity_id: activityId
                 };
                 
                 console.log('=== REDEEM BOOKING DATA (Index.jsx) ===');
@@ -1346,7 +1349,8 @@ const Index = () => {
             flight_attempts: chooseFlightType?.flight_attempts || 0,
             preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
             preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
-            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null
+            preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
+            activity_id: activityId
         };
         
         try {
@@ -1595,17 +1599,23 @@ const Index = () => {
                         // Ask backend first if this session was already processed
                         // Give the webhook a short window to populate the in-memory session store
                         // before we check the status or invoke the fallback
-                        await new Promise(r => setTimeout(r, 1200));
+                        // Give webhooks a little more time on slower paths
+                        await new Promise(r => setTimeout(r, 2000));
                         const statusResp = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
                         if (statusResp.data?.processed) {
                             console.log('Session already processed on server, skipping fallback creation.');
                             localStorage.setItem(processedKey, '1');
                             return; // Avoid duplicate creation
                         }
-                        const response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, {
-                            session_id,
-                            type
-                        });
+                        // Try creating from session (fallback) with a short retry in case the webhook is still finalising
+                        let response;
+                        try {
+                            response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, { session_id, type });
+                        } catch (e1) {
+                            // If backend not ready yet, wait and retry once
+                            await new Promise(r => setTimeout(r, 1500));
+                            response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, { session_id, type });
+                        }
                         
                         // Mark as processed after server handles it
                         localStorage.setItem(processedKey, '1');
@@ -1759,6 +1769,21 @@ const Index = () => {
                             console.warn('Payment succeeded but backend did not return success. Skipping alert because entry is already created.');
                         }
                     } catch (error) {
+                        // If the server returns 400 but the session becomes processed shortly after,
+                        // poll the status endpoint before logging the error.
+                        try {
+                            for (let i = 0; i < 8; i++) {
+                                const s = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
+                                if (s.data?.processed) {
+                                    console.log('Session processed after fallback error; suppressing error.');
+                                    localStorage.setItem(`fab_payment_processed_${session_id}`, '1');
+                                    return;
+                                }
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        } catch (statusCheckErr) {
+                            // ignore
+                        }
                         console.error('Error creating from session:', error);
                         // Do not alert the user; booking creation is idempotent and may already exist
                     }
@@ -2392,6 +2417,7 @@ const Index = () => {
                                 voucherStatus={voucherStatus}
                                 voucherData={voucherData}
                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                activityId={activityId}
                             />
                         </div>
                     </div>

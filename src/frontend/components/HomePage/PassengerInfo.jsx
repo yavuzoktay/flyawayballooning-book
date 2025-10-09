@@ -560,8 +560,41 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     fontWeight: '500',
                     color: '#1f2937',
                     textAlign: 'left',
-                    whiteSpace: 'nowrap'
-                  }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}
+                    {index === 0 && (activitySelect === 'Book Flight' || activitySelect === 'Flight Voucher') && (
+                      <>
+                        <BsInfoCircle 
+                          data-tooltip-id={`passenger-info-tooltip-mobile-${index}`}
+                          style={{ 
+                            color: '#3b82f6', 
+                            fontSize: '16px', 
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }} 
+                        />
+                        <ReactTooltip
+                          id={`passenger-info-tooltip-mobile-${index}`}
+                          place="top"
+                          content="Your booking confirmation and flight updates will be sent to the contact details provided for Passenger 1."
+                          style={{
+                            maxWidth: '280px',
+                            fontSize: '13px',
+                            textAlign: 'center',
+                            backgroundColor: '#1f2937',
+                            color: '#ffffff',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            zIndex: 9999
+                          }}
+                        />
+                      </>
+                    )}
+                  </h3>
                 </div>
                 {/* Weather Refundable moved to Voucher Type section */}
                 
@@ -870,8 +903,41 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         fontWeight: isMobile ? '500' : '500',
                         color: isMobile ? '#1f2937' : 'inherit',
                         textAlign: isMobile ? 'center' : 'left',
-                        width: isMobile ? '100%' : 'auto'
-                      }}>{activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}</h3>
+                        width: isMobile ? '100%' : 'auto',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        {activitySelect === 'Buy Gift' ? 'Your Details – The Purchaser' : `Passenger ${index + 1}`}
+                        {index === 0 && (activitySelect === 'Book Flight' || activitySelect === 'Flight Voucher') && (
+                          <>
+                            <BsInfoCircle 
+                              data-tooltip-id={`passenger-info-tooltip-desktop-${index}`}
+                              style={{ 
+                                color: '#3b82f6', 
+                                fontSize: '16px', 
+                                cursor: 'pointer',
+                                flexShrink: 0
+                              }} 
+                            />
+                            <ReactTooltip
+                              id={`passenger-info-tooltip-desktop-${index}`}
+                              place="top"
+                              content="Your booking confirmation and flight updates will be sent to the contact details provided for Passenger 1."
+                              style={{
+                                maxWidth: '280px',
+                                fontSize: '13px',
+                                textAlign: 'center',
+                                backgroundColor: '#1f2937',
+                                color: '#ffffff',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                zIndex: 9999
+                              }}
+                            />
+                          </>
+                        )}
+                      </h3>
                     </div>
                     {/* Weather Refundable controls removed (handled in Voucher Type) */}
                   </div>

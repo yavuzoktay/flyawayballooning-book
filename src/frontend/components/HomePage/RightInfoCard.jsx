@@ -7,7 +7,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId }) => {
     
     // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
     console.log('🔥 RightInfoCard component rendered!', { 
@@ -859,7 +859,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 selectedDate,
                 selectedTime,
                 voucher_code: voucherCode,
-                totalPrice
+                totalPrice,
+                activity_id: activityId
             };
             
             console.log('=== REDEEM BOOKING DATA ===');
