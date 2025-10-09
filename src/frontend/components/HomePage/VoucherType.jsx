@@ -1861,7 +1861,7 @@ const VoucherType = ({
                                 color: 'rgb(97, 216, 54)',
                                 border: '2px solid rgb(97, 216, 54)',
                                 boxShadow: 'none',
-                                fontWeight: '600',
+                                fontWeight: '200',
                                 fontSize: isMobile ? '13px' : '14px',
                                 transition: 'transform 0.2s ease',
                                 whiteSpace: 'nowrap'
@@ -1890,7 +1890,7 @@ const VoucherType = ({
                                 color: 'rgb(97, 216, 54)',
                                 border: '2px solid rgb(97, 216, 54)',
                                 boxShadow: 'none',
-                                fontWeight: '600',
+                                fontWeight: '200',
                                 fontSize: isMobile ? '13px' : '14px',
                                 transition: 'transform 0.2s ease',
                                 whiteSpace: 'nowrap'
