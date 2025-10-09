@@ -2617,31 +2617,6 @@ label {
     border-left: 4px solid #0070f3 !important;
 }
 
-.recipient-tooltip {
-    position: relative;
-}
-
-.recipient-tooltip .recipient-hover-text {
-    position: absolute;
-    left: auto !important;
-    top: 0 !important;
-    min-width: 180px !important;
-    max-width: 320px !important;
-    width: max-content !important;
-    text-align: left !important;
-    font-size: 15px !important;
-    padding: 18px 22px !important;
-    z-index: 10001 !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    white-space: normal !important;
-    background: #333;
-    color: #fff;
-    border-radius: 8px;
-    border-left: 4px solid #0070f3;
-    line-height: 1.7 !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.01em !important;
-}
 
 .loc_data.location_data {
     flex: 0 1 320px;

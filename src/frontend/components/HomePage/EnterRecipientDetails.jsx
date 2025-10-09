@@ -2,6 +2,7 @@
 import React, { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
     const [emailError, setEmailError] = useState(false);
@@ -244,12 +245,25 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 marginBottom: '4px',
                                 display: 'block',
                             }}>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
-                            <div className="info-icon-container recipient-tooltip">
-                                <BsInfoCircle size={14} style={{ width: 14, height: 14 }} />
-                                <div className="hover-text recipient-hover-text">
-                                    <p>Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser.</p>
-                                </div>
-                            </div>
+                            <BsInfoCircle 
+                                data-tooltip-id="recipient-name-tooltip"
+                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                            />
+                            <ReactTooltip
+                                id="recipient-name-tooltip"
+                                place="top"
+                                content="Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser."
+                                style={{
+                                    maxWidth: '280px',
+                                    fontSize: '13px',
+                                    textAlign: 'center',
+                                    backgroundColor: '#1f2937',
+                                    color: '#ffffff',
+                                    borderRadius: '8px',
+                                    padding: '8px 12px',
+                                    zIndex: 9999
+                                }}
+                            />
                         </div>
                         <input
                             type="text"
