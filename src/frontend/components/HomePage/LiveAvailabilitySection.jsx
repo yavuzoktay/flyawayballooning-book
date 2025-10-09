@@ -1281,7 +1281,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     </button>
                                     <button
                                         style={{
-                                            background: '#10b981',
+                                            background: '#00eb5b',
                                             color: '#fff',
                                             padding: '8px 14px',
                                             borderRadius: 8,
