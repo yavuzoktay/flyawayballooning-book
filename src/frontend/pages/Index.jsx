@@ -1869,12 +1869,96 @@ const Index = () => {
                                     marginBottom: isMobile ? '15px' : '30px',
                                     padding: isMobile ? '0 8px' : '0'
                                 }}>
-                                    <h3 style={{ 
-                                        fontSize: isMobile ? '20px' : '20px', 
-                                        textAlign: 'center', 
-                                        marginBottom: isMobile ? '10px' : '20px',
-                                        marginTop: isMobile ? '5px' : '0'
-                                    }}>What would you like to do?</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? 8 : 10 }}>
+                                        <button 
+                                            type="button"
+                                            aria-label="Scroll down"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const anchor = document.getElementById('scroll-target-booking');
+                                                if (anchor && typeof anchor.scrollIntoView === 'function') {
+                                                    anchor.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+                                                    return;
+                                                }
+                                                const getScrollableParent = (node) => {
+                                                    let cur = node;
+                                                    while (cur && cur !== document.body) {
+                                                        const style = window.getComputedStyle(cur);
+                                                        const oy = style.overflowY;
+                                                        if ((oy === 'auto' || oy === 'scroll') && cur.scrollHeight > cur.clientHeight) {
+                                                            return cur;
+                                                        }
+                                                        cur = cur.parentElement;
+                                                    }
+                                                    return window;
+                                                };
+                                                const scroller = getScrollableParent(e.currentTarget);
+                                                const step = Math.round(scroller === window ? window.innerHeight : scroller.clientHeight);
+                                                try {
+                                                    if (scroller === window) { window.scrollBy({ top: step, left: 0, behavior: 'smooth' }); }
+                                                    else { scroller.scrollBy({ top: step, left: 0, behavior: 'smooth' }); }
+                                                } catch(err) {
+                                                    if (scroller === window) { window.scrollTo(0, window.scrollY + step); }
+                                                    else { scroller.scrollTop = (scroller.scrollTop || 0) + step; }
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const anchor = document.getElementById('scroll-target-booking');
+                                                    if (anchor && typeof anchor.scrollIntoView === 'function') {
+                                                        anchor.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+                                                        return;
+                                                    }
+                                                    const getScrollableParent = (node) => {
+                                                        let cur = node;
+                                                        while (cur && cur !== document.body) {
+                                                            const style = window.getComputedStyle(cur);
+                                                            const oy = style.overflowY;
+                                                            if ((oy === 'auto' || oy === 'scroll') && cur.scrollHeight > cur.clientHeight) {
+                                                                return cur;
+                                                            }
+                                                            cur = cur.parentElement;
+                                                        }
+                                                        return window;
+                                                    };
+                                                    const scroller = getScrollableParent(e.currentTarget);
+                                                    const step = Math.round(scroller === window ? window.innerHeight : scroller.clientHeight);
+                                                    try {
+                                                        if (scroller === window) { window.scrollBy({ top: step, left: 0, behavior: 'smooth' }); }
+                                                        else { scroller.scrollBy({ top: step, left: 0, behavior: 'smooth' }); }
+                                                    } catch(err) {
+                                                        if (scroller === window) { window.scrollTo(0, window.scrollY + step); }
+                                                        else { scroller.scrollTop = (scroller.scrollTop || 0) + step; }
+                                                    }
+                                                }
+                                            }}
+                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', border: 'none', padding: isMobile ? 2 : 4, lineHeight: 0, position: 'relative', zIndex: 1000, pointerEvents: 'auto' }}
+                                        >
+                                            <svg width={isMobile ? 32 : 40} height={isMobile ? 32 : 40} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{
+                                                animation: 'fabBounce 1.8s infinite',
+                                                transformOrigin: '50% 50%'
+                                            }}>
+                                                <path d="M12 16.5l-6-6 1.41-1.41L12 13.67l4.59-4.58L18 10.5l-6 6z" fill="#4B5563"/>
+                                            </svg>
+                                        </button>
+                                        <h3 style={{ 
+                                            fontSize: isMobile ? '20px' : '20px', 
+                                            textAlign: 'center', 
+                                            marginBottom: isMobile ? '10px' : '20px',
+                                            marginTop: isMobile ? '5px' : '0'
+                                        }}>What would you like to do?</h3>
+                                    </div>
+                                    {/* lightweight keyframes for bounce */}
+                                    <style>{`
+                                        @keyframes fabBounce {
+                                            0%, 100% { transform: translateY(0); opacity: 0.9; }
+                                            50% { transform: translateY(4px); opacity: 1; }
+                                        }
+                                    `}</style>
+                                    <div id="scroll-target-booking" />
                                     <ChooseActivityCard 
                                         activitySelect={activitySelect} 
                                         setActivitySelect={setActivitySelect} 
