@@ -178,32 +178,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     
     return (
         <>
-            {/* Mobile-only global tooltip rendered via portal to avoid clipping/stacking issues */}
-            {isMobile && mobileTooltip.visible && createPortal(
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        maxWidth: 'calc(100vw - 40px)',
-                        width: 'auto',
-                        background: 'rgba(0,0,0,0.85)',
-                        color: '#fff',
-                        padding: '8px 10px',
-                        borderRadius: 16,
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-                        lineHeight: 1.7,
-                        fontSize: 15,
-                        textAlign: 'center',
-                        zIndex: 2147483647
-                    }}
-                    onClick={() => setMobileTooltip({ visible: false, text: "" })}
-                >
-                    {mobileTooltip.text}
-                </div>,
-                document.body
-            )}
             {/* Notification for flight type selection */}
             {showNotification && (
                 <div style={{
