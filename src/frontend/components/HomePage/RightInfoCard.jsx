@@ -1195,7 +1195,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <button
                                     className="booking_btn final_booking-button"
                                     style={{
-                                        background: '#2d4263',
+                                        background: '#00eb5b',
                                         color: '#fff',
                                         fontWeight: 500,
                                         borderRadius: '8px',
@@ -1300,6 +1300,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
                                 });
                             }}
+                            style={{ background: '#00eb5b', color: '#fff' }}
                         >
                             Book
                         </button>
