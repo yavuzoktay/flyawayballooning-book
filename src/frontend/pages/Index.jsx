@@ -2816,7 +2816,7 @@ const Index = () => {
                     </button>
                     <button
                         style={{
-                            background: '#2d4263',
+                            background: '#00eb5b',
                             color: '#fff',
                             fontWeight: 500,
                             borderRadius: '8px',
