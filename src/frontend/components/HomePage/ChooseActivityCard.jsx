@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import "../HomePage/RedeemVoucher.css";
 import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 import config from '../../../config';
 
 const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate, onSectionCompletion }) => {
@@ -13,7 +14,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const [voucherTypesLoading, setVoucherTypesLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const cardBackRef = useRef(null);
-    const [mobileTooltip, setMobileTooltip] = useState({ visible: false, text: "" });
     
     // Notification state for flight type selection
     const [showNotification, setShowNotification] = useState(false);
@@ -34,84 +34,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Mobile tooltip positioning fix
-    useEffect(() => {
-        if (!isMobile) return;
 
-        const adjustTooltips = () => {
-            const tooltips = document.querySelectorAll('.info-icon-container .hover-text');
-            tooltips.forEach(tooltip => {
-                // Position tooltip directly under the title text
-                const iconContainer = tooltip.closest('.info-icon-container');
-                if (iconContainer) {
-                    const cardTitle = iconContainer.closest('h3');
-                    if (cardTitle) {
-                        // Center the tooltip under the title text
-                        tooltip.style.left = '70%';
-                        tooltip.style.right = 'auto';
-                        tooltip.style.transform = 'translateX(-50%)';
-                        tooltip.style.top = 'calc(100% + 8px)';
-                        
-                        // Check if it goes off screen and adjust if needed
-                        const rect = tooltip.getBoundingClientRect();
-                        const viewportWidth = window.innerWidth;
-                        
-                        if (rect.left < 12) {
-                            tooltip.style.left = '15px';
-                            tooltip.style.right = 'auto';
-                            tooltip.style.transform = 'none';
-                        } else if (rect.right > viewportWidth - 12) {
-                            tooltip.style.left = 'auto';
-                            tooltip.style.right = '15px';
-                            tooltip.style.transform = 'none';
-                        }
-                    }
-                }
-            });
-        };
-
-        // Adjust tooltips on hover and touch
-        const infoIcons = document.querySelectorAll('.info-icon-container');
-        infoIcons.forEach(icon => {
-            icon.addEventListener('mouseenter', adjustTooltips);
-            icon.addEventListener('mouseleave', adjustTooltips);
-            icon.addEventListener('touchstart', adjustTooltips);
-            icon.addEventListener('touchend', adjustTooltips);
-        });
-
-        return () => {
-            infoIcons.forEach(icon => {
-                icon.removeEventListener('mouseenter', adjustTooltips);
-                icon.removeEventListener('mouseleave', adjustTooltips);
-                icon.removeEventListener('touchstart', adjustTooltips);
-                icon.removeEventListener('touchend', adjustTooltips);
-            });
-        };
-    }, [isMobile]);
-
-    // Mobile tooltip dismiss handlers: tap outside, scroll, escape, route changes
-    useEffect(() => {
-        if (!isMobile || !mobileTooltip.visible) return;
-
-        const handleGlobalTouch = (e) => {
-            const icon = e.target && (e.target.closest && e.target.closest('.info-icon-container'));
-            if (!icon) setMobileTooltip({ visible: false, text: "" });
-        };
-        const handleScroll = () => setMobileTooltip({ visible: false, text: "" });
-        const handleKey = (e) => { if (e.key === 'Escape') setMobileTooltip({ visible: false, text: "" }); };
-
-        document.addEventListener('touchstart', handleGlobalTouch, { passive: true });
-        document.addEventListener('click', handleGlobalTouch);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        window.addEventListener('keydown', handleKey);
-
-        return () => {
-            document.removeEventListener('touchstart', handleGlobalTouch, { passive: true });
-            document.removeEventListener('click', handleGlobalTouch);
-            window.removeEventListener('scroll', handleScroll, { passive: true });
-            window.removeEventListener('keydown', handleKey);
-        };
-    }, [isMobile, mobileTooltip.visible]);
 
     // Fetch voucher types from API
     useEffect(() => {
@@ -378,24 +301,25 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         </div>
                                         <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                             {item.displayLabel || item.label}
-                                            <span
-                                                className="info-icon-container"
-                                                style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
-                                                onTouchStart={(e) => {
-                                                    e.preventDefault();
-                                                    if (isMobile) setMobileTooltip({ visible: true, text: 'Redeem flight or gift voucher' });
+                                            <BsInfoCircle 
+                                                data-tooltip-id="redeem-voucher-tooltip"
+                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                            />
+                                            <ReactTooltip
+                                                id="redeem-voucher-tooltip"
+                                                place="top"
+                                                content="Redeem flight or gift voucher"
+                                                style={{
+                                                    maxWidth: '280px',
+                                                    fontSize: '13px',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#1f2937',
+                                                    color: '#ffffff',
+                                                    borderRadius: '8px',
+                                                    padding: '8px 12px',
+                                                    zIndex: 9999
                                                 }}
-                                                onTouchEnd={(e) => {
-                                                    e.preventDefault();
-                                                }}
-                                            >
-                                                <BsInfoCircle size={14} color="#0070f3" />
-                                                {!isMobile && (
-                                                    <div className="hover-text">
-                                                        Redeem flight or gift voucher
-                                                    </div>
-                                                )}
-                                            </span>
+                                            />
                                         </h3>
                                         {item.subText && <p>{item.subText}</p>}
                                         {localVoucherCode && (
@@ -466,27 +390,25 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                             <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                 {item.displayLabel || item.label}
-                                <span
-                                    className="info-icon-container"
-                                    style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}
-                                    onTouchStart={(e) => {
-                                        e.preventDefault();
-                                        if (isMobile) {
-                                            const txt = (item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code');
-                                            setMobileTooltip({ visible: true, text: txt });
-                                        }
+                                <BsInfoCircle 
+                                    data-tooltip-id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                    style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                />
+                                <ReactTooltip
+                                    id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                    place="top"
+                                    content={item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code'}
+                                    style={{
+                                        maxWidth: '280px',
+                                        fontSize: '13px',
+                                        textAlign: 'center',
+                                        backgroundColor: '#1f2937',
+                                        color: '#ffffff',
+                                        borderRadius: '8px',
+                                        padding: '8px 12px',
+                                        zIndex: 9999
                                     }}
-                                    onTouchEnd={(e) => {
-                                        e.preventDefault();
-                                    }}
-                                >
-                                    <BsInfoCircle size={14} color="#0070f3" />
-                                    {!isMobile && (
-                                        <div className="hover-text">
-                                            {(item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code')}
-                                        </div>
-                                    )}
-                                </span>
+                                />
                             </h3>
                             {item.subText && <p>{item.subText}</p>}
                         </label>
@@ -497,22 +419,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
                 .book_data_label, .card-front, .card-back { overflow: visible !important; }
-                .info-icon-container { position: relative !important; z-index: 10001 !important; }
-                .info-icon-container .hover-text {
-                    position: absolute !important;
-                    left: 50% !important;
-                    top: calc(100% + 8px) !important;
-                    transform: translateX(-50%) !important;
-                    z-index: 10002 !important;
-                    padding: 10px 12px;
-                    background: rgba(0,0,0,0.85);
-                    color: #fff;
-                    border-radius: 10px;
-                    line-height: 1.4;
-                    width: max-content;
-                    max-width: 320px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                }
                 @media (max-width: 768px) {
                     .tab_box { 
                         gap: 8px !important; 
@@ -558,9 +464,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     .book_data_label h3 {
                         font-size: 18px !important;
                         margin: 0 !important;
-                    }
-                    .info-icon-container {
-                        margin-left: 4px !important;
                     }
                 }
                 @media (max-width: 576px) {
