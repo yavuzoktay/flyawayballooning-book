@@ -871,7 +871,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                                 <span style={{ fontSize: isMobile ? 12 : 13, color: '#777' }}>Can’t see the date you are looking for?</span>
                                 <button style={{
-                                    background: '#56C1FF',
+                                    background: '#00eb5b',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
@@ -879,7 +879,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     fontWeight: 600,
                                     fontSize: isMobile ? 13 : 14,
                                     cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(86,193,255,0.12)'
+                                    boxShadow: '0 2px 8px rgba(0,235,91,0.18)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
                             </div>
                         </div>
