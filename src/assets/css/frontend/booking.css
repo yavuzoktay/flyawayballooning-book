@@ -931,8 +931,8 @@ label {
 
 .row-1 input[type="checkbox"]:checked,
 .final-prefer-check input:checked {
-    background-color: #74da78;
-    border-color: #74da78;
+    background-color: #00eb5b;
+    border-color: #00eb5b;
     /* Checked state ka color */
 }
 
@@ -986,7 +986,7 @@ label {
 }
 
 .Recipient_check input[type="checkbox"]:checked {
-    background-color: #74da78;
+    background-color: #00eb5b;
     /* Checked state ka color */
 }
 
@@ -1036,7 +1036,7 @@ label {
 }
 
 .book_data input:checked {
-    background-color: #74da78;
+    background-color: #00eb5b;
     /* Checked state ka color */
 }
 
