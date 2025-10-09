@@ -1482,7 +1482,7 @@ const VoucherType = ({
                     <button 
                         style={{ 
                             width: '100%', 
-                            background: isSelected ? '#03A9F4' : '#00eb5b', 
+                            background: isSelected ? '#00c24a' : '#00eb5b', 
                             color: '#fff', 
                             border: 'none', 
                             borderRadius: 8, 
@@ -1494,7 +1494,7 @@ const VoucherType = ({
                             transition: 'background 0.2s' 
                         }} 
                         onMouseEnter={(e) => e.target.style.background = '#00c24a'} 
-                        onMouseLeave={(e) => e.target.style.background = isSelected ? '#03A9F4' : '#00eb5b'} 
+                        onMouseLeave={(e) => e.target.style.background = isSelected ? '#00c24a' : '#00eb5b'} 
                         onClick={() => onSelect(voucher)}
                     >
                         {isSelected ? 'Selected' : 'Select'}
@@ -1795,7 +1795,7 @@ const VoucherType = ({
                                 {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
                             </div>
                             <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
-                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer'}}>Choose Different Voucher</button>
+                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer',fontSize:'16px',fontWeight:'600'}}>Choose Different Voucher</button>
                                 <button onClick={() => { 
                                     console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
                                     setSelectedVoucherType(selectedVoucher); 
@@ -1817,7 +1817,7 @@ const VoucherType = ({
                 onSectionCompletion('voucher-type');
             }
         }, 300); // Longer delay to ensure state is fully updated
-                                }} style={{background:'#00eb5b',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none'}} disabled={termsLoading}>Agree and Proceed</button>
+                                }} style={{background:'#00eb5b',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none',fontSize:'16px',fontWeight:'600'}} disabled={termsLoading}>Agree and Proceed</button>
                             </div>
                         </div>
                     </div>
