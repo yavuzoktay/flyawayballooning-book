@@ -1482,7 +1482,7 @@ const VoucherType = ({
                     <button 
                         style={{ 
                             width: '100%', 
-                            background: isSelected ? '#0288d1' : '#03a9f4', 
+                            background: isSelected ? '#00c24a' : '#00eb5b', 
                             color: '#fff', 
                             border: 'none', 
                             borderRadius: 8, 
@@ -1493,8 +1493,8 @@ const VoucherType = ({
                             marginTop: 'auto', 
                             transition: 'background 0.2s' 
                         }} 
-                        onMouseEnter={(e) => e.target.style.background = '#0288d1'} 
-                        onMouseLeave={(e) => e.target.style.background = isSelected ? '#0288d1' : '#03a9f4'} 
+                        onMouseEnter={(e) => e.target.style.background = '#00c24a'} 
+                        onMouseLeave={(e) => e.target.style.background = isSelected ? '#00c24a' : '#00eb5b'} 
                         onClick={() => onSelect(voucher)}
                     >
                         {isSelected ? 'Selected' : 'Select'}
