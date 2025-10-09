@@ -427,8 +427,8 @@ label {
 }
 
 .active-card-val .active-book-card {
-    background: #74da78;
-    border-color: #74da78;
+    background: #00eb5b;
+    border-color: #00eb5b;
 }
 
 .active-card-val .active-book-card:after {
@@ -2758,7 +2758,7 @@ label {
         box-shadow: 0 -8px 24px rgba(0,0,0,0.2);
         animation: summarySlideUp .18s ease-out;
     }
-    .summary-row.completed .summary-dot { background: #10b981; }
+    .summary-row.completed .summary-dot { background: #00eb5b; }
     /* Use a unique animation name to avoid collisions with other components */
     @keyframes summarySlideUp {
         from { transform: translateY(20px); opacity: 0; }
