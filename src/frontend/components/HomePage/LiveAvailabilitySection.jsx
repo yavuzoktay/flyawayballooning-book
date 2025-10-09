@@ -535,7 +535,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             // Past days should always appear dimmed
                             opacity: isPastDate ? 0.5 : (soldOut ? 1 : (isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5)),
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#61D836' : '',
+                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
                             borderRadius: isMobile ? 6 : 8,
                             margin: isMobile ? 1 : 2,
