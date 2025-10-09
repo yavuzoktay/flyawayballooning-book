@@ -8,6 +8,7 @@ import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
 import config from '../../../config';
 import { BsInfoCircle } from 'react-icons/bs';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 // Add CSS animations for slide effects
 const slideAnimations = `
@@ -1401,12 +1402,25 @@ const VoucherType = ({
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
                                         <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
                                             <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <span className="info-icon-container">
-                                                <BsInfoCircle size={14} color="#0070f3" />
-                                                <div className="hover-text">
-                                                    <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
-                                                </div>
-                                            </span>
+                                            <BsInfoCircle 
+                                                data-tooltip-id="weather-refundable-tooltip-shared"
+                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                            />
+                                            <ReactTooltip
+                                                id="weather-refundable-tooltip-shared"
+                                                place="top"
+                                                content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months."
+                                                style={{
+                                                    maxWidth: '280px',
+                                                    fontSize: '13px',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#1f2937',
+                                                    color: '#ffffff',
+                                                    borderRadius: '8px',
+                                                    padding: '8px 12px',
+                                                    zIndex: 9999
+                                                }}
+                                            />
                                         </div>
                                         <label className="switch" style={{margin:0}}>
                                             <input
@@ -1441,12 +1455,25 @@ const VoucherType = ({
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
                                         <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
                                             <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <span className="info-icon-container">
-                                                <BsInfoCircle size={14} color="#0070f3" />
-                                                <div className="hover-text">
-                                                    <p>Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months.</p>
-                                                </div>
-                                            </span>
+                                            <BsInfoCircle 
+                                                data-tooltip-id={`weather-refundable-tooltip-private-${voucher.title}`}
+                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                            />
+                                            <ReactTooltip
+                                                id={`weather-refundable-tooltip-private-${voucher.title}`}
+                                                place="top"
+                                                content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months."
+                                                style={{
+                                                    maxWidth: '280px',
+                                                    fontSize: '13px',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#1f2937',
+                                                    color: '#ffffff',
+                                                    borderRadius: '8px',
+                                                    padding: '8px 12px',
+                                                    zIndex: 9999
+                                                }}
+                                            />
                                         </div>
                                         <label className="switch" style={{margin:0}}>
                                             <input
