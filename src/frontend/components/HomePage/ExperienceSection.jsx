@@ -799,7 +799,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <button
                                 style={{
                                     width: '100%',
-                                    background: '#03a9f4',
+                                    background: '#00eb5b',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
@@ -887,7 +887,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <button
                                     style={{
                                         width: '100%',
-                                        background: '#03a9f4',
+                                        background: '#00eb5b',
                                         color: '#fff',
                                         border: 'none',
                                         borderRadius: 8,
