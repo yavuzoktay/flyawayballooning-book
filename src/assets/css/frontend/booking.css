@@ -2161,25 +2161,24 @@ label {
 
     /* Extra enforcement specifically for Weight tooltip on mobile */
     .weight-info-wrapper .info-icon-container .hover-text {
-        position: fixed !important;
-        top: 50% !important;
+        position: absolute !important;
+        top: 100% !important;
         left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        max-width: calc(100vw - 40px) !important;
-        min-width: 280px !important;
-        width: auto !important;
-        height: auto !important;
-        font-size: 15px !important;
-        padding: 20px 24px !important;
-        line-height: 1.7 !important;
-        z-index: 2147483647 !important;
-        background: rgba(0, 0, 0, 0.85) !important;
-        border-radius: 16px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
-        text-align: center !important;
+        transform: translateX(-50%) !important;
+        max-width: 280px !important;
+        min-width: 200px !important;
+        font-size: 13px !important;
+        padding: 12px 16px !important;
+        line-height: 1.4 !important;
+        z-index: 1000 !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        text-align: left !important;
         white-space: normal !important;
         overflow-wrap: break-word !important;
         word-break: break-word !important;
+        margin-top: 8px !important;
     }
 }
 
@@ -2736,7 +2735,7 @@ label {
         border-radius: 12px;
         padding: 12px 26px; /* increase size on mobile */
         font-weight: 600;
-        font-size: 16px; /* increase font size for mobile */
+        font-size: 15px; /* increase font size for mobile */
         text-align: center;
         flex: 0 0 48%; /* make button longer next to summary */
     }
@@ -2784,7 +2783,7 @@ label {
     .summary-drawer-footer { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 12px; }
     .summary-total { font-weight: 700; font-size: 18px; }
     /* Make summary popup Book button a bit shorter on mobile */
-    .summary-primary { background: #2d4263; color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-weight: 700; font-size: 16px; width: 80%; max-width: 300px; text-align: center; }
+    .summary-primary { background: #2d4263; color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-weight: 700; font-size: 15px; width: 80%; max-width: 300px; text-align: center; }
     .summary-primary:disabled { background:#ddd; color:#888; }
 }
 
