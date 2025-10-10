@@ -860,9 +860,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <span style={{ 
                             fontSize: isMobile ? 14 : 14, 
                             color: '#888',
-                            lineHeight: isMobile ? 1.3 : 1.4
+                            lineHeight: isMobile ? 1.3 : 1.4,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8
                         }}>
-                            ✅ Reschedule your flight for free up to 5 days before your scheduled date.
+                            <span className="active-card-val" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                <span className="active-book-card" style={{ width: 16, height: 16 }}></span>
+                            </span>
+                            <span>Reschedule your flight for free up to 5 days before your scheduled date.</span>
                         </span>
                     </div>
 
