@@ -2736,3 +2736,24 @@ label {
     img { max-width: 100%; height: auto; }
 }
 
+/* Reusable green tick circle (single check) */
+.tick-circle {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #00eb5b;
+	display: inline-block;
+	position: relative;
+}
+.tick-circle::after {
+	content: '✓';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -56%);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1;
+}
+
