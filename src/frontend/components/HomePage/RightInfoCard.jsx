@@ -858,7 +858,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 additionalInfo,
                 selectedDate,
                 selectedTime,
-                voucher_code: voucherCode,
+                voucher_code: voucherCode ? voucherCode.trim() : null,
                 totalPrice,
                 activity_id: activityId
             };
@@ -879,7 +879,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         console.log('Booking ID:', response.data.bookingId);
                         
                         const redeemResponse = await axios.post(`${API_BASE_URL}/api/redeem-voucher`, {
-                            voucher_code: voucherCode,
+                            voucher_code: voucherCode ? voucherCode.trim() : null,
                             booking_id: response.data.bookingId
                         });
                         
