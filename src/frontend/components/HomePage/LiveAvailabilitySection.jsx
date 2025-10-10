@@ -874,7 +874,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     {activitySelect === 'Book Flight' && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                                <span style={{ fontSize: isMobile ? 12 : 13, color: '#777' }}>Can’t see the date you are looking for?</span>
                                 <button style={{
                                     background: '#00eb5b',
                                     color: '#fff',
