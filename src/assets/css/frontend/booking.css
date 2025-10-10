@@ -2760,8 +2760,8 @@ label {
 @media (max-width: 768px) {
 	/* Ensure tick circle renders perfectly round and centered on mobile */
 	.tick-circle {
-		width: 18px;
-		height: 18px;
+		width: 14px;
+		height: 14px;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -2769,7 +2769,7 @@ label {
 		vertical-align: middle;
 	}
 	.tick-circle::after {
-		font-size: 12px;
+		font-size: 10px;
 		transform: translate(-50%, -50%);
 	}
 }
