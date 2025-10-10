@@ -1145,7 +1145,7 @@ const VoucherType = ({
                             left: '50%',
                             transform: 'translateX(-50%)',
                             bottom: 16,
-                            background: '#00eb5b',
+                            background: '#FF6937',
                             color: '#fff',
                             padding: '6px 12px',
                             borderRadius: 10,
@@ -1156,7 +1156,7 @@ const VoucherType = ({
                             maxWidth: '82%',
                             whiteSpace: 'normal',
                             wordBreak: 'break-word',
-                            boxShadow: '0 4px 10px rgba(97, 216, 54, 0.35)'
+                            boxShadow: '0 4px 10px rgba(255, 105, 55, 0.35)'
                         }}>
                             {voucher.imageTextTag}
                         </div>
