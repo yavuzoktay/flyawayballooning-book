@@ -535,7 +535,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             // Past days should always appear dimmed
                             opacity: isPastDate ? 0.5 : (soldOut ? 1 : (isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5)),
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#03A9F4' : '',
+                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
                             borderRadius: isMobile ? 6 : 8,
                             margin: isMobile ? 1 : 2,
@@ -774,7 +774,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <div className="realtime-badge" style={{
                                 fontSize: isMobile ? 14 : 14,
                                 padding: isMobile ? '6px 10px' : '8px 12px',
-                                background: '#03A9F4'
+                                background: '#00eb5b'
                             }}>
                                 <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
                                 <span className="realtime-badge-text">Real-time availability</span>
@@ -874,8 +874,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     {activitySelect === 'Book Flight' && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                                <span style={{ fontSize: isMobile ? 12 : 13, color: '#777' }}>Can’t see the date you are looking for?</span>
                                 <button style={{
-                                    background: '#03A9F4',
+                                    background: '#00eb5b',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
@@ -883,7 +884,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     fontWeight: 600,
                                     fontSize: isMobile ? 13 : 14,
                                     cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(3,169,244,0.18)'
+                                    boxShadow: '0 2px 8px rgba(0,235,91,0.18)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
                             </div>
                         </div>
@@ -1094,7 +1095,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
                                                 <button
                                                     style={{
-                                                        background: isSelectable ? '#03A9F4' : '#ccc',
+                                                        background: isSelectable ? '#00eb5b' : '#ccc',
                                                         color: '#fff',
                                                         border: tempSelectedTime === slot.time ? (isMobile ? '1px solid #56C1FF' : '2px solid #56C1FF') : (isMobile ? '1px solid transparent' : '2px solid transparent'),
                                                         borderRadius: isMobile ? 6 : 12,
@@ -1285,7 +1286,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     </button>
                                     <button
                                         style={{
-                                            background: '#03A9F4',
+                                            background: '#00eb5b',
                                             color: '#fff',
                                             padding: '8px 14px',
                                             borderRadius: 8,
@@ -1370,9 +1371,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     height: 80px;
                 }
                 .day.selected { 
-                    box-shadow: 0 0 0 2px #56C1FF; 
-                    border: 2px solid #56C1FF; 
-                    background: #56C1FF !important;
+                    box-shadow: 0 0 0 2px #00eb5b; 
+                    border: 2px solid #00eb5b; 
+                    background: #00eb5b !important;
                     color: white !important;
                 }
                 .day.sold-out { 
@@ -1385,7 +1386,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     color: #999;
                 }
                 .day.available-day {
-                    background: #61D836 !important; 
+                    background: #03A9F4 !important; 
                     color: white !important;
                     cursor: pointer;
                 }
@@ -1393,11 +1394,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 .day.available-day:hover {
                     transform: translateY(-2px) scale(1.03);
                     box-shadow: 0 8px 18px rgba(0,0,0,0.15), 0 0 0 3px rgba(86,193,255,0.6);
-                    outline: 2px solid #56C1FF;
+                    outline: 2px solid #00eb5b;
                 }
                 /* Add subtle focus-visible style for keyboard users */
                 .day.available-day:focus-visible {
-                    outline: 3px solid #56C1FF;
+                    outline: 3px solid #00eb5b;
                     box-shadow: 0 0 0 4px rgba(86,193,255,0.35);
                 }
                 /* pulse animation disabled */
