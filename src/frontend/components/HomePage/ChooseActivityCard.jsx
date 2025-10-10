@@ -185,7 +185,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     bottom: '20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    backgroundColor: '#03A9F4',
+                    backgroundColor: '#00eb5b',
                     color: 'white',
                     padding: isMobile ? '8px 16px' : '12px 24px',
                     borderRadius: '8px',
