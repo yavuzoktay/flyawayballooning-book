@@ -2757,3 +2757,20 @@ label {
 	line-height: 1;
 }
 
+@media (max-width: 768px) {
+	/* Ensure tick circle renders perfectly round and centered on mobile */
+	.tick-circle {
+		width: 18px;
+		height: 18px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		vertical-align: middle;
+	}
+	.tick-circle::after {
+		font-size: 12px;
+		transform: translate(-50%, -50%);
+	}
+}
+
