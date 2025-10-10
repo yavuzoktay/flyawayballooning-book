@@ -2715,6 +2715,7 @@ label {
     /* Make summary popup Book button a bit shorter on mobile */
     .summary-primary { background: #2d4263; color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-weight: 700; font-size: 15px; width: 80%; max-width: 300px; text-align: center; }
     .summary-primary:disabled { background:#ddd; color:#888; }
+    .summary-primary:not(:disabled):hover { background: #00c24a; }
 }
 
 @media (max-width: 576px) {
