@@ -1861,7 +1861,7 @@ const VoucherType = ({
                     <p style={{
                         fontSize: isMobile ? '14px' : '15px',
                         fontWeight: '200',
-                        color: '#1f2937',
+                        color: 'rgb(102, 102, 102)',
                         marginBottom: '10px',
                         margin: '0 0 10px 0'
                     }}>
