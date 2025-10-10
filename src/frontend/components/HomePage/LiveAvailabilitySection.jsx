@@ -535,7 +535,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             // Past days should always appear dimmed
                             opacity: isPastDate ? 0.5 : (soldOut ? 1 : (isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5)),
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
+                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#03A9F4' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
                             borderRadius: isMobile ? 6 : 8,
                             margin: isMobile ? 1 : 2,
@@ -774,7 +774,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <div className="realtime-badge" style={{
                                 fontSize: isMobile ? 14 : 14,
                                 padding: isMobile ? '6px 10px' : '8px 12px',
-                                background: '#00eb5b'
+                                background: '#03A9F4'
                             }}>
                                 <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
                                 <span className="realtime-badge-text">Real-time availability</span>
@@ -875,7 +875,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                                 <button style={{
-                                    background: '#00eb5b',
+                                    background: '#03A9F4',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: 6,
@@ -883,7 +883,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     fontWeight: 600,
                                     fontSize: isMobile ? 13 : 14,
                                     cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(0,235,91,0.18)'
+                                    boxShadow: '0 2px 8px rgba(3,169,244,0.18)'
                                 }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
                             </div>
                         </div>
@@ -1094,7 +1094,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
                                                 <button
                                                     style={{
-                                                        background: isSelectable ? '#00eb5b' : '#ccc',
+                                                        background: isSelectable ? '#03A9F4' : '#ccc',
                                                         color: '#fff',
                                                         border: tempSelectedTime === slot.time ? (isMobile ? '1px solid #56C1FF' : '2px solid #56C1FF') : (isMobile ? '1px solid transparent' : '2px solid transparent'),
                                                         borderRadius: isMobile ? 6 : 12,
@@ -1285,7 +1285,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     </button>
                                     <button
                                         style={{
-                                            background: '#00eb5b',
+                                            background: '#03A9F4',
                                             color: '#fff',
                                             padding: '8px 14px',
                                             borderRadius: 8,
