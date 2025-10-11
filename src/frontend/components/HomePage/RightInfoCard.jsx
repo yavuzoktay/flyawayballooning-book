@@ -847,69 +847,80 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // Debug: Log the booking data being sent
             console.log('=== REDEEM VOUCHER BOOKING DATA BEING SENT ===');
             console.log('bookingData:', bookingData);
+            console.log('totalPrice:', totalPrice);
             
-        try {
-            // Call simplified createRedeemBooking endpoint for Redeem Voucher
-            const redeemBookingData = {
-                activitySelect,
-                chooseLocation,
-                chooseFlightType,
-                passengerData,
-                additionalInfo,
-                selectedDate,
-                selectedTime,
-                voucher_code: voucherCode ? voucherCode.trim() : null,
-                totalPrice,
-                activity_id: activityId
-            };
-            
-            console.log('=== REDEEM BOOKING DATA ===');
-            console.log('Redeem Booking Data:', redeemBookingData);
-            
-            const response = await axios.post(`${API_BASE_URL}/api/createRedeemBooking`, redeemBookingData);
+            // If totalPrice > 0 (Add To Booking items added), go to Stripe payment flow
+            if (totalPrice > 0) {
+                console.log('🔄 Total price is greater than 0, redirecting to Stripe payment...');
+                // Don't return here - continue to Stripe flow below
+            } else {
+                // If totalPrice = 0, create booking directly without Stripe
+                console.log('✅ Total price is 0, creating booking directly without Stripe...');
                 
-                if (response.data.success) {
-                    console.log('=== BOOKING CREATED SUCCESSFULLY ===');
-                    console.log('Booking ID:', response.data.bookingId);
+                try {
+                    // Call simplified createRedeemBooking endpoint for Redeem Voucher
+                    const redeemBookingData = {
+                        activitySelect,
+                        chooseLocation,
+                        chooseFlightType,
+                        passengerData,
+                        additionalInfo,
+                        selectedDate,
+                        selectedTime,
+                        voucher_code: voucherCode ? voucherCode.trim() : null,
+                        totalPrice,
+                        activity_id: activityId
+                    };
                     
-                    // Mark the original voucher as redeemed
-                    try {
-                        console.log('=== MARKING VOUCHER AS REDEEMED ===');
-                        console.log('Voucher Code:', voucherCode);
-                        console.log('Booking ID:', response.data.bookingId);
+                    console.log('=== REDEEM BOOKING DATA ===');
+                    console.log('Redeem Booking Data:', redeemBookingData);
+                    
+                    const response = await axios.post(`${API_BASE_URL}/api/createRedeemBooking`, redeemBookingData);
                         
-                        const redeemResponse = await axios.post(`${API_BASE_URL}/api/redeem-voucher`, {
-                            voucher_code: voucherCode ? voucherCode.trim() : null,
-                            booking_id: response.data.bookingId
-                        });
-                        
-                        console.log('=== REDEEM VOUCHER RESPONSE ===');
-                        console.log('Success:', redeemResponse.data.success);
-                        console.log('Message:', redeemResponse.data.message);
-                        
-                        if (redeemResponse.data.success) {
-                            alert(`Voucher successfully redeemed and marked! Booking ID: ${response.data.bookingId}`);
+                        if (response.data.success) {
+                            console.log('=== BOOKING CREATED SUCCESSFULLY ===');
+                            console.log('Booking ID:', response.data.bookingId);
+                            
+                            // Mark the original voucher as redeemed
+                            try {
+                                console.log('=== MARKING VOUCHER AS REDEEMED ===');
+                                console.log('Voucher Code:', voucherCode);
+                                console.log('Booking ID:', response.data.bookingId);
+                                
+                                const redeemResponse = await axios.post(`${API_BASE_URL}/api/redeem-voucher`, {
+                                    voucher_code: voucherCode ? voucherCode.trim() : null,
+                                    booking_id: response.data.bookingId
+                                });
+                                
+                                console.log('=== REDEEM VOUCHER RESPONSE ===');
+                                console.log('Success:', redeemResponse.data.success);
+                                console.log('Message:', redeemResponse.data.message);
+                                
+                                if (redeemResponse.data.success) {
+                                    alert(`Voucher successfully redeemed and marked! Booking ID: ${response.data.bookingId}`);
+                                } else {
+                                    alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
+                                }
+                            } catch (redeemError) {
+                                console.error('=== REDEEM VOUCHER ERROR ===');
+                                console.error('Error:', redeemError);
+                                console.error('Response:', redeemError.response?.data);
+                                alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
+                            }
+                            // Clear form after successful operation
+                            resetBooking();
                         } else {
-                            alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
+                            alert('An error occurred while creating the booking: ' + (response.data.error || response.data.message || 'Unknown error'));
                         }
-                    } catch (redeemError) {
-                        console.error('=== REDEEM VOUCHER ERROR ===');
-                        console.error('Error:', redeemError);
-                        console.error('Response:', redeemError.response?.data);
-                        alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
+                    } catch (error) {
+                        console.error('Error while creating booking:', error);
+                        console.error('Error response:', error.response?.data);
+                        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Unknown error';
+                        alert('An error occurred while creating the booking: ' + errorMessage);
                     }
-                    // Clear form after successful operation
-                    resetBooking();
-                } else {
-                    alert('An error occurred while creating the booking: ' + (response.data.error || response.data.message || 'Unknown error'));
+                    return; // Exit early since we handled the booking
                 }
-            } catch (error) {
-                console.error('Error while creating booking:', error);
-                console.error('Error response:', error.response?.data);
-                const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Unknown error';
-                alert('An error occurred while creating the booking: ' + errorMessage);
-            }
-            return;
+            // Continue to Stripe flow below if totalPrice > 0
         }
         // BOOK FLIGHT FLOW (Stripe ile ödeme)
         let bookingDateStr = selectedDate;
