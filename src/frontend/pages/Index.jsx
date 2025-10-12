@@ -2708,18 +2708,51 @@ const Index = () => {
                             }}>
                                 Voucher Code:
                             </p>
-                            <div style={{
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                fontSize: '20px',
-                                fontWeight: '700',
-                                padding: '10px 16px',
-                                borderRadius: '8px',
-                                letterSpacing: '2px',
-                                fontFamily: 'monospace'
-                            }}>
-                                {paymentSuccessData.voucherCode || 'Voucher Code Not Available'}
-                            </div>
+                            {/* Handle multiple voucher codes for Buy Gift Voucher */}
+                            {(() => {
+                                const voucherCode = paymentSuccessData.voucherCode || 'Voucher Code Not Available';
+                                const isMultipleCodes = voucherCode.includes(',');
+                                
+                                if (isMultipleCodes) {
+                                    // Split multiple codes and display each on a separate line
+                                    const codes = voucherCode.split(',').map(code => code.trim());
+                                    return (
+                                        <div>
+                                            {codes.map((code, index) => (
+                                                <div key={index} style={{
+                                                    backgroundColor: '#3b82f6',
+                                                    color: 'white',
+                                                    fontSize: '20px',
+                                                    fontWeight: '700',
+                                                    padding: '10px 16px',
+                                                    borderRadius: '8px',
+                                                    letterSpacing: '2px',
+                                                    fontFamily: 'monospace',
+                                                    marginBottom: index < codes.length - 1 ? '8px' : '0'
+                                                }}>
+                                                    {code}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                } else {
+                                    // Single voucher code (original logic)
+                                    return (
+                                        <div style={{
+                                            backgroundColor: '#3b82f6',
+                                            color: 'white',
+                                            fontSize: '20px',
+                                            fontWeight: '700',
+                                            padding: '10px 16px',
+                                            borderRadius: '8px',
+                                            letterSpacing: '2px',
+                                            fontFamily: 'monospace'
+                                        }}>
+                                            {voucherCode}
+                                        </div>
+                                    );
+                                }
+                            })()}
                             {/* Note removed per request */}
                         </div>
                         
