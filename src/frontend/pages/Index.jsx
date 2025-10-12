@@ -1173,6 +1173,7 @@ const Index = () => {
                     (recipientDetails?.name?.trim() || ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim()),
                 weight: passengerData?.[0]?.weight || "",
                 flight_type: chooseFlightType?.type || "",
+                book_flight: isGiftVoucher ? "Gift Voucher" : "Flight Voucher", // Add book_flight field for backend detection
                 voucher_type: isFlightVoucher ? "Flight Voucher" : "Gift Voucher",
                 voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
                 email: isGiftVoucher ? 
