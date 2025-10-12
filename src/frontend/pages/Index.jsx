@@ -50,6 +50,8 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     const [countdownSeconds, setCountdownSeconds] = useState(null);
+    const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    const [holdActive, setHoldActive] = useState(false);
     
     // Removed global accordion completion notification to avoid duplicate toasts
     const [showWarning, setShowWarning] = useState(false);
@@ -91,10 +93,58 @@ const Index = () => {
         };
     }, [selectedDate, selectedTime]);
 
+    // Hold availability when timer starts
+    useEffect(() => {
+        const holdAvailability = async () => {
+            if (!selectedDate || !selectedTime || !activityId || !chooseFlightType?.passengerCount || holdActive) {
+                return;
+            }
+            
+            try {
+                const year = selectedDate.getFullYear();
+                const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const day = String(selectedDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+                
+                const response = await axios.post(`${API_BASE_URL}/api/holdAvailability`, {
+                    activity_id: activityId,
+                    date: dateStr,
+                    time: selectedTime,
+                    seats: parseInt(chooseFlightType.passengerCount) || 1,
+                    sessionId: sessionId
+                });
+                
+                if (response.data.success) {
+                    console.log('🔒 Availability held for 5 minutes:', response.data);
+                    setHoldActive(true);
+                }
+            } catch (error) {
+                console.error('❌ Error holding availability:', error);
+            }
+        };
+        
+        // Hold when timer starts (countdown is 300)
+        if (countdownSeconds === 300 && selectedDate && selectedTime) {
+            holdAvailability();
+        }
+    }, [countdownSeconds, selectedDate, selectedTime, activityId, chooseFlightType, sessionId, holdActive]);
+
     // Reset all selections when timer reaches 0
     useEffect(() => {
         if (countdownSeconds === 0) {
             console.log('⏰ Timer expired - resetting all selections to initial state');
+            
+            // Release the hold
+            if (holdActive) {
+                axios.post(`${API_BASE_URL}/api/releaseHold`, {
+                    sessionId: sessionId
+                }).then(() => {
+                    console.log('🔓 Hold released due to timer expiry');
+                    setHoldActive(false);
+                }).catch(error => {
+                    console.error('❌ Error releasing hold:', error);
+                });
+            }
             
             // Reset all state to initial values
             setActivitySelect(null);
@@ -127,7 +177,7 @@ const Index = () => {
             
             console.log('✅ All selections have been reset - returning to initial state');
         }
-    }, [countdownSeconds]);
+    }, [countdownSeconds, holdActive, sessionId]);
 
     // Debug selectedVoucherType changes
     useEffect(() => {
@@ -1340,11 +1390,37 @@ const Index = () => {
                         } else {
                             alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
                         }
+                        
+                        // Release the hold after successful booking
+                        if (holdActive) {
+                            try {
+                                await axios.post(`${API_BASE_URL}/api/releaseHold`, {
+                                    sessionId: sessionId
+                                });
+                                console.log('🔓 Hold released after successful booking');
+                                setHoldActive(false);
+                            } catch (error) {
+                                console.error('❌ Error releasing hold:', error);
+                            }
+                        }
                     } catch (redeemError) {
                         console.error('=== REDEEM VOUCHER ERROR (Index.jsx) ===');
                         console.error('Error:', redeemError);
                         console.error('Response:', redeemError.response?.data);
                         alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
+                        
+                        // Release the hold even if there's an error
+                        if (holdActive) {
+                            try {
+                                await axios.post(`${API_BASE_URL}/api/releaseHold`, {
+                                    sessionId: sessionId
+                                });
+                                console.log('🔓 Hold released after booking (with error)');
+                                setHoldActive(false);
+                            } catch (error) {
+                                console.error('❌ Error releasing hold:', error);
+                            }
+                        }
                     }
                     // Başarılı işlem sonrası form'u temizle
                     resetBooking();
