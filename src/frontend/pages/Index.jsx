@@ -106,11 +106,22 @@ const Index = () => {
                 const day = String(selectedDate.getDate()).padStart(2, '0');
                 const dateStr = `${year}-${month}-${day}`;
                 
+                const seatsToHold = parseInt(chooseFlightType.passengerCount) || 1;
+                console.log('🔒 Frontend hold request:', {
+                    activity_id: activityId,
+                    date: dateStr,
+                    time: selectedTime,
+                    seats: seatsToHold,
+                    sessionId: sessionId,
+                    chooseFlightType: chooseFlightType,
+                    selectedVoucherType: selectedVoucherType
+                });
+                
                 const response = await axios.post(`${API_BASE_URL}/api/holdAvailability`, {
                     activity_id: activityId,
                     date: dateStr,
                     time: selectedTime,
-                    seats: parseInt(chooseFlightType.passengerCount) || 1,
+                    seats: seatsToHold,
                     sessionId: sessionId
                 });
                 
