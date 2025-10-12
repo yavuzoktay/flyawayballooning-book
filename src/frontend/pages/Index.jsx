@@ -2860,7 +2860,8 @@ const Index = () => {
                             borderRadius: '8px',
                             padding: '8px 22px',
                             cursor: 'pointer',
-                            opacity: 1
+                            opacity: 1,
+                            border: 'none'
                         }}
                         onClick={() => {
                             setShowWarning(false);

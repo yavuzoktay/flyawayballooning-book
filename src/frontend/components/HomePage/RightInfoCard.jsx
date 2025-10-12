@@ -1212,7 +1212,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         borderRadius: '8px',
                                         padding: '8px 22px',
                                         cursor: 'pointer',
-                                        opacity: 1
+                                        opacity: 1,
+                                        border: 'none'
                                     }}
                                     onClick={() => {
                                         setShowWarning(false);
@@ -1311,7 +1312,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
                                 });
                             }}
-                            style={{ background: '#00eb5b', color: '#fff' }}
+                            style={{ background: '#00eb5b', color: '#fff', border: 'none' }}
                         >
                             Book
                         </button>
