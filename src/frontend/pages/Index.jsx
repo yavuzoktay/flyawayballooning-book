@@ -91,6 +91,44 @@ const Index = () => {
         };
     }, [selectedDate, selectedTime]);
 
+    // Reset all selections when timer reaches 0
+    useEffect(() => {
+        if (countdownSeconds === 0) {
+            console.log('⏰ Timer expired - resetting all selections to initial state');
+            
+            // Reset all state to initial values
+            setActivitySelect(null);
+            setChooseLocation(null);
+            setChooseFlightType({ type: "", passengerCount: "", price: "" });
+            setAddPassenger([1, 2]);
+            setChooseAddOn([]);
+            setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+            setWeatherRefund(false);
+            setPrivateCharterWeatherRefund(false);
+            setPreference({ location: {}, time: {}, day: {} });
+            setRecipientDetails({ name: "", email: "", phone: "", date: "" });
+            setAdditionalInfo({ notes: "" });
+            setSelectedDate(null);
+            setActivityId(null);
+            setSelectedActivity([]);
+            setAvailableSeats([]);
+            setVoucherCode("");
+            setVoucherStatus(null);
+            setVoucherData(null);
+            setSelectedTime(null);
+            setAvailabilities([]);
+            setSelectedVoucherType(null);
+            setActiveAccordion(null);
+            setShowWarning(false);
+            setIsFreshStart(false);
+            
+            // Reset countdown to null (will be restarted when user makes new selections)
+            setCountdownSeconds(null);
+            
+            console.log('✅ All selections have been reset - returning to initial state');
+        }
+    }, [countdownSeconds]);
+
     // Debug selectedVoucherType changes
     useEffect(() => {
         console.log('Index.jsx: selectedVoucherType changed to:', selectedVoucherType);

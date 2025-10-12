@@ -926,7 +926,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               data-tooltip-id={`passenger-info-tooltip-desktop-${index}`}
                               style={{ 
                                 color: '#3b82f6', 
-                                fontSize: '16px', 
+                                fontSize: '12px', 
                                 cursor: 'pointer',
                                 flexShrink: 0
                               }} 
