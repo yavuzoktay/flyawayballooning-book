@@ -649,6 +649,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       }}
                       placeholder="First Name"
                     />
+                    {error?.firstName && <span style={{ color: 'red', fontSize: 10 }}>First name is required</span>}
                   </div>
                   
                   {/* Last Name */}
@@ -681,6 +682,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       }}
                       placeholder="Last Name"
                     />
+                    {error?.lastName && <span style={{ color: 'red', fontSize: 10 }}>Last name is required</span>}
                   </div>
                   
                   {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
@@ -736,6 +738,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         onChange={(e) => handlePassengerInputChange(index, e)}
                         placeholder="Max 18 Stone / 114Kg"
                       />
+                      {error?.weight && <span style={{ color: 'red', fontSize: 10 }}>Weight is required</span>}
                     </div>
                   )}
                   
@@ -1004,6 +1007,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                                 transition: 'all 0.2s ease'
                             }}
                           />
+                          {error?.firstName && <span style={{ color: 'red', fontSize: 11 }}>First name is required</span>}
                         </div>
                       
                       {/* Last Name */}
@@ -1037,6 +1041,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                                 transition: 'all 0.2s ease'
                             }}
                           />
+                          {error?.lastName && <span style={{ color: 'red', fontSize: 11 }}>Last name is required</span>}
                         </div>
                       
                       {/* Weight input sadece Buy Gift seçili DEĞİLSE gösterilecek */}
@@ -1080,6 +1085,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               transition: 'all 0.2s ease'
                             }}
                           />
+                          {error?.weight && <span style={{ color: 'red', fontSize: 11 }}>Weight is required</span>}
                           </div>
                         )}
                       
