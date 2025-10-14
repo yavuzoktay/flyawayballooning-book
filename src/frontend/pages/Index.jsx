@@ -558,17 +558,21 @@ const Index = () => {
     console.log('chooseFlightType', chooseFlightType);
 
     // Book button validation logic (copied from RightInfoCard)
+    // Keep logic in sync with RightInfoCard: don't mark as complete unless answered or required satisfied
     const isAdditionalInfoValid = (info) => {
-        if (!info || typeof info !== 'object') return true; // Optional by default
+        if (!info || typeof info !== 'object') return false;
         const requiredKeys = Array.isArray(info.__requiredKeys) ? info.__requiredKeys : [];
         if (requiredKeys.length > 0) {
             return requiredKeys.every((k) => {
                 const v = info[k];
-                return typeof v === 'string' ? v.trim() !== '' : !!v;
+                return typeof v === 'string' ? v.trim() !== '' : v !== undefined && v !== null && v !== false;
             });
         }
-        // No required questions => section is optional
-        return true;
+        const answerKeys = Object.keys(info).filter(k => k.startsWith('question_'));
+        return answerKeys.some(k => {
+            const v = info[k];
+            return typeof v === 'string' ? v.trim() !== '' : v !== undefined && v !== null && v !== false;
+        });
     };
 
     const isRecipientDetailsValid = (details) => {

@@ -180,7 +180,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     [isMobile ? 'top' : 'bottom']: '20px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    backgroundColor: '#00eb5b',
+                    backgroundColor: 'rgb(3, 169, 244)',
                     color: 'white',
                     padding: isMobile ? '8px 16px' : '12px 24px',
                     borderRadius: '8px',

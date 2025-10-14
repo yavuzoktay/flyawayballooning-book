@@ -100,14 +100,13 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
       <button
         onClick={handleSubmit}
         style={{
-          backgroundColor: "#2196f3",
+          backgroundColor: "rgb(0, 235, 91)",
           color: "white", 
           border: "none",
           borderRadius: "4px",
           padding: "8px 16px",
           fontSize: "14px",
           fontWeight: "500",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           cursor: "pointer",
           lineHeight: "1.4",
           marginBottom: "12px",

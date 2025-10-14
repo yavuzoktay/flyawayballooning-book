@@ -213,18 +213,26 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an array is non-empty
     const isNonEmptyArray = (arr) => Array.isArray(arr) && arr.length > 0;
     console.log("additionalInfo:", additionalInfo);
-    // Helper to check additionalInfo - only valid if actually filled
+    // Helper to check additionalInfo completion state
+    // Rule:
+    // - If there are required questions, ALL required must be provided
+    // - If there are NO required questions, only mark as completed when the user has provided at least one answer
+    // - If no info yet, not completed (prevents momentary tick before questions load)
     const isAdditionalInfoValid = (info) => {
-      if (!info || typeof info !== 'object') return true; // Optional by default
+      if (!info || typeof info !== 'object') return false;
       const requiredKeys = Array.isArray(info.__requiredKeys) ? info.__requiredKeys : [];
       if (requiredKeys.length > 0) {
         return requiredKeys.every((k) => {
           const v = info[k];
-          return typeof v === 'string' ? v.trim() !== '' : !!v;
+          return typeof v === 'string' ? v.trim() !== '' : v !== undefined && v !== null && v !== false;
         });
       }
-      // No required questions => section is optional
-      return true;
+      // When nothing is required, consider it complete only if at least one answer exists
+      const answerKeys = Object.keys(info).filter((k) => k.startsWith('question_'));
+      return answerKeys.some((k) => {
+        const v = info[k];
+        return typeof v === 'string' ? v.trim() !== '' : v !== undefined && v !== null && v !== false;
+      });
     };
 
     // Book button enable logic:
