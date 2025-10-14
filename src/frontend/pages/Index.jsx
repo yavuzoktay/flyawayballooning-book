@@ -2000,7 +2000,32 @@ const Index = () => {
                                     marginBottom: isMobile ? '15px' : '30px',
                                     padding: isMobile ? '0 8px' : '0'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? 8 : 10 }}>
+                                    <h3 style={{ 
+                                        fontSize: isMobile ? '20px' : '20px', 
+                                        textAlign: 'center', 
+                                        marginBottom: isMobile ? '10px' : '20px',
+                                        marginTop: isMobile ? '5px' : '0'
+                                    }}>What would you like to do?</h3>
+                                    {/* lightweight keyframes for bounce */}
+                                    <style>{`
+                                        @keyframes fabBounce {
+                                            0%, 100% { transform: translateY(0); opacity: 0.9; }
+                                            50% { transform: translateY(4px); opacity: 1; }
+                                        }
+                                    `}</style>
+                                    <div id="scroll-target-booking" />
+                                    <ChooseActivityCard 
+                                        activitySelect={activitySelect} 
+                                        setActivitySelect={setActivitySelect} 
+                                        onVoucherSubmit={handleVoucherSubmit}
+                                        voucherStatus={voucherStatus}
+                                        voucherCode={voucherCode}
+                                        voucherData={voucherData}
+                                        onValidate={validateVoucherCode}
+                                        onSectionCompletion={handleSectionCompletion}
+                                    />
+                                    {/* Down arrow button below the activity cards */}
+                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
                                         <button 
                                             type="button"
                                             aria-label="Scroll down"
@@ -2075,31 +2100,7 @@ const Index = () => {
                                                 <path d="M12 16.5l-6-6 1.41-1.41L12 13.67l4.59-4.58L18 10.5l-6 6z" fill="#4B5563"/>
                                             </svg>
                                         </button>
-                                        <h3 style={{ 
-                                            fontSize: isMobile ? '20px' : '20px', 
-                                            textAlign: 'center', 
-                                            marginBottom: isMobile ? '10px' : '20px',
-                                            marginTop: isMobile ? '5px' : '0'
-                                        }}>What would you like to do?</h3>
                                     </div>
-                                    {/* lightweight keyframes for bounce */}
-                                    <style>{`
-                                        @keyframes fabBounce {
-                                            0%, 100% { transform: translateY(0); opacity: 0.9; }
-                                            50% { transform: translateY(4px); opacity: 1; }
-                                        }
-                                    `}</style>
-                                    <div id="scroll-target-booking" />
-                                    <ChooseActivityCard 
-                                        activitySelect={activitySelect} 
-                                        setActivitySelect={setActivitySelect} 
-                                        onVoucherSubmit={handleVoucherSubmit}
-                                        voucherStatus={voucherStatus}
-                                        voucherCode={voucherCode}
-                                        voucherData={voucherData}
-                                        onValidate={validateVoucherCode}
-                                        onSectionCompletion={handleSectionCompletion}
-                                    />
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
                                 <div style={{ opacity: activitySelect === null ? '0.5' : '1', pointerEvents: activitySelect === null ? 'none' : 'auto' }}>
