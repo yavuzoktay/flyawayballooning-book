@@ -208,7 +208,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             <div className="tab_box" style={{ 
             display: 'flex', 
             flexWrap: 'wrap', 
-            gap: isMobile ? '8px' : '40px', 
+            gap: isMobile ? '8px' : '10px', 
             width: '100%', 
             justifyContent: isMobile ? 'flex-start' : 'space-between' 
         }}>
