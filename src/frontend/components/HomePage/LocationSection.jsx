@@ -240,6 +240,23 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                         height: 'auto'
                                     }}
                                 >
+                                    {loc.name === 'Bristol Fiesta' && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: 10,
+                                            left: 10,
+                                            background: '#ff7a59',
+                                            color: '#fff',
+                                            padding: '6px 10px',
+                                            borderRadius: 16,
+                                            fontWeight: 700,
+                                            fontSize: 12,
+                                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                            zIndex: 3
+                                        }}>
+                                            Limited Availability
+                                        </div>
+                                    )}
                                     <img src={loc.image} alt={loc.name} width="100%" style={{ 
                                         height: '120px', 
                                         objectFit: 'cover',
@@ -293,9 +310,27 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                             style={{
                                                 opacity: isDisabled ? 0.5 : 1,
                                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                filter: isDisabled ? 'grayscale(100%)' : 'none'
+                                                filter: isDisabled ? 'grayscale(100%)' : 'none',
+                                                position: 'relative'
                                             }}
                                         >
+                                            {loc.name === 'Bristol Fiesta' && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: 10,
+                                                    left: 10,
+                                                    background: '#ff7a59',
+                                                    color: '#fff',
+                                                    padding: '6px 10px',
+                                                    borderRadius: 16,
+                                                    fontWeight: 700,
+                                                    fontSize: 12,
+                                                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                                    zIndex: 3
+                                                }}>
+                                                    Limited Availability
+                                                </div>
+                                            )}
                                             <img src={loc.image} alt={loc.name} width="100%" onError={(e) => { e.target.style.display = 'none'; }} />
                                             <h3>{loc.name}</h3>
                                             <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
