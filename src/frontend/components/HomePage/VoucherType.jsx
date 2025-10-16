@@ -2307,6 +2307,11 @@ const VoucherType = ({
                     })()}
                     </div>
                 </div>
+
+                {/* Reputation note under the whole voucher panel */}
+                <div style={{ width: '100%', maxWidth: 960, margin: '12px auto 0', textAlign: 'center', color: '#64748b' }}>
+                    <span style={{ fontSize: isMobile ? 14 : 15, fontWeight: 500 }}>★ Five-star rated by guests on Google, Facebook & TripAdvisor — you’ll see why.</span>
+                </div>
             </Accordion>
 
             {/* Capacity Warning Modal */}
