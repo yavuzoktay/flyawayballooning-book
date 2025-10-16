@@ -15,6 +15,7 @@ import EnterRecipientDetails from "../components/HomePage/EnterRecipientDetails"
 import AdditionalInfo from "../components/HomePage/AdditionalInfo";
 import BookingHeader from "../components/Common/BookingHeader";
 import Accordion from "../components/Common/Accordion";
+import ProgressBar from "../components/Common/ProgressBar";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
@@ -59,6 +60,9 @@ const Index = () => {
     // Flag to track if we're in a fresh start after activity change
     const [isFreshStart, setIsFreshStart] = useState(false);
 
+    // Progress bar state
+    const [completedSections, setCompletedSections] = useState(new Set());
+
     // NEW: viewport helper for mobile-specific inline tweaks
     const [isMobile, setIsMobile] = useState(false);
     useEffect(() => {
@@ -67,6 +71,38 @@ const Index = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Helper function for section titles
+    const getSectionTitle = (id) => {
+        const titles = {
+            'activity': 'Flight Type',
+            'location': 'Location',
+            'experience': 'Experience',
+            'voucher-type': 'Voucher Type',
+            'live-availability': 'Live Availability',
+            'passenger-info': 'Passenger Info',
+            'additional-info': 'Additional Info',
+            'add-on': 'Add To Booking',
+            'recipient-details': 'Recipient Details'
+        };
+        return titles[id] || id;
+    };
+
+    // Define progress sections based on activity type
+    const progressSections = activitySelect === 'Book Flight' 
+        ? ['activity', 'location', 'experience', ...(chooseLocation !== 'Bristol Fiesta' ? ['voucher-type'] : []), 'live-availability', 'passenger-info', 'additional-info', 'add-on']
+        : activitySelect === 'Buy Flight Voucher'
+        ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
+        : activitySelect === 'Buy Gift'
+        ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
+        : activitySelect === 'Redeem Voucher'
+        ? ['activity', 'location', 'experience', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
+        : [];
+
+    // Reset progress when activity changes
+    useEffect(() => {
+        setCompletedSections(new Set());
+    }, [activitySelect]);
 
     // Start/maintain 5-minute countdown when a date and time are selected
     useEffect(() => {
@@ -917,6 +953,10 @@ const Index = () => {
             console.log('❌ handleSectionCompletion: No activitySelect');
             return;
         }
+        
+        // Update progress bar state
+        setCompletedSections(prev => new Set([...prev, completedSectionId]));
+        console.log(`Section completed: ${completedSectionId}`);
         
         // Pass current state values to avoid stale closure issues
         // Always use current state for sequence calculation
@@ -1995,6 +2035,20 @@ const Index = () => {
                     <div className="main_booking">
                         <div className="booking_data">
                             <div className={`accodien ${isMobile ? 'mobile-optimized' : ''}`}>
+                                {/* Progress Bar above heading */}
+                                {activitySelect && (
+                                    <ProgressBar 
+                                        sections={progressSections.map(id => ({
+                                            id,
+                                            title: getSectionTitle(id),
+                                            completed: completedSections.has(id)
+                                        }))}
+                                        activeSection={activeAccordion}
+                                        onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
+                                        isMobile={isMobile}
+                                    />
+                                )}
+                                
                                 {/* What would you like to do? Accordion */}
                                 <div style={{ 
                                     marginBottom: isMobile ? '15px' : '30px',

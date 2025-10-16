@@ -1309,9 +1309,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                     </button>
                                 </div>
                                 
-                                {/* Informational Text (hidden on mobile) */}
-                                {!isMobile && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 16, color: '#666' }}>
+                                {/* Informational Text - centered with tick on all devices */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 16, color: '#666', textAlign: 'center' }}>
                                         <span style={{
                                             display: 'inline-flex',
                                             alignItems: 'center',
@@ -1329,7 +1328,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             Balloon flights are guided by nature — we fly around sunrise and sunset. Meeting times are arranged accordingly.
                                         </span>
                                     </div>
-                                )}
                             </div>
                         )}
                     </div>
