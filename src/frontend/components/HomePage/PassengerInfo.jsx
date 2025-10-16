@@ -452,6 +452,25 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
+        {/* Helper note under section header (Passenger Information only) */}
+        {activitySelect !== 'Buy Gift' && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            color: '#64748b',
+            borderRadius: isMobile ? 8 : 12,
+            padding: isMobile ? '10px 12px' : '14px 16px',
+            margin: isMobile ? '6px 0 12px 0' : '8px 0 16px 0',
+            fontSize: isMobile ? 13 : 14,
+            fontWeight: 500,
+            textAlign: 'center'
+          }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 18, height: 18, borderRadius: '50%', backgroundColor: '#10b981', color: '#fff', fontSize: 12, fontWeight: 800, lineHeight: 1
+            }}>✓</span>
+            <span>You can add or swap passengers easily if plans change.</span>
+          </div>
+        )}
         {/* Display a message if no passengers are selected */}
         {passengerCount <= 0 && (
           <div style={{ textAlign: 'center', padding: '20px' }}>
