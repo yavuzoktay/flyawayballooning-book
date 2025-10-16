@@ -221,7 +221,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     height: isMobile ? "10px" : "220px", 
                     minHeight: isMobile ? "10px" : "220px", 
                     flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
-                    margin: isMobile ? '0 0 8px 0' : '0 0 20px 0', 
+                    margin: isMobile ? '0 0 8px 0' : '0', 
                     width: isMobile ? '100%' : 'calc(50% - 20px)', 
                     boxSizing: 'border-box' 
                 }}>

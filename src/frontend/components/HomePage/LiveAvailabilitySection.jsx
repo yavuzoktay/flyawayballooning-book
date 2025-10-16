@@ -572,7 +572,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 lineHeight: 1,
                                 textAlign: 'center'
                             }}>
-                                {`${total} Space${total > 1 ? 's' : ''}`}
+                                {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${total} Space${total > 1 ? 's' : ''}`}
                             </div>
                         )}
                         {soldOut && !isPastDate && (
@@ -1011,7 +1011,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 minWidth: '80px'
                             }}
                         >
-                            Back to calendar
+                            Choose Another Date
                         </button>
                     </>
                 }
@@ -1151,7 +1151,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                             lineHeight: 1,
                                                             opacity: 0.9
                                                         }}>
-                                                            {slot.available} Space{slot.available > 1 ? 's' : ''}
+                                                            {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${slot.available} Space${slot.available > 1 ? 's' : ''}`}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -1162,7 +1162,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
                                                             <div style={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>
-                                                                {slot.available} Space{slot.available > 1 ? 's' : ''}
+                                                                {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${slot.available} Space${slot.available > 1 ? 's' : ''}`}
                                                             </div>
                                                         </div>
                                                     </>
@@ -1281,7 +1281,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             setTempSelectedTime(null);
                                         }}
                                     >
-                                        Back to calendar
+                                        Choose Another Date
                                     </button>
                                     <button
                                         style={{
