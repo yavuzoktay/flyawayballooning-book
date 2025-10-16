@@ -202,6 +202,23 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             
             <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`} isDisabled={isDisabled}>
                 <div className="tab_box scroll-box">
+                    {/* Helper note above location options */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 12px 0', color: '#64748b' }}>
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 18,
+                            height: 18,
+                            borderRadius: '50%',
+                            backgroundColor: '#10b981',
+                            color: '#fff',
+                            fontSize: 12,
+                            fontWeight: 800,
+                            lineHeight: 1
+                        }}>✓</span>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>Location can be changed after purchase</span>
+                    </div>
 
                     
                     {isMobile ? (

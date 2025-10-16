@@ -866,7 +866,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             gap: isMobile ? 2 : 5
                         }}>
                             <span className="tick-circle" aria-hidden="true"></span>
-                            <span>Reschedule your flight for free up to 5 days before your scheduled date.</span>
+                            <span>Reschedule for free up to 5 days before your flight.</span>
                         </span>
                     </div>
 
@@ -1311,15 +1311,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 
                                 {/* Informational Text (hidden on mobile) */}
                                 {!isMobile && (
-                                    <div style={{ 
-                                        textAlign: 'center', 
-                                        marginTop: 16, 
-                                        color: '#666', 
-                                        fontSize: '12px',
-                                        lineHeight: '1.3',
-                                        fontStyle: 'italic'
-                                    }}>
-                                        Hot air balloons can only fly twice a day – around sunrise and sunset. Meeting times are set according to these times.
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 16, color: '#666' }}>
+                                        <span style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: 18,
+                                            height: 18,
+                                            borderRadius: '50%',
+                                            backgroundColor: '#10b981',
+                                            color: '#fff',
+                                            fontSize: 12,
+                                            fontWeight: 800,
+                                            lineHeight: 1
+                                        }}>✓</span>
+                                        <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
+                                            Balloon flights are guided by nature — we fly around sunrise and sunset. Meeting times are arranged accordingly.
+                                        </span>
                                     </div>
                                 )}
                             </div>
