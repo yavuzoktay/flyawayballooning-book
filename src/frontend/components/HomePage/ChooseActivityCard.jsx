@@ -275,25 +275,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         </div>
                                         <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                             {item.displayLabel || item.label}
-                                            <BsInfoCircle 
-                                                data-tooltip-id="redeem-voucher-tooltip"
-                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
-                                            />
-                                            <ReactTooltip
-                                                id="redeem-voucher-tooltip"
-                                                place="top"
-                                                content="Redeem flight or gift voucher"
-                                                style={{
-                                                    maxWidth: '280px',
-                                                    fontSize: '13px',
-                                                    textAlign: 'center',
-                                                    backgroundColor: '#1f2937',
-                                                    color: '#ffffff',
-                                                    borderRadius: '8px',
-                                                    padding: '8px 12px',
-                                                    zIndex: 9999
-                                                }}
-                                            />
                                         </h3>
                                         {item.subText && <p>{item.subText}</p>}
                                         {localVoucherCode && (
