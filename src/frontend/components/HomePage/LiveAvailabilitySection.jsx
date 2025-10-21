@@ -870,24 +870,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         </span>
                     </div>
 
-                    {/* Add request date section below calendar */}
-                    {activitySelect === 'Book Flight' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                                <button style={{
-                                    background: '#00eb5b',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: 6,
-                                    padding: isMobile ? '5px 12px' : '6px 14px',
-                                    fontWeight: 600,
-                                    fontSize: isMobile ? 13 : 14,
-                                    cursor: 'pointer',
-                                    boxShadow: '0 2px 8px rgba(0,235,91,0.18)'
-                                }} onClick={() => setRequestModalOpen(true)}>Request Date</button>
-                            </div>
-                        </div>
-                    )}
+                    {/* Request Date button hidden */}
                 </div>
             </Accordion>
             {
