@@ -17,15 +17,16 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
       width: '100%',
       maxWidth: '900px',
       margin: '0 auto',
-      padding: isMobile ? '15px 0' : '20px 0'
+      padding: isMobile ? '10px 0' : '15px 0',
+      backgroundColor: '#ffffff'
     }}>
       {/* Progress line background */}
       <div className="progress-line" style={{
-        height: '4px',
+        height: '6px',
         background: '#e5e7eb',
         position: 'relative',
-        borderRadius: '2px',
-        margin: `0 ${isMobile ? '16px' : '32px'}`
+        borderRadius: '3px',
+        margin: `0 ${isMobile ? '20px' : '40px'}`
       }}>
         {/* Progress fill - blue line connecting completed sections */}
         <div 
@@ -45,9 +46,9 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         display: 'flex',
         justifyContent: 'space-between',
         position: 'absolute',
-        top: isMobile ? '-8px' : '-10px',
+        top: isMobile ? '-12px' : '-15px',
         width: '100%',
-        padding: `0 ${isMobile ? '16px' : '32px'}`
+        padding: `0 ${isMobile ? '20px' : '40px'}`
       }}>
         {sections.map((section, index) => (
           <div
@@ -55,8 +56,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
             className={`circle ${getCircleClass(section)}`}
             onClick={() => onCircleClick && onCircleClick(section.id)}
             style={{
-              width: isMobile ? '20px' : '32px',
-              height: isMobile ? '20px' : '32px',
+              width: isMobile ? '24px' : '36px',
+              height: isMobile ? '24px' : '36px',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -95,8 +96,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
           >
             {section.completed && (
               <svg 
-                width={isMobile ? '12' : '16'} 
-                height={isMobile ? '12' : '16'} 
+                width={isMobile ? '14' : '18'} 
+                height={isMobile ? '14' : '18'} 
                 viewBox="0 0 24 24" 
                 fill="white"
                 style={{ pointerEvents: 'none' }}
@@ -135,10 +136,10 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
       {/* Progress percentage text */}
       <div style={{
         textAlign: 'center',
-        marginTop: isMobile ? '25px' : '30px',
-        fontSize: isMobile ? '12px' : '14px',
-        color: '#6b7280',
-        fontWeight: '500'
+        marginTop: isMobile ? '20px' : '25px',
+        fontSize: isMobile ? '13px' : '15px',
+        color: '#374151',
+        fontWeight: '600'
       }}>
         {completedCount} of {totalCount} steps completed
       </div>

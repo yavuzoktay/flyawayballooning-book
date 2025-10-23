@@ -2032,23 +2032,33 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
+                    {/* Sticky Progress Bar */}
+                    {activitySelect && (
+                        <div style={{
+                            position: 'sticky',
+                            top: '0',
+                            zIndex: 1000,
+                            backgroundColor: '#ffffff',
+                            padding: isMobile ? '15px 10px' : '20px 0',
+                            borderBottom: '1px solid #e5e7eb',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                        }}>
+                            <ProgressBar 
+                                sections={progressSections.map(id => ({
+                                    id,
+                                    title: getSectionTitle(id),
+                                    completed: completedSections.has(id)
+                                }))}
+                                activeSection={activeAccordion}
+                                onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
+                                isMobile={isMobile}
+                            />
+                        </div>
+                    )}
+
                     <div className="main_booking">
                         <div className="booking_data">
                             <div className={`accodien ${isMobile ? 'mobile-optimized' : ''}`}>
-                                {/* Progress Bar above heading */}
-                                {activitySelect && (
-                                    <ProgressBar 
-                                        sections={progressSections.map(id => ({
-                                            id,
-                                            title: getSectionTitle(id),
-                                            completed: completedSections.has(id)
-                                        }))}
-                                        activeSection={activeAccordion}
-                                        onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
-                                        isMobile={isMobile}
-                                    />
-                                )}
-                                
                                 {/* What would you like to do? Accordion */}
                                 <div style={{ 
                                     marginBottom: isMobile ? '15px' : '30px',
