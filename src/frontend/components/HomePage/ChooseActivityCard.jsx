@@ -352,7 +352,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 <ReactTooltip
                                     id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
                                     place="top"
-                                    content={item.label === 'Book Flight' ? 'Check live availability and select your flight date and time.' : item.label === 'Flight Voucher' ? 'Purchase your voucher now and pick the flight location, date, and time later.' : item.label === 'Buy Gift' ? 'Gift a voucher to someone else, letting them choose the location, date, and flight time later.' : 'Redeem your code'}
+                                    content={item.label === 'Book Flight' ? 'See live availability and secure your flight date and time.' : item.label === 'Flight Voucher' ? 'Buy now and choose your flight date, time and location later.' : item.label === 'Buy Gift' ? 'Gift the experience - they’ll choose when and where to fly.' : 'Redeem your code'}
                                     style={{
                                         maxWidth: '280px',
                                         fontSize: '13px',

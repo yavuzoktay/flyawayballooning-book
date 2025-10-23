@@ -1409,7 +1409,7 @@ const VoucherType = ({
                                             <ReactTooltip
                                                 id="weather-refundable-tooltip-shared"
                                                 place="top"
-                                                content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months."
+                                                content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                 style={{
                                                     maxWidth: '280px',
                                                     fontSize: '13px',
@@ -1462,7 +1462,7 @@ const VoucherType = ({
                                             <ReactTooltip
                                                 id={`weather-refundable-tooltip-private-${voucher.title}`}
                                                 place="top"
-                                                content="Recommended for overseas travellers. Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed for up to 24 months."
+                                                content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                 style={{
                                                     maxWidth: '280px',
                                                     fontSize: '13px',

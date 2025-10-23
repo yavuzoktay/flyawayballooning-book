@@ -3044,22 +3044,6 @@ const Index = () => {
                 }}>
                     <button
                         style={{
-                            background: '#f8f9fa',
-                            color: '#6c757d',
-                            fontWeight: 500,
-                            borderRadius: '8px',
-                            padding: '8px 22px',
-                            cursor: 'pointer',
-                            opacity: 1,
-                            border: '1px solid #dee2e6'
-                        }}
-                        onClick={resetBooking}
-                        type="button"
-                    >
-                        Clear
-                    </button>
-                    <button
-                        style={{
                             background: '#00eb5b',
                             color: '#fff',
                             fontWeight: 500,

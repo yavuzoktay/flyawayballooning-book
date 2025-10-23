@@ -1194,24 +1194,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         {!isBookDisabled && (
                             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '0px', marginBottom: '0px' }}>
                                 <button
-                                    className="booking_btn clear_booking-button"
-                                    style={{
-                                        background: '#fff',
-                                        color: '#444',
-                                        border: '1.5px solid #bbb',
-                                        boxShadow: 'none',
-                                        fontWeight: 500,
-                                        borderRadius: '8px',
-                                        padding: '8px 22px',
-                                        cursor: 'pointer',
-                                        opacity: 1
-                                    }}
-                                    onClick={resetBooking}
-                                    type="button"
-                                >
-                                    Clear
-                                </button>
-                                <button
                                     className="booking_btn final_booking-button"
                                     style={{
                                         background: '#00eb5b',
