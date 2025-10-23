@@ -109,9 +109,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       // Check required fields
       const requiredFields = ['firstName', 'lastName', 'weight'];
       
-      // For Passenger 1 or Buy Gift, also check mobile and email
+      // For Passenger 1 or Buy Gift, also check phone and email
       if (i === 0 || activitySelect === 'Buy Gift') {
-        requiredFields.push('mobile', 'email');
+        requiredFields.push('phone', 'email');
       }
       
       for (const field of requiredFields) {
@@ -131,9 +131,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     
     const requiredFields = ['firstName', 'lastName', 'weight'];
     
-    // For Passenger 1 or Buy Gift, also check mobile and email
+    // For Passenger 1 or Buy Gift, also check phone and email
     if (index === 0 || activitySelect === 'Buy Gift') {
-      requiredFields.push('mobile', 'email');
+      requiredFields.push('phone', 'email');
     }
     
     for (const field of requiredFields) {
