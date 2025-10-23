@@ -98,6 +98,53 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     }
   };
 
+  // Function to check if previous passengers are complete
+  const isPreviousPassengerComplete = (currentIndex) => {
+    if (currentIndex === 0) return true; // First passenger is always enabled
+    
+    for (let i = 0; i < currentIndex; i++) {
+      const passenger = passengerData[i];
+      if (!passenger) return false;
+      
+      // Check required fields
+      const requiredFields = ['firstName', 'lastName', 'weight'];
+      
+      // For Passenger 1 or Buy Gift, also check mobile and email
+      if (i === 0 || activitySelect === 'Buy Gift') {
+        requiredFields.push('mobile', 'email');
+      }
+      
+      for (const field of requiredFields) {
+        if (!passenger[field] || passenger[field].trim() === '') {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  };
+
+  // Function to check if current passenger is complete
+  const isCurrentPassengerComplete = (index) => {
+    const passenger = passengerData[index];
+    if (!passenger) return false;
+    
+    const requiredFields = ['firstName', 'lastName', 'weight'];
+    
+    // For Passenger 1 or Buy Gift, also check mobile and email
+    if (index === 0 || activitySelect === 'Buy Gift') {
+      requiredFields.push('mobile', 'email');
+    }
+    
+    for (const field of requiredFields) {
+      if (!passenger[field] || passenger[field].trim() === '') {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   // Update navigation buttons when passenger count changes
   useEffect(() => {
     if (isMobile && passengerCount > 1) {
@@ -655,6 +702,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       value={passenger.firstName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
+                      disabled={!isPreviousPassengerComplete(index)}
                       style={{
                         ...(error?.firstName ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
@@ -664,9 +712,14 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           padding: '6px 8px',
                           minHeight: '32px',
                           width: '100%'
-                        })
+                        }),
+                        ...(!isPreviousPassengerComplete(index) ? {
+                          backgroundColor: '#f3f4f6',
+                          color: '#9ca3af',
+                          cursor: 'not-allowed'
+                        } : {})
                       }}
-                      placeholder="First Name"
+                      placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "First Name"}
                     />
                     {error?.firstName && <span style={{ color: 'red', fontSize: 10 }}>First name is required</span>}
                   </div>
@@ -688,6 +741,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       value={passenger.lastName}
                       onChange={(e) => handlePassengerInputChange(index, e)}
                       required
+                      disabled={!isPreviousPassengerComplete(index)}
                       style={{
                         ...(error?.lastName ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
@@ -697,9 +751,14 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           padding: '6px 8px',
                           minHeight: '32px',
                           width: '100%'
-                        })
+                        }),
+                        ...(!isPreviousPassengerComplete(index) ? {
+                          backgroundColor: '#f3f4f6',
+                          color: '#9ca3af',
+                          cursor: 'not-allowed'
+                        } : {})
                       }}
-                      placeholder="Last Name"
+                      placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Last Name"}
                     />
                     {error?.lastName && <span style={{ color: 'red', fontSize: 10 }}>Last name is required</span>}
                   </div>
@@ -741,6 +800,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       <input
                         type="text"
                         required
+                        disabled={!isPreviousPassengerComplete(index)}
                         style={{
                           ...(error?.weight ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
@@ -750,12 +810,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           padding: '6px 8px',
                           minHeight: '32px',
                           width: '100%'
-                        })
+                        }),
+                        ...(!isPreviousPassengerComplete(index) ? {
+                          backgroundColor: '#f3f4f6',
+                          color: '#9ca3af',
+                          cursor: 'not-allowed'
+                        } : {})
                         }}
                         name="weight"
                         value={passenger.weight}
                         onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder="Max 18 Stone / 114Kg"
+                        placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Max 18 Stone / 114Kg"}
                       />
                       {error?.weight && <span style={{ color: 'red', fontSize: 10 }}>Weight is required</span>}
                     </div>
@@ -791,8 +856,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         name="phone"
                         value={passenger.phone || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder="Mobile Number"
+                        placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Mobile Number"}
                         required
+                        disabled={!isPreviousPassengerComplete(index)}
                         style={{
                           ...(error?.phone ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
@@ -802,7 +868,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           padding: '6px 8px',
                           minHeight: '32px',
                           width: '100%'
-                        })
+                        }),
+                        ...(!isPreviousPassengerComplete(index) ? {
+                          backgroundColor: '#f3f4f6',
+                          color: '#9ca3af',
+                          cursor: 'not-allowed'
+                        } : {})
                         }}
                       />
                       {error?.phone && <span style={{ color: 'red', fontSize: 10 }}>Mobile number is required</span>}
@@ -822,8 +893,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         name="email"
                         value={passenger.email || ''}
                         onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder="Email"
+                        placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Email"}
                         required
+                        disabled={!isPreviousPassengerComplete(index)}
                         style={{
                           ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
                         ...(isMobile ? { 
@@ -833,7 +905,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                           padding: '6px 8px',
                           minHeight: '32px',
                           width: '100%'
-                        })
+                        }),
+                        ...(!isPreviousPassengerComplete(index) ? {
+                          backgroundColor: '#f3f4f6',
+                          color: '#9ca3af',
+                          cursor: 'not-allowed'
+                        } : {})
                         }}
                       />
                       {error?.email && <span style={{ color: 'red', fontSize: 10 }}>Email is required</span>}
@@ -1010,7 +1087,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             name="firstName"
                             value={passenger.firstName || ''}
                             onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="First Name"
+                            placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "First Name"}
+                            disabled={!isPreviousPassengerComplete(index)}
                             style={{
                               ...(error?.firstName ? { border: '1.5px solid red' } : {}),
                             fontSize: '13px',
@@ -1019,8 +1097,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             width: '100%',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '6px',
-                                backgroundColor: '#ffffff',
-                                color: '#374151',
+                                backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
                                 fontWeight: '400',
                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
@@ -1044,7 +1123,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             name="lastName"
                             value={passenger.lastName || ''}
                             onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="Last Name"
+                            placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Last Name"}
+                            disabled={!isPreviousPassengerComplete(index)}
                             style={{
                               ...(error?.lastName ? { border: '1.5px solid red' } : {}),
                             fontSize: '13px',
@@ -1053,8 +1133,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             width: '100%',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '6px',
-                                backgroundColor: '#ffffff',
-                                color: '#374151',
+                                backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
                                 fontWeight: '400',
                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
@@ -1088,7 +1169,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                                 name="weight"
                                 value={passenger.weight || ''}
                                 onChange={(e) => handlePassengerInputChange(index, e)}
-                                placeholder="Max 18 Stone / 114Kg"
+                                placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Max 18 Stone / 114Kg"}
+                                disabled={!isPreviousPassengerComplete(index)}
                                 style={{
                                   ...(error?.weight ? { border: '1.5px solid red' } : {}),
                               fontSize: '13px',
@@ -1097,8 +1179,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               width: '100%',
                                     border: '1px solid #d1d5db',
                                     borderRadius: '6px',
-                                    backgroundColor: '#ffffff',
-                                    color: '#374151',
+                                    backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                    color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                    cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
                                     fontWeight: '400',
                                     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                               transition: 'all 0.2s ease'
@@ -1136,7 +1219,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                              name="phone"
                              value={passenger.phone || ''}
                              onChange={(e) => handlePassengerInputChange(index, e)}
-                             placeholder="Mobile Number"
+                             placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Mobile Number"}
+                             disabled={!isPreviousPassengerComplete(index)}
                              style={{
                                ...(error?.phone ? { border: '1.5px solid red' } : {}),
                               fontSize: '13px',
@@ -1145,8 +1229,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               width: '100%',
                                  border: '1px solid #d1d5db',
                                  borderRadius: '6px',
-                                 backgroundColor: '#ffffff',
-                                 color: '#374151',
+                                 backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                 color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                 cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
                                  fontWeight: '400',
                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                  transition: 'all 0.2s ease'
@@ -1169,7 +1254,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             name="email"
                             value={passenger.email || ''}
                             onChange={(e) => handlePassengerInputChange(index, e)}
-                            placeholder="Email"
+                            placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Email"}
+                            disabled={!isPreviousPassengerComplete(index)}
                             style={{
                               ...(error?.email || emailErrors[index] ? { border: '1.5px solid red' } : {}),
                               fontSize: '13px',
@@ -1178,8 +1264,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               width: '100%',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '6px',
-                                backgroundColor: '#ffffff',
-                                color: '#374151',
+                                backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
                                 fontWeight: '400',
                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                 transition: 'all 0.2s ease'
