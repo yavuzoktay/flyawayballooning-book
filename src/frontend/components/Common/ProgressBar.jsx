@@ -47,13 +47,13 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         borderRadius: '3px',
         margin: `0 ${isMobile ? '20px' : '40px'}`
       }}>
-        {/* Progress fill - blue line connecting completed sections */}
+        {/* Progress fill - green line connecting completed sections */}
         <div 
           className="progress-fill" 
           style={{ 
             width: `${fillPercentage}%`,
             height: '100%',
-            background: '#3b82f6', // Blue color for connecting line
+            background: '#10b981', // Green color for connecting line
             transition: 'width 0.5s ease',
             borderRadius: '2px'
           }} 
@@ -86,10 +86,10 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
               position: 'relative',
               zIndex: 2,
               ...(section.completed ? {
-                background: '#3b82f6',
+                background: '#10b981',
                 color: 'white',
-                border: '3px solid #3b82f6',
-                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                border: '3px solid #10b981',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)'
               } : activeSection === section.id ? {
                 background: 'white',
                 border: '3px solid #03a9f4',
@@ -107,7 +107,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow = section.completed 
-                ? '0 2px 4px rgba(59, 130, 246, 0.3)'
+                ? '0 2px 4px rgba(16, 185, 129, 0.3)'
                 : activeSection === section.id 
                 ? '0 2px 8px rgba(3, 169, 244, 0.3)'
                 : '0 1px 3px rgba(0, 0, 0, 0.1)';
