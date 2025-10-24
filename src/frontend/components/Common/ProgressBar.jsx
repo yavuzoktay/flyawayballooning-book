@@ -21,7 +21,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
   };
   
   const nextFillIndex = getNextFillIndex();
-  const fillPercentage = totalCount > 0 ? ((nextFillIndex + 1) / totalCount) * 100 : 0;
+  // Calculate percentage to stop at the center of the next circle
+  const fillPercentage = totalCount > 0 ? ((nextFillIndex + 0.5) / totalCount) * 100 : 0;
 
   const getCircleClass = (section) => {
     if (section.completed) return 'completed';
