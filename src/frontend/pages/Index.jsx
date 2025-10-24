@@ -91,7 +91,7 @@ const Index = () => {
     // Define progress sections based on activity type
     const progressSections = activitySelect === 'Book Flight' 
         ? ['activity', 'location', 'experience', ...(chooseLocation !== 'Bristol Fiesta' ? ['voucher-type'] : []), 'live-availability', 'passenger-info', 'additional-info', 'add-on']
-        : activitySelect === 'Buy Flight Voucher'
+        : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
         ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
         : activitySelect === 'Buy Gift'
         ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
