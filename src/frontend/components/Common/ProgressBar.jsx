@@ -53,7 +53,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
           style={{ 
             width: `${fillPercentage}%`,
             height: '100%',
-            background: '#10b981', // Green color for connecting line
+            background: '#00eb5b', // Exact same green as summary screen
             transition: 'width 0.5s ease',
             borderRadius: '2px'
           }} 
@@ -86,10 +86,10 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
               position: 'relative',
               zIndex: 2,
               ...(section.completed ? {
-                background: '#10b981',
+                background: '#00eb5b',
                 color: 'white',
-                border: '3px solid #10b981',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)'
+                border: '3px solid #00eb5b',
+                boxShadow: '0 2px 4px rgba(0, 235, 91, 0.3)'
               } : activeSection === section.id ? {
                 background: 'white',
                 border: '3px solid #03a9f4',
@@ -107,22 +107,24 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow = section.completed 
-                ? '0 2px 4px rgba(16, 185, 129, 0.3)'
+                ? '0 2px 4px rgba(0, 235, 91, 0.3)'
                 : activeSection === section.id 
                 ? '0 2px 8px rgba(3, 169, 244, 0.3)'
                 : '0 1px 3px rgba(0, 0, 0, 0.1)';
             }}
           >
             {section.completed && (
-              <svg 
-                width={isMobile ? '14' : '18'} 
-                height={isMobile ? '14' : '18'} 
-                viewBox="0 0 24 24" 
-                fill="white"
-                style={{ pointerEvents: 'none' }}
+              <span
+                style={{
+                  pointerEvents: 'none',
+                  fontSize: isMobile ? '16px' : '20px',
+                  fontWeight: 'bold',
+                  lineHeight: 1,
+                  color: 'white'
+                }}
               >
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-              </svg>
+                ✓
+              </span>
             )}
             
             {/* Tooltip */}
