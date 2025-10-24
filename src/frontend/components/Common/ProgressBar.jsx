@@ -3,7 +3,25 @@ import React from 'react';
 const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false }) => {
   const completedCount = sections.filter(s => s.completed).length;
   const totalCount = sections.length;
-  const fillPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  
+  // Find the next section to fill up to (either completed or active)
+  const getNextFillIndex = () => {
+    // Find the last completed section
+    const lastCompletedIndex = sections.findLastIndex(s => s.completed);
+    
+    // If there's an active section after the last completed, fill to that
+    const activeIndex = sections.findIndex(s => s.id === activeSection);
+    
+    if (activeIndex > lastCompletedIndex) {
+      return activeIndex;
+    }
+    
+    // Otherwise, fill to the last completed section
+    return lastCompletedIndex;
+  };
+  
+  const nextFillIndex = getNextFillIndex();
+  const fillPercentage = totalCount > 0 ? ((nextFillIndex + 1) / totalCount) * 100 : 0;
 
   const getCircleClass = (section) => {
     if (section.completed) return 'completed';
