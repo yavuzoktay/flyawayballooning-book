@@ -99,9 +99,22 @@ const Index = () => {
         ? ['activity', 'location', 'experience', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
         : [];
 
-    // Reset progress when activity changes
+    // Reset progress when activity changes, but preserve activity completion
     useEffect(() => {
-        setCompletedSections(new Set());
+        if (activitySelect) {
+            // Only reset if we're changing to a different activity
+            // Keep the activity section completed
+            setCompletedSections(prev => {
+                const newSet = new Set();
+                if (activitySelect) {
+                    newSet.add('activity');
+                }
+                return newSet;
+            });
+        } else {
+            // If no activity selected, clear everything
+            setCompletedSections(new Set());
+        }
     }, [activitySelect]);
 
     // Start/maintain 5-minute countdown when a date and time are selected
