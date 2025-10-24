@@ -99,18 +99,19 @@ const Index = () => {
         ? ['activity', 'location', 'experience', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
         : [];
 
-    // Reset progress when activity changes, but preserve activity completion
+    // Reset progress when activity changes - clear all checkboxes
     useEffect(() => {
         if (activitySelect) {
-            // Only reset if we're changing to a different activity
-            // Keep the activity section completed
-            setCompletedSections(prev => {
-                const newSet = new Set();
-                if (activitySelect) {
+            // Reset all progress when changing activity
+            setCompletedSections(new Set());
+            // Mark activity as completed after reset
+            setTimeout(() => {
+                setCompletedSections(prev => {
+                    const newSet = new Set(prev);
                     newSet.add('activity');
-                }
-                return newSet;
-            });
+                    return newSet;
+                });
+            }, 0);
         } else {
             // If no activity selected, clear everything
             setCompletedSections(new Set());
