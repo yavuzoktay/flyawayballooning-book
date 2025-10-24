@@ -2052,9 +2052,10 @@ const Index = () => {
                             top: '0',
                             zIndex: 1000,
                             backgroundColor: '#ffffff',
-                            padding: isMobile ? '15px 10px' : '20px 0',
+                            padding: isMobile ? '12px 10px' : '16px 0', // Reduced padding
                             borderBottom: '1px solid #e5e7eb',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                            marginBottom: isMobile ? '20px' : '30px' // Added bottom margin for spacing
                         }}>
                             <ProgressBar 
                                 sections={progressSections.map(id => ({

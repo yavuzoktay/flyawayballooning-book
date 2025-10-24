@@ -34,18 +34,18 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
     <div className="progress-container" style={{
       position: 'relative',
       width: '100%',
-      maxWidth: '900px',
+      maxWidth: '700px', // Reduced from 900px
       margin: '0 auto',
-      padding: isMobile ? '10px 0' : '15px 0',
+      padding: isMobile ? '8px 0' : '12px 0', // Reduced padding
       backgroundColor: '#ffffff'
     }}>
       {/* Progress line background */}
       <div className="progress-line" style={{
-        height: '6px',
+        height: '4px', // Reduced from 6px
         background: '#e5e7eb',
         position: 'relative',
-        borderRadius: '3px',
-        margin: `0 ${isMobile ? '20px' : '40px'}`
+        borderRadius: '2px',
+        margin: `0 ${isMobile ? '16px' : '32px'}` // Reduced margins
       }}>
         {/* Progress fill - green line connecting completed sections */}
         <div 
@@ -65,9 +65,9 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         display: 'flex',
         justifyContent: 'space-between',
         position: 'absolute',
-        top: isMobile ? '-12px' : '-15px',
+        top: isMobile ? '-10px' : '-12px', // Adjusted for smaller circles
         width: '100%',
-        padding: `0 ${isMobile ? '20px' : '40px'}`
+        padding: `0 ${isMobile ? '16px' : '32px'}` // Reduced padding
       }}>
         {sections.map((section, index) => (
           <div
@@ -75,8 +75,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
             className={`circle ${getCircleClass(section)}`}
             onClick={() => onCircleClick && onCircleClick(section.id)}
             style={{
-              width: isMobile ? '24px' : '36px',
-              height: isMobile ? '24px' : '36px',
+              width: isMobile ? '20px' : '28px', // Reduced sizes
+              height: isMobile ? '20px' : '28px',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -88,15 +88,15 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
               ...(section.completed ? {
                 background: '#00eb5b',
                 color: 'white',
-                border: '3px solid #00eb5b',
-                boxShadow: '0 2px 4px rgba(0, 235, 91, 0.3)'
+                border: '2px solid #00eb5b', // Reduced border thickness
+                boxShadow: '0 1px 3px rgba(0, 235, 91, 0.3)' // Reduced shadow
               } : activeSection === section.id ? {
                 background: 'white',
-                border: '3px solid #03a9f4',
-                boxShadow: '0 2px 8px rgba(3, 169, 244, 0.3)'
+                border: '2px solid #03a9f4', // Reduced border thickness
+                boxShadow: '0 1px 6px rgba(3, 169, 244, 0.3)' // Reduced shadow
               } : {
                 background: 'white',
-                border: '3px solid #d1d5db',
+                border: '2px solid #d1d5db', // Reduced border thickness
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               })
             }}
@@ -107,9 +107,9 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow = section.completed 
-                ? '0 2px 4px rgba(0, 235, 91, 0.3)'
+                ? '0 1px 3px rgba(0, 235, 91, 0.3)'
                 : activeSection === section.id 
-                ? '0 2px 8px rgba(3, 169, 244, 0.3)'
+                ? '0 1px 6px rgba(3, 169, 244, 0.3)'
                 : '0 1px 3px rgba(0, 0, 0, 0.1)';
             }}
           >
@@ -117,7 +117,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
               <span
                 style={{
                   pointerEvents: 'none',
-                  fontSize: isMobile ? '16px' : '20px',
+                  fontSize: isMobile ? '12px' : '14px', // Reduced font size
                   fontWeight: 'bold',
                   lineHeight: 1,
                   color: 'white'
@@ -157,8 +157,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
       {/* Progress percentage text */}
       <div style={{
         textAlign: 'center',
-        marginTop: isMobile ? '20px' : '25px',
-        fontSize: isMobile ? '13px' : '15px',
+        marginTop: isMobile ? '15px' : '18px', // Reduced margin
+        fontSize: isMobile ? '11px' : '13px', // Reduced font size
         color: '#374151',
         fontWeight: '600'
       }}>
