@@ -98,6 +98,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         // Always update the activity selection
         setActivitySelect(label);
         
+        // Mark activity section as completed
+        if (onSectionCompletion) {
+            onSectionCompletion('activity');
+        }
+        
         // Show notification for flight type selection
         setNotificationMessage(`${label} Selected`);
         setShowNotification(true);
@@ -232,6 +237,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     className="card-front"
                                     onClick={() => {
                                         setActivitySelect('Redeem Voucher');
+                                        if (onSectionCompletion) {
+                                            onSectionCompletion('activity');
+                                        }
                                         setIsFlipped(true);
                                     }}
                                     style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
