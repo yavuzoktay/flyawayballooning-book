@@ -2051,7 +2051,7 @@ const Index = () => {
                             right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
                             padding: isMobile ? '12px 10px' : '16px 0',
-                            marginBottom: isMobile ? '0' : '30px',
+                            marginBottom: isMobile ? '0' : '10px',
                             // Mobile: transparent background to match page, no shadow
                             backgroundColor: isMobile ? 'transparent' : 'transparent',
                             boxShadow: isMobile ? 'none' : 'none'

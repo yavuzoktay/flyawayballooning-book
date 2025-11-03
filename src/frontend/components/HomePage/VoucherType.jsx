@@ -812,9 +812,9 @@ const VoucherType = ({
                     description: vt.description || 'Exclusive private balloon experience for your group. Perfect for special occasions and intimate groups.',
                     image: imageUrl,
                     imageTextTag: vt.image_text_tag || '',
-                    refundability: 'Non-Refundable',
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
+                    refundability: 'Non-Refundable',
                     inclusions: features,
                     // Show terms only if provided; otherwise hide
                     weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
@@ -951,9 +951,9 @@ const VoucherType = ({
                     description: vt.description || 'Shared balloon experience with other passengers. Perfect for individuals and small groups.',
                     image: imageUrl,
                     imageTextTag: vt.image_text_tag || '',
-                    refundability: 'Non-Refundable',
                     availability: vt.flight_days || 'Any Day',
                     validity: `Valid: ${vt.validity_months || 18} Months`,
+                    refundability: 'Non-Refundable',
                     inclusions: features,
                     // Show terms only if provided; otherwise hide
                     weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
