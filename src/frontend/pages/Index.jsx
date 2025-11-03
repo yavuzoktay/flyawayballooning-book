@@ -2037,24 +2037,29 @@ const Index = () => {
                     maxWidth: '92vw',
                     pointerEvents: 'auto'
                 }}>
+                    {/* Selected pill with current activity */}
                     <div style={{
-                        background: '#111827',
+                        background: '#0da8ff',
                         color: '#fff',
                         padding: '10px 14px',
-                        borderRadius: '10px',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
-                        fontWeight: 600,
+                        borderRadius: '12px',
+                        boxShadow: '0 6px 20px rgba(13,168,255,0.25)',
+                        fontWeight: 700,
                         letterSpacing: '0.2px',
                         whiteSpace: 'nowrap',
                         display: 'inline-flex',
                         alignItems: 'center',
+                        gap: 8,
                         flexShrink: 0
-                    }}>Selected</div>
+                    }}>
+                        <span style={{fontSize: 16, lineHeight: 1}}>✓</span>
+                        <span>{activitySelect} Selected</span>
+                    </div>
                     <div style={{
                         background: '#00eb5b',
                         color: '#0a0a0a',
                         padding: '10px 14px',
-                        borderRadius: '10px',
+                        borderRadius: '12px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                         fontWeight: 700,
                         letterSpacing: '0.2px',
