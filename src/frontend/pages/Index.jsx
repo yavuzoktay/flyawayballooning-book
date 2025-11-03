@@ -2032,6 +2032,9 @@ const Index = () => {
                     background: 'transparent',
                     display: 'flex',
                     gap: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    maxWidth: '92vw',
                     pointerEvents: 'auto'
                 }}>
                     <div style={{
@@ -2041,7 +2044,11 @@ const Index = () => {
                         borderRadius: '10px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
                         fontWeight: 600,
-                        letterSpacing: '0.2px'
+                        letterSpacing: '0.2px',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        flexShrink: 0
                     }}>Selected</div>
                     <div style={{
                         background: '#00eb5b',
@@ -2050,7 +2057,11 @@ const Index = () => {
                         borderRadius: '10px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                         fontWeight: 700,
-                        letterSpacing: '0.2px'
+                        letterSpacing: '0.2px',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        flexShrink: 0
                     }}>Next</div>
                 </div>
             </div>
