@@ -458,19 +458,41 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Show a transient "Next" toast after Passenger 1 is fully completed (only when multiple passengers)
   const [showNextToast, setShowNextToast] = useState(false);
   const firstPassengerCompletedRef = useRef(false);
+  const toastTimerRef = useRef(null);
   useEffect(() => {
-    if (activeAccordion !== 'passenger-info') return;
-    if (!isMultiPassenger) { setShowNextToast(false); return; }
+    const inPassengerSection = activeAccordion === 'passenger-info';
+    const multiplePassengers = isMultiPassenger;
     const firstComplete = isPassengerComplete(passengerData[0] || {}, 0);
+
+    // Reset and hide in any case not matching the strict show condition
+    if (!inPassengerSection || !multiplePassengers || !firstComplete) {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = null;
+      }
+      setShowNextToast(false);
+      if (!firstComplete) firstPassengerCompletedRef.current = false;
+      return;
+    }
+
+    // Show once when P1 first becomes complete
     if (firstComplete && !firstPassengerCompletedRef.current) {
       firstPassengerCompletedRef.current = true;
       setShowNextToast(true);
-      const t = setTimeout(() => setShowNextToast(false), 3500);
-      return () => clearTimeout(t);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => {
+        setShowNextToast(false);
+        toastTimerRef.current = null;
+      }, 3000);
     }
-    if (!firstComplete) {
-      firstPassengerCompletedRef.current = false;
-    }
+
+    return () => {
+      // Clear timer on unmount
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = null;
+      }
+    };
   }, [passengerData, isMultiPassenger, activeAccordion]);
   
   // Shared input style for mobile consistency
