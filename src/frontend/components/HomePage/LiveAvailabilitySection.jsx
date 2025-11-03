@@ -1308,7 +1308,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                             lineHeight: 1
                                         }}>✓</span>
                                         <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
-                                            Balloon flights are guided by nature — we fly around sunrise and sunset. Meeting times are arranged accordingly.
+                                            Times are set according to sunrise and sunset.
                                         </span>
                                     </div>
                             </div>
