@@ -2041,17 +2041,19 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
-                    {/* Sticky Progress Bar */}
+                    {/* Progress Bar - sticky on desktop, fixed bottom on mobile */}
                     {activitySelect && (
                         <div style={{
-                            position: 'sticky',
-                            top: '0',
+                            position: isMobile ? 'fixed' : 'sticky',
+                            top: isMobile ? 'auto' : '0',
+                            bottom: isMobile ? '80px' : 'auto', // 80px to sit above the summary bar
+                            left: isMobile ? '0' : 'auto',
+                            right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
-                            backgroundColor: '#ffffff',
-                            padding: isMobile ? '12px 10px' : '16px 0', // Reduced padding
-                            borderBottom: '1px solid #e5e7eb',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-                            marginBottom: isMobile ? '20px' : '30px' // Added bottom margin for spacing
+                            padding: isMobile ? '12px 10px' : '16px 0',
+                            marginBottom: isMobile ? '0' : '30px',
+                            backgroundColor: isMobile ? '#ffffff' : 'transparent', // White background on mobile for visibility
+                            boxShadow: isMobile ? '0 -2px 10px rgba(0, 0, 0, 0.1)' : 'none' // Shadow on mobile
                         }}>
                             <ProgressBar 
                                 sections={progressSections.map(id => ({
