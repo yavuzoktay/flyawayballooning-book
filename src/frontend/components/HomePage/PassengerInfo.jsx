@@ -465,7 +465,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     if (firstComplete && !firstPassengerCompletedRef.current) {
       firstPassengerCompletedRef.current = true;
       setShowNextToast(true);
-      const t = setTimeout(() => setShowNextToast(false), 2000);
+      const t = setTimeout(() => setShowNextToast(false), 3500);
       return () => clearTimeout(t);
     }
     if (!firstComplete) {
