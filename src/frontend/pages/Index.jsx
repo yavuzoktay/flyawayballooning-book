@@ -588,6 +588,17 @@ const Index = () => {
     const isBookFlight = activitySelect === "Book Flight";
     console.log('chooseFlightType', chooseFlightType);
 
+    // Bottom toast for activity selection feedback
+    const [selectionToast, setSelectionToast] = useState({ visible: false, text: '' });
+    useEffect(() => {
+        if (activitySelect) {
+            const text = `${activitySelect} Selected`;
+            setSelectionToast({ visible: true, text });
+            const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 1800);
+            return () => clearTimeout(t);
+        }
+    }, [activitySelect]);
+
     // Book button validation logic (copied from RightInfoCard)
     // Keep logic in sync with RightInfoCard: don't mark as complete unless answered or required satisfied
     const isAdditionalInfoValid = (info) => {
@@ -2005,6 +2016,32 @@ const Index = () => {
                     </div>
                 </div>
             )}
+        {/* Bottom transient toast for activity selection */}
+        {selectionToast.visible && (
+            <div style={{
+                position: 'fixed',
+                left: 0,
+                right: 0,
+                bottom: '16px',
+                display: 'flex',
+                justifyContent: 'center',
+                zIndex: 1200,
+                pointerEvents: 'none'
+            }}>
+                <div style={{
+                    background: '#111827',
+                    color: '#fff',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+                    fontWeight: 600,
+                    letterSpacing: '0.2px',
+                    pointerEvents: 'auto'
+                }}>
+                    {selectionToast.text}
+                </div>
+            </div>
+        )}
             {/* Global accordion completion toast removed */}
             
             <div className="final-booking-wrap" style={{ 
