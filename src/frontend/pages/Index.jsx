@@ -2029,16 +2029,29 @@ const Index = () => {
                 pointerEvents: 'none'
             }}>
                 <div style={{
-                    background: '#111827',
-                    color: '#fff',
-                    padding: '10px 16px',
-                    borderRadius: '10px',
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
-                    fontWeight: 600,
-                    letterSpacing: '0.2px',
+                    background: 'transparent',
+                    display: 'flex',
+                    gap: 10,
                     pointerEvents: 'auto'
                 }}>
-                    {selectionToast.text}
+                    <div style={{
+                        background: '#111827',
+                        color: '#fff',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+                        fontWeight: 600,
+                        letterSpacing: '0.2px'
+                    }}>Selected</div>
+                    <div style={{
+                        background: '#00eb5b',
+                        color: '#0a0a0a',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                        fontWeight: 700,
+                        letterSpacing: '0.2px'
+                    }}>Next</div>
                 </div>
             </div>
         )}
