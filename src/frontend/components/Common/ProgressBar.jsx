@@ -48,8 +48,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
       width: '100%',
       maxWidth: '700px', // Reduced from 900px
       margin: '0 auto',
-      padding: isMobile ? '8px 0' : '12px 0', // Reduced padding
-      backgroundColor: '#ffffff'
+      padding: isMobile ? '8px 0' : '12px 0' // Reduced padding
     }}>
       {/* Progress line background */}
       <div className="progress-line" style={{
