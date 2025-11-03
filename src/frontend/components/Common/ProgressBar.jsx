@@ -71,99 +71,99 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         />
       </div>
 
-      {/* Circles container */}
-      <div className="progress-circles" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        position: 'absolute',
-        top: isMobile ? '-10px' : '-12px', // Adjusted for smaller circles
-        width: '100%',
-        padding: `0 ${isMobile ? '16px' : '32px'}` // Reduced padding
-      }}>
-        {sections.map((section, index) => (
-          <div
-            key={section.id}
-            className={`circle ${getCircleClass(section)}`}
-            onClick={() => onCircleClick && onCircleClick(section.id)}
-            style={{
-              width: isMobile ? '20px' : '28px', // Reduced sizes
-              height: isMobile ? '20px' : '28px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              zIndex: 2,
-              ...(section.completed ? {
-                background: '#00eb5b',
-                color: 'white',
-                border: '2px solid #00eb5b', // Reduced border thickness
-                boxShadow: '0 1px 3px rgba(0, 235, 91, 0.3)' // Reduced shadow
-              } : activeSection === section.id ? {
-                background: 'white',
-                border: '2px solid #03a9f4', // Reduced border thickness
-                boxShadow: '0 1px 6px rgba(3, 169, 244, 0.3)' // Reduced shadow
-              } : {
-                background: 'white',
-                border: '2px solid #d1d5db', // Reduced border thickness
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-              })
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = section.completed 
-                ? '0 1px 3px rgba(0, 235, 91, 0.3)'
-                : activeSection === section.id 
-                ? '0 1px 6px rgba(3, 169, 244, 0.3)'
-                : '0 1px 3px rgba(0, 0, 0, 0.1)';
-            }}
-          >
-            {section.completed && (
-              <span
-                style={{
-                  pointerEvents: 'none',
-                  fontSize: isMobile ? '12px' : '14px', // Reduced font size
-                  fontWeight: 'bold',
-                  lineHeight: 1,
-                  color: 'white'
-                }}
-              >
-                ✓
-              </span>
-            )}
-            
-            {/* Tooltip */}
-            <div 
-              className="circle-tooltip" 
+      {/* Circles container - hidden on mobile */}
+      {!isMobile && (
+        <div className="progress-circles" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          position: 'absolute',
+          top: '-12px',
+          width: '100%',
+          padding: '0 32px'
+        }}>
+          {sections.map((section) => (
+            <div
+              key={section.id}
+              className={`circle ${getCircleClass(section)}`}
+              onClick={() => onCircleClick && onCircleClick(section.id)}
               style={{
-                position: 'absolute',
-                bottom: '-35px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontSize: isMobile ? '10px' : '11px',
-                whiteSpace: 'nowrap',
-                color: '#6b7280',
-                background: 'rgba(255, 255, 255, 0.95)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                opacity: 0,
-                transition: 'opacity 0.2s ease',
-                pointerEvents: 'none',
-                zIndex: 10
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                zIndex: 2,
+                ...(section.completed ? {
+                  background: '#00eb5b',
+                  color: 'white',
+                  border: '2px solid #00eb5b',
+                  boxShadow: '0 1px 3px rgba(0, 235, 91, 0.3)'
+                } : activeSection === section.id ? {
+                  background: 'white',
+                  border: '2px solid #03a9f4',
+                  boxShadow: '0 1px 6px rgba(3, 169, 244, 0.3)'
+                } : {
+                  background: 'white',
+                  border: '2px solid #d1d5db',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                })
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = section.completed 
+                  ? '0 1px 3px rgba(0, 235, 91, 0.3)'
+                  : activeSection === section.id 
+                  ? '0 1px 6px rgba(3, 169, 244, 0.3)'
+                  : '0 1px 3px rgba(0, 0, 0, 0.1)';
               }}
             >
-              {section.title}
+              {section.completed && (
+                <span
+                  style={{
+                    pointerEvents: 'none',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    lineHeight: 1,
+                    color: 'white'
+                  }}
+                >
+                  ✓
+                </span>
+              )}
+              <div 
+                className="circle-tooltip" 
+                style={{
+                  position: 'absolute',
+                  bottom: '-35px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '11px',
+                  whiteSpace: 'nowrap',
+                  color: '#6b7280',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  opacity: 0,
+                  transition: 'opacity 0.2s ease',
+                  pointerEvents: 'none',
+                  zIndex: 10
+                }}
+              >
+                {section.title}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Percentage text removed per design */}
     </div>

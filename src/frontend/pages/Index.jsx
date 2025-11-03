@@ -594,7 +594,7 @@ const Index = () => {
         if (activitySelect) {
             const text = `Next`;
             setSelectionToast({ visible: true, text });
-            const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 1800);
+            const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 3500);
             return () => clearTimeout(t);
         }
     }, [activitySelect]);
