@@ -2052,8 +2052,9 @@ const Index = () => {
                             zIndex: 1000,
                             padding: isMobile ? '12px 10px' : '16px 0',
                             marginBottom: isMobile ? '0' : '30px',
-                            backgroundColor: isMobile ? '#ffffff' : 'transparent', // White background on mobile for visibility
-                            boxShadow: isMobile ? '0 -2px 10px rgba(0, 0, 0, 0.1)' : 'none' // Shadow on mobile
+                            // Mobile: transparent background to match page, no shadow
+                            backgroundColor: isMobile ? 'transparent' : 'transparent',
+                            boxShadow: isMobile ? 'none' : 'none'
                         }}>
                             <ProgressBar 
                                 sections={progressSections.map(id => ({
