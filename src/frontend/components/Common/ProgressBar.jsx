@@ -165,16 +165,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         ))}
       </div>
 
-      {/* Progress percentage text */}
-      <div style={{
-        textAlign: 'center',
-        marginTop: isMobile ? '15px' : '18px', // Reduced margin
-        fontSize: isMobile ? '11px' : '13px', // Reduced font size
-        color: '#374151',
-        fontWeight: '600'
-      }}>
-        {completedCount} of {totalCount} steps completed
-      </div>
+      {/* Percentage text removed per design */}
     </div>
   );
 };
