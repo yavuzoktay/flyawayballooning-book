@@ -2035,9 +2035,9 @@ const Index = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     maxWidth: '92vw',
+                    flexWrap: 'nowrap',
                     pointerEvents: 'auto'
                 }}>
-                    {/* Selected pill with current activity */}
                     <div style={{
                         background: '#0da8ff',
                         color: '#fff',
