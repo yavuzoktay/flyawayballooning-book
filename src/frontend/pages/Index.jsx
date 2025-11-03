@@ -592,7 +592,7 @@ const Index = () => {
     const [selectionToast, setSelectionToast] = useState({ visible: false, text: '' });
     useEffect(() => {
         if (activitySelect) {
-            const text = `${activitySelect} Selected`;
+            const text = `Next`;
             setSelectionToast({ visible: true, text });
             const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 1800);
             return () => clearTimeout(t);
