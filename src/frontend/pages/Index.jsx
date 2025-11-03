@@ -92,31 +92,12 @@ const Index = () => {
     const progressSections = activitySelect === 'Book Flight' 
         ? ['activity', 'location', 'experience', ...(chooseLocation !== 'Bristol Fiesta' ? ['voucher-type'] : []), 'live-availability', 'passenger-info', 'additional-info', 'add-on']
         : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
-        ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
+        ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'additional-info', 'add-on']
         : activitySelect === 'Buy Gift'
-        ? ['activity', 'location', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']
+        ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details', 'add-on']
         : activitySelect === 'Redeem Voucher'
         ? ['activity', 'location', 'experience', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
         : [];
-
-    // Reset progress when activity changes - clear all checkboxes
-    useEffect(() => {
-        if (activitySelect) {
-            // Reset all progress when changing activity
-            setCompletedSections(new Set());
-            // Mark activity as completed after reset
-            setTimeout(() => {
-                setCompletedSections(prev => {
-                    const newSet = new Set(prev);
-                    newSet.add('activity');
-                    return newSet;
-                });
-            }, 0);
-        } else {
-            // If no activity selected, clear everything
-            setCompletedSections(new Set());
-        }
-    }, [activitySelect]);
 
     // Start/maintain 5-minute countdown when a date and time are selected
     useEffect(() => {
@@ -925,6 +906,7 @@ const Index = () => {
         if (activityType === 'Redeem Voucher') {
             const sequence = [...baseSequence];
             sequence.push('location');
+            sequence.push('experience');
             sequence.push('live-availability');
             sequence.push('passenger-info');
             sequence.push('additional-info');
@@ -935,10 +917,7 @@ const Index = () => {
         if (activityType === 'Flight Voucher') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-            // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
-            if (currentLocation !== 'Bristol Fiesta') {
-                sequence.push('voucher-type');
-            }
+            sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('additional-info');
             sequence.push('add-on');
@@ -948,10 +927,7 @@ const Index = () => {
         if (activityType === 'Buy Gift') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-            // Add voucher-type only if not Bristol Fiesta (mirrors RightInfoCard logic)
-            if (currentLocation !== 'Bristol Fiesta') {
-                sequence.push('voucher-type');
-            }
+            sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('recipient-details');
             sequence.push('add-on');
@@ -1005,9 +981,16 @@ const Index = () => {
             setTimeout(() => {
                 fetchPassengerTermsForJourney(journeyLabel);
             }, 10000);
-            // Do NOT auto-close or auto-open for Passenger Information; keep the section open
-            console.log('⏸ Keeping Passenger Information open; skipping auto-close/open');
-            return;
+            
+            // For Flight Voucher and Buy Gift, proceed to next section
+            if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
+                console.log('✅ Passenger Information complete, proceeding to next section');
+                // Don't return - let the normal flow continue to open next section
+            } else {
+                // For Book Flight and Redeem Voucher, keep the section open
+                console.log('⏸ Keeping Passenger Information open; skipping auto-close/open');
+                return;
+            }
         }
 
         // Close current section
@@ -1040,7 +1023,9 @@ const Index = () => {
                 if (chooseFlightType?.type) completedSections.push('experience');
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
-                if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+                // Use proper passenger info validation based on activity type
+                const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
+                if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
                 if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
@@ -1098,7 +1083,9 @@ const Index = () => {
         if (chooseFlightType?.type) completedSections.push('experience');
         if (selectedVoucherType) completedSections.push('voucher-type');
         if (selectedDate && selectedTime) completedSections.push('live-availability');
-        if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+        // Use proper passenger info validation based on activity type
+        const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
+        if (passengerComplete) completedSections.push('passenger-info');
         // Additional Information is optional unless API marks specific questions required
         if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
         if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
@@ -1642,6 +1629,9 @@ const Index = () => {
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
         if (activitySelect !== null) {
+            // Reset progress bar - mark only activity as completed
+            setCompletedSections(new Set(['activity']));
+            
             // Tüm state'leri sıfırla
             setChooseLocation(null);
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
@@ -1669,6 +1659,9 @@ const Index = () => {
                 activitySelect,
                 timestamp: new Date().getTime()
             });
+        } else {
+            // If no activity selected, clear everything including progress bar
+            setCompletedSections(new Set());
         }
     }, [activitySelect]);
 
@@ -1737,7 +1730,9 @@ const Index = () => {
                 if (chooseFlightType?.type) completedSections.push('experience');
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
-                if (passengerData && passengerData.length > 0 && passengerData[0].firstName) completedSections.push('passenger-info');
+                // Use proper passenger info validation based on activity type
+                const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
+                if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
                 if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');

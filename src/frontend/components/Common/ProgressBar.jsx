@@ -22,7 +22,19 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
   
   const nextFillIndex = getNextFillIndex();
   // Calculate percentage to stop at the center of the next circle
-  const fillPercentage = totalCount > 0 ? ((nextFillIndex + 0.5) / totalCount) * 100 : 0;
+  // For space-between layout, adjust the calculation
+  const fillPercentage = totalCount > 0 ? (() => {
+    if (totalCount === 1) return 100;
+    // If all sections are completed, fill to 100%
+    if (nextFillIndex === totalCount - 1 && sections[nextFillIndex]?.completed) {
+      return 100;
+    }
+    // For space-between, each section takes up equal space
+    // The formula accounts for the spacing between circles
+    const sectionWidth = 100 / (totalCount - 1);
+    const fillTo = nextFillIndex * sectionWidth;
+    return Math.min(fillTo, 100);
+  })() : 0;
 
   const getCircleClass = (section) => {
     if (section.completed) return 'completed';

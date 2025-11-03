@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Accordion from "../Common/Accordion";
 import AddOn1 from '../../../assets/images/addOn1.png';
 import config from '../../../config';
 
-const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect, flightType, isDisabled = false }) => {
+const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, chooseAddOn, setChooseAddOn, activeAccordion, setActiveAccordion, chooseLocation, chooseFlightType, activitySelect, flightType, isDisabled = false, onSectionCompletion }) => {
     const [addToBookingItems, setAddToBookingItems] = useState([]);
     const [addToBookingLoading, setAddToBookingLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
@@ -306,6 +306,24 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
             return newChooseAddOn;
         });
     }
+
+    // Auto-trigger section completion when at least one add-on is selected
+    const completionFiredRef = useRef(false);
+    useEffect(() => {
+        if (!onSectionCompletion) return;
+        
+        // Check if at least one add-on is selected
+        const hasAddOns = Array.isArray(chooseAddOn) && chooseAddOn.length > 0;
+        
+        if (hasAddOns && !completionFiredRef.current) {
+            completionFiredRef.current = true;
+            console.log('✅ Add-ons selected, triggering section completion');
+            onSectionCompletion('add-on');
+        }
+        if (!hasAddOns) {
+            completionFiredRef.current = false;
+        }
+    }, [chooseAddOn, onSectionCompletion]);
 
     // Debug section visibility logic
     console.log('🔍 Section visibility check:');

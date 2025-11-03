@@ -1,8 +1,8 @@
-import React, { useState, forwardRef, useImperativeHandle, useEffect } from "react";
+import React, { useState, forwardRef, useImperativeHandle, useEffect, useRef } from "react";
 import Accordion from "../Common/Accordion";
 import config from '../../../config';
 
-const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {}, isDisabled = false }, ref) => {
+const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {}, isDisabled = false, onSectionCompletion }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [additionalInfoQuestions, setAdditionalInfoQuestions] = useState([]);
     const [additionalInfoLoading, setAdditionalInfoLoading] = useState(true);
@@ -292,6 +292,38 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     useImperativeHandle(ref, () => ({
         validate: validateFields
     }));
+
+    // Auto-trigger section completion when all required fields are filled
+    const completionFiredRef = useRef(false);
+    useEffect(() => {
+        if (!onSectionCompletion || additionalInfoLoading) return;
+        
+        // Check if all required fields are filled
+        const requiredQuestions = filteredQuestions.filter(q => q.is_required);
+        const allRequiredFilled = requiredQuestions.every(question => {
+            const fieldName = `question_${question.id}`;
+            const value = additionalInfo[fieldName];
+            return value && value.trim() !== '';
+        });
+        
+        // If there are no required questions but there are optional ones, check if any optional is filled
+        const hasOptionalFilled = filteredQuestions.some(question => {
+            const fieldName = `question_${question.id}`;
+            const value = additionalInfo[fieldName];
+            return value && value.trim() !== '';
+        });
+        
+        const isValid = requiredQuestions.length > 0 ? allRequiredFilled : hasOptionalFilled;
+        
+        if (isValid && !completionFiredRef.current) {
+            completionFiredRef.current = true;
+            console.log('✅ Additional Information valid, triggering section completion');
+            onSectionCompletion('additional-info');
+        }
+        if (!isValid) {
+            completionFiredRef.current = false;
+        }
+    }, [additionalInfo, filteredQuestions, additionalInfoLoading, onSectionCompletion]);
 
     return (
         <Accordion 

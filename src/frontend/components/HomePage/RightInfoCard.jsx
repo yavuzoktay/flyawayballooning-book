@@ -1046,6 +1046,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         ] : []),
         ...(activitySelect === 'Redeem Voucher' ? [
             { id: 'location', title: 'Location', value: chooseLocation || '', completed: !!chooseLocation },
+            { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : '', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
@@ -1062,8 +1063,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isBuyGiftPassengerComplete },
-            { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : (recipientDetails?.isSkipped ? 'Skipped' : ''), completed: !!recipientDetails?.name || !!recipientDetails?.isSkipped },
-            { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : '', completed: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) }
+            { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : (recipientDetails?.isSkipped ? 'Skipped' : ''), completed: !!recipientDetails?.name || !!recipientDetails?.isSkipped }
         ] : [])
     ];
 

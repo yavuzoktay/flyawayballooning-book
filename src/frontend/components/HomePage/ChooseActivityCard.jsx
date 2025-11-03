@@ -98,11 +98,6 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         // Always update the activity selection
         setActivitySelect(label);
         
-        // Mark activity section as completed
-        if (onSectionCompletion) {
-            onSectionCompletion('activity');
-        }
-        
         // Show notification for flight type selection
         setNotificationMessage(`${label} Selected`);
         setShowNotification(true);
@@ -115,6 +110,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         // Do NOT trigger onSectionCompletion here.
         // Parent Index.jsx listens to activitySelect change and
         // resets flow + opens the first section for the new flight type.
+        // The parent's useEffect will reset all progress and mark 'activity' as completed.
         
         // If Redeem Voucher is clicked, always ensure it's flipped
         if (label === "Redeem Voucher") {
@@ -237,9 +233,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     className="card-front"
                                     onClick={() => {
                                         setActivitySelect('Redeem Voucher');
-                                        if (onSectionCompletion) {
-                                            onSectionCompletion('activity');
-                                        }
+                                        // Show notification for Redeem Voucher selection
+                                        setNotificationMessage('Redeem Voucher Selected');
+                                        setShowNotification(true);
+                                        setTimeout(() => {
+                                            setShowNotification(false);
+                                        }, 3000);
                                         setIsFlipped(true);
                                     }}
                                     style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
