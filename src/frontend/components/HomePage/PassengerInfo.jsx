@@ -455,6 +455,23 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
 
   const isMultiPassenger = passengerCount > 1;
+  // Show a transient "Next" toast after Passenger 1 is fully completed (only when multiple passengers)
+  const [showNextToast, setShowNextToast] = useState(false);
+  const firstPassengerCompletedRef = useRef(false);
+  useEffect(() => {
+    if (activeAccordion !== 'passenger-info') return;
+    if (!isMultiPassenger) { setShowNextToast(false); return; }
+    const firstComplete = isPassengerComplete(passengerData[0] || {}, 0);
+    if (firstComplete && !firstPassengerCompletedRef.current) {
+      firstPassengerCompletedRef.current = true;
+      setShowNextToast(true);
+      const t = setTimeout(() => setShowNextToast(false), 2000);
+      return () => clearTimeout(t);
+    }
+    if (!firstComplete) {
+      firstPassengerCompletedRef.current = false;
+    }
+  }, [passengerData, isMultiPassenger, activeAccordion]);
   
   // Shared input style for mobile consistency
   const mobileInputBase = {
@@ -499,6 +516,33 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
+        {showNextToast && (
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: '16px',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: 1200,
+            pointerEvents: 'none'
+          }}>
+            <div style={{
+              background: '#00eb5b',
+              color: '#0a0a0a',
+              padding: '10px 14px',
+              borderRadius: '12px',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+              fontWeight: 700,
+              letterSpacing: '0.2px',
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}>
+              Next
+            </div>
+          </div>
+        )}
         {/* Helper note under section header (Passenger Information only) */}
         {activitySelect !== 'Buy Gift' && (
           <div style={{
