@@ -458,42 +458,32 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Show a transient "Next" toast after Passenger 1 is fully completed (only when multiple passengers)
   const [showNextToast, setShowNextToast] = useState(false);
   const firstPassengerCompletedRef = useRef(false);
-  const toastTimerRef = useRef(null);
   useEffect(() => {
     const inPassengerSection = activeAccordion === 'passenger-info';
     const multiplePassengers = isMultiPassenger;
     const firstComplete = isPassengerComplete(passengerData[0] || {}, 0);
 
-    // Reset and hide in any case not matching the strict show condition
-    if (!inPassengerSection || !multiplePassengers || !firstComplete) {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-        toastTimerRef.current = null;
-      }
+    if (!inPassengerSection || !multiplePassengers) {
       setShowNextToast(false);
-      if (!firstComplete) firstPassengerCompletedRef.current = false;
+      firstPassengerCompletedRef.current = false;
       return;
     }
-
-    // Show once when P1 first becomes complete
     if (firstComplete && !firstPassengerCompletedRef.current) {
       firstPassengerCompletedRef.current = true;
       setShowNextToast(true);
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-      toastTimerRef.current = setTimeout(() => {
-        setShowNextToast(false);
-        toastTimerRef.current = null;
-      }, 3000);
     }
-
-    return () => {
-      // Clear timer on unmount
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-        toastTimerRef.current = null;
-      }
-    };
+    if (!firstComplete) {
+      firstPassengerCompletedRef.current = false;
+      setShowNextToast(false);
+    }
   }, [passengerData, isMultiPassenger, activeAccordion]);
+
+  // Auto-hide toast after 3s whenever it becomes visible
+  useEffect(() => {
+    if (!showNextToast) return;
+    const t = setTimeout(() => setShowNextToast(false), 3000);
+    return () => clearTimeout(t);
+  }, [showNextToast]);
   
   // Shared input style for mobile consistency
   const mobileInputBase = {
