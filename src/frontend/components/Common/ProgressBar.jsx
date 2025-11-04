@@ -46,7 +46,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
     <div className="progress-container" style={{
       position: 'relative',
       width: '100%',
-      maxWidth: '700px', // Reduced from 900px
+      maxWidth: isMobile ? 'none' : '700px', // No maxWidth on mobile to match Summary width
       margin: '0 auto',
       padding: isMobile ? '8px 0' : '12px 0' // Reduced padding
     }}>
@@ -56,7 +56,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
         background: '#e5e7eb',
         position: 'relative',
         borderRadius: '2px',
-        margin: `0 ${isMobile ? '16px' : '32px'}` // Reduced margins
+        margin: isMobile ? '0' : '0 32px' // No horizontal margin on mobile (container padding handles it)
       }}>
         {/* Progress fill - green line connecting completed sections */}
         <div 

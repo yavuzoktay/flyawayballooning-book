@@ -2099,11 +2099,14 @@ const Index = () => {
                             left: isMobile ? '0' : 'auto',
                             right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
-                            padding: isMobile ? '12px 10px' : '16px 0',
+                            padding: isMobile ? '12px 16px' : '16px 0', // Mobile: 16px horizontal padding to match Summary
                             marginBottom: isMobile ? '0' : '10px',
                             // Mobile: transparent background to match page, no shadow
                             backgroundColor: isMobile ? 'transparent' : 'transparent',
-                            boxShadow: isMobile ? 'none' : 'none'
+                            boxShadow: isMobile ? 'none' : 'none',
+                            width: isMobile ? '100%' : 'auto',
+                            maxWidth: isMobile ? 'none' : 'auto',
+                            boxSizing: 'border-box'
                         }}>
                             <ProgressBar 
                                 sections={progressSections.map(id => ({
