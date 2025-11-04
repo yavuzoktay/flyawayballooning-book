@@ -2662,12 +2662,12 @@ label {
         background: #2d4263;
         color: #fff;
         border: none;
-        border-radius: 12px;
-        padding: 12px 26px; /* increase size on mobile */
-        font-weight: 600;
-        font-size: 15px; /* increase font size for mobile */
+        border-radius: 14px;
+        padding: 16px 32px; /* bigger button */
+        font-weight: 700;
+        font-size: 17px; /* larger text */
         text-align: center;
-        flex: 0 0 48%; /* make button longer next to summary */
+        flex: 0 0 55%; /* longer button next to summary */
     }
     .summary-sticky-book:disabled {
         background: #ddd;
