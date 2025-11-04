@@ -77,7 +77,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
           display: 'flex',
           justifyContent: 'space-between',
           position: 'absolute',
-          top: '-8px', // Adjusted so circles' center aligns with progress line center (20px circle / 2 = 10px, line center at 2px, so top: 2px - 10px = -8px)
+          top: '-6px', // Fine-tuned so the progress line passes through the center of the circles on desktop
           width: '100%',
           padding: '0 32px'
         }}>
