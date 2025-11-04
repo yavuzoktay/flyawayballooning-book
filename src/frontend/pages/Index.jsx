@@ -2025,7 +2025,7 @@ const Index = () => {
                 bottom: '16px',
                 display: 'flex',
                 justifyContent: 'center',
-                zIndex: 1200,
+                zIndex: 1400,
                 pointerEvents: 'none'
             }}>
                 <div style={{
@@ -2038,6 +2038,23 @@ const Index = () => {
                     flexWrap: 'nowrap',
                     pointerEvents: 'auto'
                 }}>
+                    <div style={{
+                        background: '#0da8ff',
+                        color: '#fff',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        boxShadow: '0 6px 20px rgba(13,168,255,0.25)',
+                        fontWeight: 700,
+                        letterSpacing: '0.2px',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        flexShrink: 0
+                    }}>
+                        <span style={{fontSize: 16, lineHeight: 1}}>✓</span>
+                        <span>{activitySelect} Selected</span>
+                    </div>
                     <div style={{
                         background: '#00eb5b',
                         color: '#0a0a0a',
