@@ -42,6 +42,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Mobile breakpoint
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef(null);
+  // Mobile carousel disabled: stack passengers vertically on mobile
+  const enableMobileCarousel = false;
   
   // Mobile carousel state for multiple passengers
   const [currentPassengerIndex, setCurrentPassengerIndex] = useState(0);
@@ -147,7 +149,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
   // Update navigation buttons when passenger count changes
   useEffect(() => {
-    if (isMobile && passengerCount > 1) {
+    if (enableMobileCarousel && isMobile && passengerCount > 1) {
       setCanScrollLeft(currentPassengerIndex > 0);
       setCanScrollRight(currentPassengerIndex < passengerCount - 1);
     }
@@ -155,7 +157,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
   // Track scroll position for mobile carousel
   useEffect(() => {
-    if (!isMobile || passengerCount <= 1) return;
+    if (!enableMobileCarousel || !isMobile || passengerCount <= 1) return;
 
     const container = document.querySelector('.passenger-cards-container');
     if (!container) return;
@@ -193,7 +195,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       container.removeEventListener('touchend', updateScrollButtons);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
-  }, [isMobile, passengerCount]);
+  }, [enableMobileCarousel, isMobile, passengerCount]);
   
   // Add console logs to debug
   console.log("chooseFlightType in PassengerInfo:", chooseFlightType);
@@ -248,7 +250,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
   // Auto-slide to next passenger when current one is complete
   const checkAndAutoSlide = (index) => {
-    if (!isMobile || passengerCount <= 1) return;
+    if (!enableMobileCarousel || !isMobile || passengerCount <= 1) return;
     
     const passenger = passengerData[index];
     if (passenger && isPassengerComplete(passenger, index)) {
@@ -419,14 +421,14 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
   // Check for auto-slide on passenger data changes (mobile only)
   useEffect(() => {
-    if (!isMobile || passengerCount <= 1) return;
+    if (!enableMobileCarousel || !isMobile || passengerCount <= 1) return;
     
     // Check if current passenger is complete and auto-slide
     const currentPassenger = passengerData[currentPassengerIndex];
     if (currentPassenger && isPassengerComplete(currentPassenger, currentPassengerIndex)) {
       checkAndAutoSlide(currentPassengerIndex);
     }
-  }, [passengerData, currentPassengerIndex, isMobile, passengerCount]);
+  }, [passengerData, currentPassengerIndex, isMobile, passengerCount, enableMobileCarousel]);
 
   // Styles for custom ticked circle
   const checkStyle = {
@@ -572,7 +574,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         )}
         
         {/* Mobile carousel for multiple passengers */}
-        {isMobile && passengerCount > 1 ? (
+        {enableMobileCarousel && isMobile && passengerCount > 1 ? (
           <div style={{ position: 'relative' }}>
             {/* Navigation Arrows */}
             <div style={{ position: 'relative' }}>
