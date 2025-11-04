@@ -1027,24 +1027,29 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             {/* Generate passenger forms based on passenger count */}
             {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
             <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px', width: '100%' }}>
-            {[...Array(passengerCount)].map((_, index) => {
+            {(() => {
+              const isCombinedMobile = isMobile && passengerCount > 1;
+              // Order: on mobile, show Passenger 2 first, then Passenger 1 (and others in natural order with 1 last)
+              const indices = [...Array(passengerCount).keys()];
+              const ordered = isCombinedMobile ? [...indices.filter(i => i !== 0), 0] : indices;
+              return ordered.map((index) => {
               const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
               const error = validationErrors[index] || {};
               console.log(`Rendering passenger ${index + 1}, data:`, passenger);
               return (
                 <div id={`passenger-${index+1}`} className={`all-pressenger ${activitySelect === 'Buy Gift' ? 'Purchaser' : ''}`} key={index} style={{ 
-                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '20px' : '20px'), 
-                  padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? '20px' : '15px'), 
-                  border: isMobile ? (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb') : (index > 0 ? '1px solid #eee' : 'none'), 
-                  borderRadius: isMobile ? '20px' : '8px', 
-                  background: isMobile ? (index > 0 ? '#f8fafc' : '#ffffff') : (index > 0 ? '#fcfcfd' : 'transparent'),
-                  boxShadow: isMobile ? (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '') : 'none',
+                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '8px' : '20px'), 
+                  padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? (isCombinedMobile ? '0' : '20px') : '15px'), 
+                  border: isMobile ? (isCombinedMobile ? 'none' : (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb')) : (index > 0 ? '1px solid #eee' : 'none'), 
+                  borderRadius: isMobile ? (isCombinedMobile ? '0' : '20px') : '8px', 
+                  background: isMobile ? (isCombinedMobile ? 'transparent' : (index > 0 ? '#f8fafc' : '#ffffff')) : (index > 0 ? '#fcfcfd' : 'transparent'),
+                  boxShadow: isMobile ? (isCombinedMobile ? 'none' : (index > 0 ? '0 6px 12px rgba(0, 0, 0, 0.15)' : '')) : 'none',
                   width: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
                   minWidth: isMobile ? '100%' : (isMultiPassenger ? '100%' : 'auto'),
                   flexShrink: isMobile ? 0 : (isMultiPassenger ? 0 : 1),
                   position: 'relative',
                   zIndex: 1,
-                  borderTop: isMobile && index > 0 ? '4px solid #3b82f6' : 'none'
+                  borderTop: isMobile && !isCombinedMobile && index > 0 ? '4px solid #3b82f6' : 'none'
                 }}>
                   <div className="presnger_one" style={{ 
                     marginBottom: index === 0 ? '8px' : '6px', 
@@ -1329,7 +1334,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   </div>
                 </div>
               );
-            })}
+              });
+            })()}
             </div>
           </>
         )}
