@@ -2057,8 +2057,8 @@ const Index = () => {
                     </div>
                     <div style={{
                         background: '#00eb5b',
-                        color: '#0a0a0a',
-                        padding: '10px 14px',
+                        color: '#FFF',
+                        padding: '10px 25px',
                         borderRadius: '12px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                         fontWeight: 700,
