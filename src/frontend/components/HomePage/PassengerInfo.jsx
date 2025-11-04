@@ -1026,6 +1026,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
             {/* Generate passenger forms based on passenger count */}
             {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px', width: '100%' }}>
             {[...Array(passengerCount)].map((_, index) => {
               const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
               const error = validationErrors[index] || {};
@@ -1329,6 +1330,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                 </div>
               );
             })}
+            </div>
           </>
         )}
       </div>
