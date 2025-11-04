@@ -1029,9 +1029,9 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px', width: '100%' }}>
             {(() => {
               const isCombinedMobile = isMobile && passengerCount > 1;
-              // Order: on mobile, show Passenger 2 first, then Passenger 1 (and others in natural order with 1 last)
+              // Order: on mobile, show passengers in natural order (Passenger 1, Passenger 2, ...)
               const indices = [...Array(passengerCount).keys()];
-              const ordered = isCombinedMobile ? [...indices.filter(i => i !== 0), 0] : indices;
+              const ordered = indices;
               return ordered.map((index) => {
               const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
               const error = validationErrors[index] || {};
