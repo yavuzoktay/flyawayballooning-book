@@ -42,6 +42,15 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
     return 'incomplete';
   };
 
+  // Desktop alignment constants
+  const desktopCircleSize = 20; // content box size (px)
+  const desktopCircleBorder = 1.5; // border (px)
+  const desktopLineHeight = 4; // line height (px)
+  const desktopCircleVisualDiameter = desktopCircleSize + (desktopCircleBorder * 2);
+  const desktopTopOffsetPx = !isMobile
+    ? (desktopLineHeight / 2) - (desktopCircleVisualDiameter / 2)
+    : 0;
+
   return (
     <div className="progress-container" style={{
       position: 'relative',
@@ -77,7 +86,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
           display: 'flex',
           justifyContent: 'space-between',
           position: 'absolute',
-          top: '-6px', // Fine-tuned so the progress line passes through the center of the circles on desktop
+          top: `${desktopTopOffsetPx}px`, // ensure line passes through circle centers
           width: '100%',
           padding: '0 32px'
         }}>
@@ -87,8 +96,8 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
               className={`circle ${getCircleClass(section)}`}
               onClick={() => onCircleClick && onCircleClick(section.id)}
               style={{
-                width: '20px',
-                height: '20px',
+                width: `${desktopCircleSize}px`,
+                height: `${desktopCircleSize}px`,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -100,15 +109,15 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
                 ...(section.completed ? {
                   background: '#00eb5b',
                   color: 'white',
-                  border: '1.5px solid #00eb5b',
+                  border: `${desktopCircleBorder}px solid #00eb5b`,
                   boxShadow: '0 1px 3px rgba(0, 235, 91, 0.3)'
                 } : activeSection === section.id ? {
                   background: 'white',
-                  border: '1.5px solid #03a9f4',
+                  border: `${desktopCircleBorder}px solid #03a9f4`,
                   boxShadow: '0 1px 6px rgba(3, 169, 244, 0.3)'
                 } : {
                   background: 'white',
-                  border: '1.5px solid #d1d5db',
+                  border: `${desktopCircleBorder}px solid #d1d5db`,
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                 })
               }}
