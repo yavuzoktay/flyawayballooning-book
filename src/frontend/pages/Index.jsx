@@ -3143,7 +3143,8 @@ const Index = () => {
                             padding: '8px 22px',
                             cursor: 'pointer',
                             opacity: 1,
-                            border: 'none'
+                            border: 'none',
+                            fontSize: '17px'
                         }}
                         onClick={() => {
                             setShowWarning(false);

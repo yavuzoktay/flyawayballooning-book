@@ -547,12 +547,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             pointerEvents: 'none'
           }}>
             <div style={{
-              background: '#ffffff',
-              color: '#111827',
+              background: '#00eb5b',
+              color: '#FFF',
               padding: '10px 14px',
               borderRadius: '12px',
               boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-              border: '1px solid #e5e7eb',
               fontWeight: 700,
               letterSpacing: '0.2px',
               whiteSpace: 'nowrap',

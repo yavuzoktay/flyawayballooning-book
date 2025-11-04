@@ -2663,9 +2663,9 @@ label {
         color: #fff;
         border: none;
         border-radius: 14px;
-        padding: 16px 32px; /* bigger button */
+        padding: 16px 22px; /* bigger button */
         font-weight: 700;
-        font-size: 17px; /* larger text */
+        font-size: 15px; /* larger text */
         text-align: center;
         flex: 0 0 55%; /* longer button next to summary */
     }
