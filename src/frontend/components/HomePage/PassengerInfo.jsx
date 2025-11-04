@@ -1218,7 +1218,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               data-tooltip-id={`weight-tooltip-${index}`}
                               style={{ color: '#3b82f6', cursor: 'pointer', width: 12, height: 12 }} 
                             />
-                            <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="Approximate weights are fine - this helps us with flight planning and safety" />
+                            <ReactTooltip id={`weight-tooltip-${index}`} place="top" content="If unknown, enter 0 and contact us before your flight. If exceeding weight limit please contact the office." />
                           </label>
                               <input
                                 type="text"
