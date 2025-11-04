@@ -202,6 +202,15 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             
             <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`} isDisabled={isDisabled}>
                 <div className="tab_box scroll-box">
+
+                <div className="new1">
+                    <button>
+                        Next
+                    </button>
+
+                </div>
+
+
                     {/* Helper note above location options */}
                     <div style={{
                         display: 'flex',
