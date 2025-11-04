@@ -1174,6 +1174,9 @@ const VoucherType = ({
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
+                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
+                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.validity}</div>
                     {(() => {
                         const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
                         const isShared = chooseFlightType?.type === 'Shared Flight';
@@ -1184,12 +1187,9 @@ const VoucherType = ({
                             ? 'Refundable'
                             : (voucher.refundability || 'Non-Refundable');
                         return (
-                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{refundabilityText}</div>
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{refundabilityText}</div>
                         );
                     })()}
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{voucher.validity}</div>
                     <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
                         {(() => {
                             console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
@@ -2310,7 +2310,7 @@ const VoucherType = ({
 
                 {/* Reputation note under the whole voucher panel */}
                 <div style={{ width: '100%', maxWidth: 960, margin: '12px auto 0', textAlign: 'center', color: '#64748b' }}>
-                    <span style={{ fontSize: isMobile ? 14 : 15, fontWeight: 500 }}>★ Five-star rated by guests on Google, Facebook & TripAdvisor — you’ll see why.</span>
+                    <span style={{ fontSize: isMobile ? 14 : 15, fontWeight: 500 }}>★ Five-star rated by guests on Google, Facebook & TripAdvisor — you'll see why.</span>
                 </div>
             </Accordion>
 
