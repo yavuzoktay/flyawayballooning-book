@@ -535,11 +535,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : (isMobile ? '140px' : undefined),
         // Fix the section height for Purchaser Information so there isn't excessive empty space
         height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '300px') : undefined,
-        // On mobile with multiple passengers, constrain height and enable vertical scroll inside the item
-        maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 220px)' : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
-        overflowY: isMobile ? 'auto' : 'auto',
-        WebkitOverflowScrolling: isMobile ? 'touch' : undefined
+        overflowY: 'visible'
       }} ref={scrollContainerRef}>
         {showNextToast && (
           <div style={{
@@ -1030,7 +1027,16 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
             {/* Generate passenger forms based on passenger count */}
             {console.log("Rendering passengers, count:", passengerCount, "array:", [...Array(passengerCount)])}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '12px', width: '100%' }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: isMobile ? '16px' : '12px',
+              width: '100%',
+              // Constrain only the passengers list on mobile so next accordions don't intrude
+              maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 260px)' : undefined,
+              overflowY: isMobile && passengerCount > 1 ? 'auto' : undefined,
+              WebkitOverflowScrolling: isMobile && passengerCount > 1 ? 'touch' : undefined
+            }}>
             {(() => {
               const isCombinedMobile = isMobile && passengerCount > 1;
               // Order: on mobile, show passengers in natural order (Passenger 1, Passenger 2, ...)
