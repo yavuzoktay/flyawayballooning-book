@@ -235,8 +235,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     const needsWeight = activitySelect !== 'Buy Gift';
     const hasWeight = needsWeight ? !!(passenger.weight || passenger.weight === 0 || (typeof passenger.weight === 'string' && passenger.weight.trim() !== '')) : true;
     const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim()) : true;
-    const hasEmail = index === 0 ? !!(passenger.email && passenger.email.trim()) : true;
-    return hasFirstName && hasLastName && hasWeight && hasPhone && hasEmail;
+    // Require a valid email address for Passenger 1 (must include domain after '@')
+    const hasValidEmail = (() => {
+      if (index !== 0) return true;
+      const email = passenger.email ? passenger.email.trim() : '';
+      if (!email) return false;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // basic but robust enough for UX
+      return emailRegex.test(email);
+    })();
+    return hasFirstName && hasLastName && hasWeight && hasPhone && hasValidEmail;
   };
 
   // Auto-slide to next passenger when current one is complete
@@ -540,11 +547,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             pointerEvents: 'none'
           }}>
             <div style={{
-              background: '#00eb5b',
-              color: '#0a0a0a',
+              background: '#ffffff',
+              color: '#111827',
               padding: '10px 14px',
               borderRadius: '12px',
               boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+              border: '1px solid #e5e7eb',
               fontWeight: 700,
               letterSpacing: '0.2px',
               whiteSpace: 'nowrap',
