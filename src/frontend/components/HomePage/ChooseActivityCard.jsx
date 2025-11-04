@@ -180,31 +180,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     return (
         <>
             {/* Notification for flight type selection */}
-            {showNotification && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: 'rgb(3, 169, 244)',
-                    color: 'white',
-                    padding: isMobile ? '8px 16px' : '12px 24px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    zIndex: 9999,
-                    fontSize: isMobile ? '14px' : '16px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    animation: 'slideUp 0.3s ease-out',
-                    maxWidth: '90vw',
-                    textAlign: 'center'
-                }}>
-                    <span style={{ fontSize: isMobile ? '16px' : '18px' }}>✓</span>
-                    {notificationMessage}
-                </div>
-            )}
+            {/* Local 'Selected' toast removed - global Selected+Next toast handles this */}
             
             <div className="tab_box" style={{ 
             display: 'flex', 
