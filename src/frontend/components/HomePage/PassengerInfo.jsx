@@ -536,9 +536,10 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         // Fix the section height for Purchaser Information so there isn't excessive empty space
         height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '300px') : undefined,
         // On mobile with multiple passengers, constrain height and enable vertical scroll inside the item
-        maxHeight: isMobile && passengerCount > 1 ? '65vh' : undefined,
+        maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 220px)' : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
-        overflowY: isMobile ? 'auto' : 'auto'
+        overflowY: isMobile ? 'auto' : 'auto',
+        WebkitOverflowScrolling: isMobile ? 'touch' : undefined
       }} ref={scrollContainerRef}>
         {showNextToast && (
           <div style={{
@@ -1041,7 +1042,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               console.log(`Rendering passenger ${index + 1}, data:`, passenger);
               return (
                 <div id={`passenger-${index+1}`} className={`all-pressenger ${activitySelect === 'Buy Gift' ? 'Purchaser' : ''}`} key={index} style={{ 
-                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '8px' : '20px'), 
+                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '12px' : '20px'), 
                   padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? (isCombinedMobile ? '0' : '20px') : '15px'), 
                   border: isMobile ? (isCombinedMobile ? 'none' : (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb')) : (index > 0 ? '1px solid #eee' : 'none'), 
                   borderRadius: isMobile ? (isCombinedMobile ? '0' : '20px') : '8px', 
@@ -1112,7 +1113,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   <div className="form-presnger" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    gap: '12px',
+                    gap: isMobile ? '10px' : '12px',
                     width: '100%',
                     maxWidth: '100%',
                     margin: '0',
