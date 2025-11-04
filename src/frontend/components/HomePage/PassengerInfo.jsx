@@ -531,9 +531,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       <div className="tab_box presger-scroll" style={{ 
         // Make Purchaser Information (Buy Gift) more compact without affecting other steps
         padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
-        paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : undefined,
+        // Extra bottom padding on mobile so sticky Summary doesn't cover inputs
+        paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : (isMobile ? '140px' : undefined),
         // Fix the section height for Purchaser Information so there isn't excessive empty space
         height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '300px') : undefined,
+        // On mobile with multiple passengers, constrain height and enable vertical scroll inside the item
+        maxHeight: isMobile && passengerCount > 1 ? '65vh' : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: isMobile ? 'auto' : 'auto'
       }} ref={scrollContainerRef}>
