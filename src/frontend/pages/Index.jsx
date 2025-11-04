@@ -2112,7 +2112,7 @@ const Index = () => {
                         <div style={{
                             position: isMobile ? 'fixed' : 'sticky',
                             top: isMobile ? 'auto' : '0',
-                            bottom: isMobile ? '70px' : 'auto', // Adjusted to sit 70px above bottom on mobile
+                            bottom: isMobile ? '56px' : 'auto', // 80px to sit above the summary bar
                             left: isMobile ? '0' : 'auto',
                             right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
