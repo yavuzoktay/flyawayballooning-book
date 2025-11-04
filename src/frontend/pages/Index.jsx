@@ -2112,11 +2112,11 @@ const Index = () => {
                         <div style={{
                             position: isMobile ? 'fixed' : 'sticky',
                             top: isMobile ? 'auto' : '0',
-                            bottom: isMobile ? '64px' : 'auto', // Reduced to sit flush above summary bar on mobile
+                            bottom: isMobile ? '70px' : 'auto', // Adjusted to sit 70px above bottom on mobile
                             left: isMobile ? '0' : 'auto',
                             right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
-                            padding: isMobile ? '0 16px' : '16px 0', // Remove vertical padding on mobile
+                            padding: isMobile ? '12px 16px' : '16px 0', // Mobile: 16px horizontal padding to match Summary
                             marginBottom: isMobile ? '0' : '10px',
                             // Mobile: transparent background to match page, no shadow
                             backgroundColor: isMobile ? 'transparent' : 'transparent',
