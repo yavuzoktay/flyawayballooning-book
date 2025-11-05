@@ -2663,7 +2663,7 @@ label {
         color: #fff;
         border: none;
         border-radius: 14px;
-        padding: 16px 22px; /* bigger button */
+        padding: 12px 10px; /* bigger button */
         font-weight: 700;
         font-size: 15px; /* larger text */
         text-align: center;

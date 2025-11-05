@@ -2040,8 +2040,8 @@ const Index = () => {
                     pointerEvents: 'auto'
                 }}>
                     <div style={{
-                        background: '#FFF',
-                        color: '#0a0a0a',
+                        background: 'rgb(0, 235, 91)',
+                        color: '#FFF',
                         padding: '10px 14px',
                         borderRadius: '12px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
