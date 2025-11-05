@@ -2663,11 +2663,11 @@ label {
         color: #fff;
         border: none;
         border-radius: 14px;
-        padding: 12px 18px; /* bigger button */
+        padding: 16px 22px; /* bigger button */
         font-weight: 700;
         font-size: 15px; /* larger text */
         text-align: center;
-        flex: 0 0 55%; /* longer button next to summary */
+        flex: 0 0 42%; /* shorter button next to summary on mobile */
     }
     .summary-sticky-book:disabled {
         background: #ddd;
