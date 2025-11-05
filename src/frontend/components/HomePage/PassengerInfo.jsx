@@ -544,7 +544,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             left: 0,
             right: 0,
             top: 'auto',
-            bottom: '16px',
+            bottom: isMobile ? '70px' : '16px',
             display: 'flex',
             justifyContent: 'center',
             zIndex: 1200,
