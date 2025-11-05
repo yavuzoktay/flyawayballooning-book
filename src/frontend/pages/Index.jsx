@@ -2057,7 +2057,7 @@ const Index = () => {
                         <span>{activitySelect} Selected</span>
                     </div>
                     <div style={{
-                        background: '#00eb5b',
+                        background: '#FFF',
                         color: '#0a0a0a',
                         padding: '10px 14px',
                         borderRadius: '12px',
