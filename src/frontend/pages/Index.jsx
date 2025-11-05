@@ -2022,7 +2022,8 @@ const Index = () => {
                 position: 'fixed',
                 left: 0,
                 right: 0,
-                bottom: '16px',
+                top: isMobile ? '12px' : 'auto',
+                bottom: isMobile ? 'auto' : '16px',
                 display: 'flex',
                 justifyContent: 'center',
                 zIndex: 1400,
@@ -2057,8 +2058,8 @@ const Index = () => {
                     </div>
                     <div style={{
                         background: '#00eb5b',
-                        color: '#FFF',
-                        padding: '10px 25px',
+                        color: '#0a0a0a',
+                        padding: '10px 14px',
                         borderRadius: '12px',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
                         fontWeight: 700,
