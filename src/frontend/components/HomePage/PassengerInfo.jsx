@@ -543,18 +543,20 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             position: 'fixed',
             left: 0,
             right: 0,
-            bottom: '16px',
+            top: isMobile ? '12px' : 'auto',
+            bottom: isMobile ? 'auto' : '16px',
             display: 'flex',
             justifyContent: 'center',
             zIndex: 1200,
             pointerEvents: 'none'
           }}>
             <div style={{
-              background: '#00eb5b',
-              color: '#FFF',
+              background: '#ffffff',
+              color: '#111827',
               padding: '10px 14px',
               borderRadius: '12px',
               boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+              border: '1px solid #e5e7eb',
               fontWeight: 700,
               letterSpacing: '0.2px',
               whiteSpace: 'nowrap',
@@ -1033,7 +1035,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               gap: isMobile ? '16px' : '12px',
               width: '100%',
               // Constrain only the passengers list on mobile so next accordions don't intrude
-              maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 260px)' : undefined,
+              maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 60px)' : undefined,
               overflowY: isMobile && passengerCount > 1 ? 'auto' : undefined,
               WebkitOverflowScrolling: isMobile && passengerCount > 1 ? 'touch' : undefined
             }}>
