@@ -948,6 +948,15 @@ const Index = () => {
         return baseSequence;
     };
 
+    // Helper function to get the next section ID after a given section
+    const getNextSectionId = (currentSectionId) => {
+        if (!activitySelect) return null;
+        const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
+        const currentIndex = sequence.indexOf(currentSectionId);
+        if (currentIndex === -1 || currentIndex === sequence.length - 1) return null;
+        return sequence[currentIndex + 1];
+    };
+
     // Auto-accordion logic: close current section and open next one based on summary panel sequence
     const handleSectionCompletion = (completedSectionId) => {
         if (!activitySelect) {
@@ -2017,44 +2026,133 @@ const Index = () => {
                 </div>
             )}
         {/* Bottom transient toast for activity selection */}
-        {selectionToast.visible && (
-            <div style={{
-                position: 'fixed',
-                left: 0,
-                right: 0,
-                top: 'auto',
-                bottom: isMobile ? '70px' : '16px',
-                display: 'flex',
-                justifyContent: 'center',
-                zIndex: 1400,
-                pointerEvents: 'none'
-            }}>
+        {selectionToast.visible && (() => {
+            // Find the next section after activity
+            const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
+            const nextSectionId = sequence.length > 1 ? sequence[1] : null; // activity is at index 0, next is at index 1
+            
+            const handleNextClick = () => {
+                if (!nextSectionId) return;
+                
+                // Open the accordion if not already open
+                if (activeAccordion !== nextSectionId) {
+                    setActiveAccordion(nextSectionId);
+                }
+                
+                // Scroll to next section - different behavior for mobile and desktop
+                setTimeout(() => {
+                    if (isMobile) {
+                        // Mobile: simple scroll down
+                        window.scrollBy({
+                            top: 300,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // Desktop: scroll to the next section element
+                        const findNextSection = () => {
+                            // Method 1: Find by ID attribute
+                            const elementById = document.querySelector(`[id="${nextSectionId}"]`);
+                            if (elementById) {
+                                const accordionSection = elementById.closest('.accordion-section');
+                                if (accordionSection) return accordionSection;
+                            }
+
+                            // Method 2: Find by section sequence index
+                            const allAccordions = Array.from(document.querySelectorAll('.accordion-section'));
+                            const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
+                            const targetIndex = sequence.indexOf(nextSectionId);
+                            if (targetIndex > 0) {
+                                const enabledAccordions = allAccordions.filter(acc => {
+                                    const btn = acc.querySelector('.accordion');
+                                    return btn && !btn.disabled && !btn.classList.contains('disabled');
+                                });
+                                if (enabledAccordions.length > targetIndex - 1) {
+                                    return enabledAccordions[targetIndex - 1];
+                                }
+                            }
+
+                            return null;
+                        };
+
+                        const nextSection = findNextSection();
+                        if (nextSection) {
+                            const offset = 140; // Slightly larger offset for desktop
+                            const elementPosition = nextSection.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: 'smooth'
+                            });
+
+                            // Safety nudge to ensure visibility after layout settles
+                            setTimeout(() => {
+                                window.scrollBy({ top: 120, behavior: 'smooth' });
+                            }, 250);
+                        } else {
+                            // Fallback: stronger scroll down on desktop
+                            window.scrollBy({
+                                top: 500,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                }, 450); // Slightly longer delay to allow accordion to open on desktop
+            };
+            
+            return (
                 <div style={{
-                    background: 'transparent',
+                    position: 'fixed',
+                    left: 0,
+                    right: 0,
+                    top: 'auto',
+                    bottom: isMobile ? '80px' : '16px', // Increased spacing from summary on mobile
                     display: 'flex',
-                    gap: 10,
-                    alignItems: 'center',
                     justifyContent: 'center',
-                    maxWidth: '92vw',
-                    flexWrap: 'nowrap',
-                    pointerEvents: 'auto'
+                    zIndex: 1400,
+                    pointerEvents: 'none'
                 }}>
                     <div style={{
-                        background: 'rgb(0, 235, 91)',
-                        color: '#FFF',
-                        padding: '10px 14px',
-                        borderRadius: '12px',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-                        fontWeight: 700,
-                        letterSpacing: '0.2px',
-                        whiteSpace: 'nowrap',
-                        display: 'inline-flex',
+                        background: 'transparent',
+                        display: 'flex',
+                        gap: 10,
                         alignItems: 'center',
-                        flexShrink: 0
-                    }}>Next</div>
+                        justifyContent: 'center',
+                        maxWidth: '92vw',
+                        flexWrap: 'nowrap',
+                        pointerEvents: 'auto'
+                    }}>
+                        <button
+                            onClick={handleNextClick}
+                            style={{
+                                background: 'rgb(0, 235, 91)',
+                                color: '#FFF',
+                                padding: '10px 14px',
+                                borderRadius: '12px',
+                                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                                fontWeight: 700,
+                                letterSpacing: '0.2px',
+                                whiteSpace: 'nowrap',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                flexShrink: 0,
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = 'rgb(0, 200, 75)';
+                                e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'rgb(0, 235, 91)';
+                                e.target.style.transform = 'scale(1)';
+                            }}
+                        >Next</button>
+                    </div>
                 </div>
-            </div>
-        )}
+            );
+        })()}
             {/* Global accordion completion toast removed */}
             
             <div className="final-booking-wrap" style={{ 
@@ -2328,6 +2426,7 @@ const Index = () => {
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
+                                                getNextSectionId={getNextSectionId}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 
@@ -2425,6 +2524,7 @@ const Index = () => {
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
+                                                getNextSectionId={getNextSectionId}
                                             />
                                             <AdditionalInfo 
                                                 isGiftVoucher={isGiftVoucher} 

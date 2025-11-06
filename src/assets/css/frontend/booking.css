@@ -1816,7 +1816,7 @@ label {
     }
 
     .presger-scroll {
-        height: 100vh; /* more space on small screens to show multiple passengers */
+        height: 70vh; /* more space on small screens to show multiple passengers */
         display: flex !important;
         flex-direction: column !important;
         gap: 16px !important;

@@ -4,7 +4,7 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
-const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion, isDisabled = false }, ref) => {
+const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion, isDisabled = false, getNextSectionId = null }, ref) => {
   // Determine passengerCount
   // - For Buy Gift: fixed to 1
   // - For Flight Voucher and Book Flight: prefer quantity from selected voucher type
@@ -531,43 +531,127 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       <div className="tab_box presger-scroll" style={{ 
         // Make Purchaser Information (Buy Gift) more compact without affecting other steps
         padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
-        // Extra bottom padding on mobile so sticky Summary doesn't cover inputs
-        paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : (isMobile ? '140px' : undefined),
+        // Extra bottom padding on mobile so sticky Summary doesn't cover inputs (reduced from 140px to 60px)
+        paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : (isMobile ? '60px' : undefined),
         // Fix the section height for Purchaser Information so there isn't excessive empty space
         height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '300px') : undefined,
         overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
         overflowY: 'visible'
       }} ref={scrollContainerRef}>
-        {showNextToast && (
-          <div style={{
-            position: 'fixed',
-            left: 0,
-            right: 0,
-            top: 'auto',
-            bottom: isMobile ? '70px' : '16px',
-            display: 'flex',
-            justifyContent: 'center',
-            zIndex: 1200,
-            pointerEvents: 'none'
-          }}>
+        {showNextToast && (() => {
+          // Get the next section ID after passenger-info
+          const nextSectionId = getNextSectionId ? getNextSectionId('passenger-info') : null;
+          
+          const handleNextClick = () => {
+            if (!nextSectionId) return;
+            
+            // Open the accordion if not already open
+            if (activeAccordion !== nextSectionId) {
+              setActiveAccordion(nextSectionId);
+            }
+            
+            // Scroll to next section - different behavior for mobile and desktop
+            setTimeout(() => {
+              if (isMobile) {
+                // Mobile: simple scroll down
+                window.scrollBy({
+                  top: 300,
+                  behavior: 'smooth'
+                });
+              } else {
+                // Desktop: scroll to the next section element
+                const findNextSection = () => {
+                  // Method 1: Find by ID attribute
+                  const elementById = document.querySelector(`[id="${nextSectionId}"]`);
+                  if (elementById) {
+                    const accordionSection = elementById.closest('.accordion-section');
+                    if (accordionSection) return accordionSection;
+                  }
+                  
+                  // Method 2: Find all enabled accordions and match by sequence
+                  const allAccordions = Array.from(document.querySelectorAll('.accordion-section'));
+                  const enabledAccordions = allAccordions.filter(acc => {
+                    const btn = acc.querySelector('.accordion');
+                    return btn && !btn.disabled && !btn.classList.contains('disabled');
+                  });
+                  
+                  // Try to find the next enabled section after passenger-info
+                  const currentAccordion = document.querySelector('[id="passenger-info"]')?.closest('.accordion-section');
+                  if (currentAccordion) {
+                    const currentIndex = enabledAccordions.indexOf(currentAccordion);
+                    if (currentIndex >= 0 && currentIndex < enabledAccordions.length - 1) {
+                      return enabledAccordions[currentIndex + 1];
+                    }
+                  }
+                  
+                  return null;
+                };
+                
+                const nextSection = findNextSection();
+                if (nextSection) {
+                  const offset = 120; // Offset from top for better visibility on desktop
+                  const elementPosition = nextSection.getBoundingClientRect().top;
+                  const offsetPosition = elementPosition + window.pageYOffset - offset;
+                  
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                  });
+                } else {
+                  // Fallback: scroll down
+                  window.scrollBy({
+                    top: 300,
+                    behavior: 'smooth'
+                  });
+                }
+              }
+            }, 300); // Wait for accordion to open
+          };
+          
+          return (
             <div style={{
-              background: '#ffffff',
-              color: '#111827',
-              padding: '10px 14px',
-              borderRadius: '12px',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-              border: '1px solid #e5e7eb',
-              fontWeight: 700,
-              letterSpacing: '0.2px',
-              whiteSpace: 'nowrap',
-              display: 'inline-flex',
-              alignItems: 'center'
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              top: 'auto',
+              bottom: isMobile ? '110px' : '16px', // Increased spacing from summary on mobile
+              display: 'flex',
+              justifyContent: 'center',
+              zIndex: 1200,
+              pointerEvents: 'none'
             }}>
-              Next
+              <button
+                onClick={handleNextClick}
+                style={{
+                  background: '#ffffff',
+                  color: '#111827',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                  border: '1px solid #e5e7eb',
+                  fontWeight: 700,
+                  letterSpacing: '0.2px',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  pointerEvents: 'auto'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#f3f4f6';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#ffffff';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                Next
+              </button>
             </div>
-
-          </div>
-        )}
+          );
+        })()}
         {/* Removed helper note as requested */}
         {/* Display a message if no passengers are selected */}
         {passengerCount <= 0 && (
@@ -1032,7 +1116,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: isMobile ? '16px' : '12px',
+              gap: isMobile ? '8px' : '12px',
               width: '100%',
               // Constrain only the passengers list on mobile so next accordions don't intrude
               maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 60px)' : undefined,
@@ -1050,8 +1134,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               console.log(`Rendering passenger ${index + 1}, data:`, passenger);
               return (
                 <div id={`passenger-${index+1}`} className={`all-pressenger ${activitySelect === 'Buy Gift' ? 'Purchaser' : ''}`} key={index} style={{ 
-                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '12px' : '20px'), 
-                  padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? (isCombinedMobile ? '0' : '20px') : '15px'), 
+                  marginBottom: activitySelect === 'Buy Gift' ? '8px' : (isMobile ? '6px' : '20px'), 
+                  padding: activitySelect === 'Buy Gift' ? (isMobile ? '12px' : '10px') : (isMobile ? (isCombinedMobile ? '0' : '12px') : '15px'), 
                   border: isMobile ? (isCombinedMobile ? 'none' : (index > 0 ? '2px solid #d1d5db' : '1px solid #e5e7eb')) : (index > 0 ? '1px solid #eee' : 'none'), 
                   borderRadius: isMobile ? (isCombinedMobile ? '0' : '20px') : '8px', 
                   background: isMobile ? (isCombinedMobile ? 'transparent' : (index > 0 ? '#f8fafc' : '#ffffff')) : (index > 0 ? '#fcfcfd' : 'transparent'),
@@ -1064,12 +1148,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   borderTop: isMobile && !isCombinedMobile && index > 0 ? '4px solid #3b82f6' : 'none'
                 }}>
                   <div className="presnger_one" style={{ 
-                    marginBottom: index === 0 ? '8px' : '6px', 
+                    marginBottom: index === 0 ? (isMobile ? '4px' : '8px') : (isMobile ? '4px' : '6px'), 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center',
                     flexDirection: isMobile ? 'column' : 'row',
-                    gap: isMobile ? '12px' : '0'
+                    gap: isMobile ? '8px' : '0'
                   }}>
                     <div className="presnger-tag">
                       <h3 style={{ 
@@ -1121,11 +1205,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   <div className="form-presnger" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    gap: isMobile ? '10px' : '12px',
+                    gap: isMobile ? '8px' : '12px',
                     width: '100%',
                     maxWidth: '100%',
                     margin: '0',
-                    padding: '0 8px'
+                    padding: isMobile ? '0 4px' : '0 8px'
                   }}>
                     {/* Row 1: First, Last, Weight */}
                     <div style={{ 
@@ -1133,7 +1217,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                       flexDirection: isMobile ? 'column' : 'row',
                       gridTemplateColumns: isMobile ? 'none' : '1fr 1fr 1fr',
                       columnGap: isMobile ? '0' : '12px',
-                      rowGap: isMobile ? '8px' : '10px',
+                      rowGap: isMobile ? '6px' : '10px',
                       width: '100%',
                       minWidth: 0,
                       maxWidth: '100%'
@@ -1144,7 +1228,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             fontSize: '13px',
                             fontWeight: '500',
                             color: '#374151',
-                            marginBottom: '4px',
+                            marginBottom: isMobile ? '3px' : '4px',
                           display: 'block',
                           whiteSpace: 'nowrap'
                         }}>First Name<span style={{ color: 'red' }}>*</span></label>
@@ -1180,7 +1264,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             fontSize: '13px',
                             fontWeight: '500',
                             color: '#374151',
-                            marginBottom: '4px',
+                            marginBottom: isMobile ? '3px' : '4px',
                           display: 'block',
                           whiteSpace: 'nowrap'
                         }}>Last Name<span style={{ color: 'red' }}>*</span></label>
@@ -1217,7 +1301,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                               fontSize: '13px',
                               fontWeight: '500',
                               color: '#374151',
-                              marginBottom: '4px',
+                              marginBottom: isMobile ? '3px' : '4px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
@@ -1262,13 +1346,14 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                     {(activitySelect === 'Buy Gift' || index === 0) && (
                       <div style={{ 
                         display: 'flex', 
-                        gap: isMobile ? '8px' : '12px', 
+                        gap: isMobile ? '6px' : '12px', 
                         width: '100%', 
                         flexDirection: isMobile ? 'column' : 'row', 
                         flexWrap: 'nowrap',
                         minWidth: 0,
                         maxWidth: '100%',
-                        overflowX: 'hidden'
+                        overflowX: 'hidden',
+                        marginTop: isMobile ? '0' : undefined
                       }}>
                         {/* Mobile Number */}
                         <div style={{ flex: isMobile ? 'none' : '0 0 auto', minWidth: isMobile ? '0' : 'clamp(160px, 18vw, 220px)', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '100%' : 'none' }}>
@@ -1276,7 +1361,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                              fontSize: '13px',
                              fontWeight: '500',
                              color: '#374151',
-                             marginBottom: '4px',
+                             marginBottom: isMobile ? '3px' : '4px',
                             display: 'block',
                             whiteSpace: 'nowrap'
                           }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
@@ -1311,7 +1396,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             fontSize: '13px',
                             fontWeight: '500',
                             color: '#374151',
-                            marginBottom: '4px',
+                            marginBottom: isMobile ? '3px' : '4px',
                             display: 'block',
                             whiteSpace: 'nowrap'
                           }}>Email<span style={{ color: 'red' }}>*</span></label>
