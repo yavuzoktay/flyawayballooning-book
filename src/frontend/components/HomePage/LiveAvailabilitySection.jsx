@@ -191,11 +191,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             const w = window.innerWidth;
             setIsMobile(w <= 768);
             // 7 columns must fit within container padding; pick safe sizes
-            if (w <= 360) setDaySize(38);
-            else if (w <= 420) setDaySize(42);
-            else if (w <= 480) setDaySize(46);
-            else if (w <= 576) setDaySize(50);
-            else if (w <= 768) setDaySize(58);
+            if (w <= 360) setDaySize(32);
+            else if (w <= 420) setDaySize(36);
+            else if (w <= 480) setDaySize(40);
+            else if (w <= 576) setDaySize(44);
+            else if (w <= 768) setDaySize(48);
             else setDaySize(80);
         };
         computeSizes();
@@ -537,9 +537,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             cursor: isInteractive ? 'pointer' : 'not-allowed',
                             background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
-                            borderRadius: isMobile ? 6 : 8,
-                            margin: isMobile ? 1 : 2,
-                            padding: isMobile ? 1 : 2,
+                            borderRadius: isMobile ? 4 : 8,
+                            margin: isMobile ? '0' : 2,
+                            padding: isMobile ? '0' : 2,
                             minHeight: daySize,
                             minWidth: daySize,
                             maxWidth: daySize,
@@ -558,7 +558,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         }}
                     >
                         <div style={{ 
-                            fontSize: isMobile ? 14 : 18, 
+                            fontSize: isMobile ? 12 : 18, 
                             fontWeight: 600,
                             lineHeight: 1
                         }}>
@@ -829,12 +829,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <div className="days-grid" style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(7, 1fr)', 
-                        gap: isMobile ? '2px' : '4px', 
+                        gap: isMobile ? '0px' : '4px', 
                         marginBottom: 0, 
                         width: '100%', 
                         maxWidth: '100%', 
                         margin: '0 auto', 
-                        padding: isMobile ? '0 4px' : '0 6px', 
+                        padding: isMobile ? '0 2px' : '0 6px', 
                         boxSizing: 'border-box' 
                     }}>
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
@@ -842,9 +842,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 textAlign: 'center', 
                                 fontWeight: 600, 
                                 color: '#888', 
-                                fontSize: isMobile ? 11 : 15, 
-                                marginBottom: isMobile ? 4 : 8,
-                                padding: isMobile ? '2px' : '4px'
+                                fontSize: isMobile ? 10 : 15, 
+                                marginBottom: isMobile ? 2 : 8,
+                                padding: isMobile ? '0' : '4px',
+                                // Mobilde tarih kutularıyla aynı boyutta olması için
+                                ...(isMobile ? {
+                                    width: daySize,
+                                    height: 'auto',
+                                    minWidth: daySize,
+                                    maxWidth: daySize,
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                } : {})
                             }}>
                                 {d}
                             </div>
@@ -1327,6 +1338,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     margin: 0 auto;
                     padding: 0 4px;
                 }
+                @media (max-width: 768px) {
+                    .days-grid {
+                        gap: 0px !important;
+                        padding: 0 2px !important;
+                    }
+                }
                 .weekday-label { 
                     text-align: center; 
                     font-weight: 600; 
@@ -1334,6 +1351,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     font-size: ${isMobile ? 13 : 15}px;
                     margin-bottom: 8px; 
                     padding: 8px;
+                }
+                @media (max-width: 768px) {
+                    .weekday-label {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        margin-bottom: 2px !important;
+                        font-size: 10px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        box-sizing: border-box !important;
+                    }
                 }
                 .day { 
                     width: 80px; 
@@ -1351,12 +1380,26 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     box-sizing: border-box;
                     border-radius: 8px;
                 }
+                @media (max-width: 768px) {
+                    .day {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                }
                 .empty-day { 
                     background: none !important; 
                     border: none !important; 
                     box-shadow: none !important; 
                     width: 80px;
                     height: 80px;
+                }
+                @media (max-width: 768px) {
+                    .empty-day {
+                        width: auto !important;
+                        height: auto !important;
+                        min-width: 0 !important;
+                        min-height: 0 !important;
+                    }
                 }
                 .day.selected { 
                     box-shadow: 0 0 0 2px #00eb5b; 
