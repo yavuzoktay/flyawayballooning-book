@@ -330,21 +330,27 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                 {item.displayLabel || item.label}
                                 <BsInfoCircle 
                                     data-tooltip-id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                    data-tooltip-place="top"
+                                    data-tooltip-offset="10"
+                                    data-tooltip-variant="dark"
+                                    data-tooltip-float="true"
                                     style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
                                 />
                                 <ReactTooltip
                                     id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
-                                    place="top"
+                                    place={(item.label === 'Book Flight' || item.label === 'Buy Gift') ? 'left' : 'top'}
+                                    positionStrategy="fixed"
+                                    offset={12}
                                     content={item.label === 'Book Flight' ? 'See live availability and secure your flight date and time.' : item.label === 'Flight Voucher' ? 'Buy now and choose your flight date, time and location later.' : item.label === 'Buy Gift' ? 'Gift the experience - they’ll choose when and where to fly.' : 'Redeem your code'}
                                     style={{
-                                        maxWidth: '280px',
+                                        maxWidth: '260px',
                                         fontSize: '13px',
                                         textAlign: 'center',
                                         backgroundColor: '#1f2937',
                                         color: '#ffffff',
                                         borderRadius: '8px',
                                         padding: '8px 12px',
-                                        zIndex: 9999
+                                        zIndex: 100000
                                     }}
                                 />
                             </h3>
@@ -356,7 +362,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             })}
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
-                .book_data_label, .card-front, .card-back { overflow: visible !important; }
+                .tab_box { overflow: visible !important; }
+                .tab_box .book_data { overflow: visible !important; position: relative; }
+                .book_data_label, .card-front, .card-back { overflow: visible !important; position: relative; z-index: 2; }
                 @media (max-width: 768px) {
                     .tab_box { 
                         gap: 8px !important; 
