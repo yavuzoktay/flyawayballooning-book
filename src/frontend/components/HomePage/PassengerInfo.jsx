@@ -464,28 +464,31 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   };
 
   const isMultiPassenger = passengerCount > 1;
-  // Show a transient "Next" toast after Passenger 1 is fully completed (only when multiple passengers)
+  // Show a transient "Next" toast only after ALL passengers are fully completed
   const [showNextToast, setShowNextToast] = useState(false);
-  const firstPassengerCompletedRef = useRef(false);
+  const allPassengersToastFiredRef = useRef(false);
   useEffect(() => {
     const inPassengerSection = activeAccordion === 'passenger-info';
-    const multiplePassengers = isMultiPassenger;
-    const firstComplete = isPassengerComplete(passengerData[0] || {}, 0);
-
-    if (!inPassengerSection || !multiplePassengers) {
+    if (!inPassengerSection) {
       setShowNextToast(false);
-      firstPassengerCompletedRef.current = false;
+      allPassengersToastFiredRef.current = false;
       return;
     }
-    if (firstComplete && !firstPassengerCompletedRef.current) {
-      firstPassengerCompletedRef.current = true;
+
+    // Determine if all passengers are complete
+    const allComplete = Array.isArray(passengerData) && passengerData.length > 0
+      ? passengerData.every((p, idx) => isPassengerComplete(p || {}, idx))
+      : false;
+
+    if (allComplete && !allPassengersToastFiredRef.current) {
+      allPassengersToastFiredRef.current = true;
       setShowNextToast(true);
     }
-    if (!firstComplete) {
-      firstPassengerCompletedRef.current = false;
+    if (!allComplete) {
+      allPassengersToastFiredRef.current = false;
       setShowNextToast(false);
     }
-  }, [passengerData, isMultiPassenger, activeAccordion]);
+  }, [passengerData, activeAccordion]);
 
   // Auto-hide toast after 3s whenever it becomes visible
   useEffect(() => {
@@ -623,12 +626,10 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               <button
                 onClick={handleNextClick}
                 style={{
-                  background: '#ffffff',
-                  color: '#111827',
+                  background: 'rgb(0, 235, 91)',
+                  color: '#FFF',
                   padding: '10px 14px',
                   borderRadius: '12px',
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-                  border: '1px solid #e5e7eb',
                   fontWeight: 700,
                   letterSpacing: '0.2px',
                   whiteSpace: 'nowrap',
@@ -639,11 +640,11 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   pointerEvents: 'auto'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = '#f3f4f6';
+                  e.target.style.background = 'rgb(0, 200, 75)';
                   e.target.style.transform = 'scale(1.05)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = '#ffffff';
+                  e.target.style.background = 'rgb(0, 235, 91)';
                   e.target.style.transform = 'scale(1)';
                 }}
               >

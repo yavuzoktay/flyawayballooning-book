@@ -497,11 +497,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // Fill all days for the grid (6 weeks * 7 days = 42 days)
         for (let i = 0; i < 42; i++) {
             if (dayPointer < startDate) {
-                // Before the month starts
-                days.push(<div key={`empty-start-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
+                // Before the month starts - render an invisible placeholder to preserve grid alignment
+                days.push(<div key={`empty-start-${i}`} className="day empty-day" aria-hidden="true"></div>);
             } else if (dayPointer > endDate) {
-                // After the month ends
-                days.push(<div key={`empty-end-${i}`} className="day empty-day" style={{ display: 'none' }}></div>);
+                // After the month ends - render an invisible placeholder to preserve grid alignment
+                days.push(<div key={`empty-end-${i}`} className="day empty-day" aria-hidden="true"></div>);
             } else {
                 // Within the month
                 const dateCopy = new Date(dayPointer);
