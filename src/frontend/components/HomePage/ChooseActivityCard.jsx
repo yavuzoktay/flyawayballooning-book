@@ -365,47 +365,54 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                             <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                 {item.displayLabel || item.label}
-                                <BsInfoCircle 
-                                    data-tooltip-id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
-                                    data-tooltip-place="top"
-                                    data-tooltip-offset="10"
-                                    data-tooltip-variant="dark"
-                                    data-tooltip-float="true"
-                                    style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        if (isMobile) {
-                                            setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
-                                        }
-                                    }}
-                                    onTouchStart={e => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        if (isMobile) {
-                                            setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
-                                        }
-                                    }}
-                                />
-                                {!isMobile && (
-                                    <ReactTooltip
-                                        id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
-                                        place={(item.label === 'Book Flight' || item.label === 'Buy Gift') ? 'left' : 'top'}
-                                        positionStrategy="fixed"
-                                        offset={12}
-                                        content={getTooltipContent(item.label)}
-                                        style={{
-                                            maxWidth: '260px',
-                                            fontSize: '13px',
-                                            textAlign: 'center',
-                                            backgroundColor: '#1f2937',
-                                            color: '#ffffff',
-                                            borderRadius: '8px',
-                                            padding: '8px 12px',
-                                            zIndex: 100000
-                                        }}
-                                    />
-                                )}
+                                {(() => {
+                                    const tooltipPlace = (item.label === 'Book Flight' || item.label === 'Buy Gift' || item.label === 'Flight Voucher') ? 'left' : 'top';
+                                    return (
+                                        <>
+                                            <BsInfoCircle 
+                                                data-tooltip-id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                                data-tooltip-place={tooltipPlace}
+                                                data-tooltip-offset="10"
+                                                data-tooltip-variant="dark"
+                                                data-tooltip-float="true"
+                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                                onClick={e => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (isMobile) {
+                                                        setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
+                                                    }
+                                                }}
+                                                onTouchStart={e => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    if (isMobile) {
+                                                        setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
+                                                    }
+                                                }}
+                                            />
+                                            {!isMobile && (
+                                                <ReactTooltip
+                                                    id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                                    place={tooltipPlace}
+                                                    positionStrategy="fixed"
+                                                    offset={12}
+                                                    content={getTooltipContent(item.label)}
+                                                    style={{
+                                                        maxWidth: '260px',
+                                                        fontSize: '13px',
+                                                        textAlign: 'center',
+                                                        backgroundColor: '#1f2937',
+                                                        color: '#ffffff',
+                                                        borderRadius: '8px',
+                                                        padding: '8px 12px',
+                                                        zIndex: 100000
+                                                    }}
+                                                />
+                                            )}
+                                        </>
+                                    );
+                                })()}
                                 {isMobile && activeMobileTooltip === item.label && (
                                     <div
                                         className="mobile-activity-tooltip"

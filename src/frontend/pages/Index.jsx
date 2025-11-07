@@ -2048,56 +2048,64 @@ const Index = () => {
                             behavior: 'smooth'
                         });
                     } else {
-                        // Desktop: scroll to the next section element
-                        const findNextSection = () => {
-                            // Method 1: Find by ID attribute
-                            const elementById = document.querySelector(`[id="${nextSectionId}"]`);
-                            if (elementById) {
-                                const accordionSection = elementById.closest('.accordion-section');
-                                if (accordionSection) return accordionSection;
-                            }
+                        // Desktop: find and scroll to next section
+                        const scrollToNextSection = () => {
+                            // Map section IDs to possible text/selectors
+                            const sectionMap = {
+                                'location': ['Select Location', 'Location', 'location'],
+                                'experience': ['Select Experience', 'Experience', 'experience'],
+                                'voucher-type': ['Voucher Type', 'voucher-type'],
+                                'live-availability': ['Live Availability', 'live-availability'],
+                                'passenger-info': ['Passenger Information', 'Passenger Info', 'passenger-info'],
+                                'additional-info': ['Additional Information', 'Additional Info', 'additional-info'],
+                                'recipient-details': ['Recipient Details', 'recipient-details'],
+                                'add-on': ['Add To Booking', 'Add To', 'add-on']
+                            };
 
-                            // Method 2: Find by section sequence index
-                            const allAccordions = Array.from(document.querySelectorAll('.accordion-section'));
-                            const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
-                            const targetIndex = sequence.indexOf(nextSectionId);
-                            if (targetIndex > 0) {
-                                const enabledAccordions = allAccordions.filter(acc => {
-                                    const btn = acc.querySelector('.accordion');
-                                    return btn && !btn.disabled && !btn.classList.contains('disabled');
+                            const searchTerms = sectionMap[nextSectionId] || [nextSectionId];
+                            
+                            // Try to find element by text content
+                            const allElements = Array.from(document.querySelectorAll('*'));
+                            let targetElement = null;
+                            
+                            for (const term of searchTerms) {
+                                targetElement = allElements.find(el => {
+                                    const text = el.textContent || '';
+                                    const id = el.id || '';
+                                    const className = typeof el.className === 'string' ? el.className : (el.className?.baseVal || String(el.className || ''));
+                                    return (text.includes(term) || id.includes(term) || className.includes(term)) &&
+                                           (el.offsetHeight > 50 || el.tagName === 'BUTTON' || el.tagName === 'DIV');
                                 });
-                                if (enabledAccordions.length > targetIndex - 1) {
-                                    return enabledAccordions[targetIndex - 1];
-                                }
+                                if (targetElement) break;
                             }
 
-                            return null;
+                            // If found, scroll to it
+                            if (targetElement) {
+                                const offset = 100;
+                                const elementPosition = targetElement.getBoundingClientRect().top;
+                                const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                                window.scrollTo({
+                                    top: Math.max(0, offsetPosition),
+                                    behavior: 'smooth'
+                                });
+                                return true;
+                            }
+                            
+                            return false;
                         };
 
-                        const nextSection = findNextSection();
-                        if (nextSection) {
-                            const offset = 140; // Slightly larger offset for desktop
-                            const elementPosition = nextSection.getBoundingClientRect().top;
-                            const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-                            window.scrollTo({
-                                top: offsetPosition,
-                                behavior: 'smooth'
-                            });
-
-                            // Safety nudge to ensure visibility after layout settles
-                            setTimeout(() => {
-                                window.scrollBy({ top: 120, behavior: 'smooth' });
-                            }, 250);
-                        } else {
-                            // Fallback: stronger scroll down on desktop
+                        // Try to find and scroll, if fails use fallback
+                        const found = scrollToNextSection();
+                        if (!found) {
+                            // Fallback: scroll down on desktop
                             window.scrollBy({
                                 top: 500,
                                 behavior: 'smooth'
                             });
                         }
                     }
-                }, 450); // Slightly longer delay to allow accordion to open on desktop
+                }, isMobile ? 450 : 700); // Longer delay for desktop to ensure accordion opens and renders
             };
             
             return (
