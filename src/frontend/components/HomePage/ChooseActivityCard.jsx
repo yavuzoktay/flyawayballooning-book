@@ -15,6 +15,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const cardBackRef = useRef(null);
     
+    // Mobile tooltip state for info icons
+    const [activeMobileTooltip, setActiveMobileTooltip] = useState(null);
+    
     // Notification state for flight type selection
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState("");
@@ -34,6 +37,27 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // When leaving mobile view, close any active tooltip
+    useEffect(() => {
+        if (!isMobile && activeMobileTooltip) {
+            setActiveMobileTooltip(null);
+        }
+    }, [isMobile, activeMobileTooltip]);
+
+    // Close mobile tooltip when tapping outside
+    useEffect(() => {
+        if (!activeMobileTooltip) return;
+
+        const handleOutside = () => setActiveMobileTooltip(null);
+
+        window.addEventListener('touchstart', handleOutside);
+        window.addEventListener('mousedown', handleOutside);
+
+        return () => {
+            window.removeEventListener('touchstart', handleOutside);
+            window.removeEventListener('mousedown', handleOutside);
+        };
+    }, [activeMobileTooltip]);
 
 
     // Fetch voucher types from API
@@ -93,6 +117,19 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         { value: 3, label: "Buy Gift", displayLabel: "Buy Gift Voucher", subText: "" },
         { value: 2, label: "Redeem Voucher", subText: "" }
     ];
+
+    const getTooltipContent = (label) => {
+        switch (label) {
+            case 'Book Flight':
+                return 'See live availability and secure your flight date and time.';
+            case 'Flight Voucher':
+                return 'Buy now and choose your flight date, time and location later.';
+            case 'Buy Gift':
+                return 'Gift the experience - they’ll choose when and where to fly.';
+            default:
+                return 'Redeem your code';
+        }
+    };
 
     const handleActivitySelect = (label) => {
         // Always update the activity selection
@@ -335,24 +372,65 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     data-tooltip-variant="dark"
                                     data-tooltip-float="true"
                                     style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
-                                />
-                                <ReactTooltip
-                                    id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
-                                    place={(item.label === 'Book Flight' || item.label === 'Buy Gift') ? 'left' : 'top'}
-                                    positionStrategy="fixed"
-                                    offset={12}
-                                    content={item.label === 'Book Flight' ? 'See live availability and secure your flight date and time.' : item.label === 'Flight Voucher' ? 'Buy now and choose your flight date, time and location later.' : item.label === 'Buy Gift' ? 'Gift the experience - they’ll choose when and where to fly.' : 'Redeem your code'}
-                                    style={{
-                                        maxWidth: '260px',
-                                        fontSize: '13px',
-                                        textAlign: 'center',
-                                        backgroundColor: '#1f2937',
-                                        color: '#ffffff',
-                                        borderRadius: '8px',
-                                        padding: '8px 12px',
-                                        zIndex: 100000
+                                    onClick={e => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (isMobile) {
+                                            setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
+                                        }
+                                    }}
+                                    onTouchStart={e => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (isMobile) {
+                                            setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
+                                        }
                                     }}
                                 />
+                                {!isMobile && (
+                                    <ReactTooltip
+                                        id={`activity-tooltip-${item.label.replace(/\s+/g, '-').toLowerCase()}`}
+                                        place={(item.label === 'Book Flight' || item.label === 'Buy Gift') ? 'left' : 'top'}
+                                        positionStrategy="fixed"
+                                        offset={12}
+                                        content={getTooltipContent(item.label)}
+                                        style={{
+                                            maxWidth: '260px',
+                                            fontSize: '13px',
+                                            textAlign: 'center',
+                                            backgroundColor: '#1f2937',
+                                            color: '#ffffff',
+                                            borderRadius: '8px',
+                                            padding: '8px 12px',
+                                            zIndex: 100000
+                                        }}
+                                    />
+                                )}
+                                {isMobile && activeMobileTooltip === item.label && (
+                                    <div
+                                        className="mobile-activity-tooltip"
+                                        onClick={e => e.stopPropagation()}
+                                        onTouchStart={e => e.stopPropagation()}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '20px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            backgroundColor: 'rgba(31,41,55,0.95)',
+                                            color: '#ffffff',
+                                            borderRadius: '12px',
+                                            padding: '10px 14px',
+                                            fontSize: '13px',
+                                            lineHeight: 1.4,
+                                            textAlign: 'center',
+                                            width: 'min(240px, 85vw)',
+                                            boxShadow: '0 10px 24px rgba(0,0,0,0.25)',
+                                            zIndex: 100001
+                                        }}
+                                    >
+                                        <span>{getTooltipContent(item.label)}</span>
+                                    </div>
+                                )}
                             </h3>
                             {item.subText && <p>{item.subText}</p>}
                         </label>
