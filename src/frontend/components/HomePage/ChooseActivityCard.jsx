@@ -198,7 +198,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const activeCheckStyle = {
         ...checkStyle,
         backgroundColor: '#74da78',
-        borderColor: '#74da78'
+        border: '2px solid #74da78' // Use border instead of borderColor to avoid conflict
     };
 
     const checkIconStyle = {
@@ -240,8 +240,8 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     boxSizing: 'border-box' 
                 }}>
                     {item.label === "Redeem Voucher" ? (
-                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: "100%", width: '100%' }}>
-                            <div className="card-flipper" style={{ height: "100%", width: '100%' }}>
+                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: "220px", width: '100%', position: 'relative' }}>
+                            <div className="card-flipper" style={{ height: "220px", width: '100%', position: 'relative' }}>
                                 <div 
                                     className="card-front"
                                     onClick={() => {
@@ -254,7 +254,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }, 3000);
                                         setIsFlipped(true);
                                     }}
-                                    style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
+                                    style={{ height: '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
                                 >
                                                                             <label 
                                         htmlFor={`activity-${item.label}`} 
@@ -324,7 +324,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                             setIsFlipped(false);
                                         }
                                     }}
-                                    style={{ height: '100%', width: '100%', padding: '0', boxSizing: 'border-box' }}
+                                    style={{ height: '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
                                 >
                                     <RedeemVoucherCard
                                         onSubmit={handleVoucherSubmit}
@@ -377,14 +377,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                                 data-tooltip-float="true"
                                                 style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
                                                 onClick={e => {
-                                                    e.preventDefault();
                                                     e.stopPropagation();
                                                     if (isMobile) {
                                                         setActiveMobileTooltip(prev => prev === item.label ? null : item.label);
                                                     }
                                                 }}
                                                 onTouchStart={e => {
-                                                    e.preventDefault();
                                                     e.stopPropagation();
                                                     if (isMobile) {
                                                         setActiveMobileTooltip(prev => prev === item.label ? null : item.label);

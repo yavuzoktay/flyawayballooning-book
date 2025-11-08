@@ -64,7 +64,15 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
   };
 
   return (
-    <div className="voucher-card-container" style={{ width: '100%', maxWidth: '100%' }}>
+    <div className="voucher-card-container" style={{ 
+      width: '100%', 
+      maxWidth: '100%',
+      height: '100%',
+      minHeight: '220px',
+      maxHeight: '220px',
+      overflowY: 'auto',
+      overflowX: 'hidden'
+    }}>
       <div className="voucher-label" style={{ 
         color: "#0d47a1", 
         fontSize: "16px", 
@@ -72,7 +80,8 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         marginBottom: "8px", 
         textAlign: "center", 
         width: '100%',
-        lineHeight: '1.3'
+        lineHeight: '1.3',
+        flexShrink: 0
       }}>
         Enter Voucher Code
       </div>
@@ -85,13 +94,14 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         className="voucher-input-field"
         style={{ 
           width: '85%', 
-          margin: '16px auto 20px auto', 
+          margin: '8px auto 12px auto', 
           display: 'block',
           padding: '8px 12px',
           fontSize: '14px',
           border: '1px solid #ccc',
           borderRadius: '4px',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          flexShrink: 0
         }}
         onClick={e => e.stopPropagation()}
         onFocus={e => e.stopPropagation()}
@@ -109,8 +119,9 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           fontWeight: "500",
           cursor: "pointer",
           lineHeight: "1.4",
-          marginBottom: "12px",
-          minWidth: "60px"
+          marginBottom: "8px",
+          minWidth: "60px",
+          flexShrink: 0
         }}
       >
         Redeem
@@ -121,15 +132,16 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         <div style={{
           background: '#d4edda',
           color: '#155724',
-          padding: '8px 12px',
+          padding: '6px 10px',
           borderRadius: '6px',
-          marginTop: '12px',
-          fontSize: '13px',
+          marginTop: '4px',
+          fontSize: '12px',
           textAlign: 'center',
           border: '1px solid #c3e6cb',
           maxWidth: '100%',
           wordWrap: 'break-word',
-          overflowWrap: 'break-word'
+          overflowWrap: 'break-word',
+          flexShrink: 0
         }}>
           <div style={{ fontWeight: '600', marginBottom: '4px', fontSize: '13px' }}>
             ✅ {voucherData.title}
@@ -158,15 +170,16 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         <div style={{
           background: '#f8d7da',
           color: '#721c24',
-          padding: '8px 12px',
+          padding: '6px 10px',
           borderRadius: '6px',
-          marginTop: '12px',
-          fontSize: '13px',
+          marginTop: '4px',
+          fontSize: '12px',
           textAlign: 'center',
           border: '1px solid #f5c6cb',
           maxWidth: '100%',
           wordWrap: 'break-word',
-          overflowWrap: 'break-word'
+          overflowWrap: 'break-word',
+          flexShrink: 0
         }}>
           ❌ Invalid voucher code
           <div style={{ 

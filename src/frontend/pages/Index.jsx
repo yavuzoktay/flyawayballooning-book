@@ -594,10 +594,34 @@ const Index = () => {
         if (activitySelect) {
             const text = `Next`;
             setSelectionToast({ visible: true, text });
-            const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 3500);
-            return () => clearTimeout(t);
+            // Desktop: button stays visible until clicked, no auto-hide
+            // Mobile: auto-hide after 3.5s
+            if (isMobile) {
+                const t = setTimeout(() => setSelectionToast({ visible: false, text: '' }), 3500);
+                return () => clearTimeout(t);
+            }
+            // Desktop: no auto-hide, button stays until clicked
+        } else {
+            setSelectionToast({ visible: false, text: '' });
         }
-    }, [activitySelect]);
+    }, [activitySelect, isMobile]);
+
+    // Hide the activity "Next" toast if the user manually scrolls
+    useEffect(() => {
+        if (!selectionToast.visible) return;
+        const hideOnScroll = () => {
+            setSelectionToast(prev => ({ ...prev, visible: false }));
+        };
+        const opts = { passive: true };
+        window.addEventListener('wheel', hideOnScroll, opts);
+        window.addEventListener('touchmove', hideOnScroll, opts);
+        window.addEventListener('scroll', hideOnScroll, opts);
+        return () => {
+            window.removeEventListener('wheel', hideOnScroll, opts);
+            window.removeEventListener('touchmove', hideOnScroll, opts);
+            window.removeEventListener('scroll', hideOnScroll, opts);
+        };
+    }, [selectionToast.visible]);
 
     // Book button validation logic (copied from RightInfoCard)
     // Keep logic in sync with RightInfoCard: don't mark as complete unless answered or required satisfied
@@ -1002,13 +1026,14 @@ const Index = () => {
                 fetchPassengerTermsForJourney(journeyLabel);
             }, 10000);
             
-            // For Flight Voucher and Buy Gift, proceed to next section
-            if (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') {
+            // For Flight Voucher, proceed to next section
+            // For Buy Gift (Purchaser Information), keep section open so Next button remains visible
+            if (activitySelect === 'Flight Voucher') {
                 console.log('✅ Passenger Information complete, proceeding to next section');
                 // Don't return - let the normal flow continue to open next section
             } else {
-                // For Book Flight and Redeem Voucher, keep the section open
-                console.log('⏸ Keeping Passenger Information open; skipping auto-close/open');
+                // For Book Flight, Redeem Voucher, and Buy Gift, keep the section open
+                console.log('⏸ Keeping Passenger Information/Purchaser Information open; skipping auto-close/open');
                 return;
             }
         }
@@ -2031,81 +2056,79 @@ const Index = () => {
             const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
             const nextSectionId = sequence.length > 1 ? sequence[1] : null; // activity is at index 0, next is at index 1
             
-            const handleNextClick = () => {
+            console.log('🔍 Next button render:', { 
+                activitySelect, 
+                sequence, 
+                nextSectionId, 
+                sequenceLength: sequence.length 
+            });
+            
+            const handleNextClick = (e) => {
                 if (!nextSectionId) return;
-                
-                // Open the accordion if not already open
-                if (activeAccordion !== nextSectionId) {
-                    setActiveAccordion(nextSectionId);
-                }
-                
-                // Scroll to next section - different behavior for mobile and desktop
-                setTimeout(() => {
-                    if (isMobile) {
-                        // Mobile: simple scroll down
-                        window.scrollBy({
-                            top: 300,
-                            behavior: 'smooth'
-                        });
-                    } else {
-                        // Desktop: find and scroll to next section
-                        const scrollToNextSection = () => {
-                            // Map section IDs to possible text/selectors
-                            const sectionMap = {
-                                'location': ['Select Location', 'Location', 'location'],
-                                'experience': ['Select Experience', 'Experience', 'experience'],
-                                'voucher-type': ['Voucher Type', 'voucher-type'],
-                                'live-availability': ['Live Availability', 'live-availability'],
-                                'passenger-info': ['Passenger Information', 'Passenger Info', 'passenger-info'],
-                                'additional-info': ['Additional Information', 'Additional Info', 'additional-info'],
-                                'recipient-details': ['Recipient Details', 'recipient-details'],
-                                'add-on': ['Add To Booking', 'Add To', 'add-on']
-                            };
+                // Hide the toast immediately
+                setSelectionToast(prev => ({ ...prev, visible: false }));
+                // Open the accordion
+                setActiveAccordion(nextSectionId);
 
-                            const searchTerms = sectionMap[nextSectionId] || [nextSectionId];
-                            
-                            // Try to find element by text content
-                            const allElements = Array.from(document.querySelectorAll('*'));
-                            let targetElement = null;
-                            
-                            for (const term of searchTerms) {
-                                targetElement = allElements.find(el => {
-                                    const text = el.textContent || '';
-                                    const id = el.id || '';
-                                    const className = typeof el.className === 'string' ? el.className : (el.className?.baseVal || String(el.className || ''));
-                                    return (text.includes(term) || id.includes(term) || className.includes(term)) &&
-                                           (el.offsetHeight > 50 || el.tagName === 'BUTTON' || el.tagName === 'DIV');
-                                });
-                                if (targetElement) break;
-                            }
+                // Helper to find the nearest scrollable parent of an element
+                const getScrollableParent = (node) => {
+                    let cur = node && node.parentElement;
+                    while (cur && cur !== document.body && cur !== document.documentElement) {
+                        const style = window.getComputedStyle(cur);
+                        const oy = style.overflowY;
+                        if ((oy === 'auto' || oy === 'scroll') && cur.scrollHeight > cur.clientHeight) {
+                            return cur;
+                        }
+                        cur = cur.parentElement;
+                    }
+                    return window; // Fallback to window
+                };
 
-                            // If found, scroll to it
-                            if (targetElement) {
-                                const offset = 100;
-                                const elementPosition = targetElement.getBoundingClientRect().top;
-                                const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-                                window.scrollTo({
-                                    top: Math.max(0, offsetPosition),
-                                    behavior: 'smooth'
-                                });
-                                return true;
-                            }
-                            
-                            return false;
+                // After accordion state updates, locate target and scroll its container
+                requestAnimationFrame(() => {
+                    // Resolve the target section element
+                    let target = document.getElementById(nextSectionId) ||
+                                 document.querySelector(`[data-accordion-id="${nextSectionId}"]`);
+                    if (!target) {
+                        const map = {
+                            'location': 'Select Location',
+                            'experience': 'Select Experience',
+                            'voucher-type': 'Voucher Type',
+                            'live-availability': 'Live Availability',
+                            'passenger-info': 'Passenger Information',
+                            'additional-info': 'Additional Information',
+                            'recipient-details': 'Recipient Details',
+                            'add-on': 'Add To Booking'
                         };
-
-                        // Try to find and scroll, if fails use fallback
-                        const found = scrollToNextSection();
-                        if (!found) {
-                            // Fallback: scroll down on desktop
-                            window.scrollBy({
-                                top: 500,
-                                behavior: 'smooth'
-                            });
+                        const label = map[nextSectionId];
+                        if (label) {
+                            const btn = Array.from(document.querySelectorAll('button.accordion'))
+                                .find(el => (el.textContent || '').trim().includes(label));
+                            if (btn) target = btn.closest('.accordion-section') || btn;
                         }
                     }
-                }, isMobile ? 450 : 700); // Longer delay for desktop to ensure accordion opens and renders
+
+                    const scroller = getScrollableParent(target || (e && e.currentTarget));
+                    const offset = isMobile ? 60 : 100;
+
+                    if (target) {
+                        if (scroller === window) {
+                            const rect = target.getBoundingClientRect();
+                            const top = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+                            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+                        } else {
+                            const targetRect = target.getBoundingClientRect();
+                            const scrollerRect = scroller.getBoundingClientRect();
+                            const delta = targetRect.top - scrollerRect.top;
+                            scroller.scrollTo({ top: scroller.scrollTop + delta - offset, behavior: 'smooth' });
+                        }
+                    } else {
+                        // Fallback: small nudge down (desktop only)
+                        if (!isMobile) {
+                            window.scrollBy({ top: 120, behavior: 'smooth' });
+                        }
+                    }
+                });
             };
             
             return (
@@ -2117,7 +2140,7 @@ const Index = () => {
                     bottom: isMobile ? '80px' : '16px', // Increased spacing from summary on mobile
                     display: 'flex',
                     justifyContent: 'center',
-                    zIndex: 1400,
+                    zIndex: 4000,
                     pointerEvents: 'none'
                 }}>
                     <div style={{
@@ -2778,6 +2801,7 @@ const Index = () => {
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
+                                                getNextSectionId={getNextSectionId}
                                             />
                                             {activitySelect === "Buy Gift" && (
                                                 <EnterRecipientDetails 

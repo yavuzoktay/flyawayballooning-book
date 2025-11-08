@@ -535,11 +535,16 @@ label {
 }
 
 .booking_data,
-.presger-scroll,
 .Profered-scroll,
 .accordion:after {
     overflow-y: auto !important;
     overflow-x: hidden !important;
+}
+
+/* .presger-scroll removed from above - let inline styles control overflow for multi-passenger scroll */
+.presger-scroll {
+    overflow-x: hidden !important;
+    /* overflow-y controlled by inline styles for proper multi-passenger containment */
 }
 
 .flii-scroll {
@@ -708,8 +713,9 @@ label {
 
 .presger-scroll {
     /* Increase height so multiple passengers are visible without heavy scrolling */
-    height: 48vh;
-    overflow: auto;
+    /* height: 48vh; - REMOVED: Let inline styles control height for multi-passenger */
+    max-height: 550px; /* Maximum height constraint */
+    overflow: hidden; /* Let inner container handle scroll */
     padding: 20px 15px;
     background: #fff;
     border-radius: 40px;
@@ -1654,8 +1660,9 @@ label {
     }
 
     .presger-scroll {
-        height: 32vh;
+        max-height: 60vh; /* Tablet constraint */
         padding: 15px 10px;
+        overflow: hidden; /* Let inner container handle scroll */
     }
     
     .form-presnger {
@@ -1816,13 +1823,13 @@ label {
     }
 
     .presger-scroll {
-        height: 70vh; /* more space on small screens to show multiple passengers */
+        /* height: 70vh; - REMOVED: Let inline styles control */
+        max-height: 80vh !important; /* Mobile constraint */
         display: flex !important;
         flex-direction: column !important;
         gap: 16px !important;
         overflow-x: hidden !important;
-        overflow-y: auto !important;
-        max-height: 100vh !important;
+        overflow-y: hidden !important; /* Let inner container handle scroll */
     }
 
     .last_add {

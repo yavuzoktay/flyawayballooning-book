@@ -488,14 +488,19 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       allPassengersToastFiredRef.current = false;
       setShowNextToast(false);
     }
-  }, [passengerData, activeAccordion]);
+  }, [passengerData, activeAccordion, activitySelect, passengerCount]);
 
-  // Auto-hide toast after 3s whenever it becomes visible
+  // Auto-hide toast after 3s on mobile only
+  // Desktop: button stays visible until clicked
   useEffect(() => {
     if (!showNextToast) return;
-    const t = setTimeout(() => setShowNextToast(false), 3000);
-    return () => clearTimeout(t);
-  }, [showNextToast]);
+    if (isMobile) {
+      // Mobile: auto-hide after 3s
+      const t = setTimeout(() => setShowNextToast(false), 3000);
+      return () => clearTimeout(t);
+    }
+    // Desktop: no auto-hide, button stays until clicked
+  }, [showNextToast, isMobile]);
   
   // Shared input style for mobile consistency
   const mobileInputBase = {
@@ -536,79 +541,69 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
         padding: activitySelect === 'Buy Gift' ? (isMobile ? '8px 12px' : '6px 16px') : (isMobile ? '12px 16px' : '10px 20px'),
         // Extra bottom padding on mobile so sticky Summary doesn't cover inputs (reduced from 140px to 60px)
         paddingBottom: activitySelect === 'Buy Gift' ? (isMobile ? '6px' : '6px') : (isMobile ? '60px' : undefined),
-        // Fix the section height for Purchaser Information so there isn't excessive empty space
-        height: activitySelect === 'Buy Gift' ? (isMobile ? 'auto' : '300px') : undefined,
-        overflowX: isMobile ? 'hidden' : (isMultiPassenger ? 'hidden' : 'auto'),
-        overflowY: 'visible'
+        // Buy Gift: fixed height with scroll
+        ...(activitySelect === 'Buy Gift' 
+          ? { 
+              height: isMobile ? 'auto' : '300px',
+              overflowY: isMobile ? 'visible' : 'auto',
+              overflowX: 'hidden'
+            }
+          : {
+              // For passenger info: prevent overflow, inner container has scroll
+              overflowX: 'hidden',
+              overflowY: 'hidden', // Always hide overflow - let inner container handle scroll
+              maxHeight: !isMobile && isMultiPassenger ? '550px' : undefined // Desktop: limit outer height
+            }
+        )
       }} ref={scrollContainerRef}>
         {showNextToast && (() => {
           // Get the next section ID after passenger-info
           const nextSectionId = getNextSectionId ? getNextSectionId('passenger-info') : null;
           
-          const handleNextClick = () => {
+          const handleNextClick = (e) => {
             if (!nextSectionId) return;
             
-            // Open the accordion if not already open
-            if (activeAccordion !== nextSectionId) {
-              setActiveAccordion(nextSectionId);
-            }
+            // Hide button immediately
+            setShowNextToast(false);
             
-            // Scroll to next section - different behavior for mobile and desktop
+            // Open next accordion
+            setActiveAccordion(nextSectionId);
+
+            // Wait for accordion to open, then scroll (same as "What would you like to do?" logic)
+            const delay = isMobile ? 400 : 600;
             setTimeout(() => {
-              if (isMobile) {
-                // Mobile: simple scroll down
-                window.scrollBy({
-                  top: 300,
-                  behavior: 'smooth'
-                });
-              } else {
-                // Desktop: scroll to the next section element
-                const findNextSection = () => {
-                  // Method 1: Find by ID attribute
-                  const elementById = document.querySelector(`[id="${nextSectionId}"]`);
-                  if (elementById) {
-                    const accordionSection = elementById.closest('.accordion-section');
-                    if (accordionSection) return accordionSection;
-                  }
-                  
-                  // Method 2: Find all enabled accordions and match by sequence
-                  const allAccordions = Array.from(document.querySelectorAll('.accordion-section'));
-                  const enabledAccordions = allAccordions.filter(acc => {
-                    const btn = acc.querySelector('.accordion');
-                    return btn && !btn.disabled && !btn.classList.contains('disabled');
-                  });
-                  
-                  // Try to find the next enabled section after passenger-info
-                  const currentAccordion = document.querySelector('[id="passenger-info"]')?.closest('.accordion-section');
-                  if (currentAccordion) {
-                    const currentIndex = enabledAccordions.indexOf(currentAccordion);
-                    if (currentIndex >= 0 && currentIndex < enabledAccordions.length - 1) {
-                      return enabledAccordions[currentIndex + 1];
-                    }
-                  }
-                  
-                  return null;
+              // Try to find target element
+              let target = document.getElementById(nextSectionId) ||
+                           document.querySelector(`[data-accordion-id="${nextSectionId}"]`);
+              
+              if (!target) {
+                // Fallback: find by heading text
+                const map = {
+                  'recipient-details': 'Recipient Details',
+                  'additional-info': 'Additional Information',
+                  'add-on': 'Add To Booking'
                 };
-                
-                const nextSection = findNextSection();
-                if (nextSection) {
-                  const offset = 120; // Offset from top for better visibility on desktop
-                  const elementPosition = nextSection.getBoundingClientRect().top;
-                  const offsetPosition = elementPosition + window.pageYOffset - offset;
-                  
-                  window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                  });
-                } else {
-                  // Fallback: scroll down
-                  window.scrollBy({
-                    top: 300,
-                    behavior: 'smooth'
-                  });
+                const label = map[nextSectionId];
+                if (label) {
+                  const btn = Array.from(document.querySelectorAll('button.accordion'))
+                    .find(el => (el.textContent || '').trim().includes(label));
+                  if (btn) target = btn.closest('.accordion-section') || btn;
                 }
               }
-            }, 300); // Wait for accordion to open
+
+              const offset = isMobile ? 60 : 80;
+
+              if (target) {
+                const rect = target.getBoundingClientRect();
+                const top = (window.pageYOffset || document.documentElement.scrollTop) + rect.top - offset;
+                window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+              } else {
+                // Fallback scroll
+                if (!isMobile) {
+                  window.scrollBy({ top: 150, behavior: 'smooth' });
+                }
+              }
+            }, delay);
           };
           
           return (
@@ -617,10 +612,10 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               left: 0,
               right: 0,
               top: 'auto',
-              bottom: isMobile ? '110px' : '16px', // Increased spacing from summary on mobile
+              bottom: isMobile ? '110px' : '16px',
               display: 'flex',
               justifyContent: 'center',
-              zIndex: 1200,
+              zIndex: 4000,
               pointerEvents: 'none'
             }}>
               <button
@@ -637,15 +632,19 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                   alignItems: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  pointerEvents: 'auto'
+                  pointerEvents: 'auto',
+                  border: 'none',
+                  outline: 'none'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.background = 'rgb(0, 200, 75)';
                   e.target.style.transform = 'scale(1.05)';
+                  e.target.style.border = 'none';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.background = 'rgb(0, 235, 91)';
                   e.target.style.transform = 'scale(1)';
+                  e.target.style.border = 'none';
                 }}
               >
                 Next
@@ -716,16 +715,24 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
               {/* Passenger Cards Container */}
               <div className="passenger-cards-container" style={{ 
-                display: 'flex', 
-                flexDirection: 'row', 
-                gap: '16px', 
-                width: '100%',
-                overflowX: 'auto',
-                paddingBottom: '10px',
-                scrollBehavior: 'smooth',
-                scrollSnapType: 'x mandatory',
-                scrollPadding: '0 8px',
-                WebkitOverflowScrolling: 'touch'
+                // Mobile: horizontal swipeable list
+                ...(isMobile ? {
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '16px',
+                  width: '100%',
+                  overflowX: 'auto',
+                  overflowY: 'hidden',
+                  paddingBottom: '10px',
+                  scrollBehavior: 'smooth',
+                  scrollSnapType: 'x mandatory',
+                  scrollPadding: '0 8px',
+                  WebkitOverflowScrolling: 'touch'
+                } : {
+                  // Desktop: vertical list (no inner scroll, outer container handles it)
+                  display: 'block',
+                  width: '100%'
+                })
               }}>
                 {[...Array(passengerCount)].map((_, index) => {
           const passenger = passengerData[index] || { firstName: "", lastName: "", weight: "", phone: "", email: "" };
@@ -733,15 +740,15 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           console.log(`Rendering passenger ${index + 1}, data:`, passenger);
           return (
             <div id={`passenger-${index+1}`} className="all-pressenger" key={index} style={{ 
-              marginBottom: 0, 
+              marginBottom: isMobile ? 0 : 12, 
               padding: activitySelect === 'Buy Gift' ? '16px' : '5px', 
-              width: 'calc(100% - 32px)',
-              minWidth: 'calc(100% - 32px)',
-              maxWidth: 'calc(100% - 32px)',
+              width: isMobile ? 'calc(100% - 32px)' : '100%',
+              minWidth: isMobile ? 'calc(100% - 32px)' : '100%',
+              maxWidth: isMobile ? 'calc(100% - 32px)' : '100%',
               flexShrink: 0,
               position: 'relative',
               zIndex: 1,
-              scrollSnapAlign: 'start'
+              ...(isMobile ? { scrollSnapAlign: 'start' } : {})
             }}>
               <div className="presnger_one" style={{ 
                 marginBottom: '16px', 
@@ -1119,10 +1126,23 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               flexDirection: 'column',
               gap: isMobile ? '8px' : '12px',
               width: '100%',
-              // Constrain only the passengers list on mobile so next accordions don't intrude
-              maxHeight: isMobile && passengerCount > 1 ? 'calc(100vh - 60px)' : undefined,
-              overflowY: isMobile && passengerCount > 1 ? 'auto' : undefined,
-              WebkitOverflowScrolling: isMobile && passengerCount > 1 ? 'touch' : undefined
+              // Desktop multi-passenger: enable internal scroll (Passenger 2+)
+              ...(isMobile 
+                ? (passengerCount > 1 ? {
+                    // Mobile: constrain list so next accordions don't intrude
+                    maxHeight: 'calc(100vh - 60px)',
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch'
+                  } : {})
+                : (isMultiPassenger ? {
+                    // Desktop: fixed height with scroll for 2+ passengers
+                    maxHeight: '480px',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    paddingRight: '8px',
+                    marginBottom: '10px' // Extra space at bottom
+                  } : {})
+              )
             }}>
             {(() => {
               const isCombinedMobile = isMobile && passengerCount > 1;

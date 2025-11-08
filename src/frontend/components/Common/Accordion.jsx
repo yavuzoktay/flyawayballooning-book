@@ -25,9 +25,14 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
 
     // Check if this is the "What would you like to do?" section
     const isActivitySection = id === "activity";
+    
+    // Check if this is the Passenger Information section - needs overflow control
+    const isPassengerInfoSection = id === "passenger-info";
 
     return (
         <div 
+            id={id || undefined}
+            data-accordion-id={id || undefined}
             className={`accordion-section ${className || ""}`}
             style={{
                 ...(isDisabled ? {
@@ -52,10 +57,12 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
                 <span className="accordion-icon">{isOpen ? "-" : "+"}</span>
             </button>
             <div 
+                id={id ? `${id}-panel` : undefined}
+                data-accordion-panel-id={id || undefined}
                 className={`panel ${isActivitySection ? "activity-panel" : ""}`}
                 style={{ 
                     display: isOpen ? "block" : "none",
-                    overflow: "visible", // Allow content to overflow if needed
+                    overflow: isPassengerInfoSection ? "hidden" : "visible", // Passenger Info: contain overflow, others: visible
                     height: "auto", // Ensure auto height
                     transition: "height 0.3s ease" // Smooth transition for height changes
                 }}
