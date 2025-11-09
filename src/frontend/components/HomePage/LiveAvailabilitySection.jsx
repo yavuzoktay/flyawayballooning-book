@@ -673,19 +673,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 {`
                     @media (max-width: 768px) {
                         .calendar .days-grid {
-                            gap: 2px !important;
-                            padding: 0 4px !important;
+                            column-gap: 1px !important;
+                            row-gap: 4px !important;
+                            padding: 0 3px !important;
                         }
                         
                         .calendar .day {
-                            margin: 1px !important;
-                            padding: 1px !important;
+                            margin: 0px !important;
+                            padding: 0.5px !important;
                         }
                         
                         .calendar .weekday-label {
                             font-size: 11px !important;
                             margin-bottom: 4px !important;
-                            padding: 2px !important;
+                            padding: 1px !important;
                         }
                         
                         .calendar .header {
@@ -705,19 +706,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     
                     @media (max-width: 480px) {
                         .calendar .days-grid {
-                            gap: 1px !important;
-                            padding: 0 2px !important;
+                            column-gap: 0px !important;
+                            row-gap: 3px !important;
+                            padding: 0 1px !important;
                         }
                         
                         .calendar .day {
-                            margin: 0.5px !important;
-                            padding: 0.5px !important;
+                            margin: 0px !important;
+                            padding: 0px !important;
                         }
                         
                         .calendar .weekday-label {
                             font-size: 10px !important;
                             margin-bottom: 2px !important;
-                            padding: 1px !important;
+                            padding: 0px !important;
                         }
                     }
                     
