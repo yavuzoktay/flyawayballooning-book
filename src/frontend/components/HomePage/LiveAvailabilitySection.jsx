@@ -675,7 +675,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         .calendar .days-grid {
                             column-gap: 1px !important;
                             row-gap: 4px !important;
-                            padding: 0 3px !important;
+                            padding: 0 5px !important;
                         }
                         
                         .calendar .day {
