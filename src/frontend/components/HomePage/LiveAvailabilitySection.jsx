@@ -679,7 +679,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         }
                         
                         .calendar .day {
-                            margin: 0px !important;
+                            margin: 4px !important;
                             padding: 0.5px !important;
                         }
                         
@@ -1240,7 +1240,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         textTransform: 'uppercase',
                                                         whiteSpace: 'nowrap'
                                                     }}>
-                                                        Spaces Running Low
+                                                        Nearly Full
                                                     </div>
                                                 )}
                                                 </button>
