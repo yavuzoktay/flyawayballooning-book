@@ -432,9 +432,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                         }
                     }
                     
+                    // Only use API image, no fallback to prevent image flash
+                    const apiImageUrl = getNormalizedImageUrl(exp);
+                    
                     return {
                         title: exp.title,
-                        img: getNormalizedImageUrl(exp) || (exp.title.toLowerCase().includes('shared') ? sharedFlightImg : privateCharterImg),
+                        img: apiImageUrl || null, // Don't use fallback images to prevent flash
                         price: formatPriceDisplay(price),
                         priceValue: price,
                         priceUnit: priceUnit,
@@ -775,16 +778,30 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 overflow: 'hidden',
                                 scrollSnapAlign: 'start'
                             }}>
-                        <img 
-                            src={experience.img || '/images/placeholder-experience.svg'} 
-                            alt={experience.title} 
-                            // Reduce image height to make the card shorter on mobile
-                            style={{ width: '100%', height: 120, objectFit: 'cover' }}
-                            onError={(e) => {
-                                e.target.src = '/images/placeholder-experience.svg';
-                                e.target.style.display = 'none';
-                            }}
-                        />
+                        {experience.img ? (
+                            <img 
+                                src={experience.img} 
+                                alt={experience.title} 
+                                // Reduce image height to make the card shorter on mobile
+                                style={{ width: '100%', height: 120, objectFit: 'cover' }}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                }}
+                            />
+                        ) : (
+                            <div style={{ 
+                                width: '100%', 
+                                height: 120, 
+                                backgroundColor: '#f3f4f6', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                color: '#9ca3af',
+                                fontSize: 14
+                            }}>
+                                Loading...
+                            </div>
+                        )}
                         <div style={{ padding: '10px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
                             <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 4, color: '#4a4a4a' }}>{experience.title}</h2>
                             <div style={{ borderBottom: '1px solid #e0e0e0', margin: '4px 0 8px 0' }} />
@@ -866,15 +883,29 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', width: '100%', justifyContent: 'flex-start'}}>
                     {filteredExperiences && filteredExperiences.length > 0 ? filteredExperiences.map((experience, index) => (
                         <div key={index} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', width: 'calc(50% - 10px)', minWidth: '260px', maxWidth: '400px', padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: '1' }}>
-                            <img 
-                                src={experience.img || '/images/placeholder-experience.svg'} 
-                                alt={experience.title} 
-                                style={{ width: '100%', height: 160, objectFit: 'cover' }}
-                                onError={(e) => {
-                                    e.target.src = '/images/placeholder-experience.svg';
-                                    e.target.style.display = 'none';
-                                }}
-                            />
+                            {experience.img ? (
+                                <img 
+                                    src={experience.img} 
+                                    alt={experience.title} 
+                                    style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                            ) : (
+                                <div style={{ 
+                                    width: '100%', 
+                                    height: 160, 
+                                    backgroundColor: '#f3f4f6', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    color: '#9ca3af',
+                                    fontSize: 14
+                                }}>
+                                    Loading...
+                                </div>
+                            )}
                             <div style={{ padding: '20px 20px 16px 20px', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', height: '100%' }}>
                                 <h2 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{experience.title}</h2>
                                 <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
