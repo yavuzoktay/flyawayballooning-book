@@ -952,7 +952,7 @@ const Index = () => {
         if (activityType === 'Flight Voucher') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-            sequence.push('voucher-type');
+                sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('additional-info');
             sequence.push('add-on');
@@ -962,7 +962,7 @@ const Index = () => {
         if (activityType === 'Buy Gift') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-            sequence.push('voucher-type');
+                sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('recipient-details');
             sequence.push('add-on');
@@ -1034,7 +1034,7 @@ const Index = () => {
             } else {
                 // For Book Flight, Redeem Voucher, and Buy Gift, keep the section open
                 console.log('⏸ Keeping Passenger Information/Purchaser Information open; skipping auto-close/open');
-                return;
+            return;
             }
         }
 

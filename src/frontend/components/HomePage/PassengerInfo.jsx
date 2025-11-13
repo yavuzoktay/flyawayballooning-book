@@ -607,7 +607,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           };
           
           return (
-            <div style={{
+          <div style={{
               position: 'fixed',
               left: 0,
               right: 0,
@@ -649,7 +649,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               >
                 Next
               </button>
-            </div>
+          </div>
           );
         })()}
         {/* Removed helper note as requested */}
@@ -717,17 +717,17 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
               <div className="passenger-cards-container" style={{ 
                 // Mobile: horizontal swipeable list
                 ...(isMobile ? {
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '16px',
-                  width: '100%',
-                  overflowX: 'auto',
+                display: 'flex', 
+                flexDirection: 'row', 
+                gap: '16px', 
+                width: '100%',
+                overflowX: 'auto',
                   overflowY: 'hidden',
-                  paddingBottom: '10px',
-                  scrollBehavior: 'smooth',
-                  scrollSnapType: 'x mandatory',
-                  scrollPadding: '0 8px',
-                  WebkitOverflowScrolling: 'touch'
+                paddingBottom: '10px',
+                scrollBehavior: 'smooth',
+                scrollSnapType: 'x mandatory',
+                scrollPadding: '0 8px',
+                WebkitOverflowScrolling: 'touch'
                 } : {
                   // Desktop: vertical list (no inner scroll, outer container handles it)
                   display: 'block',

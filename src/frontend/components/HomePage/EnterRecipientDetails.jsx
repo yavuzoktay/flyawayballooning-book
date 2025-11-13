@@ -3,6 +3,8 @@ import React, { useState, forwardRef, useImperativeHandle, useEffect } from "rea
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from 'react-tooltip';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
     const [emailError, setEmailError] = useState(false);
@@ -27,10 +29,29 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         };
     }, []);
 
-    const handleGiftDateFocus = (e) => {
-        // When focusing the mobile text-field, switch to native date picker
-        if (isMobile && e.target.type === 'text') {
-            e.target.type = 'date';
+    // Convert date string to Date object for DatePicker
+    const getDateValue = () => {
+        if (!recipientDetails.date) return null;
+        const date = new Date(recipientDetails.date);
+        return isNaN(date.getTime()) ? null : date;
+    };
+
+    // Handle date change from DatePicker
+    const handleDateChange = (date) => {
+        if (date) {
+            // Format date as YYYY-MM-DD for consistency
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            setRecipientDetails({ ...recipientDetails, date: formattedDate });
+            
+            // Clear validation error
+            if (validationErrors.date) {
+                setValidationErrors(prev => ({ ...prev, date: false }));
+            }
+        } else {
+            setRecipientDetails({ ...recipientDetails, date: '' });
         }
     };
     const [validationErrors, setValidationErrors] = useState({});
@@ -359,49 +380,190 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             display: 'block',
                         }}>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                         {isMobile ? (
-                            <input
-                                type={recipientDetails.date ? 'date' : 'text'}
-                                inputMode="numeric"
-                                pattern="\\d{2}\\.\\d{2}\\.\\d{4}"
-                                placeholder="dd.mm.yyyy"
-                                name="date"
-                                value={recipientDetails.date || ''}
-                                onFocus={handleGiftDateFocus}
-                                onChange={handleChange}
-                                required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    fontSize: '16px',
-                                    minHeight: '35px',
-                                    boxSizing: 'border-box',
-                                    ...(validationErrors.date ? { border: '1.5px solid red' } : {})
-                                }}
-                                className="recipient-date-input"
-                            />
+                            // Mobile: Use native date input for better mobile experience
+                            <div style={{ position: 'relative', width: '100%' }}>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={recipientDetails.date || ''}
+                                    onChange={handleChange}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px',
+                                        border: validationErrors.date ? '1.5px solid red' : '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        fontSize: '16px',
+                                        minHeight: '44px',
+                                        boxSizing: 'border-box',
+                                        backgroundColor: '#fff',
+                                        WebkitAppearance: 'none',
+                                        appearance: 'none',
+                                        color: recipientDetails.date ? '#374151' : 'transparent',
+                                    }}
+                                    className="recipient-date-input-mobile"
+                                />
+                                {!recipientDetails.date && (
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            left: '16px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            pointerEvents: 'none',
+                                            color: '#9ca3af',
+                                            fontSize: '16px',
+                                            userSelect: 'none',
+                                        }}
+                                        className="recipient-date-placeholder"
+                                    >
+                                        Select a date
+                                    </div>
+                                )}
+                            </div>
                         ) : (
-                            <input
-                                type="date"
-                                name="date"
-                                value={recipientDetails.date || ''}
-                                onChange={handleChange}
+                            // Desktop: Use DatePicker for better UX
+                            <div style={{ position: 'relative' }}>
+                                <DatePicker
+                                    selected={getDateValue()}
+                                    onChange={handleDateChange}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="Select a date"
+                                    minDate={new Date()}
                                 required={isGiftVoucher && !(skipRecipientDetails || recipientDetails?.isSkipped)}
+                                    wrapperClassName="date-picker-wrapper"
+                                    className={`recipient-date-input ${validationErrors.date ? 'error' : ''}`}
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px',
-                                    border: '1px solid #e5e7eb',
+                                        border: validationErrors.date ? '1.5px solid red' : '1px solid #e5e7eb',
                                     borderRadius: '6px',
                                     fontSize: '16px',
                                     minHeight: '35px',
                                     boxSizing: 'border-box',
-                                    ...(validationErrors.date ? { border: '1.5px solid red' } : {})
-                                }}
-                                className="recipient-date-input"
-                            />
+                                        cursor: 'pointer',
+                                        backgroundColor: '#fff',
+                                    }}
+                                    calendarClassName="recipient-date-calendar"
+                                    popperPlacement="bottom"
+                                    popperClassName="recipient-date-popper"
+                                />
+                            <style>{`
+                                .date-picker-wrapper {
+                                    width: 100%;
+                                }
+                                .recipient-date-input {
+                                    width: 100% !important;
+                                    padding: 12px 16px !important;
+                                    border: 1px solid #e5e7eb !important;
+                                    border-radius: 6px !important;
+                                    font-size: 16px !important;
+                                    min-height: 35px !important;
+                                    box-sizing: border-box !important;
+                                    cursor: pointer !important;
+                                    background-color: #fff !important;
+                                }
+                                .recipient-date-input.error {
+                                    border: 1.5px solid red !important;
+                                }
+                                .recipient-date-input:focus {
+                                    outline: none !important;
+                                    border-color: #3b82f6 !important;
+                                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+                                }
+                                .recipient-date-calendar {
+                                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+                                    border-radius: 8px !important;
+                                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__header {
+                                    background-color: #3b82f6 !important;
+                                    border-bottom: none !important;
+                                    border-radius: 8px 8px 0 0 !important;
+                                    padding-top: 12px !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__current-month {
+                                    color: #fff !important;
+                                    font-weight: 600 !important;
+                                    font-size: 16px !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__day-name {
+                                    color: #fff !important;
+                                    font-weight: 500 !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__day--selected,
+                                .recipient-date-calendar .react-datepicker__day--keyboard-selected {
+                                    background-color: #3b82f6 !important;
+                                    border-radius: 6px !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__day:hover {
+                                    background-color: #dbeafe !important;
+                                    border-radius: 6px !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__day--today {
+                                    font-weight: 600 !important;
+                                    border: 1px solid #3b82f6 !important;
+                                }
+                                .recipient-date-calendar .react-datepicker__day--disabled {
+                                    color: #d1d5db !important;
+                                    cursor: not-allowed !important;
+                                }
+                                .recipient-date-popper {
+                                    z-index: 9999 !important;
+                                }
+                            `}</style>
+                            </div>
                         )}
-                        {validationErrors.date && <span style={{ color: 'red', fontSize: 12 }}>Gift date is required</span>}
+                        <style>{`
+                            /* Mobile native date input styling */
+                            .recipient-date-input-mobile {
+                                width: 100% !important;
+                                padding: 12px 16px !important;
+                                border: 1px solid #e5e7eb !important;
+                                border-radius: 6px !important;
+                                font-size: 16px !important;
+                                min-height: 44px !important;
+                                box-sizing: border-box !important;
+                                background-color: #fff !important;
+                                -webkit-appearance: none !important;
+                                appearance: none !important;
+                            }
+                            .recipient-date-input-mobile:focus {
+                                outline: none !important;
+                                border-color: #3b82f6 !important;
+                                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+                            }
+                            .recipient-date-input-mobile::-webkit-calendar-picker-indicator {
+                                cursor: pointer !important;
+                                opacity: 1 !important;
+                                width: 20px !important;
+                                height: 20px !important;
+                                padding: 4px !important;
+                                position: relative !important;
+                                z-index: 1 !important;
+                            }
+                            .recipient-date-input-mobile::-webkit-inner-spin-button,
+                            .recipient-date-input-mobile::-webkit-clear-button {
+                                display: none !important;
+                            }
+                            .recipient-date-placeholder {
+                                pointer-events: none !important;
+                                user-select: none !important;
+                            }
+                            @media (max-width: 768px) {
+                                .recipient-date-input-mobile {
+                                    font-size: 16px !important;
+                                    padding: 14px 16px !important;
+                                    min-height: 48px !important;
+                                }
+                                .recipient-date-placeholder {
+                                    font-size: 16px !important;
+                                    left: 16px !important;
+                                }
+                            }
+                        `}</style>
+                        {validationErrors.date && <span style={{ color: 'red', fontSize: 12, marginTop: '4px', display: 'block' }}>Gift date is required</span>}
                     </div>
                 </div>
             </div>

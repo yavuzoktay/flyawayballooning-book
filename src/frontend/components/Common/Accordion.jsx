@@ -25,7 +25,7 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
 
     // Check if this is the "What would you like to do?" section
     const isActivitySection = id === "activity";
-    
+
     // Check if this is the Passenger Information section - needs overflow control
     const isPassengerInfoSection = id === "passenger-info";
 
