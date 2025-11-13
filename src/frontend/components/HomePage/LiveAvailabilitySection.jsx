@@ -538,7 +538,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
                             color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
                             borderRadius: isMobile ? 4 : 8,
-                            margin: isMobile ? '0' : 2,
+                            margin: isMobile ? '1px' : 2,
                             padding: isMobile ? '0' : 2,
                             minHeight: daySize,
                             minWidth: daySize,
@@ -673,20 +673,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 {`
                     @media (max-width: 768px) {
                         .calendar .days-grid {
-                            column-gap: 1px !important;
-                            row-gap: 4px !important;
-                            padding: 0 5px !important;
+                            column-gap: 0px !important;
+                            row-gap: 2px !important;
+                            padding: 0 2px !important;
                         }
                         
                         .calendar .day {
-                            margin: 4px !important;
-                            padding: 0.5px !important;
+                            margin: 1px !important;
+                            padding: 0 !important;
                         }
                         
                         .calendar .weekday-label {
                             font-size: 11px !important;
-                            margin-bottom: 4px !important;
-                            padding: 1px !important;
+                            margin-bottom: 2px !important;
+                            padding: 0 !important;
                         }
                         
                         .calendar .header {
@@ -707,7 +707,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     @media (max-width: 480px) {
                         .calendar .days-grid {
                             column-gap: 0px !important;
-                            row-gap: 3px !important;
+                            row-gap: 7px !important;
                             padding: 0 1px !important;
                         }
                         
@@ -845,7 +845,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 fontWeight: 600, 
                                 color: '#888', 
                                 fontSize: isMobile ? 10 : 15, 
-                                marginBottom: isMobile ? 2 : 8,
+                                marginBottom: isMobile ? 1 : 8,
                                 padding: isMobile ? '0' : '4px',
                                 // Mobilde tarih kutularıyla aynı boyutta olması için
                                 ...(isMobile ? {
@@ -1342,7 +1342,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }
                 @media (max-width: 768px) {
                     .days-grid {
-                        gap: 0px !important;
+                        column-gap: 0px !important;
+                        row-gap: 2px !important;
                         padding: 0 2px !important;
                     }
                 }
@@ -1358,7 +1359,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     .weekday-label {
                         padding: 0 !important;
                         margin: 0 !important;
-                        margin-bottom: 2px !important;
+                        margin-bottom: 1px !important;
                         font-size: 10px !important;
                         display: flex !important;
                         align-items: center !important;
@@ -1384,7 +1385,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }
                 @media (max-width: 768px) {
                     .day {
-                        margin: 0 !important;
+                        margin: 1px !important;
                         padding: 0 !important;
                     }
                 }
