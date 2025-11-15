@@ -336,8 +336,9 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
     console.log('   - Items to display:', filteredItems.map ? filteredItems.map(item => item.name) : []);
 
     return (
-        <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} isDisabled={isDisabled}>
-            <div className="tab_box add-on-card scroll-box vouch">
+        <div style={{ marginBottom: isMobile ? '140px' : '100px' }}>
+            <Accordion title="Add To Booking" id="add-on" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} isDisabled={isDisabled}>
+                <div className="tab_box add-on-card scroll-box vouch" style={{ paddingBottom: isMobile ? '140px' : '100px' }}>
                 {addToBookingLoading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>
                         <p>Loading add to booking items...</p>
@@ -427,8 +428,9 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                         )
                     })
                 )}
-            </div>
-        </Accordion>
+                </div>
+            </Accordion>
+        </div>
     );
 };
 

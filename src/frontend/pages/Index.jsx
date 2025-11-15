@@ -96,7 +96,7 @@ const Index = () => {
         : activitySelect === 'Buy Gift'
         ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details', 'add-on']
         : activitySelect === 'Redeem Voucher'
-        ? ['activity', 'location', 'experience', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
+        ? ['activity', 'location', 'live-availability', 'passenger-info', 'additional-info', 'add-on'] // Experience removed from progress bar for Redeem Voucher
         : [];
 
     // Start/maintain 5-minute countdown when a date and time are selected
@@ -988,8 +988,13 @@ const Index = () => {
             return;
         }
         
-        // Update progress bar state
-        setCompletedSections(prev => new Set([...prev, completedSectionId]));
+        // Update progress bar state immediately
+        setCompletedSections(prev => {
+            const newSet = new Set([...prev, completedSectionId]);
+            console.log(`✅ Progress bar updated: ${completedSectionId} added to completed sections`);
+            console.log(`📊 Completed sections:`, Array.from(newSet));
+            return newSet;
+        });
         console.log(`Section completed: ${completedSectionId}`);
         
         // Pass current state values to avoid stale closure issues
@@ -1026,16 +1031,10 @@ const Index = () => {
                 fetchPassengerTermsForJourney(journeyLabel);
             }, 10000);
             
-            // For Flight Voucher, proceed to next section
-            // For Buy Gift (Purchaser Information), keep section open so Next button remains visible
-            if (activitySelect === 'Flight Voucher') {
-                console.log('✅ Passenger Information complete, proceeding to next section');
-                // Don't return - let the normal flow continue to open next section
-            } else {
-                // For Book Flight, Redeem Voucher, and Buy Gift, keep the section open
-                console.log('⏸ Keeping Passenger Information/Purchaser Information open; skipping auto-close/open');
+            // For all activity types (including Flight Voucher), keep Passenger Information section open
+            // This allows users to review and edit their information without the section auto-closing
+            console.log('⏸ Keeping Passenger Information/Purchaser Information open; skipping auto-close/open');
             return;
-            }
         }
 
         // Close current section
@@ -1065,7 +1064,10 @@ const Index = () => {
                 const completedSections = [];
                 if (activitySelect) completedSections.push('activity');
                 if (chooseLocation) completedSections.push('location');
-                if (chooseFlightType?.type) completedSections.push('experience');
+                // For Redeem Voucher, experience is skipped in the flow, so don't check it for progress bar
+                if (chooseFlightType?.type && activitySelect !== 'Redeem Voucher') {
+                    completedSections.push('experience');
+                }
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 // Use proper passenger info validation based on activity type
@@ -1086,6 +1088,26 @@ const Index = () => {
                 
                 // Sıradaki tamamlanmamış section'ı bul
                 nextSection = sequence.find(section => !completedSections.includes(section));
+            }
+            
+            // Special handling for Redeem Voucher: Skip experience in the flow
+            if (activitySelect === 'Redeem Voucher') {
+                // After location: skip experience and go directly to live-availability
+                if (completedSectionId === 'location' && nextSection === 'experience') {
+                    const liveAvailabilityIndex = sequence.indexOf('live-availability');
+                    if (liveAvailabilityIndex !== -1) {
+                        nextSection = 'live-availability';
+                        console.log('📅 Redeem Voucher: Skipping experience, opening live-availability directly');
+                    }
+                }
+                // After live-availability: skip experience and go directly to passenger-info
+                else if (completedSectionId === 'live-availability' && nextSection === 'experience') {
+                    const passengerInfoIndex = sequence.indexOf('passenger-info');
+                    if (passengerInfoIndex !== -1) {
+                        nextSection = 'passenger-info';
+                        console.log('📅 Redeem Voucher: Skipping experience, opening passenger-info directly after live-availability');
+                    }
+                }
             }
             
             if (nextSection) {
@@ -1125,7 +1147,10 @@ const Index = () => {
         const completedSections = [];
         if (activitySelect) completedSections.push('activity');
         if (chooseLocation) completedSections.push('location');
-        if (chooseFlightType?.type) completedSections.push('experience');
+        // For Redeem Voucher, experience is skipped in the flow, so don't check it for progress bar
+        if (chooseFlightType?.type && activitySelect !== 'Redeem Voucher') {
+            completedSections.push('experience');
+        }
         if (selectedVoucherType) completedSections.push('voucher-type');
         if (selectedDate && selectedTime) completedSections.push('live-availability');
         // Use proper passenger info validation based on activity type
@@ -1149,9 +1174,32 @@ const Index = () => {
             return { isEnabled: true };
         }
 
+        // Special handling for Redeem Voucher: Live Availability should remain enabled after selection
+        // This allows users to change their date/time selection if needed
+        if (sectionId === 'live-availability' && activitySelect === 'Redeem Voucher') {
+            // For Redeem Voucher, Live Availability is enabled if location is selected
+            // Even after date/time selection, it should remain enabled to allow changes
+            if (chooseLocation) {
+                return { isEnabled: true };
+            }
+        }
+
+        // Special handling for Redeem Voucher: Additional Information should be enabled after Passenger Information is completed
+        if (sectionId === 'additional-info' && activitySelect === 'Redeem Voucher') {
+            // For Redeem Voucher, Additional Information is enabled if Passenger Information is completed
+            // We skip experience in the flow, so we only check if passenger-info is completed
+            if (passengerComplete) {
+                return { isEnabled: true };
+            }
+        }
+
         // Önceki tüm section'lar tamamlanmış mı kontrol et
         const previousSections = sequence.slice(0, sectionIndex);
-        const allPreviousCompleted = previousSections.every(section => completedSections.includes(section));
+        // For Redeem Voucher, skip experience in the check since it's not part of the actual flow
+        const sectionsToCheck = activitySelect === 'Redeem Voucher' 
+            ? previousSections.filter(section => section !== 'experience')
+            : previousSections;
+        const allPreviousCompleted = sectionsToCheck.every(section => completedSections.includes(section));
         
         return { isEnabled: allPreviousCompleted };
     };
@@ -1445,7 +1493,9 @@ const Index = () => {
                     quantity: selectedVoucherType.quantity,
                     totalPrice: selectedVoucherType.totalPrice || 0
                 } : null,
-                voucher_type: selectedVoucherType?.title || null
+                voucher_type: selectedVoucherType?.title || null,
+                // Include privateCharterWeatherRefund for Private Charter bookings
+                privateCharterWeatherRefund: chooseFlightType?.type === 'Private Charter' ? privateCharterWeatherRefund : false
             };
 
             try {
@@ -2630,6 +2680,7 @@ const Index = () => {
                                                 />
                                             )}
                                             <PassengerInfo
+                                                ref={passengerInfoRef}
                                                 isGiftVoucher={isGiftVoucher}
                                                 isFlightVoucher={isFlightVoucher}
                                                 passengerData={passengerData}
@@ -2642,8 +2693,12 @@ const Index = () => {
                                                 chooseLocation={chooseLocation}
                                                 activitySelect={activitySelect}
                                                 title={activitySelect === 'Buy Gift' ? 'Purchaser Information' : 'Passenger Information'}
+                                                selectedVoucherType={selectedVoucherType}
+                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
+                                                getNextSectionId={getNextSectionId}
                                             />
                                             <AdditionalInfo 
                                                 ref={additionalInfoRef}

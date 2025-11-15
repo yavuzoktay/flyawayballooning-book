@@ -137,9 +137,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
         confirmLocation(locName);
     };
 
-    const confirmLocation = (locName) => {
+    const confirmLocation = async (locName) => {
         setChooseLocation(locName);
-        getActivityId(locName);
         
         // Show notification for location selection
         setNotificationMessage(`${locName} Selected`);
@@ -150,6 +149,9 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             setShowNotification(false);
         }, 3000);
         
+        // Wait for activity data to load
+        await getActivityId(locName);
+        
         // Trigger section completion after state update
         setTimeout(() => {
             if (onSectionCompletion) {
@@ -157,6 +159,68 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                 onSectionCompletion('location');
             }
         }, 300); // Longer delay to ensure state is fully updated
+        
+        // For Redeem Voucher: Auto-open Live Availability section and scroll to it
+        if (isRedeemVoucher) {
+            // Wait for location state to update, activity data to load, and section completion to be processed
+            // Use a longer delay to ensure all state updates are complete
+            setTimeout(() => {
+                // For Redeem Voucher, we want to open Live Availability directly after location selection
+                // Even if validation says it's disabled, we force it open for better UX
+                if (setActiveAccordion) {
+                    console.log('📅 LocationSection: Auto-opening Live Availability for Redeem Voucher (bypassing validation)');
+                    // Try to open with validation first
+                    setActiveAccordion('live-availability');
+                    
+                    // If validation blocks it, try again after a short delay
+                    // This gives time for state to update and accordion to become enabled
+                    setTimeout(() => {
+                        // Check if accordion is actually open
+                        const accordionElement = document.getElementById('live-availability');
+                        const isOpen = accordionElement?.querySelector('.panel[style*="block"]') || 
+                                      accordionElement?.querySelector('.panel:not([style*="none"])');
+                        
+                        if (!isOpen) {
+                            console.log('📅 LocationSection: Live Availability not open, retrying...');
+                            // Try one more time after state has fully updated
+                            setTimeout(() => {
+                                setActiveAccordion('live-availability');
+                            }, 300);
+                        }
+                    }, 200);
+                }
+                
+                // Scroll to Live Availability section after accordion opens and renders
+                setTimeout(() => {
+                    // Try multiple selectors to find the calendar accordion
+                    const calendarElement = document.getElementById('live-availability') || 
+                                          document.querySelector('[data-accordion-id="live-availability"]') ||
+                                          document.querySelector('.accordion-section[id="live-availability"]');
+                    
+                    if (calendarElement) {
+                        calendarElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                        console.log('📅 LocationSection: Scrolled to Live Availability section');
+                    } else {
+                        // Fallback: try to find by accordion panel
+                        const accordionPanel = document.getElementById('live-availability-panel');
+                        if (accordionPanel) {
+                            accordionPanel.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                            console.log('📅 LocationSection: Scrolled to Live Availability panel (fallback)');
+                        } else {
+                            console.warn('📅 LocationSection: Could not find Live Availability element to scroll');
+                        }
+                    }
+                }, 1200); // Wait for accordion to fully open and render
+            }, 800); // Wait for location state, activity data, and section completion processing
+        }
     };
 
     const handleModalClose = () => {

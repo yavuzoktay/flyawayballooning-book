@@ -35,7 +35,7 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
             data-accordion-id={id || undefined}
             className={`accordion-section ${className || ""}`}
             style={{
-                ...(isDisabled ? {
+                ...(isDisabled && !isOpen ? {
                     opacity: '0.5',
                     pointerEvents: 'none',
                     cursor: 'not-allowed'
@@ -64,7 +64,9 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
                     display: isOpen ? "block" : "none",
                     overflow: isPassengerInfoSection ? "hidden" : "visible", // Passenger Info: contain overflow, others: visible
                     height: "auto", // Ensure auto height
-                    transition: "height 0.3s ease" // Smooth transition for height changes
+                    transition: "height 0.3s ease", // Smooth transition for height changes
+                    // Ensure panel content is always clickable when open, even if accordion is disabled
+                    pointerEvents: isOpen ? 'auto' : 'none'
                 }}
             >
                 {children}
