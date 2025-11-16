@@ -2159,7 +2159,7 @@ const Index = () => {
                     }
 
                     const scroller = getScrollableParent(target || (e && e.currentTarget));
-                    const offset = isMobile ? 60 : 100;
+                    const offset = isMobile ? 150 : 200; // Increased offset for more scroll distance
 
                     if (target) {
                         if (scroller === window) {
@@ -2175,7 +2175,7 @@ const Index = () => {
                     } else {
                         // Fallback: small nudge down (desktop only)
                         if (!isMobile) {
-                            window.scrollBy({ top: 120, behavior: 'smooth' });
+                            window.scrollBy({ top: 200, behavior: 'smooth' }); // Increased fallback scroll
                         }
                     }
                 });

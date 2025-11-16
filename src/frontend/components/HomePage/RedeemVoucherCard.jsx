@@ -63,25 +63,48 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
     }
   };
 
+  // Detect mobile viewport
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="voucher-card-container" style={{ 
       width: '100%', 
       maxWidth: '100%',
-      height: '100%',
-      minHeight: '220px',
-      maxHeight: '220px',
-      overflowY: 'auto',
-      overflowX: 'hidden'
+      height: isMobile ? '120px' : '220px',
+      minHeight: isMobile ? '120px' : '220px',
+      maxHeight: isMobile ? '120px' : '220px',
+      overflow: isMobile ? 'hidden' : 'auto',
+      overflowY: isMobile ? 'hidden' : 'auto',
+      overflowX: 'hidden',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      flexShrink: 0,
+      borderRadius: '20px',
+      border: '2px solid #03a9f4',
+      margin: 0,
+      position: 'relative'
     }}>
       <div className="voucher-label" style={{ 
         color: "#0d47a1", 
-        fontSize: "16px", 
+        fontSize: isMobile ? "11px" : "16px", 
         fontWeight: "500", 
-        marginBottom: "8px", 
+        marginBottom: isMobile ? "2px" : "8px", 
+        marginTop: isMobile ? "2px" : "0",
         textAlign: "center", 
         width: '100%',
-        lineHeight: '1.3',
-        flexShrink: 0
+        lineHeight: '1.1',
+        flexShrink: 0,
+        maxHeight: isMobile ? '14px' : 'auto',
+        overflow: 'hidden'
       }}>
         Enter Voucher Code
       </div>
@@ -94,14 +117,16 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         className="voucher-input-field"
         style={{ 
           width: '85%', 
-          margin: '8px auto 12px auto', 
+          margin: isMobile ? '2px auto 4px auto' : '8px auto 12px auto', 
           display: 'block',
-          padding: '8px 12px',
-          fontSize: '14px',
+          padding: isMobile ? '3px 6px' : '8px 12px',
+          fontSize: isMobile ? '11px' : '14px',
           border: '1px solid #ccc',
           borderRadius: '4px',
           boxSizing: 'border-box',
-          flexShrink: 0
+          flexShrink: 0,
+          maxHeight: isMobile ? '24px' : 'auto',
+          height: isMobile ? '24px' : 'auto'
         }}
         onClick={e => e.stopPropagation()}
         onFocus={e => e.stopPropagation()}
@@ -114,14 +139,16 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           color: "white", 
           border: "none",
           borderRadius: "4px",
-          padding: "8px 16px",
-          fontSize: "14px",
+          padding: isMobile ? '3px 10px' : "8px 16px",
+          fontSize: isMobile ? "11px" : "14px",
           fontWeight: "500",
           cursor: "pointer",
-          lineHeight: "1.4",
-          marginBottom: "8px",
+          lineHeight: "1.2",
+          marginBottom: isMobile ? "2px" : "8px",
           minWidth: "60px",
-          flexShrink: 0
+          flexShrink: 0,
+          maxHeight: isMobile ? '24px' : 'auto',
+          height: isMobile ? '24px' : 'auto'
         }}
       >
         Redeem
@@ -132,37 +159,44 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         <div style={{
           background: '#d4edda',
           color: '#155724',
-          padding: '6px 10px',
-          borderRadius: '6px',
-          marginTop: '4px',
-          fontSize: '12px',
+          padding: isMobile ? '2px 4px' : '6px 10px',
+          borderRadius: '4px',
+          marginTop: isMobile ? '2px' : '4px',
+          fontSize: isMobile ? '8px' : '12px',
           textAlign: 'center',
           border: '1px solid #c3e6cb',
           maxWidth: '100%',
           wordWrap: 'break-word',
           overflowWrap: 'break-word',
-          flexShrink: 0
+          flexShrink: 0,
+          maxHeight: isMobile ? '32px' : 'auto',
+          overflow: isMobile ? 'hidden' : 'visible',
+          lineHeight: isMobile ? '1.1' : '1.3'
         }}>
-          <div style={{ fontWeight: '600', marginBottom: '4px', fontSize: '13px' }}>
-            ✅ {voucherData.title}
+          <div style={{ fontWeight: '600', marginBottom: isMobile ? '1px' : '4px', fontSize: isMobile ? '9px' : '13px', lineHeight: '1.1' }}>
+            ✅ {isMobile ? voucherData.title.substring(0, 20) + (voucherData.title.length > 20 ? '...' : '') : voucherData.title}
           </div>
-          <div style={{ marginBottom: '3px', fontSize: '12px' }}>
+          <div style={{ marginBottom: isMobile ? '1px' : '3px', fontSize: isMobile ? '8px' : '12px', lineHeight: '1.1' }}>
             {voucherData.discount_type === 'percentage' 
               ? `${voucherData.discount_value}% off` 
               : `£${voucherData.discount_value} off`
             }
-            {voucherData.max_discount && voucherData.discount_type === 'percentage' && (
+            {!isMobile && voucherData.max_discount && voucherData.discount_type === 'percentage' && (
               <span style={{ fontSize: '11px', color: '#666' }}>
                 {' '}(Max: £{voucherData.max_discount})
               </span>
             )}
           </div>
-          <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: '500' }}>
-            Final Price: £{voucherData.final_amount}
-          </div>
-          <div style={{ fontSize: '10px', marginTop: '3px', color: '#666' }}>
-            Valid until: {new Date(voucherData.valid_until).toLocaleDateString()}
-          </div>
+          {!isMobile && (
+            <>
+              <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: '500' }}>
+                Final Price: £{voucherData.final_amount}
+              </div>
+              <div style={{ fontSize: '10px', marginTop: '3px', color: '#666' }}>
+                Valid until: {new Date(voucherData.valid_until).toLocaleDateString()}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -170,26 +204,31 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         <div style={{
           background: '#f8d7da',
           color: '#721c24',
-          padding: '6px 10px',
-          borderRadius: '6px',
-          marginTop: '4px',
-          fontSize: '12px',
+          padding: isMobile ? '2px 4px' : '6px 10px',
+          borderRadius: '4px',
+          marginTop: isMobile ? '2px' : '4px',
+          fontSize: isMobile ? '9px' : '12px',
           textAlign: 'center',
           border: '1px solid #f5c6cb',
           maxWidth: '100%',
           wordWrap: 'break-word',
           overflowWrap: 'break-word',
-          flexShrink: 0
+          flexShrink: 0,
+          maxHeight: isMobile ? '28px' : 'auto',
+          overflow: isMobile ? 'hidden' : 'visible',
+          lineHeight: isMobile ? '1.1' : '1.3'
         }}>
-          ❌ Invalid voucher code
-          <div style={{ 
-            fontSize: '11px', 
-            marginTop: '3px', 
-            color: '#721c24',
-            lineHeight: '1.3'
-          }}>
-            Please check the code and try again
-          </div>
+          ❌ {isMobile ? 'Invalid code' : 'Invalid voucher code'}
+          {!isMobile && (
+            <div style={{ 
+              fontSize: '11px', 
+              marginTop: '3px', 
+              color: '#721c24',
+              lineHeight: '1.3'
+            }}>
+              Please check the code and try again
+            </div>
+          )}
         </div>
       )}
     </div>

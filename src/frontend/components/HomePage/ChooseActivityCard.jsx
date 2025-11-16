@@ -232,16 +232,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                 console.log('Rendering item:', item.label, 'index:', index, 'isMobile:', isMobile);
                 return (
                 <div className="book_data" key={item.value} style={{ 
-                    height: isMobile ? "10px" : "220px", 
-                    minHeight: isMobile ? "10px" : "220px", 
+                    height: isMobile ? "120px" : "220px", 
+                    minHeight: isMobile ? "120px" : "220px", 
+                    maxHeight: isMobile ? "120px" : "220px",
                     flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
                     margin: isMobile ? '0 0 8px 0' : '0', 
                     width: isMobile ? '100%' : 'calc(50% - 20px)', 
                     boxSizing: 'border-box' 
                 }}>
                     {item.label === "Redeem Voucher" ? (
-                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: "220px", width: '100%', position: 'relative' }}>
-                            <div className="card-flipper" style={{ height: "220px", width: '100%', position: 'relative' }}>
+                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: isMobile ? "120px" : "220px", width: '100%', position: 'relative' }}>
+                            <div className="card-flipper" style={{ height: isMobile ? "120px" : "220px", width: '100%', position: 'relative' }}>
                                 <div 
                                     className="card-front"
                                     onClick={() => {
@@ -254,7 +255,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }, 3000);
                                         setIsFlipped(true);
                                     }}
-                                    style={{ height: '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
+                                    style={{ height: isMobile ? '120px' : '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
                                 >
                                                                             <label 
                                         htmlFor={`activity-${item.label}`} 
@@ -324,7 +325,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                             setIsFlipped(false);
                                         }
                                     }}
-                                    style={{ height: '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
+                                    style={{ 
+                                        height: isMobile ? '120px' : '220px', 
+                                        width: '100%', 
+                                        padding: '0', 
+                                        boxSizing: 'border-box', 
+                                        position: 'absolute', 
+                                        top: 0, 
+                                        left: 0,
+                                        borderRadius: '20px',
+                                        overflow: 'hidden'
+                                    }}
                                 >
                                     <RedeemVoucherCard
                                         onSubmit={handleVoucherSubmit}

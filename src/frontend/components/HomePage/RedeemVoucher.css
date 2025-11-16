@@ -189,14 +189,16 @@
   padding: 20px !important;
   width: 100%;
   height: 100% !important;
-  min-height: 220px !important; /* Match card height */
-  max-height: 220px !important; /* Prevent height change */
-  box-sizing: border-box;
+  min-height: 220px; /* Match card height */
+  max-height: 220px; /* Prevent height change */
+  box-sizing: border-box !important;
   border: 2px solid #03a9f4;
   border-radius: 20px;
   background-color: transparent;
   overflow-y: auto; /* Allow scrolling if content is too long */
   overflow-x: hidden;
+  margin: 0 !important;
+  position: relative;
 }
 
 .voucher-card-container .voucher-label {
@@ -328,7 +330,8 @@
 @media (max-width: 768px) {
   .voucher-card-container {
     padding: 10px !important;
-    min-height: 180px;
+    min-height: 120px !important;
+    max-height: 120px !important;
   }
 
   .voucher-card-content h3 {
@@ -445,22 +448,29 @@
 @media (max-width: 768px) {
   /* Ensure Redeem Voucher card maintains consistent height in both states */
   .activity-panel .book_data:nth-child(3) {
-    height: auto !important; /* same as Buy Gift card */
-    min-height: inherit !important;
+    height: 120px !important; /* Match front card height on mobile */
+    min-height: 120px !important;
+    max-height: 120px !important;
   }
 
-  /* Let the voucher card determine its own height when expanded */
-  .card-flip-container,
-  .card-flipper {
-    height: auto !important;
+  /* Keep fixed height for flip container and flipper on mobile */
+  .activity-panel .book_data:nth-child(3) .card-flip-container,
+  .activity-panel .book_data:nth-child(3) .card-flipper {
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
   }
 
   /* Remove 3D positioning so elements take normal flow space */
   .card-front,
   .card-back {
     position: relative !important;
-    height: auto !important;
+    height: 120px !important; /* Fixed height to match front */
+    min-height: 120px !important;
+    max-height: 120px !important;
     transform: none !important;
+    overflow: hidden !important; /* Ensure border stays within card bounds */
+    border-radius: 20px !important; /* Match parent card border-radius */
   }
 
   /* Disable the rotate on mobile */
@@ -481,6 +491,39 @@
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
+  }
+
+  /* Ensure voucher card container matches the fixed height */
+  .activity-panel .book_data:nth-child(3) .card-back .voucher-card-container {
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+    padding: 8px !important;
+    overflow: hidden !important;
+    border-radius: 20px !important; /* Match card-back border-radius */
+    box-sizing: border-box !important; /* Include border in height calculation */
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Prevent any child elements from expanding the card */
+  .activity-panel .book_data:nth-child(3) .card-back * {
+    max-height: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ensure input and button don't cause expansion */
+  .activity-panel .book_data:nth-child(3) .voucher-card-container input,
+  .activity-panel .book_data:nth-child(3) .voucher-card-container button {
+    max-height: 28px !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* Prevent status messages from expanding card */
+  .activity-panel .book_data:nth-child(3) .voucher-card-container > div:last-child {
+    max-height: 40px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 }
 
