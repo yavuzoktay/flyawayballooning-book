@@ -213,12 +213,22 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     console.log("Updating passenger data, count:", passengerCount);
     
     setPassengerData((prevData) => {
+      // Preserve whether weather refundable cover is enabled for existing passengers
+      const weatherRefundEnabled = prevData.some(p => p && p.weatherRefund);
+
       // Create a new array with the correct number of passenger objects
       const newPassengers = [...prevData];
 
-      // Add passenger objects if needed
+      // Add passenger objects if needed, inheriting current weather refund state
       for (let i = prevData.length; i < passengerCount; i++) {
-        newPassengers.push({ firstName: "", lastName: "", weight: "", phone: "", email: "", weatherRefund: false });
+        newPassengers.push({
+          firstName: "",
+          lastName: "",
+          weight: "",
+          phone: "",
+          email: "",
+          weatherRefund: weatherRefundEnabled
+        });
       }
 
       // Trim the array to match the selected passenger count
