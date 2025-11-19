@@ -1667,15 +1667,31 @@ const Index = () => {
                         } else {
                             flightTypeForBackend = chooseFlightType.type;
                         }
-                        // Only add flight type filter if a voucher type is also selected
-                        // This allows showing all availabilities when no voucher type is selected
-                        if (selectedVoucherType && selectedVoucherType.title) {
-                            params.append('flightType', flightTypeForBackend);
-                        }
+                        params.append('flightType', flightTypeForBackend);
                     }
                     
                     // Add voucher type filter if selected
-                    if (selectedVoucherType && selectedVoucherType.title) {
+                    // For Redeem Voucher: use flight type to determine appropriate voucher types
+                    if (activitySelect === 'Redeem Voucher' && chooseFlightType && chooseFlightType.type) {
+                        // For Redeem Voucher, determine voucher types based on selected flight type
+                        // not the voucher's original type
+                        if (chooseFlightType.type === 'Private Charter') {
+                            // For Private Charter, use private voucher types
+                            // Try "Private Charter Flights" first, fallback to "Proposal Flight"
+                            params.append('voucherTypes', 'Private Charter Flights');
+                        } else if (chooseFlightType.type === 'Shared Flight') {
+                            // For Shared Flight, use shared voucher types
+                            // Use the voucher's original type if it's a shared type, otherwise default to "Any Day Flight"
+                            const sharedVoucherTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight'];
+                            const voucherType = selectedVoucherType?.title;
+                            if (voucherType && sharedVoucherTypes.includes(voucherType)) {
+                                params.append('voucherTypes', voucherType);
+                            } else {
+                                params.append('voucherTypes', 'Any Day Flight');
+                            }
+                        }
+                    } else if (selectedVoucherType && selectedVoucherType.title) {
+                        // For other activity types, use the selected voucher type
                         params.append('voucherTypes', selectedVoucherType.title);
                     } else if (activitySelect === 'Book Flight') {
                         // For Book Flight, if no voucher type is selected, show all availabilities

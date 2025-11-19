@@ -710,14 +710,20 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             }
             
             // VOUCHER DATA PREPARATION (Flight Voucher ve Gift Voucher için Stripe ödeme)
-            const computedNumberOfPassengers = (() => {
-                // Prefer quantity attached to selected voucher by VoucherType component
-                const q = parseInt(selectedVoucherType?.quantity, 10);
-                if (!Number.isNaN(q) && q > 0) return q;
-                // Fallback to number of passengers entered in the form
-                if (Array.isArray(passengerData) && passengerData.length > 0) return passengerData.length;
-                return 1;
-            })();
+    const computedNumberOfPassengers = (() => {
+        // Prefer quantity attached to selected voucher by VoucherType component
+        const voucherQuantity = parseInt(selectedVoucherType?.quantity, 10);
+        if (!Number.isNaN(voucherQuantity) && voucherQuantity > 0) return voucherQuantity;
+
+        // Next, use passenger count selected in the Experience step (e.g., Private Charter selector)
+        const chooseFlightCount = parseInt(chooseFlightType?.passengerCount, 10);
+        if (!Number.isNaN(chooseFlightCount) && chooseFlightCount > 0) return chooseFlightCount;
+
+        // Fallback to number of passengers entered in the form
+        if (Array.isArray(passengerData) && passengerData.length > 0) return passengerData.length;
+
+        return 1;
+    })();
             const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
             const voucherData = {
                 // For Gift Vouchers: name/email/phone/mobile should be PURCHASER info (from PassengerInfo form)

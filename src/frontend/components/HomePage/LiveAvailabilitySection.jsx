@@ -384,6 +384,25 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setIsModalOpen(true);
     }
 
+    const getVoucherTypesForAvailability = (availability) => {
+        if (!availability) return [];
+        const fromArray = (value) => value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(Boolean);
+        if (Array.isArray(availability.voucher_types_array) && availability.voucher_types_array.length > 0) {
+            return fromArray(availability.voucher_types_array);
+        }
+        if (Array.isArray(availability.voucher_types) && availability.voucher_types.length > 0) {
+            return fromArray(availability.voucher_types);
+        }
+        const parseString = (str) => str.split(',').map(s => s.trim()).filter(Boolean);
+        if (typeof availability.voucher_types === 'string' && availability.voucher_types.trim() !== '') {
+            return parseString(availability.voucher_types);
+        }
+        if (typeof availability.activity_voucher_types === 'string' && availability.activity_voucher_types.trim() !== '') {
+            return parseString(availability.activity_voucher_types);
+        }
+        return [];
+    };
+
     // Yeni: availabilities [{id, date, time, capacity, available, ...}] düz listede geliyor
     // Calendar için: hangi günlerde en az 1 açık slot var?
     console.log('LiveAvailabilitySection received availabilities:', availabilities);
@@ -397,13 +416,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const hasCapacity = a.capacity && a.capacity > 0;
         const isAvailable = isOpen && hasCapacity;
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
-        const matchesVoucher = selectedVoucherType?.title ? (
-            Array.isArray(a.voucher_types)
-                ? a.voucher_types.includes(selectedVoucherType.title)
-                : (typeof a.voucher_types === 'string'
-                    ? a.voucher_types.split(',').map(s => s.trim()).includes(selectedVoucherType.title)
-                    : true)
-        ) : true;
+        const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
+        const isWildcardVoucher = availabilityVoucherTypes.length === 0 ||
+            availabilityVoucherTypes.some(type => typeof type === 'string' && type.toLowerCase() === 'all');
+        const matchesVoucher = selectedVoucherType?.title
+            ? (isWildcardVoucher || availabilityVoucherTypes.includes(selectedVoucherType.title))
+            : true;
         console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, voucher_types=${a.voucher_types}`);
         return isAvailable && matchesVoucher;
     }) : [];
