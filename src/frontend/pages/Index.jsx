@@ -1280,6 +1280,21 @@ const Index = () => {
     const handleBookData = async () => {
         console.log("Book button clicked");
         console.log("API_BASE_URL:", API_BASE_URL);
+
+        const resolveVoucherPassengerCount = () => {
+            const voucherQuantity = parseInt(selectedVoucherType?.quantity, 10);
+            if (!Number.isNaN(voucherQuantity) && voucherQuantity > 0) return voucherQuantity;
+
+            const chooseFlightCount = parseInt(chooseFlightType?.passengerCount, 10);
+            if (!Number.isNaN(chooseFlightCount) && chooseFlightCount > 0) return chooseFlightCount;
+
+            if (Array.isArray(passengerData) && passengerData.length > 0) {
+                const filled = passengerData.filter(p => p && (p.firstName || p.lastName || p.email || p.phone)).length;
+                return filled > 0 ? filled : passengerData.length;
+            }
+
+            return 1;
+        };
         
         // Validate Buy Gift and Flight Voucher fields if needed
         if ((isGiftVoucher || isFlightVoucher) && validateBuyGiftFields) {
@@ -1337,7 +1352,7 @@ const Index = () => {
                 purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
                 purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
                 purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
-                numberOfPassengers: passengerData ? passengerData.length : 1,
+                numberOfPassengers: resolveVoucherPassengerCount(),
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
@@ -1439,7 +1454,7 @@ const Index = () => {
                 purchaser_email: passengerData?.[0]?.email || "",
                 purchaser_phone: passengerData?.[0]?.phone || "",
                 purchaser_mobile: passengerData?.[0]?.phone || "",
-                numberOfPassengers: passengerData ? passengerData.length : 1,
+                numberOfPassengers: resolveVoucherPassengerCount(),
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
