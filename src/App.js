@@ -24,7 +24,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/book" element={<BookNow />} />
-              <Route path="/" element={<BookNow />} />
+              <Route path="/customerPortal/:token/index" element={<Index />} />
             </Routes>
         </BrowserRouter>
       </Elements>

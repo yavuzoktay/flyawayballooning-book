@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import LOGO from '../../assets/images/FAB_Logo_DarkBlue.png';
 
 import { Container } from "@mui/material";
@@ -19,7 +19,8 @@ import ProgressBar from "../components/Common/ProgressBar";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+import CustomerPortalHeader from "../components/CustomerPortal/CustomerPortalHeader";
 
 import config from '../../config';
 import { loadStripe } from '@stripe/stripe-js';
@@ -65,12 +66,45 @@ const Index = () => {
 
     // NEW: viewport helper for mobile-specific inline tweaks
     const [isMobile, setIsMobile] = useState(false);
+    const [isCustomerPortal, setIsCustomerPortal] = useState(false);
+    const [portalBookingData, setPortalBookingData] = useState(null);
+    const [portalLoading, setPortalLoading] = useState(false);
+    const [portalError, setPortalError] = useState(null);
+    const { token } = useParams();
+    
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+    
+    // Customer Portal: Fetch booking data when token is present
+    useEffect(() => {
+        if (token) {
+            setIsCustomerPortal(true);
+            setPortalLoading(true);
+            setPortalError(null);
+            
+            axios.get(`${API_BASE_URL}/api/customer-portal-booking/${token}`)
+                .then(response => {
+                    if (response.data.success) {
+                        setPortalBookingData(response.data.data);
+                    } else {
+                        setPortalError(response.data.message || 'Failed to load booking data.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching customer portal booking data:', err);
+                    setPortalError('Error loading booking data. Please try again later.');
+                })
+                .finally(() => {
+                    setPortalLoading(false);
+                });
+        } else {
+            setIsCustomerPortal(false);
+        }
+    }, [token]);
 
     // Helper function for section titles
     const getSectionTitle = (id) => {
@@ -1879,6 +1913,22 @@ const Index = () => {
     }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn]);
 
     const location = useLocation();
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const path = window.location.pathname.toLowerCase();
+            setIsCustomerPortal(path.includes('customerportal'));
+        }
+    }, [location.pathname]);
+
+    const scrollToPortalSection = useCallback((sectionId) => {
+        if (typeof window === 'undefined') return;
+        const element = document.getElementById(sectionId);
+        if (!element) return;
+        const offset = isMobile ? 80 : 140;
+        const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, [isMobile]);
+
     const [paymentProcessed, setPaymentProcessed] = React.useState(false);
     
     useEffect(() => {
@@ -2109,6 +2159,88 @@ const Index = () => {
         }
     }, [location, paymentProcessed]);
 
+    // Customer Portal View
+    if (isCustomerPortal) {
+        if (portalLoading) {
+            return (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                    <div>Loading customer portal...</div>
+                </div>
+            );
+        }
+        
+        if (portalError) {
+            return (
+                <div style={{ textAlign: 'center', padding: '50px', color: 'red' }}>
+                    <div>Error: {portalError}</div>
+                </div>
+            );
+        }
+        
+        if (!portalBookingData) {
+            return (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                    <div>No booking data found.</div>
+                </div>
+            );
+        }
+        
+        return (
+            <div className="customer-portal-page">
+                <CustomerPortalHeader onNavigate={scrollToPortalSection} />
+                <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+                    <h1 id="portal-main" style={{ textAlign: 'center', marginBottom: '30px' }}>Welcome to Your Customer Portal</h1>
+                    
+                    {/* Main Section Content */}
+                    <section style={{ marginBottom: '40px', padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                        <h2>Your Booking Overview</h2>
+                        <p>Here you can find all the details about your upcoming balloon flight.</p>
+                        <p><strong>Booking Reference:</strong> {portalBookingData.booking_reference || portalBookingData.id}</p>
+                        <p><strong>Flight Date:</strong> {portalBookingData.flight_date ? new Date(portalBookingData.flight_date).toLocaleString() : 'Not Scheduled'}</p>
+                        <p><strong>Location:</strong> {portalBookingData.location || 'TBD'}</p>
+                        <p><strong>Status:</strong> {portalBookingData.status || 'Open'}</p>
+                    </section>
+                    
+                    {/* Booking Details Section */}
+                    <section id="scroll-target-booking" style={{ marginBottom: '40px', padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                        <h2>Booking Details</h2>
+                        <p><strong>Passengers:</strong> {portalBookingData.pax || 1}</p>
+                        <p><strong>Experience:</strong> {portalBookingData.flight_type || portalBookingData.experience || 'N/A'}</p>
+                        <p><strong>Name:</strong> {portalBookingData.name || 'N/A'}</p>
+                        <p><strong>Email:</strong> {portalBookingData.email || 'N/A'}</p>
+                        <p><strong>Phone:</strong> {portalBookingData.phone || 'N/A'}</p>
+                        {portalBookingData.voucher_code && (
+                            <p><strong>Voucher Code:</strong> {portalBookingData.voucher_code}</p>
+                        )}
+                        {portalBookingData.expires && (
+                            <p><strong>Expires:</strong> {new Date(portalBookingData.expires).toLocaleDateString()}</p>
+                        )}
+                    </section>
+                    
+                    {/* Available Flights Section */}
+                    <section id="live-availability" style={{ marginBottom: '40px', padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                        <h2>Available Flights</h2>
+                        <p>Check for other available dates and times to reschedule your flight.</p>
+                        <div style={{ border: '1px dashed #ccc', padding: '20px', textAlign: 'center', color: '#888' }}>
+                            Availability calendar will go here.
+                        </div>
+                    </section>
+                    
+                    {/* Information Section */}
+                    <section id="additional-info" style={{ marginBottom: '40px', padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                        <h2>Important Information</h2>
+                        <p>Please read the following before your flight:</p>
+                        <ul>
+                            <li>Weather dependent activity.</li>
+                            <li>Arrive 30 minutes before scheduled flight.</li>
+                            <li>Wear comfortable clothing.</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <>
             {passengerTermsModalOpen && (
@@ -2267,6 +2399,10 @@ const Index = () => {
         })()}
             {/* Global accordion completion toast removed */}
             
+            {isCustomerPortal && (
+                <CustomerPortalHeader onNavigate={scrollToPortalSection} />
+            )}
+            <div id="portal-main" style={{ scrollMarginTop: isMobile ? '90px' : '140px' }}></div>
             <div className="final-booking-wrap" style={{ 
                 overflowX: 'hidden', 
                 maxWidth: '100vw', 
@@ -2332,7 +2468,7 @@ const Index = () => {
                         </div>
                     )}
 
-                    <div className="main_booking">
+                    <div className="main_booking" id="portal-booking" style={{ scrollMarginTop: isMobile ? '90px' : '140px' }}>
                         <div className="booking_data">
                             <div className={`accodien ${isMobile ? 'mobile-optimized' : ''}`}>
                                 {/* What would you like to do? Accordion */}
@@ -2353,7 +2489,7 @@ const Index = () => {
                                             50% { transform: translateY(4px); opacity: 1; }
                                         }
                                     `}</style>
-                                    <div id="scroll-target-booking" />
+                                    <div id="scroll-target-booking" style={{ scrollMarginTop: isMobile ? '90px' : '140px' }} />
                                     <ChooseActivityCard 
                                         activitySelect={activitySelect} 
                                         setActivitySelect={setActivitySelect} 
