@@ -106,6 +106,76 @@ const Index = () => {
         }
     }, [token]);
 
+    // Helper function to get or create session ID
+    const getOrCreateSessionId = () => {
+        const sessionKey = 'fab_user_session_id';
+        let sessionId = localStorage.getItem(sessionKey);
+        if (!sessionId) {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem(sessionKey, sessionId);
+        }
+        return sessionId;
+    };
+
+    // Helper function to parse user agent
+    const parseUserAgent = (userAgent) => {
+        const ua = userAgent || navigator.userAgent;
+        let browser = 'Unknown';
+        let os = 'Unknown';
+        let deviceType = 'desktop';
+
+        // Detect OS
+        if (ua.match(/Windows/i)) os = 'Windows';
+        else if (ua.match(/Mac/i)) os = 'macOS';
+        else if (ua.match(/Linux/i)) os = 'Linux';
+        else if (ua.match(/Android/i)) {
+            os = 'Android';
+            deviceType = 'mobile';
+        }
+        else if (ua.match(/iPhone|iPad|iPod/i)) {
+            os = 'iPhone';
+            deviceType = 'mobile';
+        }
+
+        // Detect Browser
+        if (ua.match(/Chrome/i) && !ua.match(/Edg|OPR/i)) browser = 'Chrome';
+        else if (ua.match(/Safari/i) && !ua.match(/Chrome/i)) browser = 'Safari';
+        else if (ua.match(/Firefox/i)) browser = 'Firefox';
+        else if (ua.match(/Edg/i)) browser = 'Edge';
+        else if (ua.match(/OPR/i)) browser = 'Opera';
+
+        // Get browser version if available
+        const versionMatch = ua.match(/(?:Chrome|Safari|Firefox|Edg|OPR)\/(\d+)/i);
+        const version = versionMatch ? versionMatch[1] : '';
+        if (version) {
+            browser = `${browser} ${version}`;
+        }
+
+        return { browser, os, deviceType };
+    };
+
+    // Helper function to collect user session data
+    const collectUserSessionData = () => {
+        const sessionId = getOrCreateSessionId();
+        const { browser, os, deviceType } = parseUserAgent();
+        const browserSize = `${window.innerWidth}x${window.innerHeight}`;
+        const language = navigator.language || navigator.userLanguage;
+        const referrer = document.referrer || '';
+        const landingPage = window.location.href;
+
+        return {
+            session_id: sessionId,
+            user_agent: navigator.userAgent,
+            browser: browser,
+            browser_size: browserSize,
+            language: language,
+            operating_system: os,
+            device_type: deviceType,
+            referrer: referrer,
+            landing_page: landingPage
+        };
+    };
+
     // Helper function for section titles
     const getSectionTitle = (id) => {
         const titles = {
@@ -1425,12 +1495,16 @@ const Index = () => {
             console.log('numberOfPassengers being sent:', voucherData.numberOfPassengers);
             
             try {
+                // Collect user session data
+                const userSessionData = collectUserSessionData();
+                
                 // Stripe Checkout Session başlat - VOUCHER için
                 const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                     totalPrice,
                     currency: 'GBP',
                     voucherData,
-                    type: 'voucher'
+                    type: 'voucher',
+                    userSessionData: userSessionData
                 });
                 if (!sessionRes.data.success) {
                     alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
@@ -1548,6 +1622,9 @@ const Index = () => {
             };
 
             try {
+                // Collect user session data
+                const userSessionData = collectUserSessionData();
+                
                 // Call simplified createRedeemBooking endpoint for Redeem Voucher
                 const redeemBookingData = {
                     activitySelect,
@@ -1559,7 +1636,8 @@ const Index = () => {
                     selectedTime,
                     voucher_code: voucherCode,
                     totalPrice,
-                    activity_id: activityId
+                    activity_id: activityId,
+                    userSessionData: userSessionData
                 };
                 
                 console.log('=== REDEEM BOOKING DATA (Index.jsx) ===');
@@ -1669,12 +1747,16 @@ const Index = () => {
         };
         
         try {
+            // Collect user session data
+            const userSessionData = collectUserSessionData();
+            
             // Stripe Checkout Session başlat - BOOKING için
             const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                 totalPrice,
                 currency: 'GBP',
                 bookingData,
-                type: 'booking'
+                type: 'booking',
+                userSessionData: userSessionData
             });
             if (!sessionRes.data.success) {
                 alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
