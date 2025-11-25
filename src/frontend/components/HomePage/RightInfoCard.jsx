@@ -1,6 +1,7 @@
 import axios from "axios";
 import React from "react";
 import { loadStripe } from '@stripe/stripe-js';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Divider, Button } from "@mui/material";
 
 import config from '../../../config';
 const API_BASE_URL = config.API_BASE_URL;
@@ -33,6 +34,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Mobile breakpoint + drawer state
     const [isMobile, setIsMobile] = React.useState(false);
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+    const [successModalOpen, setSuccessModalOpen] = React.useState(false);
+    const [successModalData, setSuccessModalData] = React.useState(null);
     React.useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 576);
         onResize();
@@ -910,16 +913,59 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 console.log('Success:', redeemResponse.data.success);
                                 console.log('Message:', redeemResponse.data.message);
                                 
-                                if (redeemResponse.data.success) {
-                                    alert(`Voucher successfully redeemed and marked! Booking ID: ${response.data.bookingId}`);
-                                } else {
-                                    alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemResponse.data.message}`);
+                                // Show success modal with booking summary regardless of voucher marking result
+                                let bookingDateStr = selectedDate;
+                                if (selectedDate instanceof Date && selectedTime) {
+                                    const [h, m, s] = selectedTime.split(":");
+                                    const localDate = new Date(selectedDate);
+                                    localDate.setHours(Number(h));
+                                    localDate.setMinutes(Number(m));
+                                    localDate.setSeconds(Number(s) || 0);
+                                    bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+                                } else if (selectedDate instanceof Date) {
+                                    bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
                                 }
+                                setSuccessModalData({
+                                    bookingId: response.data.bookingId,
+                                    location: chooseLocation,
+                                    flightDate: bookingDateStr,
+                                    selectedTime: selectedTime,
+                                    passengers: passengerData,
+                                    voucherCode: voucherCode,
+                                    additionalInfo: additionalInfo,
+                                    addToBooking: chooseAddOn,
+                                    voucherMarkError: redeemResponse.data.success ? null : redeemResponse.data.message
+                                });
+                                setSuccessModalOpen(true);
                             } catch (redeemError) {
                                 console.error('=== REDEEM VOUCHER ERROR ===');
                                 console.error('Error:', redeemError);
                                 console.error('Response:', redeemError.response?.data);
-                                alert(`Booking created (ID: ${response.data.bookingId}) but voucher could not be marked: ${redeemError.response?.data?.message || redeemError.message}`);
+                                
+                                // Show success modal with booking summary even if voucher marking failed
+                                let bookingDateStr = selectedDate;
+                                if (selectedDate instanceof Date && selectedTime) {
+                                    const [h, m, s] = selectedTime.split(":");
+                                    const localDate = new Date(selectedDate);
+                                    localDate.setHours(Number(h));
+                                    localDate.setMinutes(Number(m));
+                                    localDate.setSeconds(Number(s) || 0);
+                                    bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+                                } else if (selectedDate instanceof Date) {
+                                    bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+                                }
+                                setSuccessModalData({
+                                    bookingId: response.data.bookingId,
+                                    location: chooseLocation,
+                                    flightDate: bookingDateStr,
+                                    selectedTime: selectedTime,
+                                    passengers: passengerData,
+                                    voucherCode: voucherCode,
+                                    additionalInfo: additionalInfo,
+                                    addToBooking: chooseAddOn,
+                                    voucherMarkError: redeemError.response?.data?.message || redeemError.message
+                                });
+                                setSuccessModalOpen(true);
                             }
                             // Clear form after successful operation
                             resetBooking();
@@ -1372,6 +1418,145 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     )}
                 </>
             )}
+
+            {/* Success Modal for Redeem Voucher */}
+            <Dialog
+                open={successModalOpen}
+                onClose={() => setSuccessModalOpen(false)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 700, fontSize: 24, pb: 2, color: '#3274b4' }}>
+                    {successModalData?.voucherMarkError ? '✓ Booking Created Successfully!' : '✓ Voucher Successfully Redeemed!'}
+                </DialogTitle>
+                <DialogContent>
+                    {successModalData && (
+                        <Box sx={{ py: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#3274b4' }}>
+                                Booking Summary
+                            </Typography>
+                            
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                    Booking ID
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {successModalData.bookingId}
+                                </Typography>
+                            </Box>
+
+                            <Divider sx={{ my: 2 }} />
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                    Location
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {successModalData.location || 'N/A'}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                    Live Availability
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {successModalData.flightDate 
+                                        ? new Date(successModalData.flightDate).toLocaleDateString('en-GB', { 
+                                            weekday: 'long', 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        }) + (successModalData.selectedTime ? ` at ${successModalData.selectedTime}` : '')
+                                        : 'N/A'}
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                    Voucher Code
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500, color: '#3274b4' }}>
+                                    {successModalData.voucherCode || 'N/A'}
+                                </Typography>
+                            </Box>
+
+                            <Divider sx={{ my: 2 }} />
+
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
+                                    Passengers
+                                </Typography>
+                                {successModalData.passengers && successModalData.passengers.length > 0 ? (
+                                    successModalData.passengers.map((passenger, index) => (
+                                        <Typography key={index} variant="body1" sx={{ mb: 0.5 }}>
+                                            {index + 1}. {passenger.firstName} {passenger.lastName} 
+                                            {passenger.weight ? ` (${passenger.weight}kg)` : ''}
+                                            {passenger.weatherRefund ? ' - WX Refundable' : ''}
+                                        </Typography>
+                                    ))
+                                ) : (
+                                    <Typography variant="body1">No passengers</Typography>
+                                )}
+                            </Box>
+
+                            {successModalData.additionalInfo && (successModalData.additionalInfo.notes || Object.keys(successModalData.additionalInfo).length > 0) && (
+                                <>
+                                    <Divider sx={{ my: 2 }} />
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                            Additional Information
+                                        </Typography>
+                                        {successModalData.additionalInfo.notes ? (
+                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                {successModalData.additionalInfo.notes}
+                                            </Typography>
+                                        ) : (
+                                            <Typography variant="body1" color="text.secondary">
+                                                No additional information provided
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </>
+                            )}
+
+                            {successModalData.addToBooking && successModalData.addToBooking.length > 0 && (
+                                <>
+                                    <Divider sx={{ my: 2 }} />
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                            Add To Booking
+                                        </Typography>
+                                        {successModalData.addToBooking.map((item, index) => (
+                                            <Typography key={index} variant="body1" sx={{ mb: 0.5 }}>
+                                                • {typeof item === 'object' ? item.title || item.name : item}
+                                            </Typography>
+                                        ))}
+                                    </Box>
+                                </>
+                            )}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 3, pt: 2, justifyContent: 'center' }}>
+                    <Button
+                        onClick={() => {
+                            setSuccessModalOpen(false);
+                            setSuccessModalData(null);
+                        }}
+                        variant="contained"
+                        color="primary"
+                        sx={{
+                            minWidth: 120,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            borderRadius: 2
+                        }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }

@@ -490,18 +490,43 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         console.log(`Raw availabilities for ${dateStr}:`, availabilities.filter(a => a.date === dateStr));
         
         // Get open/available slots (capacity > 0) for totals
+        const computeSharedRemaining = (slot) => {
+            if (typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number') {
+                return Math.max(0, slot.shared_capacity - slot.shared_booked);
+            }
+            if (typeof slot.available === 'number') {
+                return slot.available;
+            }
+            if (typeof slot.capacity === 'number') {
+                return slot.capacity;
+            }
+            return 0;
+        };
+
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
-        const total = availableSlots.reduce((sum, s) => sum + (s.available || s.capacity || 0), 0);
+        const total = availableSlots.reduce((sum, s) => sum + computeSharedRemaining(s), 0);
         
         // Sold out: when there are slots for this date but total available capacity is 0
         // Also check for closed status slots
         const hasClosedSlots = allSlotsForDate.some(slot => slot.status === 'Closed' || slot.status === 'closed' || slot.status === 'closed');
         const hasOpenSlots = allSlotsForDate.some(slot => slot.status === 'Open' || slot.status === 'open');
-        const soldOut = (allSlotsForDate.length > 0 && total === 0) || hasClosedSlots;
+        const privateSmallAvailable = allSlotsForDate.some(slot => {
+            const remaining = typeof slot.private_charter_small_remaining === 'number'
+                ? slot.private_charter_small_remaining
+                : (slot.private_charter_small_bookings > 0 ? 0 : 4);
+            return remaining > 0;
+        });
+        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0) || hasClosedSlots;
         
-        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${soldOut}`);
+        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${sharedSoldOut}`);
         // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
-        return { total, soldOut, slots: allSlotsForDate };
+        return {
+            total,
+            sharedSoldOut,
+            privateAvailable: privateSmallAvailable,
+            soldOut: sharedSoldOut,
+            slots: allSlotsForDate
+        };
     };
 
         const renderDays = () => {
@@ -536,9 +561,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 
                 const isPastDate = dateCopyStartOfDay < todayStartOfDay;
                 const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-                const { total, soldOut, slots } = getSpacesForDate(dateCopy);
+                const { total, sharedSoldOut, privateAvailable, soldOut: soldOutFromCalc, slots } = getSpacesForDate(dateCopy);
+                const isPrivateFlow = (chooseFlightType?.type || '').toLowerCase().includes('private');
+                const soldOut = isPrivateFlow ? !privateAvailable : (typeof soldOutFromCalc === 'boolean' ? soldOutFromCalc : sharedSoldOut);
                 // Fix: isAvailable should be true if there are slots (even if sold out)
-                const isAvailable = total > 0 || soldOut;
+                const isAvailable = isPrivateFlow ? privateAvailable : (total > 0 || sharedSoldOut);
                 const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive
@@ -1085,10 +1112,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const now = new Date();
                                         const diffMs = slotDateTime - now;
                                         const diffHours = diffMs / (1000 * 60 * 60);
-                                        const isAvailable = (slot.available || 0) > 0;
-                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > (slot.available || 0);
+                                        const sharedAvailable = typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number'
+                                            ? Math.max(0, slot.shared_capacity - slot.shared_booked)
+                                            : (slot.available || 0);
+                                        const privateSmallRemaining = typeof slot.private_charter_small_remaining === 'number'
+                                            ? slot.private_charter_small_remaining
+                                            : (slot.private_charter_small_bookings > 0 ? 0 : 4);
+                                        const isPrivateCharter = (chooseFlightType?.type || '').toLowerCase().includes('private');
+                                        const isSmallPrivate = isPrivateCharter && selectedPassengers > 0 && selectedPassengers <= 4;
+                                        const effectiveAvailable = isSmallPrivate ? privateSmallRemaining : sharedAvailable;
+                                        const isAvailable = effectiveAvailable > 0;
+                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > effectiveAvailable;
                                         const within8h = diffHours < 8 && diffHours > 0;
-                                        const enoughSeats = (slot.available || 0) >= selectedPassengers;
+                                        const enoughSeats = effectiveAvailable >= selectedPassengers;
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
                                         // Selectable only if there are seats and rules met
                                         const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
@@ -1103,7 +1139,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 return slot.time?.split(':').slice(0, 2).join(':');
                                             }
                                         })();
-                                        
+                                        const availabilityLabel = isSmallPrivate
+                                            ? (privateSmallRemaining > 0 ? 'Available' : 'Unavailable')
+                                            : `${sharedAvailable} Space${sharedAvailable === 1 ? '' : 's'}`;
+
                                         return (
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
                                                 <button
@@ -1165,7 +1204,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                             lineHeight: 1,
                                                             opacity: 0.9
                                                         }}>
-                                                            {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${slot.available} Space${slot.available > 1 ? 's' : ''}`}
+                                                            {availabilityLabel}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -1176,7 +1215,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         </div>
                                                         <div style={{ textAlign: 'right' }}>
                                                             <div style={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>
-                                                                {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${slot.available} Space${slot.available > 1 ? 's' : ''}`}
+                                                                {availabilityLabel}
                                                             </div>
                                                         </div>
                                                     </>
@@ -1227,7 +1266,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         Call to Book
                                                     </div>
-                                                ) : slot.available <= 2 ? (
+                                                ) : sharedAvailable <= 2 ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1243,7 +1282,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         High Demand
                                                     </div>
-                                                ) : (slot.available === 3 || slot.available === 4) && (
+                                                ) : (sharedAvailable === 3 || sharedAvailable === 4) && (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
