@@ -1122,7 +1122,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const isSmallPrivate = isPrivateCharter && selectedPassengers > 0 && selectedPassengers <= 4;
                                         const effectiveAvailable = isSmallPrivate ? privateSmallRemaining : sharedAvailable;
                                         const isAvailable = effectiveAvailable > 0;
-                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > effectiveAvailable;
+                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > effectiveAvailable && !isPrivateCharter;
                                         const within8h = diffHours < 8 && diffHours > 0;
                                         const enoughSeats = effectiveAvailable >= selectedPassengers;
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
@@ -1249,7 +1249,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         color: '#ffffff',
                                                         textTransform: 'uppercase'
                                                     }}>
-                                                        Too few seats
+                                                        Not Available
                                                     </div>
                                                 ) : showCallToBookForSlot ? (
                                                     <div style={{
