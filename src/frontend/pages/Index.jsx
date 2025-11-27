@@ -555,6 +555,26 @@ const Index = () => {
             console.log('Voucher validation response:', response.data);
 
             if (response.data.success) {
+                // Check if voucher has expired
+                const expiresDate = response.data.data.expires;
+                if (expiresDate) {
+                    const now = new Date();
+                    const expires = new Date(expiresDate);
+                    
+                    // Reset time to start of day for accurate comparison
+                    now.setHours(0, 0, 0, 0);
+                    expires.setHours(0, 0, 0, 0);
+                    
+                    if (now > expires) {
+                        // Voucher has expired
+                        setVoucherStatus('invalid');
+                        setVoucherData(null);
+                        const expiresFormatted = expires.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        alert(`This voucher has expired. The expiration date (${expiresFormatted}) has passed. Expired vouchers cannot be used for redemption.`);
+                        return;
+                    }
+                }
+                
                 setVoucherStatus('valid');
                 setVoucherData(response.data.data);
                 
