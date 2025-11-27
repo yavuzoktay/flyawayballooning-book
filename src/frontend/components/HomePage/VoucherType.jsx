@@ -1209,7 +1209,7 @@ const VoucherType = ({
                                         {inclusion}
                                         {inclusion === 'Flight Certificate' && !isAnyDay && (
                                             <div style={{ marginTop: 6, fontSize: isMobile ? 13 : 12, color: '#666', lineHeight: '1.2' }}>
-                                                ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.
+                                                ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
                                             </div>
                                         )}
                                     </div>
@@ -1226,7 +1226,7 @@ const VoucherType = ({
                         
                         // Any Day Flight message
                         if (isSharedFlight && isAnyDay && activitySelect === 'Book Flight') {
-                            const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 10 attempts, or we'll extend your voucher free of charge.";
+                            const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
                             const anyDayMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
                             
                             return (
