@@ -1147,6 +1147,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const availabilityLabel = isSmallPrivate
                                             ? (privateSmallRemaining > 0 ? 'Available' : 'Unavailable')
                                             : `${sharedAvailable} Space${sharedAvailable === 1 ? '' : 's'}`;
+                                        const shouldShowAvailabilityLabel = !isPrivateLocked && !!availabilityLabel && availabilityLabel !== 'Unavailable';
 
                                         return (
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
@@ -1202,27 +1203,31 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                         }}>
                                                             {formattedTime}
                                                         </span>
-                                                        <span style={{ 
-                                                            fontWeight: 700, 
-                                                            fontSize: '16px',
-                                                            fontFamily: 'Gilroy Sans Serif, sans-serif',
-                                                            lineHeight: 1,
-                                                            opacity: 0.9
-                                                        }}>
-                                                            {availabilityLabel}
-                                                        </span>
+                                                        {shouldShowAvailabilityLabel && (
+                                                            <span style={{ 
+                                                                fontWeight: 700, 
+                                                                fontSize: '16px',
+                                                                fontFamily: 'Gilroy Sans Serif, sans-serif',
+                                                                lineHeight: 1,
+                                                                opacity: 0.9
+                                                            }}>
+                                                                {availabilityLabel}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     // Desktop layout - horizontal
                                                     <>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                            <span style={{ fontWeight: 700, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>{formattedTime}</span>
-                                                        </div>
-                                                        <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                        <span style={{ fontWeight: 700, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>{formattedTime}</span>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        {shouldShowAvailabilityLabel && (
                                                             <div style={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>
                                                                 {availabilityLabel}
                                                             </div>
-                                                        </div>
+                                                        )}
+                                                    </div>
                                                     </>
                                                 )}
                                                 {/* Center label based on remaining spaces or passenger-capacity mismatch */}
