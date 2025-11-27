@@ -1115,19 +1115,24 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const sharedAvailable = typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number'
                                             ? Math.max(0, slot.shared_capacity - slot.shared_booked)
                                             : (slot.available || 0);
+                                        const balloon210Locked = Boolean(slot.balloon210_locked);
                                         const privateSmallRemaining = typeof slot.private_charter_small_remaining === 'number'
                                             ? slot.private_charter_small_remaining
                                             : (slot.private_charter_small_bookings > 0 ? 0 : 4);
                                         const isPrivateCharter = (chooseFlightType?.type || '').toLowerCase().includes('private');
                                         const isSmallPrivate = isPrivateCharter && selectedPassengers > 0 && selectedPassengers <= 4;
-                                        const effectiveAvailable = isSmallPrivate ? privateSmallRemaining : sharedAvailable;
-                                        const isAvailable = effectiveAvailable > 0;
+                                        const isLargePrivate = isPrivateCharter && !isSmallPrivate;
+                                        const effectiveAvailable = isSmallPrivate
+                                            ? privateSmallRemaining
+                                            : (balloon210Locked ? 0 : sharedAvailable);
+                                        const isAvailable = effectiveAvailable > 0 && !(balloon210Locked && isLargePrivate);
                                         const insufficientForPassengers = selectedVoucherType && selectedPassengers > effectiveAvailable && !isPrivateCharter;
                                         const within8h = diffHours < 8 && diffHours > 0;
                                         const enoughSeats = effectiveAvailable >= selectedPassengers;
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
+                                        const isPrivateLocked = balloon210Locked && isLargePrivate;
                                         // Selectable only if there are seats and rules met
-                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
+                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers && !isPrivateLocked;
                                         // Format time to 12-hour with AM/PM for display
                                         const formattedTime = (() => {
                                             try {
@@ -1221,7 +1226,22 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     </>
                                                 )}
                                                 {/* Center label based on remaining spaces or passenger-capacity mismatch */}
-                                                {(!isAvailable) ? (
+                                                {isPrivateLocked ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        transform: 'translate(-50%, -50%)',
+                                                        pointerEvents: 'none',
+                                                        fontWeight: 800,
+                                                        fontSize: isMobile ? 16 : 16,
+                                                        letterSpacing: isMobile ? 0.2 : 0.5,
+                                                        color: '#ffffff',
+                                                        textTransform: 'uppercase'
+                                                    }}>
+                                                        Not Available
+                                                    </div>
+                                                ) : (!isAvailable) ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
