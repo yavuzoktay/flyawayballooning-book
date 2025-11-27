@@ -1291,7 +1291,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         Call to Book
                                                     </div>
-                                                ) : sharedAvailable <= 2 ? (
+                                                ) : sharedAvailable <= 2 && !isPrivateCharter ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1307,7 +1307,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         High Demand
                                                     </div>
-                                                ) : (sharedAvailable === 3 || sharedAvailable === 4) && (
+                                                ) : (sharedAvailable === 3 || sharedAvailable === 4) && !isPrivateCharter ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1324,7 +1324,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         Nearly Full
                                                     </div>
-                                                )}
+                                                ) : null}
                                                 </button>
                                             </div>
                                         );
