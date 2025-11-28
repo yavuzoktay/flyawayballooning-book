@@ -384,6 +384,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setIsModalOpen(true);
     }
 
+    const normalizeVoucherName = (value = '') => {
+        if (typeof value !== 'string') return '';
+        return value.replace(/\([^)]*\)/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    };
+
     const parseNumber = (value, fallback = 0) => {
         const num = Number(value);
         return Number.isFinite(num) ? num : fallback;
