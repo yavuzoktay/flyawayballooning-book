@@ -506,6 +506,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
         const total = availableSlots.reduce((sum, s) => sum + computeSharedRemaining(s), 0);
         
+        const hasOpenSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'open');
+        const hasClosedSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'closed');
         const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => (slot.status || '').toLowerCase() === 'closed');
         const privateSmallAvailable = allSlotsForDate.some(slot => {
             const remaining = typeof slot.private_charter_small_remaining === 'number'
@@ -513,7 +515,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 : (slot.private_charter_small_bookings > 0 ? 0 : 4);
             return remaining > 0;
         });
-        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0) || allSlotsClosed;
+        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0 && !hasOpenSlots) || allSlotsClosed;
         
         console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${sharedSoldOut}`);
         // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
