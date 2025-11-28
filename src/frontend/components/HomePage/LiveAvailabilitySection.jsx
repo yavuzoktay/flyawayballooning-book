@@ -397,6 +397,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return Number.isFinite(num) ? num : fallback;
     };
 
+    const getSlotStatus = (slot) => (slot?.calculated_status || slot?.status || '').toLowerCase();
+
     const getRemainingSeats = (slot) => {
         if (!slot) return 0;
         if (slot.calculated_available !== undefined && slot.calculated_available !== null) {
@@ -457,7 +459,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
-        const slotStatus = (a.calculated_status || a.status || '').toLowerCase();
+        const slotStatus = getSlotStatus(a);
         const isOpen = slotStatus === 'open' || getRemainingSeats(a) > 0;
         const hasCapacity = getRemainingSeats(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = isOpen && hasCapacity && matchesLocation(a) && matchesExperience(a);
@@ -554,9 +556,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
         const total = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
         
-        const hasOpenSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'open');
-        const hasClosedSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'closed');
-        const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => (slot.status || '').toLowerCase() === 'closed');
+        const hasOpenSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'open' || getRemainingSeats(slot) > 0);
+        const hasClosedSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'closed');
+        const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => getSlotStatus(slot) === 'closed' && getRemainingSeats(slot) <= 0);
         const privateSmallAvailable = allSlotsForDate.some(slot => {
             const remaining = typeof slot.private_charter_small_remaining === 'number'
                 ? slot.private_charter_small_remaining
