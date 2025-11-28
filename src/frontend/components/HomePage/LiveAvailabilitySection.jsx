@@ -506,17 +506,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
         const total = availableSlots.reduce((sum, s) => sum + computeSharedRemaining(s), 0);
         
-        // Sold out: when there are slots for this date but total available capacity is 0
-        // Also check for closed status slots
-        const hasClosedSlots = allSlotsForDate.some(slot => slot.status === 'Closed' || slot.status === 'closed' || slot.status === 'closed');
-        const hasOpenSlots = allSlotsForDate.some(slot => slot.status === 'Open' || slot.status === 'open');
+        const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => (slot.status || '').toLowerCase() === 'closed');
         const privateSmallAvailable = allSlotsForDate.some(slot => {
             const remaining = typeof slot.private_charter_small_remaining === 'number'
                 ? slot.private_charter_small_remaining
                 : (slot.private_charter_small_bookings > 0 ? 0 : 4);
             return remaining > 0;
         });
-        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0) || hasClosedSlots;
+        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0) || allSlotsClosed;
         
         console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${sharedSoldOut}`);
         // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
@@ -564,8 +561,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 const { total, sharedSoldOut, privateAvailable, soldOut: soldOutFromCalc, slots } = getSpacesForDate(dateCopy);
                 const isPrivateFlow = (chooseFlightType?.type || '').toLowerCase().includes('private');
                 const soldOut = isPrivateFlow ? !privateAvailable : (typeof soldOutFromCalc === 'boolean' ? soldOutFromCalc : sharedSoldOut);
-                // Fix: isAvailable should be true if there are slots (even if sold out)
-                const isAvailable = isPrivateFlow ? privateAvailable : (total > 0 || sharedSoldOut);
+                const isAvailable = isPrivateFlow ? privateAvailable : total > 0;
                 const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive
