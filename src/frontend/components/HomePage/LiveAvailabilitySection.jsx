@@ -384,12 +384,29 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setIsModalOpen(true);
     }
 
-    const normalizeVoucherName = (value = '') => {
-        if (typeof value !== 'string') return '';
-        return value.replace(/\([^)]*\)/g, '') // remove passenger count or notes inside parentheses
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+    const parseNumber = (value, fallback = 0) => {
+        const num = Number(value);
+        return Number.isFinite(num) ? num : fallback;
+    };
+
+    const getRemainingSeats = (slot) => {
+        if (!slot) return 0;
+        if (slot.calculated_available !== undefined && slot.calculated_available !== null) {
+            return Math.max(0, parseNumber(slot.calculated_available, 0));
+        }
+        if (typeof slot.actualAvailable === 'number') {
+            return Math.max(0, slot.actualAvailable);
+        }
+        if (typeof slot.available === 'number') {
+            return Math.max(0, slot.available);
+        }
+        if (typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number') {
+            return Math.max(0, slot.shared_capacity - slot.shared_booked);
+        }
+        if (typeof slot.shared_capacity === 'number') {
+            return Math.max(0, slot.shared_capacity);
+        }
+        return 0;
     };
 
     const getVoucherTypesForAvailability = (availability) => {
@@ -432,9 +449,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
-        // Check multiple conditions for availability
-        const isOpen = a.status === 'Open' || a.status === 'open' || a.status === 'Open' || a.available > 0;
-        const hasCapacity = a.capacity && a.capacity > 0;
+        const slotStatus = (a.calculated_status || a.status || '').toLowerCase();
+        const isOpen = slotStatus === 'open' || getRemainingSeats(a) > 0;
+        const hasCapacity = getRemainingSeats(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = isOpen && hasCapacity && matchesLocation(a) && matchesExperience(a);
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
         const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
@@ -450,9 +467,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     
     // Alternative filtering: if the above is too restrictive, try this
     const alternativeFiltered = isLocationAndExperienceSelected ? availabilities.filter(a => {
-        // More permissive filtering
         const hasDate = a.date && a.date.length > 0;
-        const hasCapacity = a.capacity && a.capacity > 0;
+        const hasCapacity = getRemainingSeats(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
         console.log(`Alternative filter ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
         return isAvailable;
@@ -527,21 +543,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         console.log(`Raw availabilities for ${dateStr}:`, availabilities.filter(a => a.date === dateStr));
         
         // Get open/available slots (capacity > 0) for totals
-        const computeSharedRemaining = (slot) => {
-            if (typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number') {
-                return Math.max(0, slot.shared_capacity - slot.shared_booked);
-            }
-            if (typeof slot.available === 'number') {
-                return slot.available;
-            }
-            if (typeof slot.capacity === 'number') {
-                return slot.capacity;
-            }
-            return 0;
-        };
-
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
-        const total = availableSlots.reduce((sum, s) => sum + computeSharedRemaining(s), 0);
+        const total = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
         
         const hasOpenSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'open');
         const hasClosedSlots = allSlotsForDate.some(slot => (slot.status || '').toLowerCase() === 'closed');
@@ -1147,9 +1150,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const now = new Date();
                                         const diffMs = slotDateTime - now;
                                         const diffHours = diffMs / (1000 * 60 * 60);
-                                        const sharedAvailable = typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number'
-                                            ? Math.max(0, slot.shared_capacity - slot.shared_booked)
-                                            : (slot.available || 0);
+                                        const sharedAvailable = getRemainingSeats(slot);
                                         const balloon210Locked = Boolean(slot.balloon210_locked);
                                         const privateSmallRemaining = typeof slot.private_charter_small_remaining === 'number'
                                             ? slot.private_charter_small_remaining
