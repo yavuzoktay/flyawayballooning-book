@@ -384,6 +384,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setIsModalOpen(true);
     }
 
+    const normalizeVoucherName = (value = '') => {
+        if (typeof value !== 'string') return '';
+        return value.replace(/\([^)]*\)/g, '') // remove passenger count or notes inside parentheses
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    };
+
     const getVoucherTypesForAvailability = (availability) => {
         if (!availability) return [];
         const fromArray = (value) => value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(Boolean);
@@ -410,19 +418,32 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     
     // Filter availabilities - respect selected voucher type when provided
     // Only filter if location and experience are selected
+    const voucherWildcardTerms = ['any voucher', 'any vouchers', 'all voucher types', 'all vouchers', 'any', 'all', 'any voucher type', 'any voucher types', 'any voucher option'];
+    const matchesLocation = (availability) => {
+        if (!chooseLocation) return true;
+        if (!availability?.location) return true;
+        return availability.location === chooseLocation;
+    };
+    const matchesExperience = (availability) => {
+        if (!chooseFlightType?.type) return true;
+        if (!Array.isArray(availability?.flight_types_array) || availability.flight_types_array.length === 0) return true;
+        return availability.flight_types_array
+            .map(type => (typeof type === 'string' ? type.toLowerCase() : '')).includes(chooseFlightType.type.toLowerCase());
+    };
+
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         // Check multiple conditions for availability
         const isOpen = a.status === 'Open' || a.status === 'open' || a.status === 'Open' || a.available > 0;
         const hasCapacity = a.capacity && a.capacity > 0;
-        const isAvailable = isOpen && hasCapacity;
+        const isAvailable = isOpen && hasCapacity && matchesLocation(a) && matchesExperience(a);
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
         const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
-        const isWildcardVoucher = availabilityVoucherTypes.length === 0 ||
-            availabilityVoucherTypes.some(type => typeof type === 'string' && type.toLowerCase() === 'all');
-        const matchesVoucher = selectedVoucherType?.title
-            ? (isWildcardVoucher || availabilityVoucherTypes.includes(selectedVoucherType.title))
-            : true;
-        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, voucher_types=${a.voucher_types}`);
+        const normalizedAvailabilityTypes = availabilityVoucherTypes.map(normalizeVoucherName);
+        const normalizedSelectedVoucher = normalizeVoucherName(selectedVoucherType?.title || '');
+        const isWildcardVoucher = normalizedAvailabilityTypes.length === 0 ||
+            normalizedAvailabilityTypes.some(type => voucherWildcardTerms.includes(type));
+        const matchesVoucher = !normalizedSelectedVoucher || isWildcardVoucher || normalizedAvailabilityTypes.includes(normalizedSelectedVoucher);
+        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, voucher_types=${availabilityVoucherTypes}`);
         return isAvailable && matchesVoucher;
     }) : [];
     console.log('Filtered availabilities (all times):', filteredAvailabilities);
@@ -432,14 +453,30 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // More permissive filtering
         const hasDate = a.date && a.date.length > 0;
         const hasCapacity = a.capacity && a.capacity > 0;
-        const isAvailable = hasDate && hasCapacity;
+        const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
         console.log(`Alternative filter ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
         return isAvailable;
     }) : [];
     console.log('Alternative filtered availabilities:', alternativeFiltered);
     
     // Use the more permissive filtering if the strict one returns nothing
-    const finalFilteredAvailabilities = filteredAvailabilities.length > 0 ? filteredAvailabilities : alternativeFiltered;
+    const mergeAvailabilityLists = () => {
+        if (filteredAvailabilities.length === 0) {
+            return alternativeFiltered;
+        }
+        const slotKey = (slot) => slot?.id ?? `${slot?.date || 'n/a'}|${slot?.time || '00:00'}|${slot?.location || ''}|${slot?.activity_id || ''}`;
+        const strictKeys = new Set(filteredAvailabilities.map(slotKey));
+        const merged = [...filteredAvailabilities];
+        alternativeFiltered.forEach(slot => {
+            const key = slotKey(slot);
+            if (!strictKeys.has(key)) {
+                merged.push(slot);
+            }
+        });
+        return merged;
+    };
+
+    const finalFilteredAvailabilities = mergeAvailabilityLists();
     console.log('Final filtered availabilities:', finalFilteredAvailabilities);
     
     const availableDates = Array.from(new Set(finalFilteredAvailabilities.map(a => a.date)));
