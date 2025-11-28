@@ -399,6 +399,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const getSlotStatus = (slot) => (slot?.calculated_status || slot?.status || '').toLowerCase();
 
+    const isPrivateSelection = (chooseFlightType?.type || '').toLowerCase().includes('private');
+    const requiredSeats = Math.max(1, parseInt(chooseFlightType?.passengerCount, 10) || (isPrivateSelection ? 8 : 1));
+
     const getRemainingSeats = (slot) => {
         if (!slot) return 0;
         if (slot.calculated_available !== undefined && slot.calculated_available !== null) {
@@ -417,6 +420,45 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             return Math.max(0, slot.shared_capacity);
         }
         return 0;
+    };
+
+    const getAvailableSeatsForSelection = (slot) => {
+        if (!slot) return 0;
+
+        const baseAvailable = getRemainingSeats(slot);
+        const balloon210Locked = Number(slot.balloon210_locked || slot.shared_slots_used || 0) > 0;
+        const sharedBooked = Number(slot.shared_booked || slot.shared_consumed_pax || 0);
+        const isSmallPrivateSelection = isPrivateSelection && requiredSeats > 0 && requiredSeats <= 4;
+
+        // SHARED FLOW (uses Balloon 210)
+        if (!isPrivateSelection) {
+            // If Balloon 210 is already assigned to another location, no shared seats are available
+            if (balloon210Locked) {
+                return 0;
+            }
+            return baseAvailable;
+        }
+
+        // PRIVATE FLOW
+        if (isSmallPrivateSelection) {
+            // 1–4 pax private charter uses Balloon 105 resource
+            const remaining105 = (typeof slot.private_charter_small_remaining === 'number')
+                ? slot.private_charter_small_remaining
+                : (Number(slot.private_charter_small_bookings || 0) > 0 ? 0 : 4);
+
+            if (remaining105 <= 0) {
+                return 0;
+            }
+
+            return remaining105 >= requiredSeats ? remaining105 : 0;
+        }
+
+        // Large private charter (5–8 pax) uses Balloon 210 exclusively
+        if (balloon210Locked || sharedBooked > 0) {
+            return 0;
+        }
+
+        return baseAvailable >= requiredSeats ? baseAvailable : 0;
     };
 
     const getVoucherTypesForAvailability = (availability) => {
@@ -454,14 +496,43 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const matchesExperience = (availability) => {
         if (!chooseFlightType?.type) return true;
         if (!Array.isArray(availability?.flight_types_array) || availability.flight_types_array.length === 0) return true;
-        return availability.flight_types_array
-            .map(type => (typeof type === 'string' ? type.toLowerCase() : '')).includes(chooseFlightType.type.toLowerCase());
+
+        const selectedType = (chooseFlightType.type || '').toLowerCase().trim();
+        if (!selectedType) return true;
+
+        const normalize = (value = '') => value.toLowerCase().trim();
+        const selectedKeywords = {
+            shared: selectedType.includes('shared'),
+            private: selectedType.includes('private'),
+            charter: selectedType.includes('charter'),
+        };
+
+        return availability.flight_types_array.some(type => {
+            const normalizedType = normalize(type);
+            if (!normalizedType) return false;
+            if (normalizedType === selectedType) return true;
+            if (normalizedType.includes(selectedType) || selectedType.includes(normalizedType)) return true;
+
+            const typeKeywords = {
+                shared: normalizedType.includes('shared'),
+                private: normalizedType.includes('private'),
+                charter: normalizedType.includes('charter'),
+            };
+
+            // Consider it a match if both describe the same general experience (shared/private charter)
+            if (selectedKeywords.shared && typeKeywords.shared) return true;
+            if (selectedKeywords.private && typeKeywords.private) return true;
+            if (selectedKeywords.charter && typeKeywords.charter) return true;
+
+            return false;
+        });
     };
 
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
-        const isOpen = slotStatus === 'open' || getRemainingSeats(a) > 0;
-        const hasCapacity = getRemainingSeats(a) > 0 || (a.capacity && a.capacity > 0);
+        const availableForSelection = getAvailableSeatsForSelection(a);
+        const isOpen = slotStatus === 'open' || availableForSelection > 0;
+        const hasCapacity = availableForSelection > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = isOpen && hasCapacity && matchesLocation(a) && matchesExperience(a);
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
         const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
@@ -478,7 +549,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Alternative filtering: if the above is too restrictive, try this
     const alternativeFiltered = isLocationAndExperienceSelected ? availabilities.filter(a => {
         const hasDate = a.date && a.date.length > 0;
-        const hasCapacity = getRemainingSeats(a) > 0 || (a.capacity && a.capacity > 0);
+        const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
         console.log(`Alternative filter ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
         return isAvailable;
@@ -554,26 +625,25 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         
         // Get open/available slots (capacity > 0) for totals
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
-        const total = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
+        const total = availableSlots.reduce((sum, s) => sum + getAvailableSeatsForSelection(s), 0);
+        const sharedTotal = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
         
         const hasOpenSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'open' || getRemainingSeats(slot) > 0);
         const hasClosedSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'closed');
         const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => getSlotStatus(slot) === 'closed' && getRemainingSeats(slot) <= 0);
-        const privateSmallAvailable = allSlotsForDate.some(slot => {
-            const remaining = typeof slot.private_charter_small_remaining === 'number'
-                ? slot.private_charter_small_remaining
-                : (slot.private_charter_small_bookings > 0 ? 0 : 4);
-            return remaining > 0;
-        });
-        const sharedSoldOut = (allSlotsForDate.length > 0 && total === 0 && !hasOpenSlots) || allSlotsClosed;
+        const selectionHasAvailability = availableSlots.some(slot => getAvailableSeatsForSelection(slot) > 0);
+        const sharedSoldOut = (allSlotsForDate.length > 0 && sharedTotal === 0 && !hasOpenSlots) || allSlotsClosed;
+        const selectionSoldOut = availableSlots.length === 0 || !selectionHasAvailability;
+        const privateAvailable = isPrivateSelection ? selectionHasAvailability : !sharedSoldOut;
         
-        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, hasClosedSlots=${hasClosedSlots}, hasOpenSlots=${hasOpenSlots}, soldOut=${sharedSoldOut}`);
+        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, sharedTotal=${sharedTotal}, selectionHasAvailability=${selectionHasAvailability}, soldOutSelection=${selectionSoldOut}, soldOutShared=${sharedSoldOut}`);
         // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
         return {
             total,
+            sharedTotal,
             sharedSoldOut,
-            privateAvailable: privateSmallAvailable,
-            soldOut: sharedSoldOut,
+            privateAvailable,
+            soldOut: selectionSoldOut,
             slots: allSlotsForDate
         };
     };
@@ -611,9 +681,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 const isPastDate = dateCopyStartOfDay < todayStartOfDay;
                 const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
                 const { total, sharedSoldOut, privateAvailable, soldOut: soldOutFromCalc, slots } = getSpacesForDate(dateCopy);
-                const isPrivateFlow = (chooseFlightType?.type || '').toLowerCase().includes('private');
-                const soldOut = isPrivateFlow ? !privateAvailable : (typeof soldOutFromCalc === 'boolean' ? soldOutFromCalc : sharedSoldOut);
-                const isAvailable = isPrivateFlow ? privateAvailable : total > 0;
+                // soldOutFromCalc already represents "sold out for this specific selection"
+                const soldOut = soldOutFromCalc;
+                const isAvailable = !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
                 const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive
@@ -677,7 +747,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 lineHeight: 1,
                                 textAlign: 'center'
                             }}>
-                                Sold Out
+                                Not Available
                             </div>
                         )}
                         {/* Remove "Not Available" text to clean up layout */}
