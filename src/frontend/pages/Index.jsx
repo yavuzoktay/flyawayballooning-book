@@ -624,22 +624,56 @@ const Index = () => {
                     }
 
                     // Set voucher type from voucher data
-                    if (voucherInfo.voucher_type) {
-                        // Map voucher type to valid backend types
-                        let mappedVoucherType = voucherInfo.voucher_type;
-                        
+                    // Priority: voucher_type_detail > detail.voucher_type_detail > voucher_type > detail.book_flight
+                    let mappedVoucherType = null;
+                    
+                    if (voucherInfo.voucher_type_detail) {
+                        mappedVoucherType = voucherInfo.voucher_type_detail;
+                    } else if (voucherInfo.detail?.voucher_type_detail) {
+                        mappedVoucherType = voucherInfo.detail.voucher_type_detail;
+                    } else if (voucherInfo.voucher_type) {
+                        mappedVoucherType = voucherInfo.voucher_type;
+                    } else if (voucherInfo.detail?.book_flight) {
+                        mappedVoucherType = voucherInfo.detail.book_flight;
+                    }
+                    
+                    // If we found a voucher type, validate and set it
+                    if (mappedVoucherType) {
                         // Ensure the voucher type matches backend validation
-                        const validTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight'];
-                        if (!validTypes.includes(mappedVoucherType)) {
+                        const validTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight', 'Weekday Morning Flight', 'Flexible Weekday Flight', 'Any Day'];
+                        // Normalize the type name
+                        let normalizedType = mappedVoucherType;
+                        if (normalizedType === 'Weekday Morning Flight') {
+                            normalizedType = 'Weekday Morning';
+                        } else if (normalizedType === 'Flexible Weekday Flight') {
+                            normalizedType = 'Flexible Weekday';
+                        } else if (normalizedType === 'Any Day' || normalizedType === 'Anytime') {
+                            normalizedType = 'Any Day Flight';
+                        }
+                        
+                        if (!validTypes.includes(normalizedType) && !validTypes.includes(mappedVoucherType)) {
                             // Default to 'Any Day Flight' if the type doesn't match
-                            mappedVoucherType = 'Any Day Flight';
-                            console.warn('Voucher type not in valid list, defaulting to Any Day Flight:', voucherInfo.voucher_type);
+                            normalizedType = 'Any Day Flight';
+                            console.warn('Voucher type not in valid list, defaulting to Any Day Flight:', mappedVoucherType);
+                        } else if (!validTypes.includes(normalizedType)) {
+                            // Use the original if normalization didn't work but original is valid
+                            normalizedType = mappedVoucherType;
                         }
                         
                         setSelectedVoucherType({
-                            title: mappedVoucherType,
+                            title: normalizedType,
                             quantity: !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 ? resolvedPassengerCount : 1,
                             price: voucherInfo.final_amount || 0
+                        });
+                        
+                        console.log('Set selectedVoucherType from voucher data:', {
+                            voucher_type_detail: voucherInfo.voucher_type_detail,
+                            detail_voucher_type_detail: voucherInfo.detail?.voucher_type_detail,
+                            voucher_type: voucherInfo.voucher_type,
+                            detail_book_flight: voucherInfo.detail?.book_flight,
+                            mappedVoucherType: mappedVoucherType,
+                            normalizedType: normalizedType,
+                            finalTitle: normalizedType
                         });
                     }
                     

@@ -528,6 +528,74 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         });
     };
 
+    // Helper function to check if a date is a weekday (Monday-Friday)
+    const isWeekday = (date) => {
+        const day = date.getDay();
+        return day >= 1 && day <= 5; // Monday = 1, Friday = 5
+    };
+
+    // Helper function to check if a time is morning (typically before 12:00 PM)
+    const isMorning = (time) => {
+        if (!time) return false;
+        // Parse time string (format: "HH:mm" or "HH:mm:ss")
+        const timeParts = time.split(':');
+        const hour = parseInt(timeParts[0], 10);
+        return hour < 12; // Morning is before 12:00 PM
+    };
+
+    // Filter availabilities based on voucher type for Redeem Voucher
+    const filterByVoucherType = (availability) => {
+        // Only apply voucher type filtering for Redeem Voucher
+        if (activitySelect !== 'Redeem Voucher' || !selectedVoucherType?.title) {
+            return true; // No filtering needed
+        }
+
+        const voucherType = selectedVoucherType.title;
+        
+        // Parse availability date safely
+        let availabilityDate = null;
+        if (availability.date) {
+            try {
+                // Handle different date formats
+                if (typeof availability.date === 'string') {
+                    // If date includes time, extract just the date part
+                    const datePart = availability.date.split(' ')[0];
+                    availabilityDate = new Date(datePart + 'T00:00:00'); // Add time to avoid timezone issues
+                } else {
+                    availabilityDate = new Date(availability.date);
+                }
+                
+                // Check if date is valid
+                if (isNaN(availabilityDate.getTime())) {
+                    return true; // Invalid date, don't filter
+                }
+            } catch (e) {
+                console.warn('Error parsing availability date:', availability.date, e);
+                return true; // Error parsing, don't filter
+            }
+        }
+        
+        if (!availabilityDate) return true; // If no date, don't filter
+
+        // Weekday Morning voucher → Show weekday mornings only
+        if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
+            return isWeekday(availabilityDate) && isMorning(availability.time);
+        }
+        
+        // Flexible Weekday voucher → Show all weekdays (any time)
+        if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
+            return isWeekday(availabilityDate);
+        }
+        
+        // Anytime voucher (Any Day Flight) → Show all available schedules
+        if (voucherType === 'Any Day Flight' || voucherType === 'Anytime' || voucherType === 'Any Day') {
+            return true; // Show all dates
+        }
+
+        // Default: show all if voucher type doesn't match known types
+        return true;
+    };
+
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
         const availableForSelection = getAvailableSeatsForSelection(a);
@@ -541,8 +609,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const isWildcardVoucher = normalizedAvailabilityTypes.length === 0 ||
             normalizedAvailabilityTypes.some(type => voucherWildcardTerms.includes(type));
         const matchesVoucher = !normalizedSelectedVoucher || isWildcardVoucher || normalizedAvailabilityTypes.includes(normalizedSelectedVoucher);
-        console.log(`Availability ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, voucher_types=${availabilityVoucherTypes}`);
-        return isAvailable && matchesVoucher;
+        
+        // Apply voucher type filtering for Redeem Voucher
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+        
+        console.log(`Availability ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}, voucher_types=${availabilityVoucherTypes}`);
+        return isAvailable && matchesVoucher && matchesVoucherTypeFilter;
     }) : [];
     console.log('Filtered availabilities (all times):', filteredAvailabilities);
     
@@ -551,8 +623,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const hasDate = a.date && a.date.length > 0;
         const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
-        console.log(`Alternative filter ${a.id}: date=${a.date}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}`);
-        return isAvailable;
+        
+        // Apply voucher type filtering for Redeem Voucher
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+        
+        console.log(`Alternative filter ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}`);
+        return isAvailable && matchesVoucherTypeFilter;
     }) : [];
     console.log('Alternative filtered availabilities:', alternativeFiltered);
     
@@ -587,10 +663,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const dateStr = `${year}-${month}-${day}`;
         
         console.log(`Looking for date: ${dateStr}`);
-        const matchingAvailabilities = finalFilteredAvailabilities.filter(a => {
+        let matchingAvailabilities = finalFilteredAvailabilities.filter(a => {
             console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
             return a.date === dateStr;
         });
+        
+        // Apply additional voucher type filtering for Weekday Morning (must be morning times)
+        if (activitySelect === 'Redeem Voucher' && selectedVoucherType?.title) {
+            const voucherType = selectedVoucherType.title;
+            if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
+                // Filter to only show morning times (before 12:00 PM)
+                matchingAvailabilities = matchingAvailabilities.filter(a => isMorning(a.time));
+                console.log(`After morning filter: ${matchingAvailabilities.length} availabilities for ${dateStr}`);
+            }
+        }
+        
         console.log(`Found ${matchingAvailabilities.length} availabilities for ${dateStr}`);
         return matchingAvailabilities;
     };
@@ -611,17 +698,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         console.log(`All availabilities:`, availabilities);
         console.log(`Sample availability dates:`, availabilities.slice(0, 3).map(a => ({ id: a.id, date: a.date, originalDate: a.date })));
         
-        // Check ALL availabilities for this date (including capacity = 0)
-        const allSlotsForDate = availabilities.filter(a => a.date === dateStr);
+        // Check ALL availabilities for this date (including capacity = 0) - use filtered list
+        const allSlotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
         console.log(`All slots for ${dateStr}:`, allSlotsForDate);
         console.log(`Slot statuses for ${dateStr}:`, allSlotsForDate.map(slot => ({ 
             id: slot.id, 
             status: slot.status, 
             available: slot.available, 
             capacity: slot.capacity,
-            date: slot.date
+            date: slot.date,
+            time: slot.time
         })));
-        console.log(`Raw availabilities for ${dateStr}:`, availabilities.filter(a => a.date === dateStr));
+        console.log(`Raw availabilities for ${dateStr}:`, finalFilteredAvailabilities.filter(a => a.date === dateStr));
         
         // Get open/available slots (capacity > 0) for totals
         const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
@@ -680,10 +768,40 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 
                 const isPastDate = dateCopyStartOfDay < todayStartOfDay;
                 const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
+                
+                // Apply voucher type filtering for Redeem Voucher - check if this date should be shown
+                let shouldShowDate = true;
+                if (activitySelect === 'Redeem Voucher' && selectedVoucherType?.title) {
+                    const voucherType = selectedVoucherType.title;
+                    // Weekday Morning voucher → Show weekday mornings only
+                    if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
+                        // Must be weekday AND have morning slots available
+                        const isWeekdayDate = isWeekday(dateCopy);
+                        if (isWeekdayDate) {
+                            // Check if there are any morning slots for this date
+                            const year = dateCopy.getFullYear();
+                            const month = String(dateCopy.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateCopy.getDate()).padStart(2, '0');
+                            const dateStr = `${year}-${month}-${day}`;
+                            const slotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
+                            const hasMorningSlots = slotsForDate.some(slot => isMorning(slot.time));
+                            shouldShowDate = hasMorningSlots;
+                        } else {
+                            shouldShowDate = false;
+                        }
+                    }
+                    // Flexible Weekday voucher → Show all weekdays (any time)
+                    else if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
+                        shouldShowDate = isWeekday(dateCopy);
+                    }
+                    // Anytime voucher (Any Day Flight) → Show all available schedules
+                    // No filtering needed, shouldShowDate remains true
+                }
+                
                 const { total, sharedSoldOut, privateAvailable, soldOut: soldOutFromCalc, slots } = getSpacesForDate(dateCopy);
                 // soldOutFromCalc already represents "sold out for this specific selection"
                 const soldOut = soldOutFromCalc;
-                const isAvailable = !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
+                const isAvailable = shouldShowDate && !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
                 const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive
