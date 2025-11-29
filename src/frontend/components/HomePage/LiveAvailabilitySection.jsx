@@ -740,7 +740,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                         {soldOut && !isPastDate && (
                             <div style={{ 
-                                fontSize: isMobile ? 9 : 11, 
+                                fontSize: isMobile ? 7.5 : 11, 
                                 marginTop: isMobile ? 2 : 4, 
                                 color: '#fff', 
                                 fontWeight: 600,
