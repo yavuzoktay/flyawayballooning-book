@@ -2128,9 +2128,12 @@ const Index = () => {
             });
 
             // Preselect location (e.g. Somerset, Devon, Bath)
+            // Trim and ensure proper capitalization to match location names from API
             if (qpLocation) {
-                console.log('🔵 Shopify prefill - Setting location:', qpLocation);
-                setChooseLocation(qpLocation);
+                const trimmedLocation = qpLocation.trim();
+                console.log('🔵 Shopify prefill - Setting location:', trimmedLocation);
+                // Set location immediately
+                setChooseLocation(trimmedLocation);
             }
 
             // Preselect experience and passenger count
@@ -2160,22 +2163,15 @@ const Index = () => {
             }
 
             // Open accordions in sequence with delays to ensure components are mounted and state is set
-            // First, ensure activity is selected (already done above)
-            setTimeout(() => {
-                // Open location accordion if location is provided
-                if (qpLocation) {
-                    console.log('🔵 Shopify prefill - Opening location accordion');
-                    setActiveAccordion('location');
-                }
-            }, 200);
-
+            // Since location is already selected from Shopify, we don't need to open location accordion
+            // Instead, go directly to experience and then voucher-type
             setTimeout(() => {
                 // Open experience accordion if experience is provided
                 if (derivedExperience) {
                     console.log('🔵 Shopify prefill - Opening experience accordion');
                     setActiveAccordion('experience');
                 }
-            }, 400);
+            }, 300);
 
             setTimeout(() => {
                 // Finally, open voucher-type accordion (this is the main target)
@@ -2190,7 +2186,7 @@ const Index = () => {
                         }
                     }, 100);
                 }
-            }, 600);
+            }, 500);
         } catch (e) {
             console.error('Error pre-filling booking flow from Shopify params:', e);
         }
