@@ -2079,6 +2079,123 @@ const Index = () => {
         }
     }, [location.pathname]);
 
+    // Prefill flow when redirected from Shopify voucher selection
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(location.search);
+            if (params.get('source') !== 'shopify') return;
+
+            const qpLocation = params.get('location');
+            const qpVoucherTitle = params.get('voucherTitle');
+            const qpPassengers = parseInt(params.get('passengers') || '2', 10);
+            const qpExperience = params.get('experience');
+            const qpStartAt = params.get('startAt');
+
+            console.log('🔵 Shopify prefill - URL params:', {
+                location: qpLocation,
+                voucherTitle: qpVoucherTitle,
+                passengers: qpPassengers,
+                experience: qpExperience,
+                startAt: qpStartAt
+            });
+
+            // Derive experience from voucher title if not provided
+            let derivedExperience = qpExperience;
+            if (!derivedExperience && qpVoucherTitle) {
+                const titleLower = qpVoucherTitle.toLowerCase();
+                if (titleLower.includes('private charter') || titleLower.includes('proposal')) {
+                    derivedExperience = 'Private Charter';
+                } else {
+                    // Flexible Weekday, Weekday Morning, Any Day Flight are all Shared Flight
+                    derivedExperience = 'Shared Flight';
+                }
+            }
+
+            console.log('🔵 Shopify prefill - Derived experience:', derivedExperience);
+
+            // Use Book Flight flow by default for Shopify deep-link
+            // NOTE: activitySelect values use internal labels ('Book Flight', 'Flight Voucher', etc.),
+            // while the UI shows 'Book Flight Date' as displayLabel.
+            setActivitySelect('Book Flight');
+
+            // Mark prerequisite sections as completed so Voucher Type accordion can open
+            setCompletedSections(prev => {
+                const next = new Set(prev);
+                next.add('activity');
+                if (qpLocation) next.add('location');
+                if (derivedExperience) next.add('experience');
+                return next;
+            });
+
+            // Preselect location (e.g. Somerset, Devon, Bath)
+            if (qpLocation) {
+                console.log('🔵 Shopify prefill - Setting location:', qpLocation);
+                setChooseLocation(qpLocation);
+            }
+
+            // Preselect experience and passenger count
+            if (derivedExperience || qpPassengers) {
+                console.log('🔵 Shopify prefill - Setting flight type:', {
+                    type: derivedExperience,
+                    passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2'
+                });
+                setChooseFlightType({
+                    type: derivedExperience || 'Shared Flight',
+                    passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
+                    price: ''
+                });
+            }
+
+            // Prefill voucher type selection
+            if (qpVoucherTitle) {
+                console.log('🔵 Shopify prefill - Setting voucher type:', {
+                    title: qpVoucherTitle,
+                    quantity: qpPassengers > 0 ? qpPassengers : 2
+                });
+                setSelectedVoucherType({
+                    title: qpVoucherTitle,
+                    quantity: qpPassengers > 0 ? qpPassengers : 2,
+                    price: 0
+                });
+            }
+
+            // Open accordions in sequence with delays to ensure components are mounted and state is set
+            // First, ensure activity is selected (already done above)
+            setTimeout(() => {
+                // Open location accordion if location is provided
+                if (qpLocation) {
+                    console.log('🔵 Shopify prefill - Opening location accordion');
+                    setActiveAccordion('location');
+                }
+            }, 200);
+
+            setTimeout(() => {
+                // Open experience accordion if experience is provided
+                if (derivedExperience) {
+                    console.log('🔵 Shopify prefill - Opening experience accordion');
+                    setActiveAccordion('experience');
+                }
+            }, 400);
+
+            setTimeout(() => {
+                // Finally, open voucher-type accordion (this is the main target)
+                if (qpStartAt === 'voucher-type' || qpVoucherTitle) {
+                    console.log('🔵 Shopify prefill - Opening voucher-type accordion');
+                    setActiveAccordion('voucher-type');
+                    // Scroll to voucher type section
+                    setTimeout(() => {
+                        const voucherSection = document.getElementById('voucher-type');
+                        if (voucherSection) {
+                            voucherSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                }
+            }, 600);
+        } catch (e) {
+            console.error('Error pre-filling booking flow from Shopify params:', e);
+        }
+    }, [location.search]);
+
     const scrollToPortalSection = useCallback((sectionId) => {
         if (typeof window === 'undefined') return;
         const element = document.getElementById(sectionId);
