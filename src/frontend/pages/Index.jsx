@@ -2134,44 +2134,131 @@ const Index = () => {
                 console.log('🔵 Shopify prefill - Setting location:', trimmedLocation);
                 // Set location immediately
                 setChooseLocation(trimmedLocation);
+                
+                // Trigger location selection in LocationSection component
+                // This ensures activity ID and availabilities are fetched
+                setTimeout(() => {
+                    // Find and click the location card to trigger confirmLocation
+                    const locationCards = document.querySelectorAll('.location_data');
+                    locationCards.forEach(card => {
+                        const locationName = card.querySelector('h3')?.textContent?.trim();
+                        if (locationName === trimmedLocation) {
+                            console.log('🔵 Shopify prefill - Clicking location card:', locationName);
+                            const clickEvent = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            card.dispatchEvent(clickEvent);
+                        }
+                    });
+                }, 600);
             }
 
             // Preselect experience and passenger count
-            if (derivedExperience || qpPassengers) {
-                console.log('🔵 Shopify prefill - Setting flight type:', {
-                    type: derivedExperience,
-                    passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2'
-                });
-                setChooseFlightType({
-                    type: derivedExperience || 'Shared Flight',
-                    passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
-                    price: ''
-                });
-            }
+            // Wait for location to be set and activity data to load first
+            setTimeout(() => {
+                if (derivedExperience || qpPassengers) {
+                    console.log('🔵 Shopify prefill - Setting flight type:', {
+                        type: derivedExperience,
+                        passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2'
+                    });
+                    setChooseFlightType({
+                        type: derivedExperience || 'Shared Flight',
+                        passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
+                        price: ''
+                    });
+                    
+                    // Trigger experience selection in ExperienceSection component
+                    setTimeout(() => {
+                        // Find experience cards by text content
+                        const experienceCards = document.querySelectorAll('.experience-card, [class*="experience"]');
+                        experienceCards.forEach(card => {
+                            const cardText = card.textContent || '';
+                            // Check if card contains the experience type
+                            if (derivedExperience === 'Shared Flight' && (cardText.includes('Shared') || cardText.includes('Shared Flight'))) {
+                                console.log('🔵 Shopify prefill - Clicking Shared Flight card');
+                                const clickEvent = new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window
+                                });
+                                card.dispatchEvent(clickEvent);
+                            } else if (derivedExperience === 'Private Charter' && (cardText.includes('Private') || cardText.includes('Private Charter'))) {
+                                console.log('🔵 Shopify prefill - Clicking Private Charter card');
+                                const clickEvent = new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window
+                                });
+                                card.dispatchEvent(clickEvent);
+                            }
+                        });
+                    }, 300);
+                }
+            }, 1000);
 
             // Prefill voucher type selection
-            if (qpVoucherTitle) {
-                console.log('🔵 Shopify prefill - Setting voucher type:', {
-                    title: qpVoucherTitle,
-                    quantity: qpPassengers > 0 ? qpPassengers : 2
-                });
-                setSelectedVoucherType({
-                    title: qpVoucherTitle,
-                    quantity: qpPassengers > 0 ? qpPassengers : 2,
-                    price: 0
-                });
-            }
+            // Wait for location and experience to be set first
+            setTimeout(() => {
+                if (qpVoucherTitle) {
+                    console.log('🔵 Shopify prefill - Setting voucher type:', {
+                        title: qpVoucherTitle,
+                        quantity: qpPassengers > 0 ? qpPassengers : 2
+                    });
+                    setSelectedVoucherType({
+                        title: qpVoucherTitle,
+                        quantity: qpPassengers > 0 ? qpPassengers : 2,
+                        price: 0
+                    });
+                    
+                    // Trigger voucher type selection in VoucherType component
+                    setTimeout(() => {
+                        // Find voucher cards by title text
+                        const voucherCards = document.querySelectorAll('.voucher-card, [class*="voucher"]');
+                        voucherCards.forEach(card => {
+                            const cardTitle = card.querySelector('h3, h4, .voucher-title, [class*="title"]')?.textContent?.trim();
+                            // Decode URL-encoded title (e.g., "Flexible+Weekday" -> "Flexible Weekday")
+                            const decodedTitle = decodeURIComponent(qpVoucherTitle.replace(/\+/g, ' '));
+                            if (cardTitle && (cardTitle === decodedTitle || cardTitle === qpVoucherTitle)) {
+                                console.log('🔵 Shopify prefill - Clicking voucher card:', cardTitle);
+                                const selectButton = card.querySelector('.voucher-card-select-btn, button, [class*="select"]');
+                                if (selectButton) {
+                                    const clickEvent = new MouseEvent('click', {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window
+                                    });
+                                    selectButton.dispatchEvent(clickEvent);
+                                } else {
+                                    card.dispatchEvent(new MouseEvent('click', {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window
+                                    }));
+                                }
+                            }
+                        });
+                    }, 300);
+                }
+            }, 1500);
 
             // Open accordions in sequence with delays to ensure components are mounted and state is set
-            // Since location is already selected from Shopify, we don't need to open location accordion
-            // Instead, go directly to experience and then voucher-type
+            setTimeout(() => {
+                // Open location accordion briefly to show selection
+                if (qpLocation) {
+                    console.log('🔵 Shopify prefill - Opening location accordion');
+                    setActiveAccordion('location');
+                }
+            }, 400);
+
             setTimeout(() => {
                 // Open experience accordion if experience is provided
                 if (derivedExperience) {
                     console.log('🔵 Shopify prefill - Opening experience accordion');
                     setActiveAccordion('experience');
                 }
-            }, 300);
+            }, 1000);
 
             setTimeout(() => {
                 // Finally, open voucher-type accordion (this is the main target)
@@ -2186,7 +2273,7 @@ const Index = () => {
                         }
                     }, 100);
                 }
-            }, 500);
+            }, 1500);
         } catch (e) {
             console.error('Error pre-filling booking flow from Shopify params:', e);
         }
