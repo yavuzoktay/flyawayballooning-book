@@ -74,6 +74,9 @@ const Index = () => {
     const [portalError, setPortalError] = useState(null);
     const { token } = useParams();
     
+    const location = useLocation();
+    const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         handleResize();
@@ -2080,9 +2083,6 @@ const Index = () => {
             }
         }
     }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn, shopifyStartAtVoucher, activeAccordion]);
-
-    const location = useLocation();
-    const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const path = window.location.pathname.toLowerCase();
