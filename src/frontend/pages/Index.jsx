@@ -2038,6 +2038,16 @@ const Index = () => {
                 isCurrentInSequence: sequence.includes(activeAccordion)
             });
             
+            // Shopify'dan voucher-type deep link ile geldiysek ve voucher zaten seçiliyse,
+            // Experience yerine Voucher Type accordion'un açık olduğundan emin ol.
+            if (shopifyStartAtVoucher && selectedVoucherType) {
+                if (activeAccordion !== 'voucher-type') {
+                    console.log('🔵 Shopify flow - forcing accordion to voucher-type');
+                    setActiveAccordion('voucher-type');
+                }
+                return;
+            }
+
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
             if (!sequence.includes(activeAccordion)) {
                 console.log('❌ Current accordion not in new sequence, finding next valid accordion');
@@ -2069,15 +2079,22 @@ const Index = () => {
                 }
             }
         }
-    }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn]);
+    }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn, shopifyStartAtVoucher, activeAccordion]);
 
     const location = useLocation();
+    const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const path = window.location.pathname.toLowerCase();
             setIsCustomerPortal(path.includes('customerportal'));
         }
-    }, [location.pathname]);
+        try {
+            const params = new URLSearchParams(location.search || '');
+            const source = params.get('source');
+            const startAt = params.get('startAt');
+            setShopifyStartAtVoucher(source === 'shopify' && startAt === 'voucher-type');
+        } catch {}
+    }, [location.pathname, location.search]);
 
     // Prefill flow when redirected from Shopify voucher selection
     useEffect(() => {
