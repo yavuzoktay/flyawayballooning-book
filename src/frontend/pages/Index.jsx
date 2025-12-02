@@ -2254,7 +2254,7 @@ const Index = () => {
 
             setTimeout(() => {
                 // Open experience accordion if experience is provided
-                if (derivedExperience) {
+                if (derivedExperience && qpStartAt !== 'voucher-type') {
                     console.log('🔵 Shopify prefill - Opening experience accordion');
                     setActiveAccordion('experience');
                 }
