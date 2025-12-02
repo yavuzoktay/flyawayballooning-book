@@ -986,6 +986,51 @@ const VoucherType = ({
         }
     }, [chooseFlightType?.type, allVoucherTypesState, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
 
+    // When coming from deep links (ör. Shopify) üst component sadece title/quantity
+    // içeren bir selectedVoucherType gönderebiliyor. voucherTypes yüklendikten sonra
+    // bu title’a göre gerçek voucher objesini bulup kartı seçili yapıyor ve fiyatı
+    // otomatik hesaplıyoruz.
+    useEffect(() => {
+        try {
+            if (!selectedVoucherType || !selectedVoucherType.title) return;
+            if (!Array.isArray(voucherTypes) || voucherTypes.length === 0) return;
+
+            // Zaten id’li ve local selectedVoucher set edilmişse tekrar çalıştırma
+            if (selectedVoucherType.id && selectedVoucher) return;
+
+            const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+            const targetTitle = normalize(selectedVoucherType.title);
+
+            const matched = voucherTypes.find(v => normalize(v.title) === targetTitle);
+            if (!matched) return;
+
+            const quantityFromUrl = parseInt(
+                selectedVoucherType.quantity || selectedVoucherType.passengers || 2,
+                10
+            ) || 2;
+
+            console.log('VoucherType: Deep-link prefill – matched voucher by title:', {
+                incoming: selectedVoucherType,
+                matched
+            });
+
+            const enriched = buildVoucherWithQuantity(matched, quantityFromUrl);
+
+            // Passenger input’larını da senkronize et
+            setQuantities(prev => ({
+                ...prev,
+                [matched.title]: enriched.quantity
+            }));
+
+            // Hem local hem de parent state’i update et – özet ekran + kartlar senkron
+            setSelectedVoucher(enriched);
+            setSelectedVoucherType(enriched);
+        } catch (e) {
+            console.error('VoucherType: Error applying deep-link voucher prefill', e);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [voucherTypes, selectedVoucherType?.title]);
+
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
     const handleQuantityChange = (voucherTitle, value) => {
@@ -1571,18 +1616,22 @@ const VoucherType = ({
     setCanScrollVouchersRight(tempIndex < itemCount - 1);
     };
 
-    const handleSelectVoucher = async (voucher) => {
+    /**
+     * Helper to build a fully-populated voucher object with quantity and pricing.
+     * This is shared between manual card selection and deep-link (Shopify) prefill.
+     */
+    const buildVoucherWithQuantity = (voucher, quantityRaw) => {
         // Ensure quantity defaults to 2 when not explicitly changed in UI
         // For Proposal Flight, force quantity to 2
         const isProposal = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal');
-        const quantity = isProposal ? 2 : parseInt(quantities[voucher.title] || 2, 10);
-        
-        console.log('VoucherType: handleSelectVoucher called with:', voucher);
-        console.log('VoucherType: Quantity for', voucher.title, ':', quantity);
-        
+        const safeQuantity = isProposal
+            ? 2
+            : (parseInt(quantityRaw ?? quantities[voucher.title] ?? 2, 10) || 2);
+
         // Calculate total price based on price unit and experience type
         let totalPrice;
         let effectiveBasePrice = voucher.basePrice;
+
         if (chooseFlightType?.type === "Private Charter") {
             // Use total price from activity tiered pricing; do NOT multiply by passenger count
             const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
@@ -1620,7 +1669,7 @@ const VoucherType = ({
                 return Number.isNaN(parsed) ? undefined : parsed;
             };
 
-            const tierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, quantity);
+            const tierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity);
             if (tierPrice !== undefined) {
                 effectiveBasePrice = tierPrice;
             }
@@ -1633,20 +1682,25 @@ const VoucherType = ({
             console.log('VoucherType: Using total pricing:', totalPrice);
         } else {
             // For per-person pricing, multiply by quantity
-            totalPrice = voucher.price * quantity;
-            console.log('VoucherType: Using per-person pricing:', voucher.price, '×', quantity, '=', totalPrice);
+            totalPrice = voucher.price * safeQuantity;
+            console.log('VoucherType: Using per-person pricing:', voucher.price, '×', safeQuantity, '=', totalPrice);
         }
-        
-        const voucherWithQuantity = {
+
+        return {
             ...voucher,
-            quantity: quantity,
+            quantity: safeQuantity,
             totalPrice: totalPrice,
             basePrice: effectiveBasePrice || voucher.basePrice,
             priceUnit: voucher.priceUnit,
             // Ensure summary uses the correct total price for Private Charter
             price: (chooseFlightType?.type === "Private Charter") ? totalPrice : (voucher.priceUnit === 'total' ? voucher.price : (voucher.basePrice || voucher.price))
         };
+    };
+
+    const handleSelectVoucher = async (voucher) => {
+        const voucherWithQuantity = buildVoucherWithQuantity(voucher);
         
+        console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
         
