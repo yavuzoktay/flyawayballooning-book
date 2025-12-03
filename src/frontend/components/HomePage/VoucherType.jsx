@@ -1174,7 +1174,14 @@ const VoucherType = ({
                 scrollSnapAlign: isMobile ? 'start' : 'none',
                 position: 'relative'
             }}>
-                <div style={{ position: 'relative', width: '100%', height: 180, overflow: 'hidden' }}>
+                <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: 180,
+                    overflow: 'hidden',
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16
+                }}>
                     <img
                         src={voucher.image}
                         alt={voucher.title}

@@ -186,6 +186,8 @@ label {
 }
 
 .booking_data {
+    overflow: scroll;
+    height: 80vh;
     padding-right: 20px;
 }
 
