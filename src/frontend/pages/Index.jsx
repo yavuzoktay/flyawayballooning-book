@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import LOGO from '../../assets/images/FAB_Logo_DarkBlue.png';
 
 import { Container, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Divider, Button } from "@mui/material";
@@ -76,6 +76,7 @@ const Index = () => {
     
     const location = useLocation();
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
+    const shopifyVoucherForcedRef = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -2041,11 +2042,11 @@ const Index = () => {
                 isCurrentInSequence: sequence.includes(activeAccordion)
             });
             
-            // Shopify'dan voucher-type deep link ile geldiysek ve voucher zaten seçiliyse,
-            // Experience yerine Voucher Type accordion'un açık olduğundan emin ol.
-            if (shopifyStartAtVoucher && selectedVoucherType) {
+
+            if (shopifyStartAtVoucher && selectedVoucherType && !shopifyVoucherForcedRef.current) {
+                shopifyVoucherForcedRef.current = true;
                 if (activeAccordion !== 'voucher-type') {
-                    console.log('🔵 Shopify flow - forcing accordion to voucher-type');
+                    console.log('🔵 Shopify flow - forcing accordion to voucher-type (one-time)');
                     setActiveAccordion('voucher-type');
                 }
                 return;
