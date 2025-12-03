@@ -1277,6 +1277,14 @@ const Index = () => {
             if (nextSection) {
                 console.log('🔓 Opening next section:', nextSection, `(${sequence.indexOf(nextSection) + 1}/${sequence.length})`);
                 setActiveAccordion(nextSection);
+
+                setTimeout(() => {
+                    try {
+                        scrollToPortalSection(nextSection);
+                    } catch (e) {
+                        console.warn('scrollToPortalSection failed for', nextSection, e);
+                    }
+                }, 50);
             } else {
                 console.log('✅ No more sections to open - sequence complete');
                 console.log('📋 Final sequence was:', sequence);
@@ -2316,7 +2324,7 @@ const Index = () => {
         if (typeof window === 'undefined') return;
         const element = document.getElementById(sectionId);
         if (!element) return;
-        const offset = isMobile ? 80 : 140;
+        const offset = isMobile ? 80 : 10;
         const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
         window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     }, [isMobile]);
