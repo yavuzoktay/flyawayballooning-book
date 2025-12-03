@@ -46,7 +46,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
   const desktopCircleSize = 20; // content box size (px)
   const desktopCircleBorder = 1.5; // border (px)
   const desktopLineHeight = 4; // line height (px)
-  const desktopContainerPaddingTop = 12; // matches container padding top on desktop
+  const desktopContainerPaddingTop = 6; // matches container padding top on desktop (reduced)
   const desktopCircleVisualDiameter = desktopCircleSize + (desktopCircleBorder * 2);
   // Top offset relative to the progress-container (absolute), taking into account top padding
   const desktopTopOffsetPx = !isMobile
@@ -59,7 +59,7 @@ const ProgressBar = ({ sections, activeSection, onCircleClick, isMobile = false 
       width: '100%',
       maxWidth: isMobile ? 'none' : '700px', // No maxWidth on mobile to match Summary width
       margin: '0 auto',
-      padding: isMobile ? '8px 0' : '12px 0' // Reduced padding
+      padding: isMobile ? '4px 0' : '6px 0' // Reduced padding for less spacing
     }}>
       {/* Progress line background */}
       <div className="progress-line" style={{

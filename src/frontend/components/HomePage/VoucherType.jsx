@@ -1167,6 +1167,7 @@ const VoucherType = ({
                 padding: 0,
                 display: 'flex',
                 flexDirection: 'column',
+                height: '100%',
                 overflow: isMobile ? 'hidden' : 'visible',
                 animation: shouldAnimate ? (slideDirection === 'right' ? 'slideInRight 0.3s ease-in-out' : slideDirection === 'left' ? 'slideInLeft 0.3s ease-in-out' : 'none') : 'none',
                 border: isSelected ? '2px solid #03a9f4' : 'none',
@@ -1213,7 +1214,7 @@ const VoucherType = ({
                     boxSizing: 'border-box', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    height: '100%',
+                    flex: 1,
                     overflow: 'visible',
                     position: 'relative'
                 }}>
@@ -1439,117 +1440,132 @@ const VoucherType = ({
                     </div>
                     {(() => {
                         const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                        if (chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight') {
-                            if (!isAnyDay) return null;
-                            const enabled = localSharedWeatherRefund;
-                            return (
-                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10,overflow:'visible',position:'relative'}}>
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
-                                            <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <BsInfoCircle 
-                                                data-tooltip-id="weather-refundable-tooltip-shared"
-                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
-                                            />
-                                            <ReactTooltip
-                                                id="weather-refundable-tooltip-shared"
-                                                place="top"
-                                                content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
-                                                style={{
-                                                    maxWidth: '280px',
-                                                    fontSize: '13px',
-                                                    textAlign: 'center',
-                                                    backgroundColor: '#1f2937',
-                                                    color: '#ffffff',
-                                                    borderRadius: '8px',
-                                                    padding: '8px 12px',
-                                                    zIndex: 9999
-                                                }}
-                                            />
-                                        </div>
-                                        <label className="switch" style={{margin:0}}>
-                                            <input
-                                                type="checkbox"
-                                                checked={enabled}
-                                                onChange={() => {
-                                                    const next = !enabled;
-                                                    setLocalSharedWeatherRefund(next);
-                                                    if (Array.isArray(passengerData) && setPassengerData) {
-                                                        const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
-                                                        setPassengerData(updated);
-                                                    }
-                                                }}
-                                            />
-                                            <span className="slider round"></span>
-                                        </label>
-                                    </div>
-                                    {enabled && (
-                                        <div style={{textAlign:'right'}}>
-                                            <span className="toggle-price-pill">
-                                                +£{(47.50 * (parseInt(quantities[voucher.title] || 2, 10))).toFixed(2)} total
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        }
-                        if (chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight') {
-                            const enabled = !!privateWeatherRefundByVoucher[voucher.title];
-                            return (
-                                <div style={{background:'#f8fafc',border:'1px solid #e5e7eb',borderRadius:12,padding:'10px 12px',marginBottom:10,overflow:'visible',position:'relative'}}>
-                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
-                                            <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
-                                            <BsInfoCircle 
-                                                data-tooltip-id={`weather-refundable-tooltip-private-${voucher.title}`}
-                                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
-                                            />
-                                            <ReactTooltip
-                                                id={`weather-refundable-tooltip-private-${voucher.title}`}
-                                                place="top"
-                                                content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
-                                                style={{
-                                                    maxWidth: '280px',
-                                                    fontSize: '13px',
-                                                    textAlign: 'center',
-                                                    backgroundColor: '#1f2937',
-                                                    color: '#ffffff',
-                                                    borderRadius: '8px',
-                                                    padding: '8px 12px',
-                                                    zIndex: 9999
-                                                }}
-                                            />
-                                        </div>
-                                        <label className="switch" style={{margin:0}}>
-                                            <input
-                                                type="checkbox"
-                                                checked={enabled}
-                                                onChange={() => {
-                                                    const next = !enabled;
-                                                    // Enforce mutual exclusivity across voucher items
-                                                    setPrivateWeatherRefundByVoucher(() => {
-                                                        const state = {};
-                                                        if (next) state[voucher.title] = true; // only this one on
-                                                        return state; // all others implicitly off
-                                                    });
-                                                    // If this card is selected, reflect to global for summary
-                                                    if (isSelected && setPrivateCharterWeatherRefund) {
-                                                        setPrivateCharterWeatherRefund(next);
-                                                    }
-                                                }}
-                                            />
-                                            <span className="slider round"></span>
-                                        </label>
-                                    </div>
-                                    {enabled && (
-                                        <div style={{textAlign:'right'}}>
-                                            <span className="toggle-price-pill">+ 10%</span>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        }
-                        return null;
+                        const showWeatherRefundableShared = chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight' && isAnyDay;
+                        const showWeatherRefundablePrivate = chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight';
+                        
+                        // Always render a container div to maintain consistent card height across all vouchers
+                        return (
+                            <div style={{
+                                background: showWeatherRefundableShared || showWeatherRefundablePrivate ? '#f8fafc' : 'transparent',
+                                border: showWeatherRefundableShared || showWeatherRefundablePrivate ? '1px solid #e5e7eb' : 'none',
+                                borderRadius: 12,
+                                padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
+                                marginBottom: 10,
+                                minHeight: '50px',
+                                overflow: 'visible',
+                                position: 'relative'
+                            }}>
+                                {showWeatherRefundableShared && (() => {
+                                    const enabled = localSharedWeatherRefund;
+                                    return (
+                                        <>
+                                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
+                                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                                    <BsInfoCircle 
+                                                        data-tooltip-id="weather-refundable-tooltip-shared"
+                                                        style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                                    />
+                                                    <ReactTooltip
+                                                        id="weather-refundable-tooltip-shared"
+                                                        place="top"
+                                                        content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        style={{
+                                                            maxWidth: '280px',
+                                                            fontSize: '13px',
+                                                            textAlign: 'center',
+                                                            backgroundColor: '#1f2937',
+                                                            color: '#ffffff',
+                                                            borderRadius: '8px',
+                                                            padding: '8px 12px',
+                                                            zIndex: 9999
+                                                        }}
+                                                    />
+                                                </div>
+                                                <label className="switch" style={{margin:0}}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={enabled}
+                                                        onChange={() => {
+                                                            const next = !enabled;
+                                                            setLocalSharedWeatherRefund(next);
+                                                            if (Array.isArray(passengerData) && setPassengerData) {
+                                                                const updated = passengerData.map((p)=> ({...p, weatherRefund: next}));
+                                                                setPassengerData(updated);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="slider round"></span>
+                                                </label>
+                                            </div>
+                                            {enabled && (
+                                                <div style={{textAlign:'right'}}>
+                                                    <span className="toggle-price-pill">
+                                                        +£{(47.50 * (parseInt(quantities[voucher.title] || 2, 10))).toFixed(2)} total
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                                {showWeatherRefundablePrivate && (() => {
+                                    const enabled = !!privateWeatherRefundByVoucher[voucher.title];
+                                    return (
+                                        <>
+                                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
+                                                    <span style={{fontWeight:600,fontSize:14}}>Weather Refundable</span>
+                                                    <BsInfoCircle 
+                                                        data-tooltip-id={`weather-refundable-tooltip-private-${voucher.title}`}
+                                                        style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                                    />
+                                                    <ReactTooltip
+                                                        id={`weather-refundable-tooltip-private-${voucher.title}`}
+                                                        place="top"
+                                                        content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        style={{
+                                                            maxWidth: '280px',
+                                                            fontSize: '13px',
+                                                            textAlign: 'center',
+                                                            backgroundColor: '#1f2937',
+                                                            color: '#ffffff',
+                                                            borderRadius: '8px',
+                                                            padding: '8px 12px',
+                                                            zIndex: 9999
+                                                        }}
+                                                    />
+                                                </div>
+                                                <label className="switch" style={{margin:0}}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={enabled}
+                                                        onChange={() => {
+                                                            const next = !enabled;
+                                                            // Enforce mutual exclusivity across voucher items
+                                                            setPrivateWeatherRefundByVoucher(() => {
+                                                                const state = {};
+                                                                if (next) state[voucher.title] = true; // only this one on
+                                                                return state; // all others implicitly off
+                                                            });
+                                                            // If this card is selected, reflect to global for summary
+                                                            if (isSelected && setPrivateCharterWeatherRefund) {
+                                                                setPrivateCharterWeatherRefund(next);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="slider round"></span>
+                                                </label>
+                                            </div>
+                                            {enabled && (
+                                                <div style={{textAlign:'right'}}>
+                                                    <span className="toggle-price-pill">+ 10%</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        );
                     })()}
                     <button 
                         style={{ 
@@ -2084,7 +2100,7 @@ const VoucherType = ({
                                             flexDirection: 'row', 
                                             gap: '16px', 
                                             justifyContent: 'flex-start',
-                                            alignItems: 'center',
+                                            alignItems: 'stretch',
                                             width: '100%',
                                             overflowX: 'auto',
                                             overflowY: 'visible',
@@ -2101,7 +2117,9 @@ const VoucherType = ({
                                                     minWidth: '100%',
                                                     maxWidth: '100%',
                                                     flexShrink: 0,
-                                                    scrollSnapAlign: 'start'
+                                                    scrollSnapAlign: 'start',
+                                                    display: 'flex',
+                                                    height: '100%'
                                                 }}>
                                                     <VoucherCard
                                                         voucher={voucher}
@@ -2141,7 +2159,7 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'center',
+                                                    alignItems: 'stretch',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -2165,7 +2183,7 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'center',
+                                                    alignItems: 'stretch',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -2184,7 +2202,7 @@ const VoucherType = ({
                                         flexDirection: isMobile ? 'row' : 'row', 
                                         gap: isMobile ? '16px' : '20px', 
                                         justifyContent: isMobile ? 'flex-start' : 'center',
-                                        alignItems: 'center',
+                                        alignItems: 'stretch',
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
                                         paddingBottom: isMobile ? '10px' : '0',
@@ -2195,17 +2213,22 @@ const VoucherType = ({
                                         overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
-                                            <VoucherCard
-                                                key={`${voucher.id}-${currentViewIndex}-${index}`}
-                                                voucher={voucher}
-                                                onSelect={handleSelectVoucher}
-                                                quantities={quantities}
-                                                setQuantities={setQuantities}
-                                                isSelected={selectedVoucher?.id === voucher.id}
-                                                slideDirection={slideDirection}
-                                                showTwoVouchers={vouchersToShow.length > 1}
-                                                shouldAnimate={shouldAnimate}
-                                            />
+                                            <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                                display: 'flex',
+                                                height: '100%'
+                                            }}>
+                                                <VoucherCard
+                                                    key={`${voucher.id}-${currentViewIndex}-${index}`}
+                                                    voucher={voucher}
+                                                    onSelect={handleSelectVoucher}
+                                                    quantities={quantities}
+                                                    setQuantities={setQuantities}
+                                                    isSelected={selectedVoucher?.id === voucher.id}
+                                                    slideDirection={slideDirection}
+                                                    showTwoVouchers={vouchersToShow.length > 1}
+                                                    shouldAnimate={shouldAnimate}
+                                                />
+                                            </div>
                                         ))}
                                     </div>
 
@@ -2257,7 +2280,7 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'center',
+                                                    alignItems: 'stretch',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -2280,7 +2303,7 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'center',
+                                                    alignItems: 'stretch',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -2330,7 +2353,7 @@ const VoucherType = ({
                                         flexDirection: isMobile ? 'row' : 'row', 
                                         gap: isMobile ? '16px' : '20px', 
                                         justifyContent: isMobile ? 'flex-start' : 'center',
-                                        alignItems: 'center',
+                                        alignItems: 'stretch',
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
                                         paddingBottom: isMobile ? '10px' : '0',
@@ -2341,17 +2364,22 @@ const VoucherType = ({
                                         overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
-                                            <VoucherCard
-                                                key={`${voucher.id}-${currentViewIndex}-${index}`}
-                                                voucher={voucher}
-                                                onSelect={handleSelectVoucher}
-                                                quantities={quantities}
-                                                setQuantities={setQuantities}
-                                                isSelected={selectedVoucher?.id === voucher.id}
-                                                slideDirection={slideDirection}
-                                                showTwoVouchers={vouchersToShow.length > 1}
-                                                shouldAnimate={shouldAnimate}
-                                            />
+                                            <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                                display: 'flex',
+                                                height: '100%'
+                                            }}>
+                                                <VoucherCard
+                                                    key={`${voucher.id}-${currentViewIndex}-${index}`}
+                                                    voucher={voucher}
+                                                    onSelect={handleSelectVoucher}
+                                                    quantities={quantities}
+                                                    setQuantities={setQuantities}
+                                                    isSelected={selectedVoucher?.id === voucher.id}
+                                                    slideDirection={slideDirection}
+                                                    showTwoVouchers={vouchersToShow.length > 1}
+                                                    shouldAnimate={shouldAnimate}
+                                                />
+                                            </div>
                                         ))}
                                     </div>
 

@@ -2096,6 +2096,21 @@ const Index = () => {
         } catch {}
     }, [location.pathname, location.search]);
 
+    // Ensure Experience step shows as completed in progress when coming from Shopify
+    // and the experience has been derived/selected.
+    useEffect(() => {
+        if (!shopifyStartAtVoucher) return;
+        if (!chooseFlightType?.type) return;
+
+        setCompletedSections(prev => {
+            const next = new Set(prev);
+            if (!next.has('experience')) {
+                next.add('experience');
+            }
+            return next;
+        });
+    }, [shopifyStartAtVoucher, chooseFlightType?.type]);
+
     // Prefill flow when redirected from Shopify voucher selection
     useEffect(() => {
         try {
@@ -2822,8 +2837,8 @@ const Index = () => {
                             left: isMobile ? '0' : 'auto',
                             right: isMobile ? '0' : 'auto',
                             zIndex: 1000,
-                            padding: isMobile ? '12px 16px' : '16px 0', // Mobile: 16px horizontal padding to match Summary
-                            marginBottom: isMobile ? '0' : '10px',
+                            padding: isMobile ? '8px 16px' : '8px 0', // Reduced vertical padding for less spacing
+                            marginBottom: isMobile ? '0' : '4px',
                             // Mobile: transparent background to match page, no shadow
                             backgroundColor: isMobile ? 'transparent' : 'transparent',
                             boxShadow: isMobile ? 'none' : 'none',
