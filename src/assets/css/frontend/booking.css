@@ -2767,8 +2767,8 @@ label {
 @media (max-width: 768px) {
 	/* Ensure tick circle renders perfectly round and centered on mobile */
 	.tick-circle {
-		width: 24px;
-		height: 24px;
+		width: 20px;
+		height: 20px;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;

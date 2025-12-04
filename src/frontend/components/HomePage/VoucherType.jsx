@@ -1160,11 +1160,12 @@ const VoucherType = ({
                 background: '#fff',
                 borderRadius: 16,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                // Mobile: slightly wider cards to use more screen space
-                // Mobile: make card a bit narrower so the next voucher peeks in
+                // Mobile: card full-width; desktop fixed width
                 width: isMobile ? '100%' : '320px',
                 minWidth: isMobile ? '100%' : '320px',
-                maxWidth: isMobile ? '100%' : '320px', 
+                maxWidth: isMobile ? '100%' : '320px',
+                // Ensure all voucher cards (shared & private) have at least the same height
+                minHeight: isMobile ? 520 : 500,
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
