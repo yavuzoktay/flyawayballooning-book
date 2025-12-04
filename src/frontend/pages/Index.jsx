@@ -2300,26 +2300,43 @@ const Index = () => {
             }, 1500);
 
             // Open accordions in sequence with delays to ensure components are mounted and state is set
-            setTimeout(() => {
-                // Open location accordion briefly to show selection
-                if (qpLocation) {
-                    console.log('🔵 Shopify prefill - Opening location accordion');
-                    setActiveAccordion('location');
-                }
-            }, 400);
+            // If startAt=voucher-type, skip location and experience accordions
+            if (qpStartAt !== 'voucher-type') {
+                setTimeout(() => {
+                    // Open location accordion briefly to show selection
+                    if (qpLocation) {
+                        console.log('🔵 Shopify prefill - Opening location accordion');
+                        setActiveAccordion('location');
+                    }
+                }, 400);
+            }
 
             setTimeout(() => {
-                // Open experience accordion if experience is provided
+                // Open experience accordion only if NOT starting at voucher-type
                 if (derivedExperience && qpStartAt !== 'voucher-type') {
                     console.log('🔵 Shopify prefill - Opening experience accordion');
                     setActiveAccordion('experience');
+                } else if (qpStartAt === 'voucher-type') {
+                    // If starting at voucher-type, skip experience accordion and go directly to voucher-type
+                    console.log('🔵 Shopify prefill - Skipping experience accordion, going directly to voucher-type');
                 }
             }, 1000);
 
             setTimeout(() => {
                 // Finally, open voucher-type accordion (this is the main target)
-                if (qpStartAt === 'voucher-type' || qpVoucherTitle) {
-                    console.log('🔵 Shopify prefill - Opening voucher-type accordion');
+                // Priority: if startAt=voucher-type, open it immediately; otherwise open if voucherTitle exists
+                if (qpStartAt === 'voucher-type') {
+                    console.log('🔵 Shopify prefill - Opening voucher-type accordion (startAt=voucher-type)');
+                    setActiveAccordion('voucher-type');
+                    // Scroll to voucher type section
+                    setTimeout(() => {
+                        const voucherSection = document.getElementById('voucher-type');
+                        if (voucherSection) {
+                            voucherSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                } else if (qpVoucherTitle) {
+                    console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
                     setActiveAccordion('voucher-type');
                     // Scroll to voucher type section
                     setTimeout(() => {
@@ -2329,7 +2346,7 @@ const Index = () => {
                         }
                     }, 100);
                 }
-            }, 1500);
+            }, qpStartAt === 'voucher-type' ? 1200 : 1500);
         } catch (e) {
             console.error('Error pre-filling booking flow from Shopify params:', e);
         }
