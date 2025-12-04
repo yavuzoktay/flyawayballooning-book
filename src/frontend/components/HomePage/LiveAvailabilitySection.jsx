@@ -1149,17 +1149,31 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         marginTop: isMobile ? 16 : 20, 
                         marginBottom: 2 
                     }}>
-                        <span style={{ 
-                            fontSize: isMobile ? 14 : 14, 
-                            color: '#888',
-                            lineHeight: isMobile ? 1.3 : 1.4,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: isMobile ? 2 : 5
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 8, 
+                            justifyContent: 'center', 
+                            color: '#666', 
+                            textAlign: 'center' 
                         }}>
-                            <span className="tick-circle" aria-hidden="true"></span>
-                            <span>Reschedule for free up to 120 hours before.</span>
-                        </span>
+                            <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 18,
+                                height: 18,
+                                borderRadius: '50%',
+                                backgroundColor: '#10b981',
+                                color: '#fff',
+                                fontSize: 12,
+                                fontWeight: 800,
+                                lineHeight: 1
+                            }}>✓</span>
+                            <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
+                                Reschedule for free up to 120 hours before.
+                            </span>
+                        </div>
                     </div>
 
                     {/* Request Date button hidden */}

@@ -1165,7 +1165,8 @@ const VoucherType = ({
                 minWidth: isMobile ? '100%' : '320px',
                 maxWidth: isMobile ? '100%' : '320px',
                 // Ensure all voucher cards (shared & private) have at least the same height
-                minHeight: isMobile ? 520 : 500,
+                // Tweaked to accommodate longest content (Any Day with weather toggle, Flexible Weekday, Weekday Morning, Private/Proposal)
+                minHeight: isMobile ? 560 : 540,
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
@@ -1354,7 +1355,9 @@ const VoucherType = ({
                             display: 'flex', 
                             alignItems: 'center', 
                             gap: isMobile ? '4px' : '8px',
-                            flexWrap: isMobile ? 'nowrap' : 'wrap'
+                            flexWrap: isMobile ? 'nowrap' : 'wrap',
+                            // Ensure Proposal Flight passenger section has same height as Private Charter selector
+                            minHeight: voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (isMobile ? '40px' : '32px') : 'auto'
                         }}>
                             <label style={{ 
                                 fontSize: isMobile ? 16 : 13, 
@@ -1450,10 +1453,13 @@ const VoucherType = ({
                     </div>
                     {(() => {
                         const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                        const isFlexibleWeekday = voucher.title === 'Flexible Weekday';
+                        const isWeekdayMorning = voucher.title === 'Weekday Morning';
                         const showWeatherRefundableShared = chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight' && isAnyDay;
                         const showWeatherRefundablePrivate = chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight';
                         
                         // Always render a container div to maintain consistent card height across all vouchers
+                        // Match Any Day Flight height for Flexible Weekday and Weekday Morning (which don't have weather toggle)
                         return (
                             <div style={{
                                 background: showWeatherRefundableShared || showWeatherRefundablePrivate ? '#f8fafc' : 'transparent',
@@ -1461,7 +1467,9 @@ const VoucherType = ({
                                 borderRadius: 12,
                                 padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
                                 marginBottom: 10,
-                                minHeight: '50px',
+                                // Ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight (with weather toggle)
+                                // Any Day Flight with weather toggle active takes ~90px (toggle + price line), so reserve same space
+                                minHeight: (isFlexibleWeekday || isWeekdayMorning) ? '90px' : (showWeatherRefundableShared || showWeatherRefundablePrivate ? '50px' : '90px'),
                                 overflow: 'visible',
                                 position: 'relative'
                             }}>
