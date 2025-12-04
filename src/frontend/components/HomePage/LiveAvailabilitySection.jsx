@@ -1160,7 +1160,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             gap: isMobile ? 2 : 5
                         }}>
                             <span className="tick-circle" aria-hidden="true"></span>
-                            <span>Reschedule for free up to 5 days before your flight.</span>
+                            <span>Reschedule for free up to 120 hours before.</span>
                         </span>
                     </div>
 
