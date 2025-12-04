@@ -2131,13 +2131,15 @@ const Index = () => {
             const qpPassengers = parseInt(params.get('passengers') || '2', 10);
             const qpExperience = params.get('experience');
             const qpStartAt = params.get('startAt');
+            const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
             console.log('🔵 Shopify prefill - URL params:', {
                 location: qpLocation,
                 voucherTitle: qpVoucherTitle,
                 passengers: qpPassengers,
                 experience: qpExperience,
-                startAt: qpStartAt
+                startAt: qpStartAt,
+                weatherRefundable: qpWeatherRefundable
             });
 
             // Derive experience from voucher title if not provided
@@ -2239,18 +2241,31 @@ const Index = () => {
                 }
             }, 1000);
 
+            // Prefill weather refundable in passengerData if provided
+            if (qpWeatherRefundable) {
+                console.log('🔵 Shopify prefill - Setting weather refundable in passengerData');
+                setPassengerData(prev => {
+                    if (Array.isArray(prev) && prev.length > 0) {
+                        return prev.map(p => ({ ...p, weatherRefund: true }));
+                    }
+                    return [{ firstName: '', lastName: '', weight: '', weatherRefund: true }];
+                });
+            }
+
             // Prefill voucher type selection
             // Wait for location and experience to be set first
             setTimeout(() => {
                 if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Setting voucher type:', {
                         title: qpVoucherTitle,
-                        quantity: qpPassengers > 0 ? qpPassengers : 2
+                        quantity: qpPassengers > 0 ? qpPassengers : 2,
+                        weatherRefundable: qpWeatherRefundable
                     });
                     setSelectedVoucherType({
                         title: qpVoucherTitle,
                         quantity: qpPassengers > 0 ? qpPassengers : 2,
-                        price: 0
+                        price: 0,
+                        weatherRefundable: qpWeatherRefundable
                     });
                     
                     // Trigger voucher type selection in VoucherType component

@@ -9,6 +9,7 @@ import anyDayFlightImg from '../../../assets/images/category3.jpg';
 import config from '../../../config';
 import { BsInfoCircle } from 'react-icons/bs';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { useLocation } from 'react-router-dom';
 
 // Add CSS animations for slide effects
 const slideAnimations = `
@@ -158,6 +159,7 @@ const VoucherType = ({
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
+    const location = useLocation();
 
     // (moved below state declarations to avoid TDZ)
     const [showTerms, setShowTerms] = useState(false);
@@ -201,6 +203,96 @@ const VoucherType = ({
         } catch {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedVoucherType, selectedVoucher, privateWeatherRefundByVoucher]);
+
+    // Prefill passenger count and weather refundable from URL parameters (Shopify deep-link)
+    // Wait for voucher types to be loaded before setting passenger count
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(location.search);
+            if (params.get('source') !== 'shopify') return;
+            
+            const qpPassengers = parseInt(params.get('passengers') || '0', 10);
+            const qpVoucherTitle = params.get('voucherTitle');
+            const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
+            
+            // Wait for voucher types to be available
+            const allTitles = [
+                ...(Array.isArray(allVoucherTypesState) ? allVoucherTypesState.map(v => v.title) : []),
+                ...(Array.isArray(privateCharterVoucherTypes) ? privateCharterVoucherTypes.map(v => v.title) : [])
+            ];
+            
+            if (qpVoucherTitle && allTitles.length > 0) {
+                // Decode URL-encoded title (e.g., "Flexible+Weekday" -> "Flexible Weekday")
+                const decodedTitle = decodeURIComponent(qpVoucherTitle.replace(/\+/g, ' '));
+                
+                // Find matching title (case-insensitive, normalized)
+                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                const targetTitle = allTitles.find(t => normalize(t) === normalize(decodedTitle) || normalize(t) === normalize(qpVoucherTitle));
+                
+                if (targetTitle) {
+                    // Set passenger count if provided
+                    if (qpPassengers > 0) {
+                        console.log('🔵 VoucherType: Setting passenger count from URL:', {
+                            urlTitle: decodedTitle,
+                            matchedTitle: targetTitle,
+                            passengers: qpPassengers
+                        });
+                        
+                        setQuantities(prev => {
+                            // Only update if not already set or if URL value is different
+                            if (prev[targetTitle] === qpPassengers) return prev;
+                            return {
+                                ...prev,
+                                [targetTitle]: qpPassengers,
+                                [decodedTitle]: qpPassengers, // Also set with decoded title
+                                [qpVoucherTitle]: qpPassengers // Also set with original title in case of encoding mismatch
+                            };
+                        });
+                    }
+                    
+                    // Set weather refundable toggle if provided
+                    if (qpWeatherRefundable) {
+                        console.log('🔵 VoucherType: Setting weather refundable from URL:', {
+                            urlTitle: decodedTitle,
+                            matchedTitle: targetTitle,
+                            weatherRefundable: qpWeatherRefundable
+                        });
+                        
+                        // Check if this is a Shared Flight (Any Day Flight) or Private Charter
+                        const isAnyDay = normalize(targetTitle).includes('any day');
+                        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+                        
+                        if (isAnyDay && chooseFlightType?.type === 'Shared Flight') {
+                            // For Shared Flight Any Day, set localSharedWeatherRefund
+                            setLocalSharedWeatherRefund(true);
+                            // Also update passengerData to reflect weather refund
+                            if (Array.isArray(passengerData) && setPassengerData) {
+                                const updated = passengerData.map(p => ({ ...p, weatherRefund: true }));
+                                setPassengerData(updated);
+                            }
+                        } else if (isPrivateCharter) {
+                            // For Private Charter, set per-voucher weather refund
+                            setPrivateWeatherRefundByVoucher(prev => ({
+                                ...prev,
+                                [targetTitle]: true
+                            }));
+                            // If this voucher is selected, also update global state
+                            if (selectedVoucherType?.title === targetTitle && setPrivateCharterWeatherRefund) {
+                                setPrivateCharterWeatherRefund(true);
+                            }
+                        }
+                    }
+                } else {
+                    console.log('🔵 VoucherType: Voucher title not found in available types:', {
+                        urlTitle: decodedTitle,
+                        availableTitles: allTitles
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('VoucherType: Error reading URL parameters for passenger count and weather refundable', e);
+        }
+    }, [location.search, allVoucherTypesState, privateCharterVoucherTypes, chooseFlightType?.type, passengerData, setPassengerData, selectedVoucherType?.title, setPrivateCharterWeatherRefund]);
 
     // Ensure default quantity=2 for every voucher title once data is available
     useEffect(() => {
@@ -1011,20 +1103,55 @@ const VoucherType = ({
 
             console.log('VoucherType: Deep-link prefill – matched voucher by title:', {
                 incoming: selectedVoucherType,
-                matched
+                matched,
+                quantityFromUrl
             });
 
             const enriched = buildVoucherWithQuantity(matched, quantityFromUrl);
 
-            // Passenger input’larını da senkronize et
+            // Passenger input'larını da senkronize et - URL'den gelen passenger sayısını öncelikle kullan
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlPassengers = urlParams.get('source') === 'shopify' ? parseInt(urlParams.get('passengers') || '0', 10) : 0;
+            const finalQuantity = urlPassengers > 0 ? urlPassengers : enriched.quantity;
+            
             setQuantities(prev => ({
                 ...prev,
-                [matched.title]: enriched.quantity
+                [matched.title]: finalQuantity
             }));
+            
+            // Enriched voucher'ı da güncellenmiş quantity ile oluştur
+            const finalEnriched = buildVoucherWithQuantity(matched, finalQuantity);
 
-            // Hem local hem de parent state’i update et – özet ekran + kartlar senkron
-            setSelectedVoucher(enriched);
-            setSelectedVoucherType(enriched);
+            // Weather Refundable toggle'ını set et (URL'den veya selectedVoucherType'dan)
+            const shouldEnableWeatherRefund = selectedVoucherType?.weatherRefundable === true || urlParams.get('weatherRefundable') === 'true';
+            if (shouldEnableWeatherRefund) {
+                const isAnyDay = typeof matched.title === 'string' && matched.title.toLowerCase().includes('any day');
+                const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+                
+                if (isAnyDay && chooseFlightType?.type === 'Shared Flight') {
+                    // For Shared Flight Any Day, set localSharedWeatherRefund
+                    setLocalSharedWeatherRefund(true);
+                    // Also update passengerData to reflect weather refund
+                    if (Array.isArray(passengerData) && setPassengerData) {
+                        const updated = passengerData.map(p => ({ ...p, weatherRefund: true }));
+                        setPassengerData(updated);
+                    }
+                } else if (isPrivateCharter) {
+                    // For Private Charter, set per-voucher weather refund
+                    setPrivateWeatherRefundByVoucher(prev => ({
+                        ...prev,
+                        [matched.title]: true
+                    }));
+                    // Also update global state
+                    if (setPrivateCharterWeatherRefund) {
+                        setPrivateCharterWeatherRefund(true);
+                    }
+                }
+            }
+
+            // Hem local hem de parent state'i update et – özet ekran + kartlar senkron
+            setSelectedVoucher(finalEnriched || enriched);
+            setSelectedVoucherType(finalEnriched || enriched);
         } catch (e) {
             console.error('VoucherType: Error applying deep-link voucher prefill', e);
         }
