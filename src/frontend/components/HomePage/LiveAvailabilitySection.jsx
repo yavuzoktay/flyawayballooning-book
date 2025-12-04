@@ -744,14 +744,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
         dayPointer = new Date(weekStart);
         
-        // Fill all days for the grid (6 weeks * 7 days = 42 days)
-        for (let i = 0; i < 42; i++) {
+        // Fill days only for the actual month range (no leading/trailing empty placeholders)
+        while (dayPointer <= endDate) {
             if (dayPointer < startDate) {
-                // Before the month starts - render an invisible placeholder to preserve grid alignment
-                days.push(<div key={`empty-start-${i}`} className="day empty-day" aria-hidden="true"></div>);
-            } else if (dayPointer > endDate) {
-                // After the month ends - render an invisible placeholder to preserve grid alignment
-                days.push(<div key={`empty-end-${i}`} className="day empty-day" aria-hidden="true"></div>);
+                // Before the month starts - skip instead of rendering invisible boxes
+                dayPointer = addDays(dayPointer, 1);
+                continue;
             } else {
                 // Within the month
                 const dateCopy = new Date(dayPointer);

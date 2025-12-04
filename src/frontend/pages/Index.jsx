@@ -2837,22 +2837,17 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
-                    {/* Progress Bar - sticky on desktop, fixed bottom on mobile */}
+                    {/* Progress Bar - sticky on both desktop and mobile (aligned to top of booking flow) */}
                     {activitySelect && (
                         <div style={{
-                            position: isMobile ? 'fixed' : 'sticky',
-                            top: isMobile ? 'auto' : '0',
-                            bottom: isMobile ? '56px' : 'auto', // 80px to sit above the summary bar
-                            left: isMobile ? '0' : 'auto',
-                            right: isMobile ? '0' : 'auto',
-                            zIndex: 1000,
-                            padding: isMobile ? '8px 16px' : '8px 0', // Reduced vertical padding for less spacing
-                            marginBottom: isMobile ? '0' : '4px',
-                            // Mobile: transparent background to match page, no shadow
-                            backgroundColor: isMobile ? 'transparent' : 'transparent',
-                            boxShadow: isMobile ? 'none' : 'none',
-                            width: isMobile ? '100%' : 'auto',
-                            maxWidth: isMobile ? 'none' : 'auto',
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 900,
+                            padding: isMobile ? '8px 12px' : '8px 0',
+                            marginBottom: isMobile ? '4px' : '4px',
+                            backgroundColor: '#f5f7fb',
+                            width: '100%',
+                            maxWidth: '100%',
                             boxSizing: 'border-box'
                         }}>
                             <ProgressBar 

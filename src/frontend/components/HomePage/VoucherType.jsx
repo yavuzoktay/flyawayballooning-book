@@ -1160,9 +1160,11 @@ const VoucherType = ({
                 background: '#fff',
                 borderRadius: 16,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                width: isMobile ? 'calc(100% - 8px)' : '320px',
-                minWidth: isMobile ? 'calc(100% - 8px)' : '320px',
-                maxWidth: isMobile ? 'calc(100% - 8px)' : '320px',
+                // Mobile: slightly wider cards to use more screen space
+                // Mobile: make card a bit narrower so the next voucher peeks in
+                width: isMobile ? '100%' : '320px',
+                minWidth: isMobile ? '100%' : '320px',
+                maxWidth: isMobile ? '100%' : '320px', 
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
@@ -2121,8 +2123,9 @@ const VoucherType = ({
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    minWidth: '100%',
-                                                    maxWidth: '100%',
+                                                    // On mobile, let the card itself control width so it matches shared vouchers
+                                                    minWidth: 'auto',
+                                                    maxWidth: 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',
