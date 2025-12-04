@@ -2837,14 +2837,14 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
-                    {/* Progress Bar - sticky on both desktop and mobile (aligned to top of booking flow) */}
-                    {activitySelect && (
+                    {/* Progress Bar - desktop: sticky at top, mobile: fixed above summary bar */}
+                    {activitySelect && !isMobile && (
                         <div style={{
                             position: 'sticky',
                             top: 0,
                             zIndex: 900,
-                            padding: isMobile ? '8px 12px' : '8px 0',
-                            marginBottom: isMobile ? '4px' : '4px',
+                            padding: '8px 0',
+                            marginBottom: '4px',
                             backgroundColor: '#f5f7fb',
                             width: '100%',
                             maxWidth: '100%',
@@ -3518,6 +3518,33 @@ const Index = () => {
                     </div>
                 </div>
             </Container>
+            
+            {/* Progress Bar - Mobile: fixed above summary bar */}
+            {activitySelect && isMobile && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '65px', // Above summary-sticky (which is typically 56px height)
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    padding: '8px 12px',
+                    backgroundColor: '#f5f7fb',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    borderTop: '1px solid #e5e7eb'
+                }}>
+                    <ProgressBar 
+                        sections={progressSections.map(id => ({
+                            id,
+                            title: getSectionTitle(id),
+                            completed: completedSections.has(id)
+                        }))}
+                        activeSection={activeAccordion}
+                        onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
+                        isMobile={isMobile}
+                    />
+                </div>
+            )}
             
             {/* Payment Success Popup */}
             {showPaymentSuccess && paymentSuccessData && (
