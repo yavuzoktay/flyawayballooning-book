@@ -1287,13 +1287,14 @@ const VoucherType = ({
                 background: '#fff',
                 borderRadius: 16,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-                // Mobile: card full-width; desktop fixed width
-                width: isMobile ? '100%' : '320px',
-                minWidth: isMobile ? '100%' : '320px',
-                maxWidth: isMobile ? '100%' : '320px',
+                // Mobile: card wider (calc(100% - 12px) for slightly larger cards); desktop fixed width
+                width: isMobile ? 'calc(100% - 0px)' : '320px',
+                minWidth: isMobile ? 'calc(100% - 0px)' : '320px',
+                maxWidth: isMobile ? 'calc(100% - 0px)' : '320px',
                 // Ensure all voucher cards (shared & private) have at least the same height
-                // Tweaked to accommodate longest content (Any Day with weather toggle, Flexible Weekday, Weekday Morning, Private/Proposal)
-                minHeight: isMobile ? 560 : 540,
+                // For desktop shared vouchers, use a larger minHeight to ensure all cards have the same height
+                // For mobile and private vouchers, use the standard minHeight
+                minHeight: isMobile ? 560 : (chooseFlightType?.type === 'Shared Flight' ? 600 : 540),
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
@@ -1586,17 +1587,23 @@ const VoucherType = ({
                         const showWeatherRefundablePrivate = chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight';
                         
                         // Always render a container div to maintain consistent card height across all vouchers
-                        // Match Any Day Flight height for Flexible Weekday and Weekday Morning (which don't have weather toggle)
+                        // For desktop shared vouchers, ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight
+                        const shouldShowWeatherContainer = showWeatherRefundableShared || showWeatherRefundablePrivate;
+                        const isFlexibleOrWeekdayMorning = isFlexibleWeekday || isWeekdayMorning;
+                        const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+                        
                         return (
                             <div style={{
                                 background: showWeatherRefundableShared || showWeatherRefundablePrivate ? '#f8fafc' : 'transparent',
                                 border: showWeatherRefundableShared || showWeatherRefundablePrivate ? '1px solid #e5e7eb' : 'none',
                                 borderRadius: 12,
                                 padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
-                                marginBottom: 10,
-                                // Ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight (with weather toggle)
-                                // Any Day Flight with weather toggle active takes ~90px (toggle + price line), so reserve same space
-                                minHeight: (isFlexibleWeekday || isWeekdayMorning) ? '90px' : (showWeatherRefundableShared || showWeatherRefundablePrivate ? '50px' : '90px'),
+                                marginBottom: shouldShowWeatherContainer ? 10 : 0,
+                                // On desktop shared flight, ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight
+                                // Any Day Flight with weather toggle takes ~90px, so reserve same space for Flexible Weekday and Weekday Morning
+                                minHeight: (!isMobile && isSharedFlight && isFlexibleOrWeekdayMorning && !shouldShowWeatherContainer) ? '90px' :
+                                          (isMobile && (isFlexibleWeekday || isWeekdayMorning)) ? '90px' : 
+                                          (showWeatherRefundableShared || showWeatherRefundablePrivate ? '50px' : 0),
                                 overflow: 'visible',
                                 position: 'relative'
                             }}>
@@ -2252,16 +2259,17 @@ const VoucherType = ({
                                             paddingBottom: '10px',
                                             scrollBehavior: 'smooth',
                                             scrollSnapType: 'x mandatory',
-                                            scrollPadding: '0 8px',
+                                            scrollPadding: isMobile ? '0 6px' : '0 8px',
                                             WebkitOverflowScrolling: 'touch',
                                             overscrollBehavior: 'contain',
                                             position: 'relative'
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    // On mobile, let the card itself control width so it matches shared vouchers
-                                                    minWidth: 'auto',
-                                                    maxWidth: 'none',
+                                                    // On mobile, match shared vouchers width structure
+                                                    width: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                    minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                    maxWidth: isMobile ? 'calc(100% - 0px)' : 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',
@@ -2354,14 +2362,19 @@ const VoucherType = ({
                                         paddingBottom: isMobile ? '10px' : '0',
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 8px' : '0',
+                                        scrollPadding: isMobile ? '0 6px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
                                         overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                                // On mobile, match private charter width structure for consistency
+                                                width: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                maxWidth: isMobile ? 'calc(100% - 0px)' : 'none',
                                                 display: 'flex',
-                                                height: '100%'
+                                                height: '100%',
+                                                flexShrink: 0
                                             }}>
                                                 <VoucherCard
                                                     key={`${voucher.id}-${currentViewIndex}-${index}`}
@@ -2505,14 +2518,19 @@ const VoucherType = ({
                                         paddingBottom: isMobile ? '10px' : '0',
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 8px' : '0',
+                                        scrollPadding: isMobile ? '0 6px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
                                         overscrollBehavior: isMobile ? 'contain' : 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                                // On mobile, match private charter width structure for consistency
+                                                width: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
+                                                maxWidth: isMobile ? 'calc(100% - 0px)' : 'none',
                                                 display: 'flex',
-                                                height: '100%'
+                                                height: '100%',
+                                                flexShrink: 0
                                             }}>
                                                 <VoucherCard
                                                     key={`${voucher.id}-${currentViewIndex}-${index}`}

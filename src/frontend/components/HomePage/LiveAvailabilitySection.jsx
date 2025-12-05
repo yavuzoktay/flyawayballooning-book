@@ -738,26 +738,69 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
         const renderDays = () => {
         const days = [];
-        let dayPointer = new Date(startDate);
         
         // Use startOfWeek to get the correct offset for the first row (Monday as first day)
-        const weekStart = startOfWeek(startDate, { weekStartsOn: 1 });
-        dayPointer = new Date(weekStart);
+        // Create dates using local components to avoid timezone issues
+        const startDateYear = startDate.getFullYear();
+        const startDateMonth = startDate.getMonth();
+        const startDateDay = startDate.getDate();
+        const startDateLocal = new Date(startDateYear, startDateMonth, startDateDay, 0, 0, 0, 0);
         
-        // Fill days only for the actual month range (no leading/trailing empty placeholders)
-        while (dayPointer <= endDate) {
-            if (dayPointer < startDate) {
-                // Before the month starts - skip instead of rendering invisible boxes
+        const weekStart = startOfWeek(startDateLocal, { weekStartsOn: 1 });
+        // Ensure weekStart is also in local timezone
+        const weekStartYear = weekStart.getFullYear();
+        const weekStartMonth = weekStart.getMonth();
+        const weekStartDay = weekStart.getDate();
+        let dayPointer = new Date(weekStartYear, weekStartMonth, weekStartDay, 0, 0, 0, 0);
+        
+        // Calculate the end of the week that contains the end of the month
+        const endDateYear = endDate.getFullYear();
+        const endDateMonth = endDate.getMonth();
+        const endDateDay = endDate.getDate();
+        const endDateLocal = new Date(endDateYear, endDateMonth, endDateDay, 0, 0, 0, 0);
+        const weekEnd = endOfWeek(endDateLocal, { weekStartsOn: 1 });
+        
+        // Fill days from week start to week end to ensure correct grid alignment
+        while (dayPointer <= weekEnd) {
+            // Create date copy using local components to avoid timezone shifts
+            const dayPointerYear = dayPointer.getFullYear();
+            const dayPointerMonth = dayPointer.getMonth();
+            const dayPointerDay = dayPointer.getDate();
+            const dateCopy = new Date(dayPointerYear, dayPointerMonth, dayPointerDay, 0, 0, 0, 0);
+            
+            const isBeforeMonth = dateCopy < startDateLocal;
+            const isAfterMonth = dateCopy > endDateLocal;
+            
+            if (isBeforeMonth || isAfterMonth) {
+                // Before or after the month - render empty placeholder to maintain grid alignment
+                // Keep element in DOM with minimal size to maintain grid structure
+                days.push(
+                    <div
+                        key={`empty-${dateCopy.getTime()}`}
+                        className="day empty-day"
+                        style={{
+                            visibility: 'hidden',
+                            opacity: 0,
+                            pointerEvents: 'none',
+                            minHeight: daySize,
+                            minWidth: daySize,
+                            height: daySize,
+                            width: daySize,
+                            padding: 0,
+                            margin: isMobile ? '1px' : 2,
+                            border: 'none',
+                            background: 'transparent'
+                        }}
+                        aria-hidden="true"
+                    />
+                );
+                // Increment dayPointer using addDays (timezone-safe)
                 dayPointer = addDays(dayPointer, 1);
                 continue;
             } else {
                 // Within the month
-                const dateCopy = new Date(dayPointer);
-                // Create date strings manually to avoid timezone issues
-                const dateCopyYear = dateCopy.getFullYear();
-                const dateCopyMonth = dateCopy.getMonth();
-                const dateCopyDay = dateCopy.getDate();
-                const dateCopyStartOfDay = new Date(dateCopyYear, dateCopyMonth, dateCopyDay, 0, 0, 0, 0);
+                // dateCopy is already created using local components above
+                const dateCopyStartOfDay = dateCopy;
                 
                 const todayYear = today.getFullYear();
                 const todayMonth = today.getMonth();
@@ -881,6 +924,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     </div>
                 );
             }
+            // Increment dayPointer using addDays (timezone-safe)
             dayPointer = addDays(dayPointer, 1);
         }
         
@@ -1721,12 +1765,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     background: none !important; 
                     border: none !important; 
                     box-shadow: none !important; 
-                    width: 80px;
-                    height: 80px;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
                 }
                 @media (max-width: 768px) {
                     .empty-day {
-                        width: auto !important;
                         height: auto !important;
                         min-width: 0 !important;
                         min-height: 0 !important;
