@@ -1294,7 +1294,10 @@ const VoucherType = ({
                 // Ensure all voucher cards (shared & private) have at least the same height
                 // For desktop shared vouchers, use a larger minHeight to ensure all cards have the same height
                 // For mobile and private vouchers, use the standard minHeight
-                minHeight: isMobile ? 560 : (chooseFlightType?.type === 'Shared Flight' ? 600 : 540),
+                // Reduce height for Buy Flight Voucher and Buy Gift Voucher
+                minHeight: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') 
+                    ? (isMobile ? 520 : (chooseFlightType?.type === 'Shared Flight' ? 540 : 500))
+                    : (isMobile ? 540 : (chooseFlightType?.type === 'Shared Flight' ? 600 : 540)),
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
@@ -1351,7 +1354,7 @@ const VoucherType = ({
                     padding: '16px', 
                     width: '100%', 
                     boxSizing: 'border-box', 
-                    display: 'flex', 
+                    display: 'grid', 
                     flexDirection: 'column', 
                     flex: 1,
                     overflow: 'visible',
@@ -1476,7 +1479,7 @@ const VoucherType = ({
                         display: 'flex', 
                         flexDirection: isMobile ? 'column' : 'row', 
                         alignItems: isMobile ? 'flex-start' : 'center', 
-                        marginBottom: 12, 
+                        marginBottom: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') ? 6 : 12, 
                         gap: isMobile ? '8px' : '8px' 
                     }}>
                         <div style={{ 
@@ -1556,7 +1559,7 @@ const VoucherType = ({
                             )}
                         </div>
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 10, color: '#4a4a4a' }}>
+                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') ? 6 : 10, color: '#4a4a4a' }}>
                         {(() => {
                             const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
                             const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
@@ -1601,7 +1604,7 @@ const VoucherType = ({
                                 marginBottom: shouldShowWeatherContainer ? 10 : 0,
                                 // On desktop shared flight, ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight
                                 // Any Day Flight with weather toggle takes ~90px, so reserve same space for Flexible Weekday and Weekday Morning
-                                minHeight: (!isMobile && isSharedFlight && isFlexibleOrWeekdayMorning && !shouldShowWeatherContainer) ? '90px' :
+                                minHeight: (!isMobile && isSharedFlight && isFlexibleOrWeekdayMorning && !shouldShowWeatherContainer) ? '0px' :
                                           (isMobile && (isFlexibleWeekday || isWeekdayMorning)) ? '90px' : 
                                           (showWeatherRefundableShared || showWeatherRefundablePrivate ? '50px' : 0),
                                 overflow: 'visible',
@@ -1621,7 +1624,10 @@ const VoucherType = ({
                                                     <ReactTooltip
                                                         id="weather-refundable-tooltip-shared"
                                                         place="top"
-                                                        content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        content={enabled 
+                                                            ? "Fly within 6 attempts, or we'll extend your voucher free of charge - TO - Alternatively, you may request a refund within 6 months of purchase."
+                                                            : "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        }
                                                         style={{
                                                             maxWidth: '280px',
                                                             fontSize: '13px',
@@ -1674,7 +1680,10 @@ const VoucherType = ({
                                                     <ReactTooltip
                                                         id={`weather-refundable-tooltip-private-${voucher.title}`}
                                                         place="top"
-                                                        content="Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        content={enabled 
+                                                            ? "Fly within 6 attempts, or we'll extend your voucher free of charge - TO - Alternatively, you may request a refund within 6 months of purchase."
+                                                            : "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
+                                                        }
                                                         style={{
                                                             maxWidth: '280px',
                                                             fontSize: '13px',
@@ -1730,7 +1739,7 @@ const VoucherType = ({
                             fontSize: 15, 
                             fontWeight: 600, 
                             cursor: 'pointer', 
-                            marginTop: 'auto', 
+                            marginTop: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') ? 8 : 'auto', 
                             transition: 'background 0.2s' 
                         }} 
                         onMouseEnter={(e) => e.target.style.background = '#00c24a'} 
