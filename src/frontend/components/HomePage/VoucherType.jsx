@@ -2238,7 +2238,7 @@ const VoucherType = ({
                                                         opacity: 1,
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>‹</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>‹</span>
                                                     </div>
                                                 )}
                                                 {/* Right Arrow - hide on last item on mobile */}
@@ -2249,7 +2249,7 @@ const VoucherType = ({
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-2px' : '0px' }}>›</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>›</span>
                                                     </div>
                                                 )}
                                             </>
@@ -2322,14 +2322,14 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'stretch',
+                                                    alignItems: 'center',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.max(0, currentViewIndex - 1))}>
-                                                    <span style={{ fontSize: 18, color: '#666', marginLeft: 2 }}>‹</span>
+                                                    <span style={{ fontSize: 18, color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</span>
                                                 </div>
                                             )}
                                             
@@ -2346,14 +2346,14 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'stretch',
+                                                    alignItems: 'center',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     border: '1px solid #ddd',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.min(currentViewIndex + 1, Math.ceil(activeVouchers.length / pageSize) - 1))}>
-                                                    <span style={{ fontSize: 18, color: '#666', marginRight: 2 }}>›</span>
+                                                    <span style={{ fontSize: 18, color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</span>
                                                 </div>
                                             )}
                                         </>
@@ -2448,13 +2448,13 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'stretch',
+                                                    alignItems: 'center',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.max(0, currentViewIndex - 1))}>
-                                                    <ArrowBackIosIcon style={{ fontSize: 20, color: '#fff', marginLeft: 5 }} />
+                                                    <ArrowBackIosIcon style={{ fontSize: 20, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
                                                 </div>
                                             )}
                                             
@@ -2471,13 +2471,13 @@ const VoucherType = ({
                                                     width: 40,
                                                     height: 40,
                                                     display: 'flex',
-                                                    alignItems: 'stretch',
+                                                    alignItems: 'center',
                                                     justifyContent: 'center',
                                                     cursor: 'pointer',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                                     transition: 'all 0.2s ease'
                                                 }} onClick={() => setCurrentViewIndex(Math.min(currentViewIndex + 1, Math.ceil(filteredVouchers.length / sfPageSize) - 1))}>
-                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#fff' }} />
+                                                    <ArrowForwardIosIcon style={{ fontSize: 20, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
                                                 </div>
                                             )}
                                         </>
