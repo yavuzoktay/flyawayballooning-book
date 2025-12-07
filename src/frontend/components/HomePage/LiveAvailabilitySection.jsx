@@ -463,20 +463,38 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const getVoucherTypesForAvailability = (availability) => {
         if (!availability) return [];
-        const fromArray = (value) => value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(Boolean);
+        const fromArray = (value) => value.map(item => {
+            if (typeof item === 'string') {
+                return item.trim();
+            }
+            return item;
+        }).filter(Boolean);
+        
+        // First check voucher_types_array (already parsed)
         if (Array.isArray(availability.voucher_types_array) && availability.voucher_types_array.length > 0) {
             return fromArray(availability.voucher_types_array);
         }
+        
+        // Then check voucher_types as array
         if (Array.isArray(availability.voucher_types) && availability.voucher_types.length > 0) {
             return fromArray(availability.voucher_types);
         }
-        const parseString = (str) => str.split(',').map(s => s.trim()).filter(Boolean);
+        
+        // Parse string voucher_types (handles both "Proposal Flight ,Private Charter" and "Private Charter,Proposal Flight")
+        const parseString = (str) => {
+            if (!str || typeof str !== 'string') return [];
+            // Split by comma and trim each part, then filter out empty strings
+            return str.split(',').map(s => s.trim()).filter(Boolean);
+        };
+        
         if (typeof availability.voucher_types === 'string' && availability.voucher_types.trim() !== '') {
             return parseString(availability.voucher_types);
         }
+        
         if (typeof availability.activity_voucher_types === 'string' && availability.activity_voucher_types.trim() !== '') {
             return parseString(availability.activity_voucher_types);
         }
+        
         return [];
     };
 
@@ -608,12 +626,110 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const normalizedSelectedVoucher = normalizeVoucherName(selectedVoucherType?.title || '');
         const isWildcardVoucher = normalizedAvailabilityTypes.length === 0 ||
             normalizedAvailabilityTypes.some(type => voucherWildcardTerms.includes(type));
-        const matchesVoucher = !normalizedSelectedVoucher || isWildcardVoucher || normalizedAvailabilityTypes.includes(normalizedSelectedVoucher);
+        
+        // Check for exact match first
+        let matchesVoucher = false;
+        if (!normalizedSelectedVoucher || isWildcardVoucher) {
+            matchesVoucher = true;
+        } else {
+            // First try exact match on normalized strings (this should work for "Proposal Flight" -> "proposal flight")
+            // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
+            matchesVoucher = normalizedAvailabilityTypes.some(type => {
+                const normalizedType = type.trim();
+                return normalizedType === normalizedSelectedVoucher || normalizedType === normalizedSelectedVoucher.trim();
+            });
+            
+            // Also try exact match on raw strings (case-insensitive, trimmed) as a fallback
+            // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
+            if (!matchesVoucher && selectedVoucherType?.title) {
+                const selectedTitleLower = selectedVoucherType.title.toLowerCase().trim();
+                matchesVoucher = availabilityVoucherTypes.some(type => {
+                    const typeStr = typeof type === 'string' ? type : String(type);
+                    const typeLower = typeStr.toLowerCase().trim();
+                    // Check for exact match (handles both "proposal flight" and "proposal flight " with trailing space)
+                    return typeLower === selectedTitleLower || 
+                           typeLower === selectedTitleLower + ' ' ||
+                           selectedTitleLower === typeLower + ' ';
+                });
+            }
+            
+            // If still no exact match, check for private flight voucher types (Proposal Flight and Private Charter)
+            // These can sometimes be stored differently but refer to the same availability
+            if (!matchesVoucher) {
+                // Check if selected voucher is "Proposal Flight" (normalized: "proposal flight")
+                // Handle both "Proposal Flight" and "Proposal Flight " (with trailing space)
+                const selectedTitle = selectedVoucherType?.title || '';
+                const selectedTitleLower = selectedTitle.toLowerCase().trim();
+                const isProposalFlight = (normalizedSelectedVoucher.includes('proposal') && !normalizedSelectedVoucher.includes('private charter')) ||
+                    (selectedTitleLower === 'proposal flight' || selectedTitleLower.includes('proposal flight'));
+                
+                // Check if selected voucher is "Private Charter" (normalized: "private charter")
+                const isPrivateCharter = normalizedSelectedVoucher.includes('private charter') || 
+                    (normalizedSelectedVoucher.includes('private') && !normalizedSelectedVoucher.includes('proposal') && !normalizedSelectedVoucher.includes('charter')) ||
+                    (selectedTitleLower === 'private charter' || selectedTitleLower.includes('private charter'));
+                
+                if (isProposalFlight) {
+                    // If selected is "Proposal Flight", check if availability has "Proposal Flight" in its voucher types
+                    // This handles cases where availability has "Proposal Flight" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+                    // Check normalized strings first
+                    matchesVoucher = normalizedAvailabilityTypes.some(type => {
+                        // Check for exact "proposal flight" match or "proposal" without "private charter"
+                        // Note: type is already normalized (lowercase) from normalizeVoucherName
+                        // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
+                        const normalizedType = type.trim();
+                        return normalizedType === 'proposal flight' || 
+                               (normalizedType.includes('proposal') && !normalizedType.includes('private charter'));
+                    });
+                    
+                    // Also check raw strings for "Proposal Flight" (case-insensitive, trimmed)
+                    // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
+                    if (!matchesVoucher) {
+                        matchesVoucher = availabilityVoucherTypes.some(type => {
+                            const typeStr = typeof type === 'string' ? type : String(type);
+                            const typeLower = typeStr.toLowerCase().trim();
+                            // Check for exact match or partial match
+                            // Handle both "proposal flight" and "proposal flight " (with trailing space)
+                            return typeLower === 'proposal flight' || 
+                                   typeLower === 'proposal flight ' ||
+                                   (typeLower.includes('proposal flight') && !typeLower.includes('private charter')) ||
+                                   (typeLower.includes('proposal') && !typeLower.includes('private charter'));
+                        });
+                    }
+                } else if (isPrivateCharter) {
+                    // If selected is "Private Charter", check if availability has "Private Charter" in its voucher types
+                    // This handles cases where availability has "Private Charter" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+                    matchesVoucher = normalizedAvailabilityTypes.some(type => {
+                        // Check for exact "private charter" match or "private charter" with or without "proposal"
+                        // Note: type is already normalized (lowercase) from normalizeVoucherName
+                        const normalizedType = type.trim();
+                        return normalizedType === 'private charter' || 
+                               normalizedType.includes('private charter');
+                    });
+                    
+                    // Also check raw strings for "Private Charter" (case-insensitive, trimmed)
+                    // This handles cases like "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+                    if (!matchesVoucher) {
+                        matchesVoucher = availabilityVoucherTypes.some(type => {
+                            const typeStr = typeof type === 'string' ? type : String(type);
+                            const typeLower = typeStr.toLowerCase().trim();
+                            return typeLower === 'private charter' || 
+                                   typeLower === 'private charter ' ||
+                                   typeLower.includes('private charter');
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Additional debug logging for Proposal Flight and Private Charter
+        if (normalizedSelectedVoucher && (normalizedSelectedVoucher.includes('proposal') || normalizedSelectedVoucher.includes('private'))) {
+            console.log(`[Voucher Match Debug] Availability ${a.id}: normalizedSelectedVoucher="${normalizedSelectedVoucher}", normalizedAvailabilityTypes=${JSON.stringify(normalizedAvailabilityTypes)}, matchesVoucher=${matchesVoucher}, exactMatch=${normalizedAvailabilityTypes.includes(normalizedSelectedVoucher)}, rawVoucherTypes=${JSON.stringify(availabilityVoucherTypes)}`);
+        }
         
         // Apply voucher type filtering for Redeem Voucher
         const matchesVoucherTypeFilter = filterByVoucherType(a);
         
-        console.log(`Availability ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}, voucher_types=${availabilityVoucherTypes}`);
+        console.log(`Availability ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}, voucher_types=${JSON.stringify(availabilityVoucherTypes)}, normalizedAvailabilityTypes=${JSON.stringify(normalizedAvailabilityTypes)}, normalizedSelectedVoucher=${normalizedSelectedVoucher}`);
         return isAvailable && matchesVoucher && matchesVoucherTypeFilter;
     }) : [];
     console.log('Filtered availabilities (all times):', filteredAvailabilities);
@@ -1200,10 +1316,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             justifyContent: 'center', 
                             color: '#666', 
                             textAlign: 'center' 
-                        }}>
-                            <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
+                    }}>
+                        <span style={{ 
+                            display: 'inline-flex',
+                            alignItems: 'center',
                                 justifyContent: 'center',
                                 width: 18,
                                 height: 18,
@@ -1216,7 +1332,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }}>✓</span>
                             <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
                                 Reschedule for free up to 120 hours before.
-                            </span>
+                        </span>
                         </div>
                     </div>
 
