@@ -178,6 +178,8 @@ const VoucherType = ({
     const [privateCharterVoucherTypesLoading, setPrivateCharterVoucherTypesLoading] = useState(true);
     const [termsContent, setTermsContent] = useState('');
     const [termsLoading, setTermsLoading] = useState(false);
+    const autoOpenedTermsRef = useRef(false); // track auto-open from deep link
+    const userDismissedTermsRef = useRef(false); // avoid reopening after user closes
     const [activityData, setActivityData] = useState(null);
     const [activityDataLoading, setActivityDataLoading] = useState(false);
     const [showCapacityWarning, setShowCapacityWarning] = useState(false);
@@ -1172,6 +1174,8 @@ const VoucherType = ({
                 if (typeof setActiveAccordion === 'function') {
                     setActiveAccordion('voucher-type');
                 }
+                autoOpenedTermsRef.current = true;
+                userDismissedTermsRef.current = false;
                 // Auto-open Terms & Conditions for deep-linked voucher
                 openTermsForVoucher(finalEnriched);
             }
@@ -1180,6 +1184,26 @@ const VoucherType = ({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [voucherTypes, selectedVoucherType?.title, location.search]);
+
+    // Safety net: if deep-link auto-open was triggered but modal got unmounted (e.g., accordion toggle), reopen it once.
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isShopifySource = urlParams.get('source') === 'shopify';
+        const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
+        if (
+            isShopifySource &&
+            startAtVoucher &&
+            autoOpenedTermsRef.current &&
+            !userDismissedTermsRef.current &&
+            selectedVoucher &&
+            !showTerms
+        ) {
+            if (typeof setActiveAccordion === 'function') {
+                setActiveAccordion('voucher-type');
+            }
+            setShowTerms(true);
+        }
+    }, [showTerms, selectedVoucher, setActiveAccordion, location.search]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
@@ -2176,10 +2200,14 @@ const VoucherType = ({
                             {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
                         </div>
                         <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
-                            <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer',fontSize:'14px',fontWeight:'500'}}>Choose Different Voucher</button>
+                            <button onClick={() => { 
+                                userDismissedTermsRef.current = true;
+                                setShowTerms(false); 
+                            }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer',fontSize:'14px',fontWeight:'500'}}>Choose Different Voucher</button>
                             <button onClick={() => { 
                                 console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
                                 setSelectedVoucherType(selectedVoucher); 
+                                userDismissedTermsRef.current = true;
                                 setShowTerms(false);
                                 
                                 // Show notification for voucher type selection after confirmation
