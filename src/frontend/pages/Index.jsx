@@ -2847,7 +2847,20 @@ const Index = () => {
                     <Container>
                         <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '80px' }}>
                             <div className="logo" style={{ marginRight: isMobile ? '12px' : '32px', flexShrink: 0, minWidth: isMobile ? 'auto' : '200px' }}>
-                                <a href="/" onClick={e => { e.preventDefault(); window.location.reload(); }} style={{ display: 'inline-block' }}>
+                                <a
+                                    href="https://flyawayballooning-book.com/"
+                                    onClick={e => {
+                                        e.preventDefault();
+                                        try {
+                                            sessionStorage.clear();
+                                            localStorage.clear();
+                                        } catch (err) {
+                                            console.warn('Failed to clear storage on logo click:', err);
+                                        }
+                                        window.location.href = 'https://flyawayballooning-book.com/';
+                                    }}
+                                    style={{ display: 'inline-block' }}
+                                >
                                     <img src={LOGO} alt="Fly Away Ballooning Logo" style={{ height: isMobile ? 35 : undefined, width: 'auto' }} />
                                 </a>
                             </div>
