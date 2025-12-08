@@ -163,6 +163,7 @@ const VoucherType = ({
 
     // (moved below state declarations to avoid TDZ)
     const [showTerms, setShowTerms] = useState(false);
+    const hasOpenedTermsFromDeepLink = useRef(false); // avoid reopening T&C repeatedly from deep link
     const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [availableVoucherTypes, setAvailableVoucherTypes] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -1152,6 +1153,15 @@ const VoucherType = ({
             // Hem local hem de parent state'i update et – özet ekran + kartlar senkron
             setSelectedVoucher(finalEnriched || enriched);
             setSelectedVoucherType(finalEnriched || enriched);
+
+            // If coming from Shopify deep link, auto-open Terms & Conditions once
+            const isShopifySource = urlParams.get('source') === 'shopify';
+            const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
+            if (isShopifySource && startAtVoucher && !hasOpenedTermsFromDeepLink.current) {
+                hasOpenedTermsFromDeepLink.current = true;
+                // Auto-open Terms & Conditions for deep-linked voucher
+                openTermsForVoucher(finalEnriched || enriched);
+            }
         } catch (e) {
             console.error('VoucherType: Error applying deep-link voucher prefill', e);
         }
@@ -1872,6 +1882,117 @@ const VoucherType = ({
             // Ensure summary uses the correct total price for Private Charter
             price: (chooseFlightType?.type === "Private Charter") ? totalPrice : (voucher.priceUnit === 'total' ? voucher.price : (voucher.basePrice || voucher.price))
         };
+    };
+
+    const openTermsForVoucher = async (voucherObj) => {
+        // Ensure selected voucher is set before opening terms
+        setSelectedVoucher(voucherObj);
+
+        try {
+            setTermsLoading(true);
+            const res = await fetch(`${API_BASE_URL}/api/terms-and-conditions`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data)) {
+                    // Find active terms mapped to this voucher type. Prefer lowest sort_order, then newest.
+                    const matches = json.data.filter(t => {
+                        try {
+                            // Check if this voucher type is directly mapped
+                            if (t.voucher_type_id && Number(t.voucher_type_id) === Number(voucherObj.id)) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check if this voucher type is in voucher_type_ids array
+                            let voucherTypeIds = [];
+                            if (t.voucher_type_ids) {
+                                if (Array.isArray(t.voucher_type_ids)) {
+                                    voucherTypeIds = t.voucher_type_ids;
+                                } else {
+                                    try {
+                                        voucherTypeIds = JSON.parse(t.voucher_type_ids);
+                                    } catch (e) {
+                                        voucherTypeIds = [];
+                                    }
+                                }
+                            }
+                            if (Array.isArray(voucherTypeIds) && voucherTypeIds.map(Number).includes(Number(voucherObj.id))) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check if this voucher type is in private_voucher_type_ids array (for Private Charter)
+                            let privateVoucherTypeIds = [];
+                            if (t.private_voucher_type_ids) {
+                                if (Array.isArray(t.private_voucher_type_ids)) {
+                                    privateVoucherTypeIds = t.private_voucher_type_ids;
+                                } else {
+                                    try {
+                                        privateVoucherTypeIds = JSON.parse(t.private_voucher_type_ids);
+                                    } catch (e) {
+                                        privateVoucherTypeIds = [];
+                                    }
+                                }
+                            }
+                            if (Array.isArray(privateVoucherTypeIds) && privateVoucherTypeIds.map(Number).includes(Number(voucherObj.id))) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check if this voucher type is for Private Charter experience
+                            let experienceIds = [];
+                            if (t.experience_ids) {
+                                if (Array.isArray(t.experience_ids)) {
+                                    experienceIds = t.experience_ids;
+                                } else {
+                                    try {
+                                        experienceIds = JSON.parse(t.experience_ids);
+                                    } catch (e) {
+                                        experienceIds = [];
+                                    }
+                                }
+                            }
+                            if (chooseFlightType?.type === 'Private Charter' && Array.isArray(experienceIds) && experienceIds.length > 0) {
+                                return (t.is_active === 1 || t.is_active === true);
+                            }
+                            
+                            // Check title match
+                            if (t.voucher_type_title) {
+                                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+                                if (normalize(t.voucher_type_title) === normalize(voucherObj.title)) {
+                                    return (t.is_active === 1 || t.is_active === true);
+                                }
+                            }
+                            
+                            // If no mapping info, skip
+                            return false;
+                        } catch (e) {
+                            return false;
+                        }
+                    });
+                    
+                    // Sort matches: 1) lowest sort_order; 2) newest updated_at
+                    matches.sort((a, b) => {
+                        const sortA = a.sort_order != null ? Number(a.sort_order) : 9999;
+                        const sortB = b.sort_order != null ? Number(b.sort_order) : 9999;
+                        if (sortA !== sortB) return sortA - sortB;
+                        const dateA = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+                        const dateB = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+                        return dateB - dateA; // newest first
+                    });
+                    
+                    const selectedTerms = matches.length > 0 ? matches[0].content : '';
+                    console.log('VoucherType: Selected Terms & Conditions:', selectedTerms ? selectedTerms.substring(0, 100) + '...' : 'none');
+                    setTermsContent(selectedTerms || voucherObj.weatherClause || '');
+                } else {
+                    setTermsContent(voucherObj.weatherClause || '');
+                }
+            } else {
+                setTermsContent(voucherObj.weatherClause || '');
+            }
+        } catch (e) {
+            setTermsContent(voucherObj.weatherClause || '');
+        } finally {
+            setTermsLoading(false);
+            setShowTerms(true);
+        }
     };
 
     const handleSelectVoucher = async (voucher) => {
