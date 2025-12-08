@@ -1164,11 +1164,14 @@ const VoucherType = ({
             setSelectedVoucher(finalEnriched);
             setSelectedVoucherType(finalEnriched);
 
-            // If coming from Shopify deep link, auto-open Terms & Conditions once
+            // If coming from Shopify deep link, auto-open Terms & Conditions once and ensure accordion is open
             const isShopifySource = urlParams.get('source') === 'shopify';
             const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
             if (isShopifySource && startAtVoucher && !hasOpenedTermsFromDeepLink.current) {
                 hasOpenedTermsFromDeepLink.current = true;
+                if (typeof setActiveAccordion === 'function') {
+                    setActiveAccordion('voucher-type');
+                }
                 // Auto-open Terms & Conditions for deep-linked voucher
                 openTermsForVoucher(finalEnriched);
             }
