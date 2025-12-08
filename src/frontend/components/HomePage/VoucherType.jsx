@@ -180,6 +180,18 @@ const VoucherType = ({
     const [termsLoading, setTermsLoading] = useState(false);
     const autoOpenedTermsRef = useRef(false); // track auto-open from deep link
     const userDismissedTermsRef = useRef(false); // avoid reopening after user closes
+
+    // Reset deep-link guards when URL query changes (e.g., user revisits the same deep link)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const isShopifySource = params.get('source') === 'shopify';
+        const startAtVoucher = params.get('startAt') === 'voucher-type' || !!params.get('voucherTitle');
+        if (isShopifySource && startAtVoucher) {
+            hasOpenedTermsFromDeepLink.current = false;
+            autoOpenedTermsRef.current = false;
+            userDismissedTermsRef.current = false;
+        }
+    }, [location.search]);
     const [activityData, setActivityData] = useState(null);
     const [activityDataLoading, setActivityDataLoading] = useState(false);
     const [showCapacityWarning, setShowCapacityWarning] = useState(false);
