@@ -1648,11 +1648,9 @@ const VoucherType = ({
                         const showWeatherRefundableShared = chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight' && isAnyDay;
                         const showWeatherRefundablePrivate = chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight';
                         
-                        // Always render a container div to maintain consistent card height across all vouchers
-                        // For desktop shared vouchers, ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight
-                        const shouldShowWeatherContainer = showWeatherRefundableShared || showWeatherRefundablePrivate;
-                        const isFlexibleOrWeekdayMorning = isFlexibleWeekday || isWeekdayMorning;
-                        const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+                                // Always render a container div to maintain consistent card height across all vouchers
+                                const shouldShowWeatherContainer = showWeatherRefundableShared || showWeatherRefundablePrivate;
+                                const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
                         
                         return (
                             <div style={{
@@ -1661,11 +1659,8 @@ const VoucherType = ({
                                 borderRadius: 12,
                                 padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
                                 marginBottom: shouldShowWeatherContainer ? 10 : 0,
-                                // On desktop shared flight, ensure Flexible Weekday and Weekday Morning have same height as Any Day Flight
-                                // Any Day Flight with weather toggle takes ~90px, so reserve same space for Flexible Weekday and Weekday Morning
-                                minHeight: (!isMobile && isSharedFlight && isFlexibleOrWeekdayMorning && !shouldShowWeatherContainer) ? '0px' :
-                                          (isMobile && (isFlexibleWeekday || isWeekdayMorning)) ? '90px' : 
-                                          (showWeatherRefundableShared || showWeatherRefundablePrivate ? '50px' : 0),
+                                // Only reserve space when a weather container is actually shown; otherwise no extra gap (fix mobile extra spacer)
+                                minHeight: (showWeatherRefundableShared || showWeatherRefundablePrivate) ? '50px' : 0,
                                 overflow: 'visible',
                                 position: 'relative'
                             }}>
