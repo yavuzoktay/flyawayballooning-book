@@ -1085,42 +1085,52 @@ const VoucherType = ({
     // otomatik hesaplıyoruz.
     useEffect(() => {
         try {
-            if (!selectedVoucherType || !selectedVoucherType.title) return;
             if (!Array.isArray(voucherTypes) || voucherTypes.length === 0) return;
 
-            // Zaten id’li ve local selectedVoucher set edilmişse tekrar çalıştırma
-            if (selectedVoucherType.id && selectedVoucher) return;
-
+            // incoming from parent OR fallback to URL voucherTitle when parent does not provide one
+            const urlParams = new URLSearchParams(window.location.search);
             const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-            const targetTitle = normalize(selectedVoucherType.title);
 
-            const matched = voucherTypes.find(v => normalize(v.title) === targetTitle);
+            const incomingTitle = selectedVoucherType?.title;
+            const urlVoucherTitleRaw = urlParams.get('voucherTitle');
+            const normalizedUrlTitle = urlVoucherTitleRaw
+                ? normalize(decodeURIComponent(urlVoucherTitleRaw.replace(/\+/g, ' ')))
+                : null;
+
+            // If parent already sent a fully enriched voucher, no need to re-run
+            if (selectedVoucherType?.id && selectedVoucher) return;
+
+            // Find target voucher using either incoming title or URL title
+            const matched = voucherTypes.find(v => {
+                const vtNorm = normalize(v.title);
+                if (incomingTitle && vtNorm === normalize(incomingTitle)) return true;
+                if (normalizedUrlTitle && vtNorm === normalizedUrlTitle) return true;
+                return false;
+            });
             if (!matched) return;
 
-            const quantityFromUrl = parseInt(
-                selectedVoucherType.quantity || selectedVoucherType.passengers || 2,
+            // prefer quantity from selectedVoucherType, then URL, then default 2
+            const quantityFromProps = parseInt(
+                selectedVoucherType?.quantity || selectedVoucherType?.passengers || 0,
                 10
-            ) || 2;
+            ) || 0;
+            const urlPassengers = urlParams.get('source') === 'shopify'
+                ? parseInt(urlParams.get('passengers') || '0', 10)
+                : 0;
+            const finalQuantity = urlPassengers > 0 ? urlPassengers : (quantityFromProps > 0 ? quantityFromProps : 2);
 
             console.log('VoucherType: Deep-link prefill – matched voucher by title:', {
                 incoming: selectedVoucherType,
                 matched,
-                quantityFromUrl
+                finalQuantity,
+                urlVoucherTitleRaw
             });
 
-            const enriched = buildVoucherWithQuantity(matched, quantityFromUrl);
-
-            // Passenger input'larını da senkronize et - URL'den gelen passenger sayısını öncelikle kullan
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlPassengers = urlParams.get('source') === 'shopify' ? parseInt(urlParams.get('passengers') || '0', 10) : 0;
-            const finalQuantity = urlPassengers > 0 ? urlPassengers : enriched.quantity;
-            
             setQuantities(prev => ({
                 ...prev,
                 [matched.title]: finalQuantity
             }));
-            
-            // Enriched voucher'ı da güncellenmiş quantity ile oluştur
+
             const finalEnriched = buildVoucherWithQuantity(matched, finalQuantity);
 
             // Weather Refundable toggle'ını set et (URL'den veya selectedVoucherType'dan)
@@ -1151,8 +1161,8 @@ const VoucherType = ({
             }
 
             // Hem local hem de parent state'i update et – özet ekran + kartlar senkron
-            setSelectedVoucher(finalEnriched || enriched);
-            setSelectedVoucherType(finalEnriched || enriched);
+            setSelectedVoucher(finalEnriched);
+            setSelectedVoucherType(finalEnriched);
 
             // If coming from Shopify deep link, auto-open Terms & Conditions once
             const isShopifySource = urlParams.get('source') === 'shopify';
@@ -1160,13 +1170,13 @@ const VoucherType = ({
             if (isShopifySource && startAtVoucher && !hasOpenedTermsFromDeepLink.current) {
                 hasOpenedTermsFromDeepLink.current = true;
                 // Auto-open Terms & Conditions for deep-linked voucher
-                openTermsForVoucher(finalEnriched || enriched);
+                openTermsForVoucher(finalEnriched);
             }
         } catch (e) {
             console.error('VoucherType: Error applying deep-link voucher prefill', e);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [voucherTypes, selectedVoucherType?.title]);
+    }, [voucherTypes, selectedVoucherType?.title, location.search]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
