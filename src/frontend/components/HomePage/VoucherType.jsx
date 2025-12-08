@@ -1341,6 +1341,22 @@ const VoucherType = ({
             if (tier !== undefined) privateCharterDisplayTotal = tier;
             else privateCharterDisplayTotal = voucher.basePrice || voucher.price;
         }
+        const isBuyVoucherFlow = activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift';
+        const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+        const cardMinHeight = (() => {
+            if (isBuyVoucherFlow) {
+                if (isMobile) {
+                    // Mobile: align Shared Flight cards (Any Day / Flexible Weekday) to same height
+                    return isSharedFlight ? 560 : 520;
+                }
+                return isSharedFlight ? 540 : 500;
+            }
+            if (isMobile) {
+                return isSharedFlight ? 560 : 540;
+            }
+            return isSharedFlight ? 600 : 540;
+        })();
+
         return (
             <div style={{
                 background: '#fff',
@@ -1350,13 +1366,8 @@ const VoucherType = ({
                 width: isMobile ? 'calc(100% - 0px)' : '320px',
                 minWidth: isMobile ? 'calc(100% - 0px)' : '320px',
                 maxWidth: isMobile ? 'calc(100% - 0px)' : '320px',
-                // Ensure all voucher cards (shared & private) have at least the same height
-                // For desktop shared vouchers, use a larger minHeight to ensure all cards have the same height
-                // For mobile and private vouchers, use the standard minHeight
-                // Reduce height for Buy Flight Voucher and Buy Gift Voucher
-                minHeight: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') 
-                    ? (isMobile ? 520 : (chooseFlightType?.type === 'Shared Flight' ? 540 : 500))
-                    : (isMobile ? 540 : (chooseFlightType?.type === 'Shared Flight' ? 600 : 540)),
+                // Unified min height per flow/device to align Shared Flight cards (Any Day / Flexible Weekday) on mobile
+                minHeight: cardMinHeight,
                 flexShrink: 0,
                 padding: 0,
                 display: 'flex',
