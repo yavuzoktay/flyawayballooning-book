@@ -2166,6 +2166,44 @@ const VoucherType = ({
             )}
             
             <style>{scrollbarStyles}</style>
+            {showTerms && selectedVoucher && (
+                <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
+                        <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
+                            <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827',textAlign:'center'}}>Terms & Conditions</h4>
+                        </div>
+                        <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
+                            {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
+                        </div>
+                        <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
+                            <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer',fontSize:'14px',fontWeight:'500'}}>Choose Different Voucher</button>
+                            <button onClick={() => { 
+                                console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
+                                setSelectedVoucherType(selectedVoucher); 
+                                setShowTerms(false);
+                                
+                                // Show notification for voucher type selection after confirmation
+                                setNotificationMessage(`${selectedVoucher?.title} Selected`);
+                                setShowNotification(true);
+                                
+                                // Auto-hide notification after 3 seconds
+                                setTimeout(() => {
+                                    setShowNotification(false);
+                                }, 3000);
+                                
+                                // Trigger section completion after state update
+                                setTimeout(() => {
+                                    if (onSectionCompletion) {
+                                        console.log('🎫 VoucherType: Calling onSectionCompletion for voucher-type');
+                                        onSectionCompletion('voucher-type');
+                                    }
+                                }, 300); // Longer delay to ensure state is fully updated
+                            }} style={{background:'#00eb5b',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none',fontSize:'14px',fontWeight:'500'}} disabled={termsLoading}>Agree and Proceed</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <Accordion
                 title={
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '8px' }}>
@@ -2177,44 +2215,6 @@ const VoucherType = ({
                 setActiveAccordion={setActiveAccordion}
                 isDisabled={isDisabled}
             >
-                {showTerms && selectedVoucher && (
-                    <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
-                        <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
-                            <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
-                                <h4 style={{margin:0,fontSize:20,fontWeight:700,color:'#111827',textAlign:'center'}}>Terms & Conditions</h4>
-                            </div>
-                            <div style={{maxHeight:360,overflowY:'auto',whiteSpace:'pre-line',color:'#374151',lineHeight:1.6,fontSize:14,border:'1px solid #e5e7eb',borderRadius:8,padding:'12px 14px',background:'#f9fafb'}}>
-                                {termsLoading ? 'Loading terms...' : (termsContent || selectedVoucher?.weatherClause || '')}
-                            </div>
-                            <div style={{display:'flex',justifyContent:'center',gap:10,marginTop:16}}>
-                                <button onClick={() => { setShowTerms(false); }} style={{border:'1px solid #d1d5db',background:'#fff',color:'#374151',padding:'8px 14px',borderRadius:8,cursor:'pointer',fontSize:'14px',fontWeight:'500'}}>Choose Different Voucher</button>
-                                <button onClick={() => { 
-                                    console.log('VoucherType: Confirm button clicked, setting selectedVoucherType:', selectedVoucher);
-                                    setSelectedVoucherType(selectedVoucher); 
-                                    setShowTerms(false);
-                                    
-                                    // Show notification for voucher type selection after confirmation
-                                    setNotificationMessage(`${selectedVoucher?.title} Selected`);
-                                    setShowNotification(true);
-                                    
-                                    // Auto-hide notification after 3 seconds
-                                    setTimeout(() => {
-                                        setShowNotification(false);
-                                    }, 3000);
-                                    
-                                            // Trigger section completion after state update
-        setTimeout(() => {
-            if (onSectionCompletion) {
-                console.log('🎫 VoucherType: Calling onSectionCompletion for voucher-type');
-                onSectionCompletion('voucher-type');
-            }
-        }, 300); // Longer delay to ensure state is fully updated
-                                }} style={{background:'#00eb5b',color:'#fff',padding:'8px 14px',borderRadius:8,cursor:'pointer',border:'none',fontSize:'14px',fontWeight:'500'}} disabled={termsLoading}>Agree and Proceed</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-                
                 {/* Have booking questions - compact section */}
                 <div style={{
                     background: 'rgb(248, 250, 252)',
