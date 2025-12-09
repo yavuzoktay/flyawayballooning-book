@@ -77,6 +77,7 @@ const Index = () => {
     const location = useLocation();
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     const shopifyVoucherForcedRef = useRef(false);
+    const shopifyPrefillInProgress = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -1959,6 +1960,9 @@ const Index = () => {
 
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
+        // Skip the mass-reset while Shopify prefill is running so we keep location/experience
+        if (shopifyPrefillInProgress.current) return;
+
         if (activitySelect !== null) {
             // Reset progress bar - mark only activity as completed
             setCompletedSections(new Set(['activity']));
@@ -2125,6 +2129,9 @@ const Index = () => {
         try {
             const params = new URLSearchParams(location.search);
             if (params.get('source') !== 'shopify') return;
+
+            // Prevent the activity-change reset from wiping prefilled values
+            shopifyPrefillInProgress.current = true;
 
             const qpLocation = params.get('location');
             const qpVoucherTitle = params.get('voucherTitle');
@@ -2347,8 +2354,14 @@ const Index = () => {
                     }, 100);
                 }
             }, qpStartAt === 'voucher-type' ? 1200 : 1500);
+
+            // End of prefill - allow normal resets after a short delay to ensure state has been set
+            setTimeout(() => {
+                shopifyPrefillInProgress.current = false;
+            }, 2000);
         } catch (e) {
             console.error('Error pre-filling booking flow from Shopify params:', e);
+            shopifyPrefillInProgress.current = false;
         }
     }, [location.search]);
 
