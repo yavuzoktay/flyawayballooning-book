@@ -91,7 +91,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Calculate voucher type price dynamically based on current quantity and base price
     let voucherTypePrice = 0;
     if (selectedVoucherType) {
-        if (selectedVoucherType.priceUnit === 'total') {
+        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+        if (isPrivateCharter) {
+            // Private charter prices from Shopify/booking are already total for the group
+            voucherTypePrice = selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? selectedVoucherType.basePrice ?? 0;
+        } else if (selectedVoucherType.priceUnit === 'total') {
             // For total pricing, use the price as is
             voucherTypePrice = selectedVoucherType.price;
         } else {
@@ -104,8 +108,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             title: selectedVoucherType.title,
             basePrice: selectedVoucherType.basePrice,
             price: selectedVoucherType.price,
+            totalPrice: selectedVoucherType.totalPrice,
             priceUnit: selectedVoucherType.priceUnit,
             quantity: selectedVoucherType.quantity,
+            isPrivateCharter,
             calculatedTotal: voucherTypePrice
         });
     }
