@@ -432,6 +432,23 @@ const Index = () => {
         }
     };
 
+    // Ensure availability fetch runs on first Shopify deep-link (Buy Date/Voucher) load
+    useEffect(() => {
+        if (!shopifyStartAtVoucher) return;
+        if (!chooseLocation || !activityId) return;
+        // For deep-link, we may not have flight type or voucher type yet; still fetch to avoid empty calendar
+        const timer = setTimeout(() => {
+            console.log('[ShopifyDeepLink] Triggering availability fetch on first load', {
+                chooseLocation,
+                activityId,
+                chooseFlightType: chooseFlightType?.type,
+                selectedVoucherType: selectedVoucherType?.title
+            });
+            refetchAvailabilities();
+        }, 600); // small delay to allow state to settle
+        return () => clearTimeout(timer);
+    }, [shopifyStartAtVoucher, chooseLocation, activityId, chooseFlightType?.type, selectedVoucherType?.title]);
+
     // Passenger Terms (for Passenger Information) modal state
     const [passengerTermsModalOpen, setPassengerTermsModalOpen] = React.useState(false);
     const [passengerTermsContent, setPassengerTermsContent] = React.useState('');
