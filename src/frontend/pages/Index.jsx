@@ -2571,14 +2571,32 @@ const Index = () => {
                             console.log('Type:', type);
                             console.log('voucher_type:', response.data.voucher_type);
                         // Email debug log for Buy Flight Voucher (Flight Voucher confirmation email expected)
-                        console.log('[EmailDebug] Backend createBookingFromSession success', {
+                        console.log('✅ [EmailDebug] Backend createBookingFromSession success', {
                             type,
                             voucher_type: response.data.voucher_type,
+                            book_flight: response.data.book_flight,
                             activitySelect,
                             chooseFlightType: chooseFlightType?.type,
                             voucherCode: finalVoucherCode,
-                            session_id
+                            session_id,
+                            voucher_id: response.data.id,
+                            customer_email: response.data.customer_email,
+                            customer_name: response.data.customer_name
                         });
+                        
+                        // Check if this is a Flight Voucher transaction
+                        const isFlightVoucher = (type === 'voucher' && 
+                            (response.data.voucher_type === 'Buy Flight Voucher' || 
+                             response.data.voucher_type === 'Flight Voucher' ||
+                             (response.data.book_flight && response.data.book_flight.toLowerCase().includes('flight voucher'))));
+                        
+                        if (isFlightVoucher) {
+                            console.log('📧 [EmailDebug] FLIGHT VOUCHER DETECTED - Email should be sent automatically by backend');
+                            console.log('📧 [EmailDebug] Check backend logs for email sending status');
+                            console.log('📧 [EmailDebug] Backend should log: [sendAutomaticFlightVoucherConfirmationEmail] or [WEBHOOK] or [FALLBACK]');
+                        } else {
+                            console.log('ℹ️ [EmailDebug] Not a Flight Voucher transaction, email sending may not apply');
+                        }
                             
                             // Set payment success data for popup
                             setPaymentSuccessData({
