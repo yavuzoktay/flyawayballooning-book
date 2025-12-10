@@ -2553,6 +2553,15 @@ const Index = () => {
                             console.log('finalVoucherCode before assignment:', finalVoucherCode);
                             console.log('Type:', type);
                             console.log('voucher_type:', response.data.voucher_type);
+                        // Email debug log for Buy Flight Voucher (Flight Voucher confirmation email expected)
+                        console.log('[EmailDebug] Backend createBookingFromSession success', {
+                            type,
+                            voucher_type: response.data.voucher_type,
+                            activitySelect,
+                            chooseFlightType: chooseFlightType?.type,
+                            voucherCode: finalVoucherCode,
+                            session_id
+                        });
                             
                             // Set payment success data for popup
                             setPaymentSuccessData({
@@ -2567,6 +2576,12 @@ const Index = () => {
                             });
                             setShowPaymentSuccess(true);
                         } else {
+                        console.warn('[EmailDebug] Backend did not return success; email may not have been triggered', {
+                            type,
+                            activitySelect,
+                            chooseFlightType: chooseFlightType?.type,
+                            session_id
+                        });
                             console.warn('Payment succeeded but backend did not return success. Skipping alert because entry is already created.');
                         }
                     } catch (error) {
@@ -2576,6 +2591,12 @@ const Index = () => {
                             for (let i = 0; i < 8; i++) {
                                 const s = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
                                 if (s.data?.processed) {
+                                    console.log('[EmailDebug] Session processed after fallback error; email should have been sent by backend', {
+                                        session_id,
+                                        type,
+                                        activitySelect,
+                                        chooseFlightType: chooseFlightType?.type
+                                    });
                                     console.log('Session processed after fallback error; suppressing error.');
                                     localStorage.setItem(`fab_payment_processed_${session_id}`, '1');
                                     return;
@@ -2585,6 +2606,13 @@ const Index = () => {
                         } catch (statusCheckErr) {
                             // ignore
                         }
+                        console.error('[EmailDebug] Error creating from session; email likely not sent', {
+                            session_id,
+                            type,
+                            activitySelect,
+                            chooseFlightType: chooseFlightType?.type,
+                            error: error?.response?.data || error?.message
+                        });
                         console.error('Error creating from session:', error);
                         // Do not alert the user; booking creation is idempotent and may already exist
                     }
