@@ -178,8 +178,8 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           </div>
           <div style={{ marginBottom: isMobile ? '1px' : '3px', fontSize: isMobile ? '8px' : '12px', lineHeight: '1.1' }}>
             {voucherData.discount_type === 'percentage' 
-              ? `${voucherData.discount_value}% off` 
-              : `£${voucherData.discount_value} off`
+              ? `${parseFloat(voucherData.discount_value || 0).toFixed(2)}% off` 
+              : `£${parseFloat(voucherData.discount_value || 0).toFixed(2)} off`
             }
             {!isMobile && voucherData.max_discount && voucherData.discount_type === 'percentage' && (
               <span style={{ fontSize: '11px', color: '#666' }}>
@@ -193,7 +193,7 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
                 Final Price: £{voucherData.final_amount}
               </div>
               <div style={{ fontSize: '10px', marginTop: '3px', color: '#666' }}>
-                Valid until: {new Date(voucherData.valid_until).toLocaleDateString()}
+                Valid until: {voucherData.valid_until ? new Date(voucherData.valid_until).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}
               </div>
             </>
           )}
