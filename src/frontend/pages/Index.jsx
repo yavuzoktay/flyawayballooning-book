@@ -600,13 +600,13 @@ const Index = () => {
                 setVoucherStatus('valid');
                 setVoucherData(response.data.data);
                 
-                // Update total price with discount if available
-                if (chooseFlightType?.totalPrice) {
-                    const discountedPrice = response.data.data.final_amount;
+                // Update total price with voucher amount
+                const voucherAmount = response.data.data.final_amount || response.data.data.voucher_amount || 0;
+                if (voucherAmount > 0) {
                     setChooseFlightType(prev => ({
                         ...prev,
-                        totalPrice: discountedPrice,
-                        originalPrice: chooseFlightType.totalPrice
+                        totalPrice: voucherAmount,
+                        originalPrice: prev?.totalPrice || voucherAmount
                     }));
                 }
                 
@@ -620,12 +620,14 @@ const Index = () => {
                     const resolvedPassengerCount = parseInt(voucherInfo.numberOfPassengers, 10);
                     // Set flight type from voucher experience_type
                     if (voucherInfo.experience_type) {
+                        const voucherPrice = voucherInfo.final_amount || voucherInfo.voucher_amount || 0;
                         setChooseFlightType({
                             type: voucherInfo.experience_type,
                             passengerCount: !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 
                                 ? String(resolvedPassengerCount) 
                                 : "1",
-                            price: voucherInfo.final_amount || 0
+                            price: voucherPrice,
+                            totalPrice: voucherPrice
                         });
                     }
                     
