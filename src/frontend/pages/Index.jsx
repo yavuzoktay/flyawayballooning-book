@@ -78,6 +78,7 @@ const Index = () => {
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     const shopifyVoucherForcedRef = useRef(false);
     const shopifyPrefillInProgress = useRef(false);
+    const activityDeepLinkHandledRef = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -2127,6 +2128,31 @@ const Index = () => {
             setShopifyStartAtVoucher(source === 'shopify' && startAt === 'voucher-type');
         } catch {}
     }, [location.pathname, location.search]);
+
+    // Support deep links that should start directly on the Flight Voucher journey
+    useEffect(() => {
+        if (activityDeepLinkHandledRef.current) return;
+
+        const params = new URLSearchParams(location.search || '');
+
+        // Do not override the specialised Shopify flow
+        if (params.get('source') === 'shopify') return;
+
+        const journeyParam = (params.get('journey') || params.get('activity') || '').toLowerCase();
+        if (journeyParam === 'flight-voucher' || journeyParam === 'buy-flight-voucher' || journeyParam === 'flightvoucher') {
+            activityDeepLinkHandledRef.current = true;
+            setActivitySelect('Flight Voucher');
+            setCompletedSections(new Set(['activity']));
+        } else if (
+            journeyParam === 'buy-gift-voucher' ||
+            journeyParam === 'gift-voucher' ||
+            journeyParam === 'buy-gift'
+        ) {
+            activityDeepLinkHandledRef.current = true;
+            setActivitySelect('Buy Gift');
+            setCompletedSections(new Set(['activity']));
+        }
+    }, [location.search]);
 
     // Ensure Experience step shows as completed in progress when coming from Shopify
     // and the experience has been derived/selected.
