@@ -211,11 +211,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const endDate = endOfMonth(currentDate);
     
     // Check if location and experience are selected
-    // For Book Flight: also need voucher type
+    // For Book Flight: need flight type (voucher type filtering happens later in the filter function, so we allow filtering even without voucher type)
     // For Redeem Voucher: only need location and activity
     // For Bristol Fiesta: only need location and activity (no voucher type required)
     const isLocationAndExperienceSelected = chooseLocation && selectedActivity && selectedActivity.length > 0 && (
-        (activitySelect === 'Book Flight' && chooseFlightType && chooseFlightType.type && selectedVoucherType) ||
+        (activitySelect === 'Book Flight' && chooseFlightType && chooseFlightType.type) || // Allow filtering by flight type (voucher type filtering happens in filter function)
         (activitySelect === 'Redeem Voucher') ||
         (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -513,7 +513,21 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
     const matchesExperience = (availability) => {
         if (!chooseFlightType?.type) return true;
-        if (!Array.isArray(availability?.flight_types_array) || availability.flight_types_array.length === 0) return true;
+        
+        if (!Array.isArray(availability?.flight_types_array) || availability.flight_types_array.length === 0) {
+            // Fallback: check flight_types string if flight_types_array is empty
+            if (availability?.flight_types) {
+                const flightTypesStr = String(availability.flight_types).toLowerCase();
+                const selectedType = (chooseFlightType.type || '').toLowerCase().trim();
+                if (selectedType.includes('shared') && flightTypesStr.includes('shared')) {
+                    return true;
+                }
+                if (selectedType.includes('private') && flightTypesStr.includes('private')) {
+                    return true;
+                }
+            }
+            return true;
+        }
 
         const selectedType = (chooseFlightType.type || '').toLowerCase().trim();
         if (!selectedType) return true;
@@ -525,7 +539,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             charter: selectedType.includes('charter'),
         };
 
-        return availability.flight_types_array.some(type => {
+        const matchResult = availability.flight_types_array.some(type => {
             const normalizedType = normalize(type);
             if (!normalizedType) return false;
             if (normalizedType === selectedType) return true;
@@ -544,6 +558,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
             return false;
         });
+        
+        return matchResult;
     };
 
     // Helper function to check if a date is a weekday (Monday-Friday)
@@ -619,7 +635,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const availableForSelection = getAvailableSeatsForSelection(a);
         const isOpen = slotStatus === 'open' || availableForSelection > 0;
         const hasCapacity = availableForSelection > 0 || (a.capacity && a.capacity > 0);
-        const isAvailable = isOpen && hasCapacity && matchesLocation(a) && matchesExperience(a);
+        const matchesExp = matchesExperience(a);
+        const matchesLoc = matchesLocation(a);
+        const isAvailable = isOpen && hasCapacity && matchesLoc && matchesExp;
+        
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
         const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
         const normalizedAvailabilityTypes = availabilityVoucherTypes.map(normalizeVoucherName);

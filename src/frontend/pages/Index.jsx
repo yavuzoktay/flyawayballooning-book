@@ -400,9 +400,17 @@ const Index = () => {
                     params.append('voucherTypes', selectedVoucherType.title);
                 }
                 
-                // Add flight type filter if selected
-                if (chooseFlightType?.type && chooseFlightType.type !== 'Shared Flight') {
-                    params.append('flightType', chooseFlightType.type);
+                // Add flight type filter if selected - map UI values to backend values
+                if (chooseFlightType?.type) {
+                    let flightTypeForBackend;
+                    if (chooseFlightType.type === 'Private Charter') {
+                        flightTypeForBackend = 'Private';
+                    } else if (chooseFlightType.type === 'Shared Flight') {
+                        flightTypeForBackend = 'Shared';
+                    } else {
+                        flightTypeForBackend = chooseFlightType.type;
+                    }
+                    params.append('flightType', flightTypeForBackend);
                 }
                 
                 // PRODUCTION DEBUG: Log API call details
@@ -750,7 +758,7 @@ const Index = () => {
         if (selectedVoucherType && chooseLocation && activityId) {
             refetchAvailabilities();
         }
-    }, [selectedVoucherType, chooseLocation, activityId]);
+    }, [selectedVoucherType, chooseLocation, activityId, chooseFlightType]);
     
     // Refetch availabilities when flight type changes
     useEffect(() => {
@@ -1341,7 +1349,16 @@ const Index = () => {
         if (activitySelect) completedSections.push('activity');
         if (chooseLocation) completedSections.push('location');
         // For Redeem Voucher, experience is skipped in the flow, so don't check it for progress bar
-        if (chooseFlightType?.type && activitySelect !== 'Redeem Voucher') {
+        // Check if experience is completed: either chooseFlightType is set, or we're in Shopify flow with experience param
+        const hasExperienceFromShopify = (() => {
+            try {
+                const params = new URLSearchParams(location.search || '');
+                return params.get('source') === 'shopify' && params.get('experience');
+            } catch {
+                return false;
+            }
+        })();
+        if ((chooseFlightType?.type || hasExperienceFromShopify) && activitySelect !== 'Redeem Voucher') {
             completedSections.push('experience');
         }
         if (selectedVoucherType) completedSections.push('voucher-type');
@@ -1965,6 +1982,23 @@ const Index = () => {
         };
         fetchAvailabilities();
     }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType, activityId]);
+    
+    // Additional effect: Refetch availabilities when flight type is set from Shopify prefill
+    useEffect(() => {
+        // Only run for Shopify flow when flight type is set
+        const params = new URLSearchParams(location.search || '');
+        if (params.get('source') !== 'shopify') return;
+        if (!chooseLocation || !activityId) return;
+        if (!chooseFlightType?.type) return;
+        
+        
+        // Small delay to ensure state is settled
+        const timer = setTimeout(() => {
+            console.log('🔵 Shopify - Refetching availabilities after flight type set');
+            refetchAvailabilities();
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [chooseFlightType?.type, chooseLocation, activityId, location.search]);
 
     // Sync passengerCount with Voucher Type quantity for Flight Voucher and Book Flight flows
     useEffect(() => {
@@ -2023,6 +2057,21 @@ const Index = () => {
     // Yeni: activitySelect değiştiğinde accordion'ı sıfırla ve otomatik olarak sıralamayı baştan başlat
     React.useEffect(() => {
         if (activitySelect !== null) {
+            // Check URL params directly to avoid timing issues with shopifyStartAtVoucher state
+            let shouldSkipAutoOpen = false;
+            try {
+                const params = new URLSearchParams(location.search || '');
+                const source = params.get('source');
+                const startAt = params.get('startAt');
+                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
+            } catch {}
+            
+            // Skip auto-opening if we're coming from Shopify with startAt=voucher-type
+            if (shopifyStartAtVoucher || shouldSkipAutoOpen) {
+                console.log('🔄 ACTIVITY CHANGED - Skipping auto-open (Shopify startAt=voucher-type)');
+                return;
+            }
+            
             console.log('🔄 ACTIVITY CHANGED - RESETTING EVERYTHING:', activitySelect);
             
             // Fresh start flag'ini set et
@@ -2053,7 +2102,7 @@ const Index = () => {
                 }
             }, 300); // State reset'in tamamlanması için biraz daha uzun delay
         }
-    }, [activitySelect]);
+    }, [activitySelect, shopifyStartAtVoucher, location.search]);
 
     // Yeni: Dinamik sıralama değiştiğinde accordion akışını kontrol et
     React.useEffect(() => {
@@ -2083,9 +2132,40 @@ const Index = () => {
                 }
                 return;
             }
+            
+            // Force voucher-type accordion if shopifyStartAtVoucher is true, but ONLY on initial load (when activeAccordion is null)
+            // Once user manually opens another accordion, don't force it back to voucher-type
+            // Also check URL params directly to avoid timing issues
+            let shouldForceVoucherType = shopifyStartAtVoucher;
+            try {
+                const params = new URLSearchParams(location.search || '');
+                const source = params.get('source');
+                const startAt = params.get('startAt');
+                if (source === 'shopify' && startAt === 'voucher-type') {
+                    shouldForceVoucherType = true;
+                }
+            } catch {}
+            
+            // Only force voucher-type on initial load (when activeAccordion is null or undefined)
+            // This allows users to manually open Live Availability after voucher type is selected
+            if (shouldForceVoucherType && (activeAccordion === null || activeAccordion === undefined) && !selectedVoucherType) {
+                console.log('🔵 Shopify flow - forcing accordion to voucher-type (initial load only)');
+                setActiveAccordion('voucher-type');
+                return;
+            }
 
+            // Check URL params directly to avoid timing issues
+            let shouldSkipAutoOpen = false;
+            try {
+                const params = new URLSearchParams(location.search || '');
+                const source = params.get('source');
+                const startAt = params.get('startAt');
+                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
+            } catch {}
+            
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
-            if (!sequence.includes(activeAccordion)) {
+            // BUT: Skip this if we're coming from Shopify with startAt=voucher-type
+            if (!sequence.includes(activeAccordion) && !shopifyStartAtVoucher && !shouldSkipAutoOpen) {
                 console.log('❌ Current accordion not in new sequence, finding next valid accordion');
                 
                 // Tamamlanmış section'ları kontrol et
@@ -2113,9 +2193,11 @@ const Index = () => {
                     console.log('✅ All sections completed, closing accordion');
                     setActiveAccordion(null);
                 }
+            } else if (!sequence.includes(activeAccordion) && (shopifyStartAtVoucher || shouldSkipAutoOpen)) {
+                console.log('🔵 Skipping next section auto-open (Shopify startAt=voucher-type)');
             }
         }
-    }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn, shopifyStartAtVoucher, activeAccordion]);
+    }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn, shopifyStartAtVoucher, activeAccordion, location.search]);
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const path = window.location.pathname.toLowerCase();
@@ -2125,7 +2207,8 @@ const Index = () => {
             const params = new URLSearchParams(location.search || '');
             const source = params.get('source');
             const startAt = params.get('startAt');
-            setShopifyStartAtVoucher(source === 'shopify' && startAt === 'voucher-type');
+            const shouldStartAtVoucher = source === 'shopify' && startAt === 'voucher-type';
+            setShopifyStartAtVoucher(shouldStartAtVoucher);
         } catch {}
     }, [location.pathname, location.search]);
 
@@ -2173,7 +2256,8 @@ const Index = () => {
     useEffect(() => {
         try {
             const params = new URLSearchParams(location.search);
-            if (params.get('source') !== 'shopify') return;
+            const source = params.get('source');
+            if (source !== 'shopify') return;
 
             // Prevent the activity-change reset from wiping prefilled values
             shopifyPrefillInProgress.current = true;
@@ -2264,6 +2348,14 @@ const Index = () => {
                         price: ''
                     });
                     
+                    // Immediately refetch availabilities after setting flight type (don't wait for DOM click)
+                    setTimeout(() => {
+                        console.log('🔵 Shopify prefill - Refetching availabilities immediately after flight type set');
+                        if (qpLocation && activityId) {
+                            refetchAvailabilities();
+                        }
+                    }, 400);
+                    
                     // Trigger experience selection in ExperienceSection component
                     setTimeout(() => {
                         // Find experience cards by text content
@@ -2347,6 +2439,14 @@ const Index = () => {
                                 }
                             }
                         });
+                        
+                        // After voucher type is selected, refetch availabilities with correct filters
+                        setTimeout(() => {
+                            console.log('🔵 Shopify prefill - Refetching availabilities after voucher type selection');
+                            if (qpLocation && activityId) {
+                                refetchAvailabilities();
+                            }
+                        }, 500);
                     }, 300);
                 }
             }, 1500);
