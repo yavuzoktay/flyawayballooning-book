@@ -86,7 +86,7 @@ const Index = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-    
+
     // Customer Portal: Fetch booking data when token is present
     useEffect(() => {
         if (token) {
@@ -2082,6 +2082,22 @@ const Index = () => {
             
             // Kısa delay sonra sıfırdan sıralamayı başlat
             setTimeout(() => {
+                // Double-check: Skip auto-opening if we're coming from Shopify with startAt=voucher-type
+                // This check is inside setTimeout because shopifyStartAtVoucher state might not be set yet
+                let shouldSkipAutoOpenInTimeout = false;
+                try {
+                    const params = new URLSearchParams(location.search || '');
+                    const source = params.get('source');
+                    const startAt = params.get('startAt');
+                    shouldSkipAutoOpenInTimeout = source === 'shopify' && startAt === 'voucher-type';
+                } catch {}
+                
+                // Also check shopifyStartAtVoucher state (might be set by now)
+                if (shopifyStartAtVoucher || shouldSkipAutoOpenInTimeout) {
+                    console.log('🔄 ACTIVITY CHANGED - Skipping auto-open in setTimeout (Shopify startAt=voucher-type)');
+                    return;
+                }
+                
                 // Yeni uçuş türü için sıralamayı al (state'ler sıfırlandığı için temiz sıralama)
                 const sequence = getSectionSequence(activitySelect, null, [], {}, {});
                 
@@ -2165,7 +2181,9 @@ const Index = () => {
             
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
             // BUT: Skip this if we're coming from Shopify with startAt=voucher-type
-            if (!sequence.includes(activeAccordion) && !shopifyStartAtVoucher && !shouldSkipAutoOpen) {
+            // Also skip if voucher-type is currently open and we're in Shopify flow (to prevent auto-opening other accordions)
+            const isVoucherTypeOpenInShopifyFlow = activeAccordion === 'voucher-type' && (shopifyStartAtVoucher || shouldSkipAutoOpen);
+            if (!sequence.includes(activeAccordion) && !shopifyStartAtVoucher && !shouldSkipAutoOpen && !isVoucherTypeOpenInShopifyFlow) {
                 console.log('❌ Current accordion not in new sequence, finding next valid accordion');
                 
                 // Tamamlanmış section'ları kontrol et
@@ -2193,8 +2211,8 @@ const Index = () => {
                     console.log('✅ All sections completed, closing accordion');
                     setActiveAccordion(null);
                 }
-            } else if (!sequence.includes(activeAccordion) && (shopifyStartAtVoucher || shouldSkipAutoOpen)) {
-                console.log('🔵 Skipping next section auto-open (Shopify startAt=voucher-type)');
+            } else if (!sequence.includes(activeAccordion) && (shopifyStartAtVoucher || shouldSkipAutoOpen || isVoucherTypeOpenInShopifyFlow)) {
+                console.log('🔵 Skipping next section auto-open (Shopify startAt=voucher-type or voucher-type is open)');
             }
         }
     }, [chooseLocation, chooseFlightType, selectedVoucherType, selectedDate, selectedTime, passengerData, additionalInfo, recipientDetails, chooseAddOn, shopifyStartAtVoucher, activeAccordion, location.search]);
