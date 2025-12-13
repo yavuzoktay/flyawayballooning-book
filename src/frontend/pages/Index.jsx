@@ -1915,13 +1915,40 @@ const Index = () => {
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
             
-            if (isShopifyFlow && activityId) {
-                // For Shopify flow, use refetchAvailabilities which has proper state handling
-                console.log('🔵 Live Availability opened in Shopify flow - Using refetchAvailabilities');
-                const timer = setTimeout(() => {
-                    refetchAvailabilities();
-                }, 300); // Small delay to ensure state is settled
-                return () => clearTimeout(timer);
+            if (isShopifyFlow) {
+                // For Shopify flow, ensure all required state is ready before fetching
+                // Check if activityId is ready (it might be set asynchronously)
+                if (activityId) {
+                    // For Shopify flow, use refetchAvailabilities which has proper state handling
+                    console.log('🔵 Live Availability opened in Shopify flow - Using refetchAvailabilities', {
+                        chooseLocation,
+                        activityId,
+                        chooseFlightType: chooseFlightType?.type,
+                        selectedVoucherType: selectedVoucherType?.title
+                    });
+                    const timer = setTimeout(() => {
+                        refetchAvailabilities();
+                    }, 500); // Delay to ensure all state is settled
+                    return () => clearTimeout(timer);
+                } else {
+                    // If activityId is not ready yet, wait a bit and try again
+                    console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId');
+                    const timer = setTimeout(() => {
+                        if (activityId) {
+                            console.log('🔵 Live Availability - activityId ready, fetching availabilities');
+                            refetchAvailabilities();
+                        } else {
+                            console.log('🔵 Live Availability - activityId still not ready, will retry');
+                            // Retry once more after a longer delay
+                            setTimeout(() => {
+                                if (activityId) {
+                                    refetchAvailabilities();
+                                }
+                            }, 1000);
+                        }
+                    }, 800);
+                    return () => clearTimeout(timer);
+                }
             } else {
                 // For non-Shopify flow, use the original fetch logic
                 const fetchAvailabilities = async () => {
@@ -2075,6 +2102,18 @@ const Index = () => {
     React.useEffect(() => {
         // Skip the mass-reset while Shopify prefill is running so we keep location/experience
         if (shopifyPrefillInProgress.current) return;
+        
+        // Also check if we're in Shopify flow by URL params to prevent reset
+        let isShopifyFlow = false;
+        try {
+            const params = new URLSearchParams(location.search || '');
+            isShopifyFlow = params.get('source') === 'shopify';
+        } catch {}
+        
+        if (isShopifyFlow) {
+            console.log('🔄 ACTIVITY CHANGED - Skipping reset (Shopify flow)');
+            return;
+        }
 
         if (activitySelect !== null) {
             // Reset progress bar - mark only activity as completed
@@ -2111,7 +2150,7 @@ const Index = () => {
             // If no activity selected, clear everything including progress bar
             setCompletedSections(new Set());
         }
-    }, [activitySelect]);
+    }, [activitySelect, location.search]);
 
     // Yeni: activitySelect değiştiğinde accordion'ı sıfırla ve otomatik olarak sıralamayı baştan başlat
     React.useEffect(() => {
@@ -2265,7 +2304,18 @@ const Index = () => {
                 const completedSections = [];
                 if (activitySelect) completedSections.push('activity');
                 if (chooseLocation) completedSections.push('location');
-                if (chooseFlightType?.type) completedSections.push('experience');
+                // For experience: check chooseFlightType OR if we're in Shopify flow with experience param
+                const hasExperienceFromShopify = (() => {
+                    try {
+                        const params = new URLSearchParams(location.search || '');
+                        return params.get('source') === 'shopify' && params.get('experience');
+                    } catch {
+                        return false;
+                    }
+                })();
+                if (chooseFlightType?.type || hasExperienceFromShopify) {
+                    completedSections.push('experience');
+                }
                 if (selectedVoucherType) completedSections.push('voucher-type');
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 // Use proper passenger info validation based on activity type
@@ -2294,26 +2344,49 @@ const Index = () => {
                     
                     // For Shopify flow, if opening Live Availability, ensure state is ready and trigger fetch
                     if (nextSection === 'live-availability' && (shopifyStartAtVoucher || shouldSkipAutoOpen)) {
-                        // Check if we have required state
-                        if (chooseLocation && activityId) {
+                        // Check if we have required state (location, activityId, and experience)
+                        const hasRequiredState = chooseLocation && activityId && chooseFlightType?.type;
+                        if (hasRequiredState) {
+                            console.log('🔵 Shopify flow - All state ready, opening Live Availability', {
+                                chooseLocation,
+                                activityId,
+                                chooseFlightType: chooseFlightType?.type
+                            });
                             setActiveAccordion(nextSection);
                             // Trigger availability fetch after a short delay to ensure state is settled
                             setTimeout(() => {
                                 console.log('🔵 Shopify flow - Triggering availability fetch after opening Live Availability');
                                 refetchAvailabilities();
-                            }, 500);
+                            }, 600);
                         } else {
-                            console.log('🔵 Shopify flow - Waiting for state to be ready before opening Live Availability');
+                            console.log('🔵 Shopify flow - Waiting for state to be ready before opening Live Availability', {
+                                chooseLocation: !!chooseLocation,
+                                activityId: !!activityId,
+                                chooseFlightType: !!chooseFlightType?.type
+                            });
                             // Wait a bit longer for state to be set
                             setTimeout(() => {
-                                if (chooseLocation && activityId) {
+                                const hasRequiredStateDelayed = chooseLocation && activityId && chooseFlightType?.type;
+                                if (hasRequiredStateDelayed) {
+                                    console.log('🔵 Shopify flow - State ready (delayed), opening Live Availability');
                                     setActiveAccordion(nextSection);
                                     setTimeout(() => {
                                         console.log('🔵 Shopify flow - Triggering availability fetch after opening Live Availability (delayed)');
                                         refetchAvailabilities();
-                                    }, 500);
+                                    }, 600);
+                                } else {
+                                    console.log('🔵 Shopify flow - State still not ready, will retry once more');
+                                    // One more retry
+                                    setTimeout(() => {
+                                        if (chooseLocation && activityId && chooseFlightType?.type) {
+                                            setActiveAccordion(nextSection);
+                                            setTimeout(() => {
+                                                refetchAvailabilities();
+                                            }, 600);
+                                        }
+                                    }, 1500);
                                 }
-                            }, 1000);
+                            }, 1200);
                         }
                     } else {
                         setActiveAccordion(nextSection);
@@ -2369,17 +2442,26 @@ const Index = () => {
     // Ensure Experience step shows as completed in progress when coming from Shopify
     // and the experience has been derived/selected.
     useEffect(() => {
-        if (!shopifyStartAtVoucher) return;
+        // Check if we're in Shopify flow
+        let isShopifyFlow = false;
+        try {
+            const params = new URLSearchParams(location.search || '');
+            isShopifyFlow = params.get('source') === 'shopify';
+        } catch {}
+        
+        if (!isShopifyFlow && !shopifyStartAtVoucher) return;
         if (!chooseFlightType?.type) return;
 
+        console.log('🔵 Shopify flow - Ensuring experience is marked as completed:', chooseFlightType.type);
         setCompletedSections(prev => {
             const next = new Set(prev);
             if (!next.has('experience')) {
                 next.add('experience');
+                console.log('🔵 Shopify flow - Added experience to completed sections');
             }
             return next;
         });
-    }, [shopifyStartAtVoucher, chooseFlightType?.type]);
+    }, [shopifyStartAtVoucher, chooseFlightType?.type, location.search]);
 
     // Prefill flow when redirected from Shopify voucher selection
     useEffect(() => {
@@ -2476,6 +2558,16 @@ const Index = () => {
                         passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
                         price: ''
                     });
+                    
+                    // Ensure experience is marked as completed after setting flight type
+                    setTimeout(() => {
+                        setCompletedSections(prev => {
+                            const next = new Set(prev);
+                            next.add('experience');
+                            console.log('🔵 Shopify prefill - Marked experience as completed');
+                            return next;
+                        });
+                    }, 100);
                     
                     // Immediately refetch availabilities after setting flight type (don't wait for DOM click)
                     setTimeout(() => {
