@@ -33,6 +33,7 @@ const Index = () => {
     const [activitySelect, setActivitySelect] = useState(null);
     const [chooseLocation, setChooseLocation] = useState(null);
     const [chooseFlightType, setChooseFlightType] = useState({ type: "", passengerCount: "", price: "" });
+    
     const [addPassenger, setAddPassenger] = useState([1, 2]);
     const [chooseAddOn, setChooseAddOn] = useState([]);
     const [passengerData, setPassengerData] = useState([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
@@ -429,8 +430,9 @@ const Index = () => {
                 console.log('Response data length:', response.data.data?.length || 0);
                 
                 if (response.data.success) {
-                    setAvailabilities(response.data.data || []);
-                    console.log('Availabilities set to:', response.data.data?.length || 0);
+                    const availData = response.data.data || [];
+                    setAvailabilities(availData);
+                    console.log('Availabilities set to:', availData.length);
                 } else {
                     console.log('API returned success: false');
                     console.log('Response error:', response.data.error || 'No error message');
@@ -2100,25 +2102,25 @@ const Index = () => {
 
     // Yeni: activitySelect değiştiğinde tüm booking state'lerini sıfırla
     React.useEffect(() => {
-        // Skip the mass-reset while Shopify prefill is running so we keep location/experience
-        if (shopifyPrefillInProgress.current) return;
-        
-        // Also check if we're in Shopify flow by URL params to prevent reset
+        // Check if we're in Shopify flow by URL params FIRST to prevent any reset
         let isShopifyFlow = false;
         try {
             const params = new URLSearchParams(location.search || '');
             isShopifyFlow = params.get('source') === 'shopify';
         } catch {}
         
-        if (isShopifyFlow) {
-            console.log('🔄 ACTIVITY CHANGED - Skipping reset (Shopify flow)');
+        // Skip the mass-reset while Shopify prefill is running OR if we're in Shopify flow
+        if (shopifyPrefillInProgress.current || isShopifyFlow) {
+            if (isShopifyFlow) {
+                console.log('🔄 ACTIVITY CHANGED - Skipping reset (Shopify flow)');
+            }
             return;
         }
 
         if (activitySelect !== null) {
             // Reset progress bar - mark only activity as completed
             setCompletedSections(new Set(['activity']));
-            
+
             // Tüm state'leri sıfırla
             setChooseLocation(null);
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
@@ -2148,7 +2150,16 @@ const Index = () => {
             });
         } else {
             // If no activity selected, clear everything including progress bar
-            setCompletedSections(new Set());
+            // BUT: Skip this in Shopify flow to preserve state
+            let isShopifyFlow = false;
+            try {
+                const params = new URLSearchParams(location.search || '');
+                isShopifyFlow = params.get('source') === 'shopify';
+            } catch {}
+            
+            if (!isShopifyFlow) {
+                setCompletedSections(new Set());
+            }
         }
     }, [activitySelect, location.search]);
 
@@ -2313,7 +2324,8 @@ const Index = () => {
                         return false;
                     }
                 })();
-                if (chooseFlightType?.type || hasExperienceFromShopify) {
+                const experienceCompleted = chooseFlightType?.type || hasExperienceFromShopify;
+                if (experienceCompleted) {
                     completedSections.push('experience');
                 }
                 if (selectedVoucherType) completedSections.push('voucher-type');

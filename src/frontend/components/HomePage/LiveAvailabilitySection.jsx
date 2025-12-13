@@ -214,11 +214,28 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // For Book Flight: need flight type (voucher type filtering happens later in the filter function, so we allow filtering even without voucher type)
     // For Redeem Voucher: only need location and activity
     // For Bristol Fiesta: only need location and activity (no voucher type required)
-    const isLocationAndExperienceSelected = chooseLocation && selectedActivity && selectedActivity.length > 0 && (
-        (activitySelect === 'Book Flight' && chooseFlightType && chooseFlightType.type) || // Allow filtering by flight type (voucher type filtering happens in filter function)
-        (activitySelect === 'Redeem Voucher') ||
-        (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
-        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+    // For Shopify flow: if selectedActivity exists, allow showing availabilities even if chooseFlightType is temporarily reset
+    const isShopifyFlow = (() => {
+        try {
+            const params = new URLSearchParams(window.location.search || '');
+            return params.get('source') === 'shopify';
+        } catch {
+            return false;
+        }
+    })();
+    
+    // For Shopify flow, if we have location and selectedActivity, allow showing availabilities even if chooseFlightType is temporarily empty
+    // This handles the case where chooseFlightType gets reset but we still want to show availabilities
+    const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+    const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
+    
+    const isLocationAndExperienceSelected = !!(
+        hasLocationAndActivity && (
+            (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) || // Allow filtering by flight type OR if Shopify flow with selectedActivity
+            (activitySelect === 'Redeem Voucher') ||
+            (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
+            (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+        )
     );
     
     // Terms for Bristol Fiesta
@@ -636,7 +653,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // Default: show all if voucher type doesn't match known types
         return true;
     };
-
+    
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
         const availableForSelection = getAvailableSeatsForSelection(a);
