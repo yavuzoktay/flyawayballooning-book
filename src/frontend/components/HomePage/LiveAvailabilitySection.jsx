@@ -988,37 +988,57 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 const isAvailable = shouldShowDate && !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
                 const pulse = false; // disable pulsing highlight
                 
-                // Determine if date should be interactive
-                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected && !soldOut;
-                
-                // If shouldShowDate is false (due to voucher type filtering), render empty placeholder
-                // This ensures weekend dates don't appear for "Weekday Morning" or "Flexible Weekday"
+                // If shouldShowDate is false (due to voucher type filtering), show date as disabled/grey
+                // This applies to weekend dates for "Weekday Morning" or "Flexible Weekday" vouchers
                 if (!shouldShowDate && (activitySelect === 'Redeem Voucher' || activitySelect === 'Book Flight') && selectedVoucherType?.title) {
-                    // Render empty placeholder to maintain grid alignment, but make it invisible
+                    // Override isAvailable and isInteractive to make date disabled
+                    const isAvailable = false;
+                    const isInteractive = false;
+                    const soldOut = false; // Not sold out, just not available for this voucher type
+                    
                     days.push(
                         <div
-                            key={`filtered-${dateCopy.getTime()}`}
-                            className="day empty-day"
+                            key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`}
+                            className={`day disabled`}
                             style={{
-                                visibility: 'hidden',
-                                opacity: 0,
-                                pointerEvents: 'none',
+                                cursor: 'not-allowed',
+                                background: '#bbb',
+                                color: '#fff',
+                                borderRadius: isMobile ? 4 : 8,
+                                margin: isMobile ? '1px' : 2,
+                                padding: isMobile ? '0' : 2,
                                 minHeight: daySize,
                                 minWidth: daySize,
-                                height: daySize,
+                                maxWidth: daySize,
                                 width: daySize,
-                                padding: 0,
-                                margin: isMobile ? '1px' : 2,
+                                height: daySize,
+                                boxSizing: 'border-box',
+                                position: 'relative',
                                 border: 'none',
-                                background: 'transparent'
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                             }}
-                            aria-hidden="true"
-                        />
+                            aria-disabled="true"
+                        >
+                            <div style={{ 
+                                fontSize: isMobile ? 12 : 18, 
+                                fontWeight: 600,
+                                lineHeight: 1,
+                                color: '#fff'
+                            }}>
+                                {format(dateCopy, 'd')}
+                            </div>
+                        </div>
                     );
                     // Increment dayPointer using addDays (timezone-safe)
                     dayPointer = addDays(dayPointer, 1);
                     continue;
                 }
+                
+                // Determine if date should be interactive
+                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected && !soldOut;
                 
                 days.push(
                     <div
