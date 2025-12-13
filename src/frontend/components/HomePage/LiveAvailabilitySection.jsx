@@ -565,11 +565,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Helper function to check if a date is a weekday (Monday-Friday)
     const isWeekday = (date) => {
         const day = date.getDay();
-        const result = day >= 1 && day <= 5; // Monday = 1, Friday = 5
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:566',message:'isWeekday check',data:{date:date.toISOString(),day,result,dayName:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][day]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
-        return result;
+        return day >= 1 && day <= 5; // Monday = 1, Friday = 5
     };
 
     // Helper function to check if a time is morning (typically before 12:00 PM)
@@ -583,16 +579,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Filter availabilities based on voucher type for both Redeem Voucher and Book Flight
     const filterByVoucherType = (availability) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:581',message:'filterByVoucherType called',data:{activitySelect,hasSelectedVoucherType:!!selectedVoucherType?.title,voucherType:selectedVoucherType?.title,availabilityDate:availability.date,availabilityTime:availability.time},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-        
         // Apply voucher type filtering for both Redeem Voucher and Book Flight
         // Only filter if voucher type is selected and it's one of the shared voucher types that require date/time filtering
         if (!selectedVoucherType?.title) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:587',message:'filterByVoucherType skipping (no voucher type)',data:{activitySelect,hasSelectedVoucherType:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
             return true; // No filtering needed
         }
         
@@ -600,13 +589,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // Private voucher types (Private Charter, Proposal Flight) don't need date/time filtering
         const voucherType = selectedVoucherType.title;
         const sharedVoucherTypes = ['Weekday Morning', 'Weekday Morning Flight', 'Flexible Weekday', 'Flexible Weekday Flight', 'Any Day Flight', 'Anytime', 'Any Day'];
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:598',message:'Checking if voucher type is shared type',data:{voucherType,isSharedType:sharedVoucherTypes.includes(voucherType),sharedVoucherTypes},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         if (!sharedVoucherTypes.includes(voucherType)) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:600',message:'Skipping filter (not shared voucher type)',data:{voucherType,isSharedType:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
             return true; // No filtering needed for private voucher types
         }
         
@@ -637,20 +620,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
         // Weekday Morning voucher → Show weekday mornings only
         if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
-            const result = isWeekday(availabilityDate) && isMorning(availability.time);
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:615',message:'Weekday Morning filter result',data:{voucherType,availabilityDate:availability.date,availabilityTime:availability.time,isWeekday:isWeekday(availabilityDate),isMorning:isMorning(availability.time),result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            return result;
+            return isWeekday(availabilityDate) && isMorning(availability.time);
         }
         
         // Flexible Weekday voucher → Show all weekdays (any time)
         if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
-            const result = isWeekday(availabilityDate);
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:620',message:'Flexible Weekday filter result',data:{voucherType,availabilityDate:availability.date,isWeekday:isWeekday(availabilityDate),result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            return result;
+            return isWeekday(availabilityDate);
         }
         
         // Anytime voucher (Any Day Flight) → Show all available schedules
@@ -980,18 +955,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 
                 // Apply voucher type filtering for both Redeem Voucher and Book Flight - check if this date should be shown
                 let shouldShowDate = true;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:968',message:'Calendar date filtering check',data:{activitySelect,hasSelectedVoucherType:!!selectedVoucherType?.title,voucherType:selectedVoucherType?.title,dateStr:`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`,dayOfWeek:dateCopy.getDay()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
                 if ((activitySelect === 'Redeem Voucher' || activitySelect === 'Book Flight') && selectedVoucherType?.title) {
                     const voucherType = selectedVoucherType.title;
                     // Weekday Morning voucher → Show weekday mornings only
                     if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
                         // Must be weekday AND have morning slots available
                         const isWeekdayDate = isWeekday(dateCopy);
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:985',message:'Weekday Morning calendar filter',data:{voucherType,dateStr:`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`,dayOfWeek:dateCopy.getDay(),isWeekdayDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                        // #endregion
                         if (isWeekdayDate) {
                             // Check if there are any morning slots for this date
                             const year = dateCopy.getFullYear();
@@ -1000,24 +969,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             const dateStr = `${year}-${month}-${day}`;
                             const slotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
                             const hasMorningSlots = slotsForDate.some(slot => isMorning(slot.time));
-                            // #region agent log
-                            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:995',message:'Weekday Morning hasMorningSlots check',data:{dateStr,slotsForDateCount:slotsForDate.length,hasMorningSlots,shouldShowDate:hasMorningSlots},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                            // #endregion
                             shouldShowDate = hasMorningSlots;
                         } else {
-                            // #region agent log
-                            fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:998',message:'Weekday Morning - not weekday, hiding date',data:{dateStr:`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`,dayOfWeek:dateCopy.getDay()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                            // #endregion
                             shouldShowDate = false;
                         }
                     }
                     // Flexible Weekday voucher → Show all weekdays (any time)
                     else if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
-                        const result = isWeekday(dateCopy);
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:1003',message:'Flexible Weekday calendar filter',data:{voucherType,dateStr:`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`,dayOfWeek:dateCopy.getDay(),isWeekday:result,shouldShowDate:result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                        // #endregion
-                        shouldShowDate = result;
+                        shouldShowDate = isWeekday(dateCopy);
                     }
                     // Anytime voucher (Any Day Flight) → Show all available schedules
                     // No filtering needed, shouldShowDate remains true
@@ -1027,10 +986,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 // soldOutFromCalc already represents "sold out for this specific selection"
                 const soldOut = soldOutFromCalc;
                 const isAvailable = shouldShowDate && !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
-                // #region agent log
-                const dateStrForLog = `${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`;
-                fetch('http://127.0.0.1:7242/ingest/36e4d8c5-d866-4ae6-93cc-77ffdac6684f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LiveAvailabilitySection.jsx:1025',message:'Calendar date availability calculation',data:{dateStr:dateStrForLog,dayOfWeek:dateCopy.getDay(),voucherType:selectedVoucherType?.title,shouldShowDate,soldOut,total,privateAvailable,isPrivateSelection,isAvailable},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
                 const pulse = false; // disable pulsing highlight
                 
                 // Determine if date should be interactive

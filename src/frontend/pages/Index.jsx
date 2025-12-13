@@ -387,7 +387,7 @@ const Index = () => {
     
     
     // Function to re-fetch availabilities when filters change
-    const refetchAvailabilities = async () => {
+    const refetchAvailabilities = useCallback(async () => {
         if (chooseLocation && activityId) {
             try {
                 const params = new URLSearchParams({
@@ -398,6 +398,9 @@ const Index = () => {
                 // Add voucher type filter if selected
                 if (selectedVoucherType?.title) {
                     params.append('voucherTypes', selectedVoucherType.title);
+                    console.log('🔵 refetchAvailabilities - Adding voucherTypes filter:', selectedVoucherType.title);
+                } else {
+                    console.log('🔵 refetchAvailabilities - No voucher type selected, not filtering by voucher type');
                 }
                 
                 // Add flight type filter if selected - map UI values to backend values
@@ -439,7 +442,7 @@ const Index = () => {
         } else {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
         }
-    };
+    }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type]);
 
     // Ensure availability fetch runs on first Shopify deep-link (Buy Date/Voucher) load
     useEffect(() => {
@@ -456,7 +459,7 @@ const Index = () => {
             refetchAvailabilities();
         }, 600); // small delay to allow state to settle
         return () => clearTimeout(timer);
-    }, [shopifyStartAtVoucher, chooseLocation, activityId, chooseFlightType?.type, selectedVoucherType?.title]);
+    }, [shopifyStartAtVoucher, chooseLocation, activityId, chooseFlightType?.type, selectedVoucherType?.title, refetchAvailabilities]);
 
     // Passenger Terms (for Passenger Information) modal state
     const [passengerTermsModalOpen, setPassengerTermsModalOpen] = React.useState(false);
@@ -1998,7 +2001,48 @@ const Index = () => {
             refetchAvailabilities();
         }, 800);
         return () => clearTimeout(timer);
-    }, [chooseFlightType?.type, chooseLocation, activityId, location.search]);
+    }, [chooseFlightType?.type, chooseLocation, activityId, location.search, refetchAvailabilities]);
+
+    // Additional effect: Refetch availabilities when voucher type is set from Shopify prefill
+    useEffect(() => {
+        // Only run for Shopify flow when voucher type is set
+        const params = new URLSearchParams(location.search || '');
+        if (params.get('source') !== 'shopify') return;
+        if (!chooseLocation || !activityId) return;
+        if (!selectedVoucherType?.title) return;
+        
+        // Small delay to ensure state is settled
+        const timer = setTimeout(() => {
+            console.log('🔵 Shopify - Refetching availabilities after voucher type set:', {
+                voucherType: selectedVoucherType.title,
+                location: chooseLocation,
+                activityId: activityId,
+                flightType: chooseFlightType?.type
+            });
+            refetchAvailabilities();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [selectedVoucherType?.title, chooseLocation, activityId, chooseFlightType?.type, location.search, refetchAvailabilities]);
+
+    // Additional effect: Refetch availabilities when activityId is set from Shopify prefill
+    useEffect(() => {
+        // Only run for Shopify flow when activityId is set
+        const params = new URLSearchParams(location.search || '');
+        if (params.get('source') !== 'shopify') return;
+        if (!chooseLocation || !activityId) return;
+        
+        // Small delay to ensure state is settled
+        const timer = setTimeout(() => {
+            console.log('🔵 Shopify - Refetching availabilities after activityId set:', {
+                location: chooseLocation,
+                activityId: activityId,
+                flightType: chooseFlightType?.type,
+                voucherType: selectedVoucherType?.title
+            });
+            refetchAvailabilities();
+        }, 1200);
+        return () => clearTimeout(timer);
+    }, [activityId, chooseLocation, chooseFlightType?.type, selectedVoucherType?.title, location.search, refetchAvailabilities]);
 
     // Sync passengerCount with Voucher Type quantity for Flight Voucher and Book Flight flows
     useEffect(() => {
