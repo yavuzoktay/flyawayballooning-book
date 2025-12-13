@@ -2155,8 +2155,24 @@ const Index = () => {
                 });
                 
                 // İlk accordion'ı (activity'den sonraki) otomatik aç
+                // BUT: Skip 'experience' section if we're in Shopify flow (startAt=voucher-type)
                 if (sequence.length > 1) {
-                    const firstSectionAfterActivity = sequence[1]; // activity'den sonraki ilk section
+                    let firstSectionAfterActivity = sequence[1]; // activity'den sonraki ilk section
+                    
+                    // If first section is 'experience' and we're in Shopify flow, skip to next section
+                    if (firstSectionAfterActivity === 'experience' && (shopifyStartAtVoucher || shouldSkipAutoOpenInTimeout)) {
+                        // Find next section after experience
+                        const experienceIndex = sequence.indexOf('experience');
+                        if (experienceIndex !== -1 && sequence.length > experienceIndex + 1) {
+                            firstSectionAfterActivity = sequence[experienceIndex + 1];
+                            console.log('🔵 Shopify flow - Skipping experience section, opening next:', firstSectionAfterActivity);
+                        } else {
+                            // No next section, don't open anything
+                            console.log('🔵 Shopify flow - Skipping experience section, no next section to open');
+                            return;
+                        }
+                    }
+                    
                     console.log('🔓 Auto-opening first section for new activity:', firstSectionAfterActivity);
                     setActiveAccordion(firstSectionAfterActivity);
                 }
@@ -2246,7 +2262,17 @@ const Index = () => {
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
                 // Sıradaki tamamlanmamış section'ı bul
-                const nextSection = sequence.find(section => !completedSections.includes(section));
+                // BUT: Skip 'experience' section if we're in Shopify flow (startAt=voucher-type)
+                const nextSection = sequence.find(section => {
+                    if (!completedSections.includes(section)) {
+                        // Skip experience section in Shopify flow
+                        if (section === 'experience' && (shopifyStartAtVoucher || shouldSkipAutoOpen)) {
+                            return false;
+                        }
+                        return true;
+                    }
+                    return false;
+                });
                 
                 if (nextSection) {
                     console.log('🔓 Opening next valid section:', nextSection);
@@ -2527,10 +2553,11 @@ const Index = () => {
 
             setTimeout(() => {
                 // Open experience accordion only if NOT starting at voucher-type
-                if (derivedExperience && qpStartAt !== 'voucher-type') {
+                // Also check shopifyStartAtVoucher state to ensure we don't open experience in Shopify flow
+                if (derivedExperience && qpStartAt !== 'voucher-type' && !shopifyStartAtVoucher) {
                     console.log('🔵 Shopify prefill - Opening experience accordion');
                     setActiveAccordion('experience');
-                } else if (qpStartAt === 'voucher-type') {
+                } else if (qpStartAt === 'voucher-type' || shopifyStartAtVoucher) {
                     // If starting at voucher-type, skip experience accordion and go directly to voucher-type
                     console.log('🔵 Shopify prefill - Skipping experience accordion, going directly to voucher-type');
                 }
