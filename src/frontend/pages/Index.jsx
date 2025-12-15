@@ -87,7 +87,7 @@ const Index = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
+    
     // Customer Portal: Fetch booking data when token is present
     useEffect(() => {
         if (token) {
@@ -1912,7 +1912,7 @@ const Index = () => {
     useEffect(() => {
         // Live Availability accordion'u açıldığında ve lokasyon seçildiğinde güncel availabilities çek
         // For Shopify flow, use refetchAvailabilities to ensure correct parameters and timing
-        if (chooseLocation && activeAccordion === "live-availability") {
+            if (chooseLocation && activeAccordion === "live-availability") {
             // Check if we're in Shopify flow
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
@@ -1954,78 +1954,78 @@ const Index = () => {
             } else {
                 // For non-Shopify flow, use the original fetch logic
                 const fetchAvailabilities = async () => {
-                    try {
-                        // Build query parameters for filtered availabilities
-                        const params = new URLSearchParams({
-                            location: chooseLocation,
-                            activityId: activityId
-                        });
-                        
-                        // Add flight type if selected - map UI values to backend values
-                        if (chooseFlightType && chooseFlightType.type) {
-                            let flightTypeForBackend;
-                            if (chooseFlightType.type === 'Private Charter') {
-                                flightTypeForBackend = 'Private';
-                            } else if (chooseFlightType.type === 'Shared Flight') {
-                                flightTypeForBackend = 'Shared';
-                            } else {
-                                flightTypeForBackend = chooseFlightType.type;
-                            }
-                            params.append('flightType', flightTypeForBackend);
-                        }
-                        
-                        // Add voucher type filter if selected
-                        // For Redeem Voucher: use flight type to determine appropriate voucher types
-                        if (activitySelect === 'Redeem Voucher' && chooseFlightType && chooseFlightType.type) {
-                            // For Redeem Voucher, determine voucher types based on selected flight type
-                            // not the voucher's original type
-                            if (chooseFlightType.type === 'Private Charter') {
-                                // For Private Charter, use private voucher types
-                                // Try "Private Charter Flights" first, fallback to "Proposal Flight"
-                                params.append('voucherTypes', 'Private Charter Flights');
-                            } else if (chooseFlightType.type === 'Shared Flight') {
-                                // For Shared Flight, use shared voucher types
-                                // Use the voucher's original type if it's a shared type, otherwise default to "Any Day Flight"
-                                const sharedVoucherTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight'];
-                                const voucherType = selectedVoucherType?.title;
-                                if (voucherType && sharedVoucherTypes.includes(voucherType)) {
-                                    params.append('voucherTypes', voucherType);
-                                } else {
-                                    params.append('voucherTypes', 'Any Day Flight');
-                                }
-                            }
-                        } else if (selectedVoucherType && selectedVoucherType.title) {
-                            // For other activity types, use the selected voucher type
-                            params.append('voucherTypes', selectedVoucherType.title);
-                        } else if (activitySelect === 'Book Flight') {
-                            // For Book Flight, if no voucher type is selected, show all availabilities
-                            console.log('Voucher Types filter not specified; showing all for Book Flight');
-                        }
-                        
-                        const url = `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`;
-                        console.log('Fetching availabilities with URL:', url);
-                        console.log('Parameters:', {
-                            location: chooseLocation,
-                            flightType: chooseFlightType?.type,
-                            voucherType: selectedVoucherType?.title,
-                            activitySelect
-                        });
-                        
-                        const response = await axios.get(url);
-                        if (response.status === 200 && response.data.success) {
-                            const avails = response.data.data || [];
-                            console.log('Received availabilities:', avails);
-                            setAvailabilities(avails);
+                try {
+                    // Build query parameters for filtered availabilities
+                    const params = new URLSearchParams({
+                        location: chooseLocation,
+                        activityId: activityId
+                    });
+                    
+                    // Add flight type if selected - map UI values to backend values
+                    if (chooseFlightType && chooseFlightType.type) {
+                        let flightTypeForBackend;
+                        if (chooseFlightType.type === 'Private Charter') {
+                            flightTypeForBackend = 'Private';
+                        } else if (chooseFlightType.type === 'Shared Flight') {
+                            flightTypeForBackend = 'Shared';
                         } else {
-                            console.log('No availabilities received or error');
-                            setAvailabilities([]);
+                            flightTypeForBackend = chooseFlightType.type;
                         }
-                    } catch (error) {
-                        console.error('Error fetching availabilities:', error);
+                        params.append('flightType', flightTypeForBackend);
+                    }
+                    
+                    // Add voucher type filter if selected
+                    // For Redeem Voucher: use flight type to determine appropriate voucher types
+                    if (activitySelect === 'Redeem Voucher' && chooseFlightType && chooseFlightType.type) {
+                        // For Redeem Voucher, determine voucher types based on selected flight type
+                        // not the voucher's original type
+                        if (chooseFlightType.type === 'Private Charter') {
+                            // For Private Charter, use private voucher types
+                            // Try "Private Charter Flights" first, fallback to "Proposal Flight"
+                            params.append('voucherTypes', 'Private Charter Flights');
+                        } else if (chooseFlightType.type === 'Shared Flight') {
+                            // For Shared Flight, use shared voucher types
+                            // Use the voucher's original type if it's a shared type, otherwise default to "Any Day Flight"
+                            const sharedVoucherTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight'];
+                            const voucherType = selectedVoucherType?.title;
+                            if (voucherType && sharedVoucherTypes.includes(voucherType)) {
+                                params.append('voucherTypes', voucherType);
+                            } else {
+                                params.append('voucherTypes', 'Any Day Flight');
+                            }
+                        }
+                    } else if (selectedVoucherType && selectedVoucherType.title) {
+                        // For other activity types, use the selected voucher type
+                        params.append('voucherTypes', selectedVoucherType.title);
+                    } else if (activitySelect === 'Book Flight') {
+                        // For Book Flight, if no voucher type is selected, show all availabilities
+                        console.log('Voucher Types filter not specified; showing all for Book Flight');
+                    }
+                    
+                    const url = `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`;
+                    console.log('Fetching availabilities with URL:', url);
+                    console.log('Parameters:', {
+                        location: chooseLocation,
+                        flightType: chooseFlightType?.type,
+                        voucherType: selectedVoucherType?.title,
+                        activitySelect
+                    });
+                    
+                    const response = await axios.get(url);
+                    if (response.status === 200 && response.data.success) {
+                        const avails = response.data.data || [];
+                        console.log('Received availabilities:', avails);
+                        setAvailabilities(avails);
+                    } else {
+                        console.log('No availabilities received or error');
                         setAvailabilities([]);
                     }
-                };
-                fetchAvailabilities();
+                } catch (error) {
+                    console.error('Error fetching availabilities:', error);
+                    setAvailabilities([]);
+            }
+        };
+        fetchAvailabilities();
             }
         }
     }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType, activityId, location.search, refetchAvailabilities]);
@@ -2120,7 +2120,7 @@ const Index = () => {
         if (activitySelect !== null) {
             // Reset progress bar - mark only activity as completed
             setCompletedSections(new Set(['activity']));
-
+            
             // Tüm state'leri sıfırla
             setChooseLocation(null);
             setChooseFlightType({ type: '', passengerCount: '', price: '' });
@@ -2158,8 +2158,8 @@ const Index = () => {
             } catch {}
             
             if (!isShopifyFlow) {
-                setCompletedSections(new Set());
-            }
+            setCompletedSections(new Set());
+        }
         }
     }, [activitySelect, location.search]);
 
@@ -2303,7 +2303,7 @@ const Index = () => {
                 const startAt = params.get('startAt');
                 shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
             } catch {}
-            
+
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
             // BUT: Skip this if we're coming from Shopify with startAt=voucher-type
             // Also skip if voucher-type is currently open and we're in Shopify flow (to prevent auto-opening other accordions)
@@ -2364,7 +2364,7 @@ const Index = () => {
                                 activityId,
                                 chooseFlightType: chooseFlightType?.type
                             });
-                            setActiveAccordion(nextSection);
+                    setActiveAccordion(nextSection);
                             // Trigger availability fetch after a short delay to ensure state is settled
                             setTimeout(() => {
                                 console.log('🔵 Shopify flow - Triggering availability fetch after opening Live Availability');

@@ -232,9 +232,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const isLocationAndExperienceSelected = !!(
         hasLocationAndActivity && (
             (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) || // Allow filtering by flight type OR if Shopify flow with selectedActivity
-            (activitySelect === 'Redeem Voucher') ||
-            (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
-            (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+        (activitySelect === 'Redeem Voucher') ||
+        (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
+        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
         )
     );
     
@@ -601,7 +601,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         if (!selectedVoucherType?.title) {
             return true; // No filtering needed
         }
-        
+
         // Only apply date/time filtering for shared voucher types (Weekday Morning, Flexible Weekday, Any Day Flight)
         // Private voucher types (Private Charter, Proposal Flight) don't need date/time filtering
         const voucherType = selectedVoucherType.title;
@@ -653,7 +653,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         // Default: show all if voucher type doesn't match known types
         return true;
     };
-    
+
     const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
         const availableForSelection = getAvailableSeatsForSelection(a);
