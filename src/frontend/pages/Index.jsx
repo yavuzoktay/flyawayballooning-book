@@ -1977,12 +1977,12 @@ const Index = () => {
                     // Add voucher type filter if selected
                     // For Redeem Voucher: use flight type to determine appropriate voucher types
                     if (activitySelect === 'Redeem Voucher' && chooseFlightType && chooseFlightType.type) {
-                        // For Redeem Voucher, determine voucher types based on selected flight type
-                        // not the voucher's original type
+                        // For Redeem Voucher:
+                        // - Private Charter vouchers should NOT be restricted by voucherTypes here.
+                        //   We rely on activityId + flight type filtering so that all valid
+                        //   Private Charter slots for this activity are shown.
                         if (chooseFlightType.type === 'Private Charter') {
-                            // For Private Charter, use private voucher types
-                            // Try "Private Charter Flights" first, fallback to "Proposal Flight"
-                            params.append('voucherTypes', 'Private Charter Flights');
+                            console.log('Redeem Voucher (Private Charter): skipping voucherTypes filter so all Private Charter availabilities for this activity are visible');
                         } else if (chooseFlightType.type === 'Shared Flight') {
                             // For Shared Flight, use shared voucher types
                             // Use the voucher's original type if it's a shared type, otherwise default to "Any Day Flight"
