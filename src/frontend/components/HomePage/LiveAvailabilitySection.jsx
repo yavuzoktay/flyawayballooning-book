@@ -439,6 +439,33 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return 0;
     };
 
+    // Balloon 210 is a global resource across locations for a given date+time.
+    // If any shared booking has consumed Balloon 210 at that date+time, large Private Charter (5–8 pax)
+    // must NOT be selectable in ANY location at that same date+time.
+    const normalizeSlotDate = (value) => {
+        if (!value) return '';
+        return String(value).split('T')[0].split(' ')[0].trim();
+    };
+    const normalizeSlotTime = (value) => {
+        if (!value) return '';
+        return String(value).trim();
+    };
+    const balloon210InUseByDateTime = React.useMemo(() => {
+        const map = new Map();
+        (availabilities || []).forEach(s => {
+            const dateKey = normalizeSlotDate(s?.date);
+            const timeKey = normalizeSlotTime(s?.time);
+            if (!dateKey || !timeKey) return;
+            const key = `${dateKey}|${timeKey}`;
+            const balloon210LockedAny = Number(s?.balloon210_locked || s?.shared_slots_used || 0) > 0;
+            const sharedBookedAny = Number(s?.shared_booked || s?.shared_consumed_pax || 0);
+            if (balloon210LockedAny || sharedBookedAny > 0) {
+                map.set(key, true);
+            }
+        });
+        return map;
+    }, [availabilities]);
+
     const getAvailableSeatsForSelection = (slot) => {
         if (!slot) return 0;
 
@@ -449,7 +476,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
         // SHARED FLOW (uses Balloon 210)
         if (!isPrivateSelection) {
-            // If Balloon 210 is already assigned to another location, no shared seats are available
+            // If Balloon 210 is assigned to a different location, no shared seats are available for this location
+            // Shared flights can share Balloon 210 within the same location, but not across different locations
             if (balloon210Locked) {
                 return 0;
             }
@@ -471,7 +499,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
 
         // Large private charter (5–8 pax) uses Balloon 210 exclusively
-        if (balloon210Locked || sharedBooked > 0) {
+        const slotDateKey = normalizeSlotDate(slot?.date);
+        const slotTimeKey = normalizeSlotTime(slot?.time);
+        const balloon210InUseGlobally = slotDateKey && slotTimeKey
+            ? Boolean(balloon210InUseByDateTime.get(`${slotDateKey}|${slotTimeKey}`))
+            : false;
+
+        // If Balloon 210 is already consumed by shared at this date+time (any location), block large private.
+        // Also block if this specific slot indicates Balloon 210 is locked or shared booked.
+        if (balloon210Locked || sharedBooked > 0 || balloon210InUseGlobally) {
             return 0;
         }
 
@@ -1613,25 +1649,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                         const now = new Date();
                                         const diffMs = slotDateTime - now;
                                         const diffHours = diffMs / (1000 * 60 * 60);
-                                        const sharedAvailable = getRemainingSeats(slot);
-                                        const balloon210Locked = Boolean(slot.balloon210_locked);
-                                        const privateSmallRemaining = typeof slot.private_charter_small_remaining === 'number'
-                                            ? slot.private_charter_small_remaining
-                                            : (slot.private_charter_small_bookings > 0 ? 0 : 4);
+                                        // Use the same availability logic as calendar totals:
+                                        // this accounts for shared/private resource constraints (Balloon 210 / 105) and global locks.
+                                        const availableForSelection = getAvailableSeatsForSelection(slot);
+                                        const isAvailable = availableForSelection > 0;
+
+                                        // For shared bookings, don't allow selecting a slot that can't fit all passengers.
+                                        // For private bookings, getAvailableSeatsForSelection already returns 0 when the slot can't fit.
                                         const isPrivateCharter = (chooseFlightType?.type || '').toLowerCase().includes('private');
-                                        const isSmallPrivate = isPrivateCharter && selectedPassengers > 0 && selectedPassengers <= 4;
-                                        const isLargePrivate = isPrivateCharter && !isSmallPrivate;
-                                        const effectiveAvailable = isSmallPrivate
-                                            ? privateSmallRemaining
-                                            : (balloon210Locked ? 0 : sharedAvailable);
-                                        const isAvailable = effectiveAvailable > 0 && !(balloon210Locked && isLargePrivate);
-                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > effectiveAvailable && !isPrivateCharter;
+                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > availableForSelection && !isPrivateCharter;
                                         const within8h = diffHours < 8 && diffHours > 0;
-                                        const enoughSeats = effectiveAvailable >= selectedPassengers;
+                                        const enoughSeats = availableForSelection >= selectedPassengers;
                                         const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
-                                        const isPrivateLocked = balloon210Locked && isLargePrivate;
                                         // Selectable only if there are seats and rules met
-                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers && !isPrivateLocked;
+                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
                                         // Format time to 12-hour with AM/PM for display
                                         const formattedTime = (() => {
                                             try {
@@ -1643,10 +1674,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 return slot.time?.split(':').slice(0, 2).join(':');
                                             }
                                         })();
-                                        const availabilityLabel = isSmallPrivate
-                                            ? (privateSmallRemaining > 0 ? 'Available' : 'Unavailable')
-                                            : `${sharedAvailable} Space${sharedAvailable === 1 ? '' : 's'}`;
-                                        const shouldShowAvailabilityLabel = !isPrivateLocked && !!availabilityLabel && availabilityLabel !== 'Unavailable';
+                                        const availabilityLabel = availableForSelection > 0
+                                            ? `${availableForSelection} Space${availableForSelection === 1 ? '' : 's'}`
+                                            : 'Sold Out';
+                                        const shouldShowAvailabilityLabel = !!availabilityLabel;
 
                                         return (
                                             <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
@@ -1730,22 +1761,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     </>
                                                 )}
                                                 {/* Center label based on remaining spaces or passenger-capacity mismatch */}
-                                                {isPrivateLocked ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 16,
-                                                        letterSpacing: isMobile ? 0.2 : 0.5,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase'
-                                                    }}>
-                                                        Not Available
-                                                    </div>
-                                                ) : (!isAvailable) ? (
+                                                {(!isAvailable) ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1790,7 +1806,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         Call to Book
                                                     </div>
-                                                ) : sharedAvailable <= 2 && !isPrivateCharter ? (
+                                                ) : availableForSelection <= 2 && !isPrivateCharter ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
@@ -1806,7 +1822,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                     }}>
                                                         High Demand
                                                     </div>
-                                                ) : (sharedAvailable === 3 || sharedAvailable === 4) && !isPrivateCharter ? (
+                                                ) : (availableForSelection === 3 || availableForSelection === 4) && !isPrivateCharter ? (
                                                     <div style={{
                                                         position: 'absolute',
                                                         top: '50%',
