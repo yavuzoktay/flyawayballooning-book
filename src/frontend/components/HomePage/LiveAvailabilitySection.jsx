@@ -224,19 +224,32 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     })();
     
+    // Detect Bing/Edge browser for more aggressive availability display
+    const isBingBrowser = (() => {
+        try {
+            return navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
+        } catch {
+            return false;
+        }
+    })();
+    
     // For Shopify flow, if we have location and selectedActivity, allow showing availabilities even if chooseFlightType is temporarily empty
     // This handles the case where chooseFlightType gets reset but we still want to show availabilities
     const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
     const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
     
     // For Shopify flow, also check if we have availabilities data - if we do, allow showing them even if chooseFlightType is temporarily empty
-    // This is important for Chrome where state updates might happen in different order
+    // This is important for Chrome and Bing browsers where state updates might happen in different order
     const hasAvailabilitiesData = availabilities && availabilities.length > 0;
     const shopifyFlowWithData = isShopifyFlow && hasLocationAndActivity && hasAvailabilitiesData;
     
+    // For Bing browser, also allow showing availabilities if we have location, activity, and availabilities data
+    // This handles cases where Bing browser state updates happen in different order
+    const bingBrowserWithData = isBingBrowser && hasLocationAndActivity && hasAvailabilitiesData;
+    
     const isLocationAndExperienceSelected = !!(
         hasLocationAndActivity && (
-            (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data
+            (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData || bingBrowserWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data OR if Bing browser with availabilities data
         (activitySelect === 'Redeem Voucher') ||
         (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -309,8 +322,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const handleDateClick = (date) => {
         // Only allow date selection if location and experience are selected
-        // For Shopify flow, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
-        if (!isLocationAndExperienceSelected && !shopifyFlowWithData) {
+        // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+        if (!isLocationAndExperienceSelected && !shopifyFlowWithData && !bingBrowserWithData) {
             setIsModalOpen(true);
             return;
         }
@@ -342,8 +355,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const handleTimeClick = (time) => {
         // Only allow time selection if location and experience are selected
-        // For Shopify flow, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
-        if (!isLocationAndExperienceSelected && !shopifyFlowWithData) {
+        // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+        if (!isLocationAndExperienceSelected && !shopifyFlowWithData && !bingBrowserWithData) {
             setIsModalOpen(true);
             return;
         }
@@ -697,9 +710,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return true;
     };
 
-    // For Shopify flow, allow filtering even if chooseFlightType is temporarily empty
-    // This ensures availabilities are shown in Chrome where state updates might happen in different order
-    const shouldFilterAvailabilities = isLocationAndExperienceSelected || shopifyFlowWithData;
+    // For Shopify flow and Bing browser, allow filtering even if chooseFlightType is temporarily empty
+    // This ensures availabilities are shown in Chrome and Bing browsers where state updates might happen in different order
+    const shouldFilterAvailabilities = isLocationAndExperienceSelected || shopifyFlowWithData || bingBrowserWithData;
     
     const filteredAvailabilities = shouldFilterAvailabilities ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
@@ -1103,8 +1116,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }
                 
                 // Determine if date should be interactive
-                // For Shopify flow, allow interaction even if chooseFlightType is temporarily empty (if we have availabilities data)
-                const isInteractive = !isPastDate && isAvailable && (isLocationAndExperienceSelected || shopifyFlowWithData) && !soldOut;
+                // For Shopify flow and Bing browser, allow interaction even if chooseFlightType is temporarily empty (if we have availabilities data)
+                const isInteractive = !isPastDate && isAvailable && (isLocationAndExperienceSelected || shopifyFlowWithData || bingBrowserWithData) && !soldOut;
                 
                 days.push(
                     <div

@@ -1912,10 +1912,14 @@ const Index = () => {
     useEffect(() => {
         // Live Availability accordion'u açıldığında ve lokasyon seçildiğinde güncel availabilities çek
         // For Shopify flow, use refetchAvailabilities to ensure correct parameters and timing
+        // For Bing/Edge browsers, use more aggressive retry mechanism
             if (chooseLocation && activeAccordion === "live-availability") {
             // Check if we're in Shopify flow
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
+            
+            // Detect Bing/Edge browser for more aggressive retry
+            const isBingBrowser = navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
             
             if (isShopifyFlow) {
                 // For Shopify flow, ensure all required state is ready before fetching
@@ -1926,29 +1930,54 @@ const Index = () => {
                         chooseLocation,
                         activityId,
                         chooseFlightType: chooseFlightType?.type,
-                        selectedVoucherType: selectedVoucherType?.title
+                        selectedVoucherType: selectedVoucherType?.title,
+                        isBingBrowser
                     });
+                    // For Bing browser, use longer delay and multiple retries
+                    const delay = isBingBrowser ? 800 : 500;
                     const timer = setTimeout(() => {
                         refetchAvailabilities();
-                    }, 500); // Delay to ensure all state is settled
+                        // For Bing browser, retry once more after additional delay
+                        if (isBingBrowser) {
+                            setTimeout(() => {
+                                console.log('🔵 Bing browser - Retrying availability fetch');
+                                refetchAvailabilities();
+                            }, 1000);
+                        }
+                    }, delay);
                     return () => clearTimeout(timer);
                 } else {
                     // If activityId is not ready yet, wait a bit and try again
-                    console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId');
+                    console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId', { isBingBrowser });
+                    // For Bing browser, use longer delays
+                    const initialDelay = isBingBrowser ? 1200 : 800;
+                    const retryDelay = isBingBrowser ? 1500 : 1000;
                     const timer = setTimeout(() => {
                         if (activityId) {
                             console.log('🔵 Live Availability - activityId ready, fetching availabilities');
                             refetchAvailabilities();
+                            // For Bing browser, retry once more
+                            if (isBingBrowser) {
+                                setTimeout(() => {
+                                    refetchAvailabilities();
+                                }, retryDelay);
+                            }
                         } else {
                             console.log('🔵 Live Availability - activityId still not ready, will retry');
                             // Retry once more after a longer delay
                             setTimeout(() => {
                                 if (activityId) {
                                     refetchAvailabilities();
+                                    // For Bing browser, retry once more
+                                    if (isBingBrowser) {
+                                        setTimeout(() => {
+                                            refetchAvailabilities();
+                                        }, retryDelay);
+                                    }
                                 }
-                            }, 1000);
+                            }, retryDelay);
                         }
-                    }, 800);
+                    }, initialDelay);
                     return () => clearTimeout(timer);
                 }
             } else {
@@ -2029,6 +2058,45 @@ const Index = () => {
             }
         }
     }, [chooseLocation, activeAccordion, chooseFlightType, selectedVoucherType, activityId, location.search, refetchAvailabilities]);
+    
+    // Additional effect: For Bing browser, ensure availabilities are fetched when Live Availability section is open
+    useEffect(() => {
+        // Detect Bing/Edge browser
+        const isBingBrowser = navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
+        if (!isBingBrowser) return;
+        
+        // Only run when Live Availability section is open and we have location and activityId
+        if (activeAccordion === "live-availability" && chooseLocation && activityId) {
+            // Check if we have availabilities data
+            const hasAvailabilities = availabilities && availabilities.length > 0;
+            
+            // If no availabilities, try to fetch them
+            if (!hasAvailabilities) {
+                console.log('🔵 Bing browser - No availabilities found, fetching...', {
+                    chooseLocation,
+                    activityId,
+                    chooseFlightType: chooseFlightType?.type,
+                    selectedVoucherType: selectedVoucherType?.title
+                });
+                
+                // Use multiple retries with increasing delays for Bing browser
+                const retryFetch = (attempt = 1) => {
+                    const delay = attempt * 500; // 500ms, 1000ms, 1500ms...
+                    setTimeout(() => {
+                        if (chooseLocation && activityId) {
+                            refetchAvailabilities();
+                            // Retry up to 3 times
+                            if (attempt < 3 && (!availabilities || availabilities.length === 0)) {
+                                retryFetch(attempt + 1);
+                            }
+                        }
+                    }, delay);
+                };
+                
+                retryFetch(1);
+            }
+        }
+    }, [activeAccordion, chooseLocation, activityId, availabilities, chooseFlightType, selectedVoucherType, refetchAvailabilities]);
     
     // Additional effect: Refetch availabilities when flight type is set from Shopify prefill
     useEffect(() => {
