@@ -229,9 +229,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
     const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
     
+    // For Shopify flow, also check if we have availabilities data - if we do, allow showing them even if chooseFlightType is temporarily empty
+    // This is important for Chrome where state updates might happen in different order
+    const hasAvailabilitiesData = availabilities && availabilities.length > 0;
+    const shopifyFlowWithData = isShopifyFlow && hasLocationAndActivity && hasAvailabilitiesData;
+    
     const isLocationAndExperienceSelected = !!(
         hasLocationAndActivity && (
-            (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) || // Allow filtering by flight type OR if Shopify flow with selectedActivity
+            (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data
         (activitySelect === 'Redeem Voucher') ||
         (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -304,7 +309,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const handleDateClick = (date) => {
         // Only allow date selection if location and experience are selected
-        if (!isLocationAndExperienceSelected) {
+        // For Shopify flow, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+        if (!isLocationAndExperienceSelected && !shopifyFlowWithData) {
             setIsModalOpen(true);
             return;
         }
@@ -336,7 +342,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     const handleTimeClick = (time) => {
         // Only allow time selection if location and experience are selected
-        if (!isLocationAndExperienceSelected) {
+        // For Shopify flow, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+        if (!isLocationAndExperienceSelected && !shopifyFlowWithData) {
             setIsModalOpen(true);
             return;
         }
@@ -690,7 +697,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return true;
     };
 
-    const filteredAvailabilities = isLocationAndExperienceSelected ? availabilities.filter(a => {
+    // For Shopify flow, allow filtering even if chooseFlightType is temporarily empty
+    // This ensures availabilities are shown in Chrome where state updates might happen in different order
+    const shouldFilterAvailabilities = isLocationAndExperienceSelected || shopifyFlowWithData;
+    
+    const filteredAvailabilities = shouldFilterAvailabilities ? availabilities.filter(a => {
         const slotStatus = getSlotStatus(a);
         const availableForSelection = getAvailableSeatsForSelection(a);
         const isOpen = slotStatus === 'open' || availableForSelection > 0;
@@ -814,7 +825,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     console.log('Filtered availabilities (all times):', filteredAvailabilities);
     
     // Alternative filtering: if the above is too restrictive, try this
-    const alternativeFiltered = isLocationAndExperienceSelected ? availabilities.filter(a => {
+    // For Shopify flow, allow filtering even if chooseFlightType is temporarily empty
+    const alternativeFiltered = shouldFilterAvailabilities ? availabilities.filter(a => {
         const hasDate = a.date && a.date.length > 0;
         const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
         const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
@@ -1091,7 +1103,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 }
                 
                 // Determine if date should be interactive
-                const isInteractive = !isPastDate && isAvailable && isLocationAndExperienceSelected && !soldOut;
+                // For Shopify flow, allow interaction even if chooseFlightType is temporarily empty (if we have availabilities data)
+                const isInteractive = !isPastDate && isAvailable && (isLocationAndExperienceSelected || shopifyFlowWithData) && !soldOut;
                 
                 days.push(
                     <div
