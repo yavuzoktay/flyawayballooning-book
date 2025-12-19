@@ -912,14 +912,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // For Chrome browser, if finalFilteredAvailabilities is empty but we have availabilities data
     // and location/experience are selected, manually filter availabilities
     // This handles cases where state updates happen in different order in Chrome
-    const isChromeBrowser = (() => {
-        try {
-            return navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
-        } catch {
-            return false;
-        }
-    })();
-    
+    // Note: isChromeBrowser is already declared above for loading state management
     if (isChromeBrowser && finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0) {
         const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
         const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
