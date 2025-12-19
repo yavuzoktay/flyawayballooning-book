@@ -27,6 +27,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(false);
     
     // Bristol Fiesta için Ağustos ayı mantığı, diğer lokasyonlar için güncel ay
     useEffect(() => {
@@ -266,14 +267,51 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         "Your flight will never expire so long as you meet the terms & conditions. "
     ];
     
+    // Detect Chrome browser for loading state management
+    const isChromeBrowser = (() => {
+        try {
+            return navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+        } catch {
+            return false;
+        }
+    })();
+    
+    // For Chrome browser, especially in Shopify flow, show loading until availabilities are loaded
+    useEffect(() => {
+        if (isChromeBrowser && isShopifyFlow && activeAccordion === 'live-availability') {
+            const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+            const shouldHaveAvailabilities = hasLocationAndActivity && (chooseFlightType?.type || shopifyFlowWithData);
+            
+            if (shouldHaveAvailabilities) {
+                // If we should have availabilities but don't have them yet, show loading
+                if (!availabilities || availabilities.length === 0) {
+                    setIsLoadingAvailabilities(true);
+                    console.log('🔵 Chrome - Shopify flow: Showing loading, waiting for availabilities');
+                } else {
+                    // Availabilities loaded, hide loading after a short delay to ensure render
+                    const timer = setTimeout(() => {
+                        setIsLoadingAvailabilities(false);
+                        console.log('🔵 Chrome - Shopify flow: Availabilities loaded, hiding loading');
+                    }, 300);
+                    return () => clearTimeout(timer);
+                }
+            } else {
+                setIsLoadingAvailabilities(false);
+            }
+        } else {
+            setIsLoadingAvailabilities(false);
+        }
+    }, [isChromeBrowser, isShopifyFlow, activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, shopifyFlowWithData]);
+    
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {
         console.log('=== LiveAvailabilitySection availabilities changed ===');
         console.log('New availabilities count:', availabilities?.length);
         console.log('New availabilities data:', availabilities);
         console.log('isLocationAndExperienceSelected:', isLocationAndExperienceSelected);
+        console.log('isLoadingAvailabilities:', isLoadingAvailabilities);
         console.log('==================================================');
-    }, [availabilities, isLocationAndExperienceSelected]);
+    }, [availabilities, isLocationAndExperienceSelected, isLoadingAvailabilities]);
     
     // PRODUCTION DEBUG: Monitor Voucher Type changes
     useEffect(() => {
@@ -1404,6 +1442,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             transform: translateX(-50%) translateY(0);
                         }
                     }
+                    
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
                 `}
             </style>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`} isDisabled={isDisabled}>
@@ -1488,42 +1531,71 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         )}
                     </div>
                     {/* Takvim alanı: */}
-                    <div className="days-grid" style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(7, 1fr)', 
-                        gap: isMobile ? '0px' : '4px', 
-                        marginBottom: 0, 
-                        width: '100%', 
-                        maxWidth: '100%', 
-                        margin: '0 auto', 
-                        padding: isMobile ? '0 2px' : '0 6px', 
-                        boxSizing: 'border-box' 
-                    }}>
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-                            <div key={d} className="weekday-label" style={{ 
-                                textAlign: 'center', 
-                                fontWeight: 600, 
-                                color: '#888', 
-                                fontSize: isMobile ? 10 : 15, 
-                                marginBottom: isMobile ? 1 : 8,
-                                padding: isMobile ? '0' : '4px',
-                                // Mobilde tarih kutularıyla aynı boyutta olması için
-                                ...(isMobile ? {
-                                    width: daySize,
-                                    height: 'auto',
-                                    minWidth: daySize,
-                                    maxWidth: daySize,
-                                    boxSizing: 'border-box',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                } : {})
+                    {isLoadingAvailabilities ? (
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: isMobile ? '40px 20px' : '60px 20px',
+                            minHeight: '200px'
+                        }}>
+                            <div style={{
+                                width: isMobile ? '40px' : '50px',
+                                height: isMobile ? '40px' : '50px',
+                                border: '4px solid #f3f3f3',
+                                borderTop: '4px solid #22c55e',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                marginBottom: '16px'
+                            }}></div>
+                            <div style={{
+                                fontSize: isMobile ? 14 : 16,
+                                color: '#666',
+                                fontWeight: 500,
+                                textAlign: 'center'
                             }}>
-                                {d}
+                                Loading availability...
                             </div>
-                        ))}
-                        {renderDays()}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="days-grid" style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(7, 1fr)', 
+                            gap: isMobile ? '0px' : '4px', 
+                            marginBottom: 0, 
+                            width: '100%', 
+                            maxWidth: '100%', 
+                            margin: '0 auto', 
+                            padding: isMobile ? '0 2px' : '0 6px', 
+                            boxSizing: 'border-box' 
+                        }}>
+                            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
+                                <div key={d} className="weekday-label" style={{ 
+                                    textAlign: 'center', 
+                                    fontWeight: 600, 
+                                    color: '#888', 
+                                    fontSize: isMobile ? 10 : 15, 
+                                    marginBottom: isMobile ? 1 : 8,
+                                    padding: isMobile ? '0' : '4px',
+                                    // Mobilde tarih kutularıyla aynı boyutta olması için
+                                    ...(isMobile ? {
+                                        width: daySize,
+                                        height: 'auto',
+                                        minWidth: daySize,
+                                        maxWidth: daySize,
+                                        boxSizing: 'border-box',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    } : {})
+                                }}>
+                                    {d}
+                                </div>
+                            ))}
+                            {renderDays()}
+                        </div>
+                    )}
                     {/* Reschedule text below calendar */}
                     <div style={{ 
                         textAlign: 'center', 
