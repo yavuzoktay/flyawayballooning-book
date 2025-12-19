@@ -276,32 +276,48 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     })();
     
-    // For Chrome browser, especially in Shopify flow, show loading until availabilities are loaded
+    // For all browsers, especially in Shopify flow, show loading until availabilities are loaded
+    // This prevents section from closing or switching to another section while data is loading
     useEffect(() => {
-        if (isChromeBrowser && isShopifyFlow && activeAccordion === 'live-availability') {
+        // Only show loading when Live Availability section is active
+        if (activeAccordion === 'live-availability') {
             const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-            const shouldHaveAvailabilities = hasLocationAndActivity && (chooseFlightType?.type || shopifyFlowWithData);
+            const shouldHaveAvailabilities = hasLocationAndActivity && (
+                (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity))) ||
+                (activitySelect === 'Redeem Voucher') ||
+                (chooseLocation === 'Bristol Fiesta') ||
+                (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+            );
             
             if (shouldHaveAvailabilities) {
                 // If we should have availabilities but don't have them yet, show loading
                 if (!availabilities || availabilities.length === 0) {
                     setIsLoadingAvailabilities(true);
-                    console.log('🔵 Chrome - Shopify flow: Showing loading, waiting for availabilities');
+                    console.log('⏳ Live Availability: Showing loading, waiting for availabilities', {
+                        isShopifyFlow,
+                        isChromeBrowser,
+                        hasLocationAndActivity,
+                        chooseFlightType: chooseFlightType?.type
+                    });
                 } else {
                     // Availabilities loaded, hide loading after a short delay to ensure render
                     const timer = setTimeout(() => {
                         setIsLoadingAvailabilities(false);
-                        console.log('🔵 Chrome - Shopify flow: Availabilities loaded, hiding loading');
-                    }, 300);
+                        console.log('✅ Live Availability: Availabilities loaded, hiding loading', {
+                            availabilitiesCount: availabilities.length
+                        });
+                    }, 500); // Increased delay to 500ms for better UX
                     return () => clearTimeout(timer);
                 }
             } else {
+                // Don't show loading if we don't expect availabilities yet
                 setIsLoadingAvailabilities(false);
             }
         } else {
+            // Section is not active, don't show loading
             setIsLoadingAvailabilities(false);
         }
-    }, [isChromeBrowser, isShopifyFlow, activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, shopifyFlowWithData]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect]);
     
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {

@@ -1267,6 +1267,8 @@ const Index = () => {
                     completedSections.push('experience');
                 }
                 if (selectedVoucherType) completedSections.push('voucher-type');
+                // Only mark live-availability as completed if date and time are selected
+                // Don't mark it as completed just because section is open - wait for user to select date/time
                 if (selectedDate && selectedTime) completedSections.push('live-availability');
                 // Use proper passenger info validation based on activity type
                 const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
@@ -1309,6 +1311,25 @@ const Index = () => {
             }
             
             if (nextSection) {
+                // Special handling: If Live Availability section is currently open and loading,
+                // don't switch to another section - keep Live Availability open
+                if (activeAccordion === 'live-availability' && nextSection !== 'live-availability') {
+                    // Check if availabilities are still loading
+                    const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+                    const shouldHaveAvailabilities = hasLocationAndActivity && (
+                        (activitySelect === 'Book Flight' && chooseFlightType?.type) ||
+                        (activitySelect === 'Redeem Voucher') ||
+                        (chooseLocation === 'Bristol Fiesta') ||
+                        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+                    );
+                    const availabilitiesLoading = shouldHaveAvailabilities && (!availabilities || availabilities.length === 0);
+                    
+                    if (availabilitiesLoading) {
+                        console.log('⏳ Live Availability is loading, keeping section open instead of switching to:', nextSection);
+                        return; // Don't switch sections while loading
+                    }
+                }
+                
                 console.log('🔓 Opening next section:', nextSection, `(${sequence.indexOf(nextSection) + 1}/${sequence.length})`);
                 setActiveAccordion(nextSection);
 
