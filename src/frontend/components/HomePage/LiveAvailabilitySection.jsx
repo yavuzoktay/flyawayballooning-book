@@ -1674,9 +1674,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                                 return slot.time?.split(':').slice(0, 2).join(':');
                                             }
                                         })();
-                                        const availabilityLabel = availableForSelection > 0
-                                            ? `${availableForSelection} Space${availableForSelection === 1 ? '' : 's'}`
-                                            : 'Sold Out';
+                                        const isPrivateCharterExperience = (chooseFlightType?.type || '').toLowerCase().includes('private charter');
+                                        
+                                        // Availability label rules:
+                                        // - Private Charter: just "Available" / "Not Available"
+                                        // - Other experiences: "<n> Spaces" / "Sold Out" (mevcut davranış)
+                                        const availabilityLabel = (() => {
+                                            if (isPrivateCharterExperience) {
+                                                return availableForSelection > 0 ? 'Available' : 'Not Available';
+                                            }
+                                            return availableForSelection > 0
+                                                ? `${availableForSelection} Space${availableForSelection === 1 ? '' : 's'}`
+                                                : 'Sold Out';
+                                        })();
                                         const shouldShowAvailabilityLabel = !!availabilityLabel;
 
                                         return (
