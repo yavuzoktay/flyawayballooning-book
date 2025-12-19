@@ -869,7 +869,42 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return merged;
     };
 
-    const finalFilteredAvailabilities = mergeAvailabilityLists();
+    let finalFilteredAvailabilities = mergeAvailabilityLists();
+    
+    // For Chrome browser, if finalFilteredAvailabilities is empty but we have availabilities data
+    // and location/experience are selected, manually filter availabilities
+    // This handles cases where state updates happen in different order in Chrome
+    const isChromeBrowser = (() => {
+        try {
+            return navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+        } catch {
+            return false;
+        }
+    })();
+    
+    if (isChromeBrowser && finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0) {
+        const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+        const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
+        const chromeShouldFilter = hasLocationAndActivity && (
+            (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) ||
+            (activitySelect === 'Redeem Voucher') ||
+            (chooseLocation === 'Bristol Fiesta') ||
+            (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+        );
+        
+        if (chromeShouldFilter) {
+            console.log('⚠️ Chrome - finalFilteredAvailabilities is empty, manually filtering availabilities');
+            finalFilteredAvailabilities = availabilities.filter(a => {
+                const hasDate = a.date && a.date.length > 0;
+                const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
+                const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
+                const matchesVoucherTypeFilter = filterByVoucherType(a);
+                return isAvailable && matchesVoucherTypeFilter;
+            });
+            console.log('Chrome - Manually filtered availabilities:', finalFilteredAvailabilities.length);
+        }
+    }
+    
     console.log('Final filtered availabilities:', finalFilteredAvailabilities);
     
     const availableDates = Array.from(new Set(finalFilteredAvailabilities.map(a => a.date)));
@@ -887,6 +922,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
             return a.date === dateStr;
         });
+        
+        // For Chrome browser, if matchingAvailabilities is empty but availabilities has data,
+        // manually filter availabilities for this date
+        if (isChromeBrowser && matchingAvailabilities.length === 0 && availabilities && availabilities.length > 0 && shouldFilterAvailabilities) {
+            console.log('⚠️ Chrome - getTimesForDate: matchingAvailabilities is empty, manually filtering');
+            matchingAvailabilities = availabilities.filter(a => {
+                const matchesLoc = matchesLocation(a);
+                const matchesExp = matchesExperience(a);
+                const matchesVoucherTypeFilter = filterByVoucherType(a);
+                return a.date === dateStr && matchesLoc && matchesExp && matchesVoucherTypeFilter;
+            });
+            console.log(`Chrome - Manually filtered times for ${dateStr}:`, matchingAvailabilities.length);
+        }
         
         // Apply additional voucher type filtering for Weekday Morning (must be morning times)
         // Apply for both Redeem Voucher and Book Flight
@@ -918,9 +966,27 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         console.log(`Today manual:`, `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
         console.log(`All availabilities:`, availabilities);
         console.log(`Sample availability dates:`, availabilities.slice(0, 3).map(a => ({ id: a.id, date: a.date, originalDate: a.date })));
+        console.log(`finalFilteredAvailabilities length:`, finalFilteredAvailabilities.length);
+        console.log(`shouldFilterAvailabilities:`, shouldFilterAvailabilities);
+        console.log(`isLocationAndExperienceSelected:`, isLocationAndExperienceSelected);
+        
+        // For Chrome browser, if finalFilteredAvailabilities is empty but availabilities has data,
+        // use availabilities directly with location/experience filtering
+        // This handles cases where state updates happen in different order in Chrome
+        let slotsToUse = finalFilteredAvailabilities;
+        if (finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0 && shouldFilterAvailabilities) {
+            console.log('⚠️ Chrome - finalFilteredAvailabilities is empty, using availabilities with manual filtering');
+            // Manually filter availabilities for this date
+            slotsToUse = availabilities.filter(a => {
+                const matchesLoc = matchesLocation(a);
+                const matchesExp = matchesExperience(a);
+                return a.date === dateStr && matchesLoc && matchesExp;
+            });
+            console.log(`Chrome - Manually filtered slots for ${dateStr}:`, slotsToUse.length);
+        }
         
         // Check ALL availabilities for this date (including capacity = 0) - use filtered list
-        const allSlotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
+        const allSlotsForDate = slotsToUse.filter(a => a.date === dateStr);
         console.log(`All slots for ${dateStr}:`, allSlotsForDate);
         console.log(`Slot statuses for ${dateStr}:`, allSlotsForDate.map(slot => ({ 
             id: slot.id, 
@@ -930,10 +996,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             date: slot.date,
             time: slot.time
         })));
-        console.log(`Raw availabilities for ${dateStr}:`, finalFilteredAvailabilities.filter(a => a.date === dateStr));
+        console.log(`Raw availabilities for ${dateStr}:`, slotsToUse.filter(a => a.date === dateStr));
         
         // Get open/available slots (capacity > 0) for totals
-        const availableSlots = finalFilteredAvailabilities.filter(a => a.date === dateStr);
+        const availableSlots = slotsToUse.filter(a => a.date === dateStr);
         const total = availableSlots.reduce((sum, s) => sum + getAvailableSeatsForSelection(s), 0);
         const sharedTotal = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
         
