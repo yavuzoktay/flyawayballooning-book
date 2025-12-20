@@ -10,19 +10,21 @@ const getApiBaseUrl = () => {
 
 // Stripe publishable keys
 // - TEST_PK: for localhost / test mode
-// - LIVE_PK: for production (must be set via environment variable at build time)
+// - LIVE_PK: for production
 const TEST_PK = 'pk_test_51HjVLCHwUKMuFjtpkabkDGYDbjlEYMKZxLtmVrRxWNSJofcJuVeUKu4NNy0EvDN50DC4cfqf43X1x40BVThLCTRI0007TlISlC';
+const LIVE_PK = 'pk_live_51HjVLCHwUKMuFjtpYqU29dM4gqkLTiwG2zsgCtSfRe2Ehj44Ewpd3UpRAb3lc8PiOsKwGsIcOSD7XR6FmaVaoHHK00AcQ8TPsF';
 
 const isLocalhost = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
+// Try to get live key from environment variable first, fallback to hardcoded LIVE_PK
 const livePk = typeof process !== 'undefined'
   ? (process.env.REACT_APP_STRIPE_LIVE_PUBLISHABLE_KEY || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
   : undefined;
 
 const resolvedPk = isLocalhost
   ? TEST_PK
-  : (livePk && livePk.startsWith('pk_') ? livePk : TEST_PK);
+  : (livePk && livePk.startsWith('pk_') ? livePk : LIVE_PK);
 
 const config = {
   API_BASE_URL: getApiBaseUrl(),
