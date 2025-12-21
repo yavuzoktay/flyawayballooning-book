@@ -256,10 +256,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         console.log('ExperienceSection: chooseLocation:', chooseLocation);
     }, [locationPricing, isBristol, chooseLocation]);
 
-    // Fetch experiences from API on component mount
+    // Fetch experiences from API on component mount and when flight voucher status changes
     useEffect(() => {
+        // Clear experiences first to prevent showing old images
+        setExperiences([]);
         fetchExperiences();
-    }, []);
+    }, [isFlightVoucher, isGiftVoucher]);
 
     const fetchLocationPricing = async () => {
         if (!chooseLocation) return;
@@ -383,8 +385,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         }
     };
 
+    // Cache-busting timestamp - only changes when experiences change
+    const cacheTimestamp = useMemo(() => Date.now(), [experiences]);
+    
     // Final experiences array - use API experiences if available, otherwise fallback to default
     const finalExperiences = useMemo(() => {
+        // If experiences are loading, return empty to prevent showing old cached images
+        if (experiencesLoading) {
+            return [];
+        }
+        
         // Check if we have API experiences first
         if (experiences && experiences.length > 0) {
             // Get allowed flight types from activities for this location
@@ -433,11 +443,13 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     }
                     
                     // Only use API image, no fallback to prevent image flash
+                    // Add timestamp to image URL to prevent browser caching (timestamp only changes when experiences change)
                     const apiImageUrl = getNormalizedImageUrl(exp);
+                    const imageUrlWithCache = apiImageUrl ? `${apiImageUrl}?v=${cacheTimestamp}` : null;
                     
                     return {
                         title: exp.title,
-                        img: apiImageUrl || null, // Don't use fallback images to prevent flash
+                        img: imageUrlWithCache, // Add cache-busting timestamp
                         price: formatPriceDisplay(price),
                         priceValue: price,
                         priceUnit: priceUnit,
@@ -450,9 +462,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             }
         }
         
-        // Fallback to default experiences
+        // Fallback to default experiences only if not loading
         return getExperiences;
-    }, [experiences, locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation, getExperiences]);
+    }, [experiences, experiencesLoading, locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation, getExperiences, cacheTimestamp]);
 
     // Use finalExperiences instead of the old logic
     const filteredExperiences = finalExperiences || [];
@@ -853,7 +865,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                         </div>
                     </div>
                 )) : (
-                    <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
+                    <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>
+                        {experiencesLoading ? 'Loading experiences...' : 'No experiences available.'}
+                    </div>
                 )}
                         </div>
                     </div>
@@ -955,7 +969,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             </div>
                         </div>
                     )) : (
-                        <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>No experiences available.</div>
+                        <div style={{ width: '100%', textAlign: 'center', padding: 20 }}>
+                            {experiencesLoading ? 'Loading experiences...' : 'No experiences available.'}
+                        </div>
                     )}
                 </div>
             )}
