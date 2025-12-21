@@ -207,17 +207,16 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                 }}>
                     {/* Recipient Name */}
                     <div style={{ width: '100%', minWidth: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                             <label style={{ 
                                 fontSize: '13px',
                                 fontWeight: '500',
                                 color: '#374151',
-                                marginBottom: '4px',
-                                display: 'block',
+                                margin: 0
                             }}>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
                             <BsInfoCircle 
                                 data-tooltip-id="recipient-name-tooltip"
-                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14 }} 
+                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14, flexShrink: 0 }} 
                             />
                             <ReactTooltip
                                 id="recipient-name-tooltip"
