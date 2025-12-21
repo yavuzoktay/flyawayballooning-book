@@ -1541,7 +1541,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 left: isMobile ? '8px' : '20px',
                                 top: '50%',
                                 transform: 'translateY(-50%)',
-                                zIndex: 10
+                                zIndex: 20
                             }}
                         >
                             <ArrowBackIosIcon />
@@ -1552,7 +1552,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             display: 'flex', 
                             flexDirection: 'column', 
                             alignItems: 'center', 
-                            gap: isMobile ? '8px' : '12px'
+                            gap: isMobile ? '8px' : '12px',
+                            position: 'relative',
+                            zIndex: 1
                         }}>
                             <h2 style={{ 
                                 margin: 0, 
@@ -1587,7 +1589,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 right: isMobile ? '8px' : '20px',
                                 top: '50%',
                                 transform: 'translateY(-50%)',
-                                zIndex: 10
+                                zIndex: 20
                             }}
                         >
                             <ArrowForwardIosIcon />
