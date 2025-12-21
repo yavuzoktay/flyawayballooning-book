@@ -522,7 +522,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             marginBottom: '0px', 
                             padding: '12px', 
                             borderRadius: '8px',
-                            textAlign: 'center'
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
                         }}>
                             <button
                                 type="button"
@@ -555,7 +557,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             backgroundColor: '#d4edda', 
                             border: '1px solid #c3e6cb', 
                             borderRadius: '8px',
-                            textAlign: 'center'
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
                         }}>
                             <p style={{ 
                                 margin: '0', 
