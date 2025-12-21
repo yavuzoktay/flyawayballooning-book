@@ -518,10 +518,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     {/* Skip Recipient Details Button - Moved below Date input */}
                     {isGiftVoucher && !skipRecipientDetails && !recipientDetails?.isSkipped && (
                         <div style={{ 
+                            width: '100%',
                             marginTop: '20px',
                             marginBottom: '0px', 
-                            padding: '12px', 
-                            borderRadius: '8px',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center'
@@ -533,14 +532,15 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                     border: '1px solid #d1d5db',
                                     background: '#fff',
                                     color: '#374151',
-                                    padding: '8px 14px',
+                                    padding: '10px 20px',
                                     borderRadius: 8,
                                     cursor: 'pointer',
                                     fontSize: '14px',
                                     fontWeight: 500,
                                     transition: 'all 0.2s ease',
                                     boxSizing: 'border-box',
-                                    minHeight: '36px'
+                                    minHeight: '36px',
+                                    display: 'inline-block'
                                 }}
                             >
                                 Skip Recipient Details.
@@ -551,24 +551,29 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                     {/* Show success message if skipped */}
                     {isGiftVoucher && (skipRecipientDetails || recipientDetails?.isSkipped) && (
                         <div style={{ 
+                            width: '100%',
                             marginTop: '20px',
                             marginBottom: '0px', 
-                            padding: '12px', 
-                            backgroundColor: '#d4edda', 
-                            border: '1px solid #c3e6cb', 
-                            borderRadius: '8px',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}>
-                            <p style={{ 
-                                margin: '0', 
-                                fontSize: '14px', 
-                                color: '#155724',
-                                fontWeight: '500'
+                            <div style={{
+                                padding: '12px 20px',
+                                backgroundColor: '#d4edda', 
+                                border: '1px solid #c3e6cb', 
+                                borderRadius: '8px',
+                                display: 'inline-block'
                             }}>
-                                ✓ Recipient details skipped - you can add them later
-                            </p>
+                                <p style={{ 
+                                    margin: '0', 
+                                    fontSize: '14px', 
+                                    color: '#155724',
+                                    fontWeight: '500'
+                                }}>
+                                    ✓ Recipient details skipped - you can add them later
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
