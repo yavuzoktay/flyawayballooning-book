@@ -1525,34 +1525,56 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <div className="header" style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
-                        justifyContent: 'center', 
+                        justifyContent: 'space-between', 
                         position: 'relative', 
                         width: '100%',
                         flexDirection: isMobile ? 'column' : 'row',
                         gap: isMobile ? '12px' : '0',
-                        minHeight: isMobile ? '80px' : '60px'
+                        padding: isMobile ? '0 4px' : '0 8px'
                     }}>
-                        {/* Fixed position arrows - left */}
-                        <div 
+                        {/* Styled arrow button - left */}
+                        <button 
                             className='calender-prev calender-arrow' 
                             onClick={handlePrevMonth}
                             style={{
-                                position: 'absolute',
-                                left: isMobile ? '8px' : '20px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: isMobile ? '36px' : '44px',
+                                height: isMobile ? '36px' : '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                                transition: 'all 0.3s ease',
+                                color: '#fff',
+                                padding: 0,
+                                flexShrink: 0,
                                 zIndex: 10
                             }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.6)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                            }}
                         >
-                            <ArrowBackIosIcon />
-                        </div>
+                            <ArrowBackIosIcon style={{ 
+                                fontSize: isMobile ? 16 : 20,
+                                marginLeft: '4px' // Center the icon better
+                            }} />
+                        </button>
                         
                         {/* Center content */}
                         <div style={{ 
                             display: 'flex', 
                             flexDirection: 'column', 
                             alignItems: 'center', 
-                            gap: isMobile ? '8px' : '12px'
+                            gap: isMobile ? '8px' : '12px',
+                            flex: 1
                         }}>
                             <h2 style={{ 
                                 margin: 0, 
@@ -1578,20 +1600,40 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </div>
                         </div>
                         
-                        {/* Fixed position arrows - right */}
-                        <div 
+                        {/* Styled arrow button - right */}
+                        <button 
                             className='calender-next calender-arrow' 
                             onClick={handleNextMonth}
                             style={{
-                                position: 'absolute',
-                                right: isMobile ? '8px' : '20px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: isMobile ? '36px' : '44px',
+                                height: isMobile ? '36px' : '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                                transition: 'all 0.3s ease',
+                                color: '#fff',
+                                padding: 0,
+                                flexShrink: 0,
                                 zIndex: 10
                             }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.6)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                            }}
                         >
-                            <ArrowForwardIosIcon />
-                        </div>
+                            <ArrowForwardIosIcon style={{ 
+                                fontSize: isMobile ? 16 : 20
+                            }} />
+                        </button>
                     </div>
                     {/* Centered currently viewing info under the heading */}
                     <div style={{ 
