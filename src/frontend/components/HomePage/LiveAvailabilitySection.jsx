@@ -2323,21 +2323,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             `}</style>
             <style>{`
 .realtime-badge-wrap {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  position: static;
+  transform: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  margin: 8px 0 0 0;
   z-index: 2;
-}
-@media (max-width: 700px) {
-  .realtime-badge-wrap {
-    position: static;
-    transform: none;
-    justify-content: center;
-    margin: 8px 0 0 0;
-  }
 }
 .realtime-badge {
   background: #61D836;
