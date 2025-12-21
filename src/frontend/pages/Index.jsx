@@ -1317,6 +1317,31 @@ const Index = () => {
             }
             
             if (nextSection) {
+                // Detect Chrome browser for special handling
+                const isChromeBrowser = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
+                const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+                const shouldHaveAvailabilities = hasLocationAndActivity && (
+                    (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
+                    (activitySelect === 'Redeem Voucher') ||
+                    (chooseLocation === 'Bristol Fiesta') ||
+                    (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
+                );
+                
+                // Special handling for Live Availability section
+                if (nextSection === 'live-availability') {
+                    // If we should have availabilities but don't have them yet, set loading state immediately
+                    // This is especially important for Chrome/mobile where state updates can be delayed
+                    if (shouldHaveAvailabilities && (!availabilities || availabilities.length === 0)) {
+                        // Set loading state immediately before opening section (for Chrome compatibility)
+                        setIsLiveAvailabilityLoading(true);
+                        console.log('⏳ Setting loading state before opening Live Availability section', {
+                            isChromeBrowser,
+                            hasLocationAndActivity,
+                            shouldHaveAvailabilities
+                        });
+                    }
+                }
+                
                 // Special handling: If Live Availability section is currently open and loading,
                 // don't switch to another section - keep Live Availability open
                 if (activeAccordion === 'live-availability' && nextSection !== 'live-availability') {
@@ -1328,18 +1353,20 @@ const Index = () => {
                     }
                     
                     // Fallback: Also check if availabilities are still loading based on data
-                    const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-                    const shouldHaveAvailabilities = hasLocationAndActivity && (
-                        (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
-                        (activitySelect === 'Redeem Voucher') ||
-                        (chooseLocation === 'Bristol Fiesta') ||
-                        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
-                    );
                     const availabilitiesLoading = shouldHaveAvailabilities && (!availabilities || availabilities.length === 0);
                     
                     if (availabilitiesLoading) {
                         console.log('⏳ Live Availability is loading (data check), keeping section open instead of switching to:', nextSection);
                         return; // Don't switch sections while loading
+                    }
+                }
+                
+                // For Chrome/mobile: If opening live-availability and it should have availabilities but doesn't,
+                // add extra delay to ensure loading state is set before any subsequent section transitions
+                if (nextSection === 'live-availability' && shouldHaveAvailabilities && (!availabilities || availabilities.length === 0)) {
+                    if (isChromeBrowser) {
+                        console.log('⏳ Chrome/Mobile: Opening Live Availability with loading state, will prevent auto-advance');
+                        // The loading state is already set above, so we can proceed with opening the section
                     }
                 }
                 

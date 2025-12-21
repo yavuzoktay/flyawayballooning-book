@@ -293,8 +293,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 // If we should have availabilities but don't have them yet, show loading
                 // For Chrome/mobile, be more aggressive about showing loading state
                 if (!availabilities || availabilities.length === 0) {
+                    // Set loading state immediately and notify parent
                     setIsLoadingAvailabilities(true);
-                    // Notify parent component about loading state immediately
+                    // Notify parent component about loading state immediately (critical for Chrome/mobile)
                     if (onLoadingStateChange) {
                         onLoadingStateChange(true);
                     }
@@ -303,12 +304,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         isChromeBrowser,
                         hasLocationAndActivity,
                         chooseFlightType: chooseFlightType?.type,
-                        activeAccordion
+                        activeAccordion,
+                        availabilitiesCount: availabilities?.length || 0
                     });
                 } else {
                     // Availabilities loaded, hide loading after a delay to ensure render
                     // For Chrome/mobile, use longer delay to ensure state updates are complete
-                    const delay = isChromeBrowser ? 800 : 500;
+                    const delay = isChromeBrowser ? 1000 : 500; // Increased Chrome delay to 1000ms
                     const timer = setTimeout(() => {
                         setIsLoadingAvailabilities(false);
                         // Notify parent component that loading is complete
@@ -337,7 +339,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onLoadingStateChange(false);
             }
         }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser]);
     
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {
