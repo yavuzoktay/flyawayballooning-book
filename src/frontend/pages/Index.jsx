@@ -1206,6 +1206,13 @@ const Index = () => {
         const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
         const currentIndex = sequence.indexOf(completedSectionId);
         
+        // CRITICAL FIX: If live-availability is currently loading, prevent any section transitions
+        // This handles cases where multiple completion calls happen in quick succession
+        if (isLiveAvailabilityLoading && completedSectionId !== 'live-availability') {
+            console.log('⏳ Live Availability is loading, blocking completion of:', completedSectionId);
+            return; // Don't process completion while live-availability is loading
+        }
+        
         console.log('🔄 DYNAMIC ACCORDION SEQUENCE (CURRENT STATE):', {
             completedSectionId,
             activitySelect,
@@ -1317,6 +1324,13 @@ const Index = () => {
             }
             
             if (nextSection) {
+                // CRITICAL FIX: If live-availability is loading and we're trying to switch to a different section,
+                // block the transition. This handles cases where multiple completion calls happen in quick succession.
+                if (isLiveAvailabilityLoading && nextSection !== 'live-availability') {
+                    console.log('⏳ Live Availability is loading, blocking transition to:', nextSection);
+                    return; // Don't switch sections while live-availability is loading
+                }
+                
                 // Detect Chrome browser for special handling
                 const isChromeBrowser = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
                 const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
@@ -1329,22 +1343,34 @@ const Index = () => {
                 
                 // Special handling for Live Availability section
                 if (nextSection === 'live-availability') {
-                    // If we should have availabilities but don't have them yet, set loading state immediately
-                    // This is especially important for Chrome/mobile where state updates can be delayed
-                    if (shouldHaveAvailabilities && (!availabilities || availabilities.length === 0)) {
+                    // CRITICAL FIX: Always set loading state when opening live-availability if availabilities are not loaded
+                    // This prevents race conditions where closure captures stale values
+                    // For Shopify flow, we may not have selectedActivity set yet, but we still need loading state
+                    const isShopifyFlow = params.get('source') === 'shopify';
+                    const needsLoadingState = (!availabilities || availabilities.length === 0) && 
+                        (shouldHaveAvailabilities || isShopifyFlow);
+                    
+                    if (needsLoadingState) {
                         // Set loading state immediately before opening section (for Chrome compatibility)
                         setIsLiveAvailabilityLoading(true);
                         console.log('⏳ Setting loading state before opening Live Availability section', {
                             isChromeBrowser,
                             hasLocationAndActivity,
-                            shouldHaveAvailabilities
+                            shouldHaveAvailabilities,
+                            isShopifyFlow,
+                            needsLoadingState
                         });
                     }
                 }
                 
                 // Special handling: If Live Availability section is currently open and loading,
                 // don't switch to another section - keep Live Availability open
-                if (activeAccordion === 'live-availability' && nextSection !== 'live-availability') {
+                // CRITICAL FIX: Also check if we just opened live-availability (activeAccordion might be stale in closure)
+                const isShopifyFlowCheck = params.get('source') === 'shopify';
+                const justOpenedLiveAvailability = nextSection === 'live-availability' && 
+                    (activeAccordion !== 'live-availability' || isLiveAvailabilityLoading);
+                
+                if ((activeAccordion === 'live-availability' || justOpenedLiveAvailability) && nextSection !== 'live-availability') {
                     // Check if availabilities are still loading using the loading state from child component
                     // This is more reliable than checking availabilities array, especially for Chrome/mobile
                     if (isLiveAvailabilityLoading) {
@@ -1353,7 +1379,9 @@ const Index = () => {
                     }
                     
                     // Fallback: Also check if availabilities are still loading based on data
-                    const availabilitiesLoading = shouldHaveAvailabilities && (!availabilities || availabilities.length === 0);
+                    // For Shopify flow, be more aggressive about blocking
+                    const availabilitiesLoading = (!availabilities || availabilities.length === 0) && 
+                        (shouldHaveAvailabilities || isShopifyFlowCheck);
                     
                     if (availabilitiesLoading) {
                         console.log('⏳ Live Availability is loading (data check), keeping section open instead of switching to:', nextSection);
