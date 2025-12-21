@@ -63,6 +63,9 @@ const Index = () => {
     
     // Flag to track if we're in a fresh start after activity change
     const [isFreshStart, setIsFreshStart] = useState(false);
+    
+    // Track Live Availability section loading state (from child component)
+    const [isLiveAvailabilityLoading, setIsLiveAvailabilityLoading] = useState(false);
 
     // Progress bar state
     const [completedSections, setCompletedSections] = useState(new Set());
@@ -1186,6 +1189,9 @@ const Index = () => {
             return;
         }
         
+        // Get URL params for Shopify flow check
+        const params = new URLSearchParams(location.search || '');
+        
         // Update progress bar state immediately
         setCompletedSections(prev => {
             const newSet = new Set([...prev, completedSectionId]);
@@ -1314,10 +1320,17 @@ const Index = () => {
                 // Special handling: If Live Availability section is currently open and loading,
                 // don't switch to another section - keep Live Availability open
                 if (activeAccordion === 'live-availability' && nextSection !== 'live-availability') {
-                    // Check if availabilities are still loading
+                    // Check if availabilities are still loading using the loading state from child component
+                    // This is more reliable than checking availabilities array, especially for Chrome/mobile
+                    if (isLiveAvailabilityLoading) {
+                        console.log('⏳ Live Availability is loading (from child component), keeping section open instead of switching to:', nextSection);
+                        return; // Don't switch sections while loading
+                    }
+                    
+                    // Fallback: Also check if availabilities are still loading based on data
                     const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
                     const shouldHaveAvailabilities = hasLocationAndActivity && (
-                        (activitySelect === 'Book Flight' && chooseFlightType?.type) ||
+                        (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
                         (activitySelect === 'Redeem Voucher') ||
                         (chooseLocation === 'Bristol Fiesta') ||
                         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -1325,7 +1338,7 @@ const Index = () => {
                     const availabilitiesLoading = shouldHaveAvailabilities && (!availabilities || availabilities.length === 0);
                     
                     if (availabilitiesLoading) {
-                        console.log('⏳ Live Availability is loading, keeping section open instead of switching to:', nextSection);
+                        console.log('⏳ Live Availability is loading (data check), keeping section open instead of switching to:', nextSection);
                         return; // Don't switch sections while loading
                     }
                 }
@@ -3621,6 +3634,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                onLoadingStateChange={setIsLiveAvailabilityLoading}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -3719,6 +3733,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
+                                                onLoadingStateChange={setIsLiveAvailabilityLoading}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -3944,6 +3959,7 @@ const Index = () => {
                                                     selectedVoucherType={selectedVoucherType}
                                                     chooseFlightType={chooseFlightType}
                                                     onSectionCompletion={handleSectionCompletion}
+                                                    onLoadingStateChange={setIsLiveAvailabilityLoading}
                                                 />
                                             )}
                                             {(activitySelect === "Redeem Voucher") && (

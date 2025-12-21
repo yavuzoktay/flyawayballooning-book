@@ -23,7 +23,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, isDisabled = false }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -291,33 +291,53 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             
             if (shouldHaveAvailabilities) {
                 // If we should have availabilities but don't have them yet, show loading
+                // For Chrome/mobile, be more aggressive about showing loading state
                 if (!availabilities || availabilities.length === 0) {
                     setIsLoadingAvailabilities(true);
+                    // Notify parent component about loading state immediately
+                    if (onLoadingStateChange) {
+                        onLoadingStateChange(true);
+                    }
                     console.log('⏳ Live Availability: Showing loading, waiting for availabilities', {
                         isShopifyFlow,
                         isChromeBrowser,
                         hasLocationAndActivity,
-                        chooseFlightType: chooseFlightType?.type
+                        chooseFlightType: chooseFlightType?.type,
+                        activeAccordion
                     });
                 } else {
-                    // Availabilities loaded, hide loading after a short delay to ensure render
+                    // Availabilities loaded, hide loading after a delay to ensure render
+                    // For Chrome/mobile, use longer delay to ensure state updates are complete
+                    const delay = isChromeBrowser ? 800 : 500;
                     const timer = setTimeout(() => {
                         setIsLoadingAvailabilities(false);
+                        // Notify parent component that loading is complete
+                        if (onLoadingStateChange) {
+                            onLoadingStateChange(false);
+                        }
                         console.log('✅ Live Availability: Availabilities loaded, hiding loading', {
-                            availabilitiesCount: availabilities.length
+                            availabilitiesCount: availabilities.length,
+                            isChromeBrowser,
+                            delay
                         });
-                    }, 500); // Increased delay to 500ms for better UX
+                    }, delay);
                     return () => clearTimeout(timer);
                 }
             } else {
                 // Don't show loading if we don't expect availabilities yet
                 setIsLoadingAvailabilities(false);
+                if (onLoadingStateChange) {
+                    onLoadingStateChange(false);
+                }
             }
         } else {
             // Section is not active, don't show loading
             setIsLoadingAvailabilities(false);
+            if (onLoadingStateChange) {
+                onLoadingStateChange(false);
+            }
         }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange]);
     
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {
