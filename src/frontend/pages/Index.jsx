@@ -66,6 +66,16 @@ const Index = () => {
     
     // Track Live Availability section loading state (from child component)
     const [isLiveAvailabilityLoading, setIsLiveAvailabilityLoading] = useState(false);
+    
+    // Use a ref to track loading state synchronously (bypasses React's async state batching)
+    // This prevents race conditions when multiple handleSectionCompletion calls happen in quick succession
+    const isLiveAvailabilityLoadingRef = useRef(false);
+    
+    // Wrapper to update both state and ref synchronously
+    const setIsLiveAvailabilityLoadingSync = useCallback((value) => {
+        isLiveAvailabilityLoadingRef.current = value; // Update ref synchronously
+        setIsLiveAvailabilityLoading(value); // Update state asynchronously
+    }, []);
 
     // Progress bar state
     const [completedSections, setCompletedSections] = useState(new Set());
@@ -1208,7 +1218,9 @@ const Index = () => {
         
         // CRITICAL FIX: If live-availability is currently loading, prevent any section transitions
         // This handles cases where multiple completion calls happen in quick succession
-        if (isLiveAvailabilityLoading && completedSectionId !== 'live-availability') {
+        // Check BOTH state and ref (ref is synchronous, prevents race conditions from async state updates)
+        const isLoadingCheck = isLiveAvailabilityLoading || isLiveAvailabilityLoadingRef.current;
+        if (isLoadingCheck && completedSectionId !== 'live-availability') {
             console.log('⏳ Live Availability is loading, blocking completion of:', completedSectionId);
             return; // Don't process completion while live-availability is loading
         }
@@ -1326,7 +1338,9 @@ const Index = () => {
             if (nextSection) {
                 // CRITICAL FIX: If live-availability is loading and we're trying to switch to a different section,
                 // block the transition. This handles cases where multiple completion calls happen in quick succession.
-                if (isLiveAvailabilityLoading && nextSection !== 'live-availability') {
+                // Check BOTH state and ref (ref is synchronous, prevents race conditions from async state updates)
+                const isLoadingCheck = isLiveAvailabilityLoading || isLiveAvailabilityLoadingRef.current;
+                if (isLoadingCheck && nextSection !== 'live-availability') {
                     console.log('⏳ Live Availability is loading, blocking transition to:', nextSection);
                     return; // Don't switch sections while live-availability is loading
                 }
@@ -1343,23 +1357,31 @@ const Index = () => {
                 
                 // Special handling for Live Availability section
                 if (nextSection === 'live-availability') {
-                    // CRITICAL FIX: Always set loading state when opening live-availability if availabilities are not loaded
-                    // This prevents race conditions where closure captures stale values
-                    // For Shopify flow, we may not have selectedActivity set yet, but we still need loading state
+                    // CRITICAL FIX: ALWAYS set loading state when opening live-availability from Shopify flow
+                    // Even if availabilities are already loaded, we need a guard period to prevent
+                    // race conditions where another completion call immediately switches to experience section
                     const isShopifyFlow = params.get('source') === 'shopify';
-                    const needsLoadingState = (!availabilities || availabilities.length === 0) && 
-                        (shouldHaveAvailabilities || isShopifyFlow);
                     
-                    if (needsLoadingState) {
-                        // Set loading state immediately before opening section (for Chrome compatibility)
-                        setIsLiveAvailabilityLoading(true);
-                        console.log('⏳ Setting loading state before opening Live Availability section', {
+                    // For Shopify flow on mobile Chrome, ALWAYS set loading state temporarily
+                    // to create a guard period that blocks other completions
+                    if (isShopifyFlow || (!availabilities || availabilities.length === 0)) {
+                        // Set loading state immediately before opening section
+                        setIsLiveAvailabilityLoadingSync(true);
+                        console.log('⏳ Setting loading state before opening Live Availability section (guard period)', {
                             isChromeBrowser,
-                            hasLocationAndActivity,
-                            shouldHaveAvailabilities,
                             isShopifyFlow,
-                            needsLoadingState
+                            availabilitiesCount: availabilities?.length || 0
                         });
+                        
+                        // For Shopify flow, ensure loading state stays active for a minimum period
+                        // This prevents race conditions on mobile Chrome
+                        if (isShopifyFlow && availabilities && availabilities.length > 0) {
+                            // Availabilities already loaded, but set minimum guard period
+                            setTimeout(() => {
+                                setIsLiveAvailabilityLoadingSync(false);
+                                console.log('✅ Guard period complete, clearing loading state');
+                            }, 1500); // 1.5 second guard period
+                        }
                     }
                 }
                 
@@ -1367,13 +1389,15 @@ const Index = () => {
                 // don't switch to another section - keep Live Availability open
                 // CRITICAL FIX: Also check if we just opened live-availability (activeAccordion might be stale in closure)
                 const isShopifyFlowCheck = params.get('source') === 'shopify';
+                const isLoadingCheckForOpen = isLiveAvailabilityLoading || isLiveAvailabilityLoadingRef.current;
                 const justOpenedLiveAvailability = nextSection === 'live-availability' && 
-                    (activeAccordion !== 'live-availability' || isLiveAvailabilityLoading);
+                    (activeAccordion !== 'live-availability' || isLoadingCheckForOpen);
                 
                 if ((activeAccordion === 'live-availability' || justOpenedLiveAvailability) && nextSection !== 'live-availability') {
                     // Check if availabilities are still loading using the loading state from child component
                     // This is more reliable than checking availabilities array, especially for Chrome/mobile
-                    if (isLiveAvailabilityLoading) {
+                    // Check BOTH state and ref (ref is synchronous)
+                    if (isLoadingCheckForOpen) {
                         console.log('⏳ Live Availability is loading (from child component), keeping section open instead of switching to:', nextSection);
                         return; // Don't switch sections while loading
                     }
@@ -3689,7 +3713,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
-                                                onLoadingStateChange={setIsLiveAvailabilityLoading}
+                                                onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -3788,7 +3812,7 @@ const Index = () => {
                                                 countdownSeconds={countdownSeconds}
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
-                                                onLoadingStateChange={setIsLiveAvailabilityLoading}
+                                                onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -4014,7 +4038,7 @@ const Index = () => {
                                                     selectedVoucherType={selectedVoucherType}
                                                     chooseFlightType={chooseFlightType}
                                                     onSectionCompletion={handleSectionCompletion}
-                                                    onLoadingStateChange={setIsLiveAvailabilityLoading}
+                                                    onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
                                                 />
                                             )}
                                             {(activitySelect === "Redeem Voucher") && (
