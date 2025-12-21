@@ -56,6 +56,26 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     }, [chooseLocation]);
 
+    // Shared Flight için: Eğer mevcut tarih Mart'tan önceyse (Ocak/Şubat), takvimi aynı yılın Mart ayına ayarla.
+    // Eğer tarih Mart veya daha ilerisi ise mevcut ayı göster.
+    useEffect(() => {
+        const isSharedFlight = (chooseFlightType?.type || '').toLowerCase().includes('shared');
+        if (!isSharedFlight) return;
+        if (chooseLocation === "Bristol Fiesta") return; // Bristol özel mantığına dokunma
+        if (activeAccordion !== 'live-availability') return; // Sadece Live Availability açıldığında uygula
+
+        const now = new Date();
+        const currentMonth = now.getMonth(); // 0-index, Mart = 2
+        const targetDate = currentMonth < 2 ? new Date(now.getFullYear(), 2, 1) : now;
+
+        if (
+            currentDate.getFullYear() !== targetDate.getFullYear() ||
+            currentDate.getMonth() !== targetDate.getMonth()
+        ) {
+            setCurrentDate(targetDate);
+        }
+    }, [chooseFlightType, chooseLocation, activeAccordion, currentDate]);
+
     // Bristol Fiesta için müsaitlik kontrolü - Ağustos aylarında müsaitlik var mı kontrol et
     useEffect(() => {
         if (chooseLocation === "Bristol Fiesta") {
