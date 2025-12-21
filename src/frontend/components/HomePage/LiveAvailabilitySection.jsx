@@ -29,6 +29,10 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(false);
     
+    // Touch/swipe handling state for month navigation
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    
     // Bristol Fiesta için Ağustos ayı mantığı, diğer lokasyonlar için güncel ay
     useEffect(() => {
         if (chooseLocation === "Bristol Fiesta") {
@@ -393,6 +397,34 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             setCurrentDate(nextAugust);
         } else {
             setCurrentDate(addMonths(currentDate, 1));
+        }
+    };
+
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null); // Reset touchEnd
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+        
+        if (isLeftSwipe) {
+            // Swipe left -> next month
+            handleNextMonth();
+        } else if (isRightSwipe) {
+            // Swipe right -> previous month
+            handlePrevMonth();
         }
     };
 
@@ -1481,7 +1513,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 `}
             </style>
             <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`} isDisabled={isDisabled}>
-                <div className="calendar">
+                <div 
+                    className="calendar"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    style={{
+                        touchAction: 'pan-y' // Enable swipe gesture throughout calendar
+                    }}
+                >
                     <div className="header" style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -1489,32 +1529,68 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         position: 'relative', 
                         width: '100%',
                         flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? '12px' : '0'
+                        gap: isMobile ? '12px' : '0',
+                        minHeight: isMobile ? '80px' : '60px'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8 }}>
-                            <div className='calender-prev calender-arrow' onClick={handlePrevMonth}><ArrowBackIosIcon /></div>
+                        {/* Fixed position arrows - left */}
+                        <div 
+                            className='calender-prev calender-arrow' 
+                            onClick={handlePrevMonth}
+                            style={{
+                                position: 'absolute',
+                                left: isMobile ? '8px' : '20px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                zIndex: 10
+                            }}
+                        >
+                            <ArrowBackIosIcon />
+                        </div>
+                        
+                        {/* Center content */}
+                        <div style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            gap: isMobile ? '8px' : '12px'
+                        }}>
                             <h2 style={{ 
-                                margin: '0 4px', 
+                                margin: 0, 
                                 fontWeight: 500, 
                                 color: '#222', 
                                 fontSize: isMobile ? 18 : 24, 
-                                letterSpacing: 1 
+                                letterSpacing: 1,
+                                textAlign: 'center'
                             }}>
                                 {format(currentDate, 'MMMM yyyy')}
                             </h2>
-                            <div className='calender-next calender-arrow' onClick={handleNextMonth}><ArrowForwardIosIcon /></div>
+                            
+                            {/* Real-time availability badge */}
+                            <div className="realtime-badge-wrap">
+                                <div className="realtime-badge" style={{
+                                    fontSize: isMobile ? 12 : 14,
+                                    padding: isMobile ? '4px 8px' : '8px 12px',
+                                    background: '#00eb5b'
+                                }}>
+                                    <CheckIcon style={{ fontSize: isMobile ? 14 : 20, marginRight: 4 }} />
+                                    <span className="realtime-badge-text">Real-time availability</span>
+                                </div>
+                            </div>
                         </div>
                         
-                        {/* Real-time availability badge - responsive */}
-                        <div className="realtime-badge-wrap">
-                            <div className="realtime-badge" style={{
-                                fontSize: isMobile ? 14 : 14,
-                                padding: isMobile ? '6px 10px' : '8px 12px',
-                                background: '#00eb5b'
-                            }}>
-                                <CheckIcon style={{ fontSize: isMobile ? 16 : 20, marginRight: 4 }} />
-                                <span className="realtime-badge-text">Real-time availability</span>
-                            </div>
+                        {/* Fixed position arrows - right */}
+                        <div 
+                            className='calender-next calender-arrow' 
+                            onClick={handleNextMonth}
+                            style={{
+                                position: 'absolute',
+                                right: isMobile ? '8px' : '20px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                zIndex: 10
+                            }}
+                        >
+                            <ArrowForwardIosIcon />
                         </div>
                     </div>
                     {/* Centered currently viewing info under the heading */}
@@ -1590,17 +1666,19 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </div>
                         </div>
                     ) : (
-                        <div className="days-grid" style={{ 
-                            display: 'grid', 
-                            gridTemplateColumns: 'repeat(7, 1fr)', 
-                            gap: isMobile ? '0px' : '4px', 
-                            marginBottom: 0, 
-                            width: '100%', 
-                            maxWidth: '100%', 
-                            margin: '0 auto', 
-                            padding: isMobile ? '0 2px' : '0 6px', 
-                            boxSizing: 'border-box' 
-                        }}>
+                        <div 
+                            className="days-grid" 
+                            style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(7, 1fr)', 
+                                gap: isMobile ? '0px' : '4px', 
+                                marginBottom: 0, 
+                                width: '100%', 
+                                maxWidth: '100%', 
+                                margin: '0 auto', 
+                                padding: isMobile ? '0 2px' : '0 6px', 
+                                boxSizing: 'border-box'
+                            }}>
                             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
                                 <div key={d} className="weekday-label" style={{ 
                                     textAlign: 'center', 
