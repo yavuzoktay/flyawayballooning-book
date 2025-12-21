@@ -196,57 +196,6 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             onBeforeClose={onBeforeClose}
         >
             <div className="Recipient">
-                {/* Skip Recipient Details Button */}
-                {isGiftVoucher && !skipRecipientDetails && !recipientDetails?.isSkipped && (
-                    <div style={{ 
-                        marginBottom: '20px', 
-                        padding: '12px', 
-                        borderRadius: '8px',
-                        textAlign: 'center'
-                    }}>
-                        <button
-                            type="button"
-                            onClick={handleSkipRecipientDetails}
-                            style={{
-                                border: '1px solid #d1d5db',
-                                background: '#fff',
-                                color: '#374151',
-                                padding: '8px 14px',
-                                borderRadius: 8,
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                transition: 'all 0.2s ease',
-                                boxSizing: 'border-box',
-                                minHeight: '36px'
-                            }}
-                        >
-                            Skip Recipient Details.
-                        </button>
-                    </div>
-                )}
-
-                {/* Show success message if skipped */}
-                {isGiftVoucher && (skipRecipientDetails || recipientDetails?.isSkipped) && (
-                    <div style={{ 
-                        marginBottom: '20px', 
-                        padding: '12px', 
-                        backgroundColor: '#d4edda', 
-                        border: '1px solid #c3e6cb', 
-                        borderRadius: '8px',
-                        textAlign: 'center'
-                    }}>
-                        <p style={{ 
-                            margin: '0', 
-                            fontSize: '14px', 
-                            color: '#155724',
-                            fontWeight: '500'
-                        }}>
-                            ✓ Recipient details skipped - you can add them later
-                        </p>
-                    </div>
-                )}
-
                 <div className="form-presnger" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
@@ -565,6 +514,59 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                         `}</style>
                         {validationErrors.date && <span style={{ color: 'red', fontSize: 12, marginTop: '4px', display: 'block' }}>Gift date is required</span>}
                     </div>
+
+                    {/* Skip Recipient Details Button - Moved below Date input */}
+                    {isGiftVoucher && !skipRecipientDetails && !recipientDetails?.isSkipped && (
+                        <div style={{ 
+                            marginTop: '20px',
+                            marginBottom: '0px', 
+                            padding: '12px', 
+                            borderRadius: '8px',
+                            textAlign: 'center'
+                        }}>
+                            <button
+                                type="button"
+                                onClick={handleSkipRecipientDetails}
+                                style={{
+                                    border: '1px solid #d1d5db',
+                                    background: '#fff',
+                                    color: '#374151',
+                                    padding: '8px 14px',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    transition: 'all 0.2s ease',
+                                    boxSizing: 'border-box',
+                                    minHeight: '36px'
+                                }}
+                            >
+                                Skip Recipient Details.
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Show success message if skipped */}
+                    {isGiftVoucher && (skipRecipientDetails || recipientDetails?.isSkipped) && (
+                        <div style={{ 
+                            marginTop: '20px',
+                            marginBottom: '0px', 
+                            padding: '12px', 
+                            backgroundColor: '#d4edda', 
+                            border: '1px solid #c3e6cb', 
+                            borderRadius: '8px',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ 
+                                margin: '0', 
+                                fontSize: '14px', 
+                                color: '#155724',
+                                fontWeight: '500'
+                            }}>
+                                ✓ Recipient details skipped - you can add them later
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </Accordion>
