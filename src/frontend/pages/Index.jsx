@@ -4572,7 +4572,12 @@ const Index = () => {
             {/* Success Modal for Redeem Voucher */}
             <Dialog
                 open={successModalOpen}
-                onClose={() => setSuccessModalOpen(false)}
+                onClose={() => {
+                    setSuccessModalOpen(false);
+                    setSuccessModalData(null);
+                    // Redirect to main website after closing the modal
+                    window.location.href = 'https://flyawayballooning.com/';
+                }}
                 maxWidth="md"
                 fullWidth
             >
@@ -4693,6 +4698,8 @@ const Index = () => {
                         onClick={() => {
                             setSuccessModalOpen(false);
                             setSuccessModalData(null);
+                            // Redirect to main website after closing the modal
+                            window.location.href = 'https://flyawayballooning.com/';
                         }}
                         variant="contained"
                         color="primary"

@@ -1428,7 +1428,12 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             {/* Success Modal for Redeem Voucher */}
             <Dialog
                 open={successModalOpen}
-                onClose={() => setSuccessModalOpen(false)}
+                onClose={() => {
+                    setSuccessModalOpen(false);
+                    setSuccessModalData(null);
+                    // Redirect to main website after closing the modal
+                    window.location.href = 'https://flyawayballooning.com/';
+                }}
                 maxWidth="md"
                 fullWidth
             >
@@ -1549,6 +1554,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         onClick={() => {
                             setSuccessModalOpen(false);
                             setSuccessModalData(null);
+                            // Redirect to main website after closing the modal
+                            window.location.href = 'https://flyawayballooning.com/';
                         }}
                         variant="contained"
                         color="primary"
