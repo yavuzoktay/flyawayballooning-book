@@ -1550,9 +1550,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         {/* Center content */}
                         <div style={{ 
                             display: 'flex', 
-                            flexDirection: 'column', 
+                            flexDirection: isMobile ? 'column' : 'row', 
                             alignItems: 'center', 
-                            gap: isMobile ? '8px' : '12px',
+                            gap: isMobile ? '8px' : '16px',
                             position: 'relative',
                             zIndex: 1
                         }}>
