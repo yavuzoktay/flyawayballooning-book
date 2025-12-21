@@ -1528,9 +1528,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         justifyContent: 'center', 
                         position: 'relative', 
                         width: '100%',
-                        flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? '12px' : '0',
-                        minHeight: isMobile ? '80px' : '60px'
+                        minHeight: isMobile ? '40px' : '50px'
                     }}>
                         {/* Fixed position arrows - left */}
                         <div 
@@ -1547,38 +1545,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <ArrowBackIosIcon />
                         </div>
                         
-                        {/* Center content */}
-                        <div style={{ 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            gap: isMobile ? '8px' : '12px',
-                            position: 'relative',
-                            zIndex: 1
+                        {/* Month title */}
+                        <h2 style={{ 
+                            margin: 0, 
+                            fontWeight: 500, 
+                            color: '#222', 
+                            fontSize: isMobile ? 18 : 24, 
+                            letterSpacing: 1,
+                            textAlign: 'center'
                         }}>
-                            <h2 style={{ 
-                                margin: 0, 
-                                fontWeight: 500, 
-                                color: '#222', 
-                                fontSize: isMobile ? 18 : 24, 
-                                letterSpacing: 1,
-                                textAlign: 'center'
-                            }}>
-                                {format(currentDate, 'MMMM yyyy')}
-                            </h2>
-                            
-                            {/* Real-time availability badge */}
-                            <div className="realtime-badge-wrap">
-                                <div className="realtime-badge" style={{
-                                    fontSize: isMobile ? 12 : 14,
-                                    padding: isMobile ? '4px 8px' : '8px 12px',
-                                    background: '#00eb5b'
-                                }}>
-                                    <CheckIcon style={{ fontSize: isMobile ? 14 : 20, marginRight: 4 }} />
-                                    <span className="realtime-badge-text">Real-time availability</span>
-                                </div>
-                            </div>
-                        </div>
+                            {format(currentDate, 'MMMM yyyy')}
+                        </h2>
                         
                         {/* Fixed position arrows - right */}
                         <div 
@@ -1593,6 +1570,24 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }}
                         >
                             <ArrowForwardIosIcon />
+                        </div>
+                    </div>
+                    
+                    {/* Real-time availability badge - below month title */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: isMobile ? '8px' : '12px'
+                    }}>
+                        <div className="realtime-badge-wrap">
+                            <div className="realtime-badge" style={{
+                                fontSize: isMobile ? 12 : 14,
+                                padding: isMobile ? '4px 8px' : '8px 12px',
+                                background: '#00eb5b'
+                            }}>
+                                <CheckIcon style={{ fontSize: isMobile ? 14 : 20, marginRight: 4 }} />
+                                <span className="realtime-badge-text">Real-time availability</span>
+                            </div>
                         </div>
                     </div>
                     {/* Centered currently viewing info under the heading */}
