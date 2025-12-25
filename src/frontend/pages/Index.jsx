@@ -2269,6 +2269,77 @@ const Index = () => {
         return () => clearTimeout(timer);
     }, [activityId, chooseLocation, chooseFlightType?.type, selectedVoucherType?.title, location.search, refetchAvailabilities]);
 
+    // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (Shopify first load issue)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search || '');
+        const isShopifyFlow = params.get('source') === 'shopify';
+        const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
+        
+        // Only for Shopify voucher-type flow
+        if (!isShopifyFlow || !isVoucherTypeStart) return;
+        
+        // Only when Live Availability is active and availabilities are empty
+        if (activeAccordion !== 'live-availability') return;
+        if (availabilities && availabilities.length > 0) return;
+        
+        // Must have required state
+        if (!chooseLocation || !chooseFlightType?.type) return;
+        
+        console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
+        
+        let retryCount = 0;
+        const maxRetries = 10;
+        const retryInterval = 800;
+        
+        const retryFetch = () => {
+            retryCount++;
+            console.log(`🔄 Shopify First Load Fix - Retry #${retryCount}/${maxRetries}`, {
+                activityId,
+                chooseLocation,
+                chooseFlightType: chooseFlightType?.type,
+                availabilitiesCount: availabilities?.length || 0
+            });
+            
+            if (activityId) {
+                refetchAvailabilities();
+            } else {
+                console.log('🔄 Shopify First Load Fix - activityId not ready yet, waiting...');
+            }
+        };
+        
+        // Start aggressive retry loop
+        const intervalId = setInterval(() => {
+            if (retryCount >= maxRetries) {
+                console.log('🔄 Shopify First Load Fix - Max retries reached, stopping');
+                clearInterval(intervalId);
+                return;
+            }
+            
+            // Stop if availabilities are now loaded
+            if (availabilities && availabilities.length > 0) {
+                console.log('🔄 Shopify First Load Fix - Availabilities loaded, stopping retries');
+                clearInterval(intervalId);
+                return;
+            }
+            
+            // Stop if we're no longer on live-availability
+            if (activeAccordion !== 'live-availability') {
+                console.log('🔄 Shopify First Load Fix - No longer on live-availability, stopping');
+                clearInterval(intervalId);
+                return;
+            }
+            
+            retryFetch();
+        }, retryInterval);
+        
+        // Initial fetch
+        retryFetch();
+        
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [activeAccordion, availabilities, chooseLocation, chooseFlightType?.type, activityId, location.search, refetchAvailabilities]);
+
     // Sync passengerCount with Voucher Type quantity for Flight Voucher and Book Flight flows
     useEffect(() => {
         if (selectedVoucherType && selectedVoucherType.quantity && (activitySelect === 'Flight Voucher' || activitySelect === 'Book Flight')) {
