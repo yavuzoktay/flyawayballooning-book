@@ -2026,13 +2026,17 @@ const Index = () => {
         // Live Availability accordion'u açıldığında ve lokasyon seçildiğinde güncel availabilities çek
         // For Shopify flow, use refetchAvailabilities to ensure correct parameters and timing
         // For Bing/Edge browsers, use more aggressive retry mechanism
-            if (chooseLocation && activeAccordion === "live-availability") {
+        if (chooseLocation && activeAccordion === "live-availability") {
             // Check if we're in Shopify flow
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
+            const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
             
             // Detect Bing/Edge browser for more aggressive retry
             const isBingBrowser = navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
+            
+            // CRITICAL: If availabilities are empty and we have activityId, fetch immediately
+            const hasNoAvailabilities = !availabilities || availabilities.length === 0;
             
             if (isShopifyFlow) {
                 // For Shopify flow, ensure all required state is ready before fetching
@@ -2044,17 +2048,31 @@ const Index = () => {
                         activityId,
                         chooseFlightType: chooseFlightType?.type,
                         selectedVoucherType: selectedVoucherType?.title,
-                        isBingBrowser
+                        isBingBrowser,
+                        hasNoAvailabilities,
+                        isVoucherTypeStart
                     });
+                    
+                    // If availabilities are empty, fetch immediately (no delay for first load)
+                    if (hasNoAvailabilities) {
+                        console.log('🔵 Live Availability - Availabilities empty, fetching immediately');
+                        refetchAvailabilities();
+                    }
+                    
                     // For Bing browser, use longer delay and multiple retries
                     const delay = isBingBrowser ? 800 : 500;
                     const timer = setTimeout(() => {
-                        refetchAvailabilities();
+                        // Only refetch if still empty (avoid duplicate calls)
+                        if (hasNoAvailabilities) {
+                            refetchAvailabilities();
+                        }
                         // For Bing browser, retry once more after additional delay
                         if (isBingBrowser) {
                             setTimeout(() => {
                                 console.log('🔵 Bing browser - Retrying availability fetch');
-                                refetchAvailabilities();
+                                if (!availabilities || availabilities.length === 0) {
+                                    refetchAvailabilities();
+                                }
                             }, 1000);
                         }
                     }, delay);
@@ -2269,6 +2287,41 @@ const Index = () => {
         return () => clearTimeout(timer);
     }, [activityId, chooseLocation, chooseFlightType?.type, selectedVoucherType?.title, location.search, refetchAvailabilities]);
 
+    // CRITICAL FIX: When activityId becomes available for Shopify flow, immediately fetch availabilities
+    useEffect(() => {
+        const params = new URLSearchParams(location.search || '');
+        const isShopifyFlow = params.get('source') === 'shopify';
+        const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
+        
+        // Only for Shopify flow
+        if (!isShopifyFlow) return;
+        
+        // Only when activityId is just set and we have required state
+        if (!activityId || !chooseLocation) return;
+        
+        // If Live Availability is open or will be opened soon, fetch immediately
+        const shouldFetch = activeAccordion === 'live-availability' || 
+                           isVoucherTypeStart || 
+                           (chooseFlightType?.type && selectedVoucherType?.title);
+        
+        if (shouldFetch) {
+            console.log('🔄 Shopify activityId Ready - Immediately fetching availabilities', {
+                activityId,
+                chooseLocation,
+                chooseFlightType: chooseFlightType?.type,
+                selectedVoucherType: selectedVoucherType?.title,
+                activeAccordion
+            });
+            
+            // Small delay to ensure all state is settled
+            const timer = setTimeout(() => {
+                refetchAvailabilities();
+            }, 200);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [activityId, chooseLocation, activeAccordion, location.search, refetchAvailabilities, chooseFlightType?.type, selectedVoucherType?.title]);
+
     // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (Shopify first load issue)
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
@@ -2288,8 +2341,8 @@ const Index = () => {
         console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
         
         let retryCount = 0;
-        const maxRetries = 10;
-        const retryInterval = 800;
+        const maxRetries = 15; // Increased retries
+        const retryInterval = 600; // Reduced interval for faster retries
         
         const retryFetch = () => {
             retryCount++;
@@ -2297,6 +2350,7 @@ const Index = () => {
                 activityId,
                 chooseLocation,
                 chooseFlightType: chooseFlightType?.type,
+                selectedVoucherType: selectedVoucherType?.title,
                 availabilitiesCount: availabilities?.length || 0
             });
             
@@ -2338,7 +2392,7 @@ const Index = () => {
         return () => {
             clearInterval(intervalId);
         };
-    }, [activeAccordion, availabilities, chooseLocation, chooseFlightType?.type, activityId, location.search, refetchAvailabilities]);
+    }, [activeAccordion, availabilities, chooseLocation, chooseFlightType?.type, activityId, location.search, refetchAvailabilities, selectedVoucherType?.title]);
 
     // Sync passengerCount with Voucher Type quantity for Flight Voucher and Book Flight flows
     useEffect(() => {
