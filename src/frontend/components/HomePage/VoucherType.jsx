@@ -1671,7 +1671,7 @@ const VoucherType = ({
                                 padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
                                 marginBottom: shouldShowWeatherContainer ? 10 : 0,
                                 // Only reserve space when a weather container is actually shown; otherwise no extra gap (fix mobile extra spacer)
-                                minHeight: (showWeatherRefundableShared || showWeatherRefundablePrivate) ? '50px' : 0,
+                                minHeight: (showWeatherRefundableShared || showWeatherRefundablePrivate) ? '0px' : 0,
                                 overflow: 'visible',
                                 position: 'relative'
                             }}>
