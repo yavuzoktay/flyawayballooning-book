@@ -2288,6 +2288,7 @@ const Index = () => {
     }, [activityId, chooseLocation, chooseFlightType?.type, selectedVoucherType?.title, location.search, refetchAvailabilities]);
 
     // CRITICAL FIX: When activityId becomes available for Shopify flow, immediately fetch availabilities
+    // This ensures availabilities are fetched when all required state is ready
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const isShopifyFlow = params.get('source') === 'shopify';
@@ -2299,10 +2300,14 @@ const Index = () => {
         // Only when activityId is just set and we have required state
         if (!activityId || !chooseLocation) return;
         
+        // For Shopify flow with startAt=voucher-type, we need location, experience, and voucher type
+        // For other Shopify flows, we need location and experience at minimum
+        const hasRequiredState = isVoucherTypeStart
+            ? (chooseFlightType?.type && selectedVoucherType?.title) // Need all for voucher-type start
+            : (chooseFlightType?.type); // Need at least experience for other flows
+        
         // If Live Availability is open or will be opened soon, fetch immediately
-        const shouldFetch = activeAccordion === 'live-availability' || 
-                           isVoucherTypeStart || 
-                           (chooseFlightType?.type && selectedVoucherType?.title);
+        const shouldFetch = (activeAccordion === 'live-availability' || isVoucherTypeStart) && hasRequiredState;
         
         if (shouldFetch) {
             console.log('🔄 Shopify activityId Ready - Immediately fetching availabilities', {
@@ -2310,13 +2315,15 @@ const Index = () => {
                 chooseLocation,
                 chooseFlightType: chooseFlightType?.type,
                 selectedVoucherType: selectedVoucherType?.title,
-                activeAccordion
+                activeAccordion,
+                isVoucherTypeStart,
+                hasRequiredState
             });
             
             // Small delay to ensure all state is settled
             const timer = setTimeout(() => {
                 refetchAvailabilities();
-            }, 200);
+            }, 300);
             
             return () => clearTimeout(timer);
         }
@@ -2335,8 +2342,12 @@ const Index = () => {
         if (activeAccordion !== 'live-availability') return;
         if (availabilities && availabilities.length > 0) return;
         
-        // Must have required state
+        // Must have required state - for voucher-type start, we need voucher type too
         if (!chooseLocation || !chooseFlightType?.type) return;
+        if (isVoucherTypeStart && !selectedVoucherType?.title) {
+            console.log('🔄 Shopify First Load Fix - Waiting for voucher type to be set');
+            return;
+        }
         
         console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
         
@@ -2888,12 +2899,24 @@ const Index = () => {
                     }, 100);
                     
                     // Immediately refetch availabilities after setting flight type (don't wait for DOM click)
+                    // But only if we have all required state (location, activityId, flightType)
                     setTimeout(() => {
-                        console.log('🔵 Shopify prefill - Refetching availabilities immediately after flight type set');
-                        if (qpLocation && activityId) {
-                            refetchAvailabilities();
+                        console.log('🔵 Shopify prefill - Checking if ready to refetch availabilities after flight type set', {
+                            qpLocation,
+                            activityId,
+                            derivedExperience,
+                            hasAllRequired: qpLocation && activityId && derivedExperience
+                        });
+                        if (qpLocation && activityId && derivedExperience) {
+                            // For voucher-type start, wait for voucher type to be set too
+                            if (qpStartAt === 'voucher-type' && !qpVoucherTitle) {
+                                console.log('🔵 Shopify prefill - Waiting for voucher type before refetching (startAt=voucher-type)');
+                            } else {
+                                console.log('🔵 Shopify prefill - Refetching availabilities immediately after flight type set');
+                                refetchAvailabilities();
+                            }
                         }
-                    }, 400);
+                    }, 500);
                     
                     // Trigger experience selection in ExperienceSection component
                     setTimeout(() => {
@@ -2980,12 +3003,22 @@ const Index = () => {
                         });
                         
                         // After voucher type is selected, refetch availabilities with correct filters
+                        // This is critical for startAt=voucher-type flow
                         setTimeout(() => {
-                            console.log('🔵 Shopify prefill - Refetching availabilities after voucher type selection');
-                            if (qpLocation && activityId) {
+                            console.log('🔵 Shopify prefill - Refetching availabilities after voucher type selection', {
+                                qpLocation,
+                                activityId,
+                                derivedExperience,
+                                qpVoucherTitle,
+                                hasAllRequired: qpLocation && activityId && derivedExperience && qpVoucherTitle
+                            });
+                            if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
+                                console.log('🔵 Shopify prefill - All state ready, refetching availabilities with filters');
                                 refetchAvailabilities();
+                            } else {
+                                console.log('🔵 Shopify prefill - Not all state ready yet, will retry');
                             }
-                        }, 500);
+                        }, 600);
                     }, 300);
                 }
             }, 1500);
@@ -3020,6 +3053,7 @@ const Index = () => {
                 if (qpStartAt === 'voucher-type') {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (startAt=voucher-type)');
                     setActiveAccordion('voucher-type');
+                    
                     // Scroll to voucher type section
                     setTimeout(() => {
                         const voucherSection = document.getElementById('voucher-type');
@@ -3027,6 +3061,34 @@ const Index = () => {
                             voucherSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
                     }, 100);
+                    
+                    // CRITICAL: After voucher type is set and all state is ready, open Live Availability
+                    // and fetch availabilities with correct filters
+                    setTimeout(() => {
+                        // Check if all required state is ready
+                        if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
+                            console.log('🔵 Shopify prefill - All state ready, opening Live Availability section');
+                            setActiveAccordion('live-availability');
+                            
+                            // Final refetch with all state ready
+                            setTimeout(() => {
+                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
+                                    location: qpLocation,
+                                    activityId,
+                                    experience: derivedExperience,
+                                    voucherType: qpVoucherTitle
+                                });
+                                refetchAvailabilities();
+                            }, 400);
+                        } else {
+                            console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
+                                location: qpLocation,
+                                activityId,
+                                experience: derivedExperience,
+                                voucherType: qpVoucherTitle
+                            });
+                        }
+                    }, 2000); // Wait longer for voucher type to be fully set
                 } else if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
                     setActiveAccordion('voucher-type');
@@ -3038,7 +3100,7 @@ const Index = () => {
                         }
                     }, 100);
                 }
-            }, qpStartAt === 'voucher-type' ? 1200 : 1500);
+            }, qpStartAt === 'voucher-type' ? 1800 : 1500);
 
             // End of prefill - allow normal resets after a short delay to ensure state has been set
             setTimeout(() => {
