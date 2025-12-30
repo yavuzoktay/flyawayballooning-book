@@ -401,6 +401,7 @@ const Index = () => {
     
     
     // Function to re-fetch availabilities when filters change
+    // Returns a promise that resolves when availabilities are fetched
     const refetchAvailabilities = useCallback(async () => {
         if (chooseLocation && activityId) {
             try {
@@ -446,16 +447,20 @@ const Index = () => {
                     const availData = response.data.data || [];
                     setAvailabilities(availData);
                     console.log('Availabilities set to:', availData.length);
+                    return availData; // Return the data so caller can wait for it
                 } else {
                     console.log('API returned success: false');
                     console.log('Response error:', response.data.error || 'No error message');
+                    return [];
                 }
             } catch (error) {
                 console.error('Error refetching availabilities:', error);
                 console.error('Error details:', error.response?.data);
+                return [];
             }
         } else {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
+            return [];
         }
     }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type]);
 
@@ -3229,22 +3234,95 @@ const Index = () => {
                     
                     // CRITICAL: After voucher type is set and all state is ready, open Live Availability
                     // and fetch availabilities with correct filters
+                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar
                     setTimeout(() => {
                         // Check if all required state is ready
                         if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
-                            console.log('🔵 Shopify prefill - All state ready, opening Live Availability section');
-                            setActiveAccordion('live-availability');
+                            // Detect mobile Chrome browser specifically
+                            const isMobileChrome = (() => {
+                                try {
+                                    const ua = navigator.userAgent;
+                                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                                    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                                    return isMobile && isChrome;
+                                } catch {
+                                    return false;
+                                }
+                            })();
                             
-                            // Final refetch with all state ready
-                            setTimeout(() => {
-                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
-                                    location: qpLocation,
-                                    activityId,
-                                    experience: derivedExperience,
-                                    voucherType: qpVoucherTitle
-                                });
-                                refetchAvailabilities();
-                            }, 400);
+                            console.log('🔵 Shopify prefill - All state ready, preparing to open Live Availability section', {
+                                isMobileChrome,
+                                location: qpLocation,
+                                activityId,
+                                experience: derivedExperience,
+                                voucherType: qpVoucherTitle
+                            });
+                            
+                            // For mobile Chrome: Fetch availabilities FIRST, wait for them to load, THEN open section
+                            if (isMobileChrome) {
+                                console.log('🔵 Mobile Chrome - Fetching availabilities BEFORE opening Live Availability section');
+                                
+                                // Set loading state before fetching
+                                setIsLiveAvailabilityLoadingSync(true);
+                                
+                                // Fetch availabilities and wait for the promise to resolve
+                                const fetchAndWait = async () => {
+                                    try {
+                                        // First fetch attempt
+                                        let fetchedData = await refetchAvailabilities();
+                                        
+                                        // If no data, retry up to 3 times with increasing delays
+                                        let retryCount = 0;
+                                        const maxRetries = 3;
+                                        
+                                        while ((!fetchedData || fetchedData.length === 0) && retryCount < maxRetries) {
+                                            retryCount++;
+                                            const delay = retryCount * 800; // 800ms, 1600ms, 2400ms
+                                            console.log(`🔵 Mobile Chrome - Retry ${retryCount}/${maxRetries} after ${delay}ms`);
+                                            
+                                            await new Promise(resolve => setTimeout(resolve, delay));
+                                            fetchedData = await refetchAvailabilities();
+                                        }
+                                        
+                                        if (fetchedData && fetchedData.length > 0) {
+                                            console.log('🔵 Mobile Chrome - Availabilities loaded, opening Live Availability section', {
+                                                count: fetchedData.length
+                                            });
+                                        } else {
+                                            console.log('🔵 Mobile Chrome - No availabilities after retries, opening section anyway');
+                                        }
+                                        
+                                        // Open section after availabilities are loaded (or after retries)
+                                        setActiveAccordion('live-availability');
+                                        
+                                        // Final refetch to ensure we have the latest data
+                                        setTimeout(() => {
+                                            refetchAvailabilities();
+                                        }, 200);
+                                    } catch (error) {
+                                        console.error('🔵 Mobile Chrome - Error fetching availabilities:', error);
+                                        // Open section anyway to prevent blocking
+                                        setActiveAccordion('live-availability');
+                                    }
+                                };
+                                
+                                fetchAndWait();
+                            } else {
+                                // For non-mobile Chrome: Open section immediately and fetch in parallel
+                                console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
+                                setActiveAccordion('live-availability');
+                                
+                                // Final refetch with all state ready
+                                setTimeout(() => {
+                                    console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
+                                        location: qpLocation,
+                                        activityId,
+                                        experience: derivedExperience,
+                                        voucherType: qpVoucherTitle
+                                    });
+                                    refetchAvailabilities();
+                                }, 400);
+                            }
                         } else {
                             console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
                                 location: qpLocation,
