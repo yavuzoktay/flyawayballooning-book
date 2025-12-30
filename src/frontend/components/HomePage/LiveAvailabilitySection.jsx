@@ -309,6 +309,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     })();
     
+    // Detect mobile Chrome browser specifically (critical for fixing mobile Chrome bug)
+    const isMobileChrome = (() => {
+        try {
+            const ua = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+            const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+            return isMobile && isChrome;
+        } catch {
+            return false;
+        }
+    })();
+    
     // For all browsers, especially in Shopify flow, show loading until availabilities are loaded
     // This prevents section from closing or switching to another section while data is loading
     useEffect(() => {
@@ -335,6 +347,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     console.log('⏳ Live Availability: Showing loading, waiting for availabilities', {
                         isShopifyFlow,
                         isChromeBrowser,
+                        isMobileChrome,
                         hasLocationAndActivity,
                         chooseFlightType: chooseFlightType?.type,
                         activeAccordion,
@@ -343,7 +356,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 } else {
                     // Availabilities loaded, hide loading after a delay to ensure render
                     // For Chrome/mobile, use longer delay to ensure state updates are complete
-                    const delay = isChromeBrowser ? 1000 : 500; // Increased Chrome delay to 1000ms
+                    // For mobile Chrome, use even longer delay to ensure proper rendering
+                    const delay = isMobileChrome ? 1500 : (isChromeBrowser ? 1000 : 500);
                     const timer = setTimeout(() => {
                         setIsLoadingAvailabilities(false);
                         // Notify parent component that loading is complete
@@ -353,6 +367,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         console.log('✅ Live Availability: Availabilities loaded, hiding loading', {
                             availabilitiesCount: availabilities.length,
                             isChromeBrowser,
+                            isMobileChrome,
                             delay
                         });
                     }, delay);
@@ -372,7 +387,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onLoadingStateChange(false);
             }
         }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome]);
     
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {

@@ -463,16 +463,42 @@ const Index = () => {
     useEffect(() => {
         if (!shopifyStartAtVoucher) return;
         if (!chooseLocation || !activityId) return;
+        
+        // Detect mobile Chrome browser specifically
+        const isMobileChrome = (() => {
+            try {
+                const ua = navigator.userAgent;
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                return isMobile && isChrome;
+            } catch {
+                return false;
+            }
+        })();
+        
         // For deep-link, we may not have flight type or voucher type yet; still fetch to avoid empty calendar
+        // For mobile Chrome, use longer delay and multiple retries
+        const initialDelay = isMobileChrome ? 1000 : 600;
         const timer = setTimeout(() => {
             console.log('[ShopifyDeepLink] Triggering availability fetch on first load', {
                 chooseLocation,
                 activityId,
                 chooseFlightType: chooseFlightType?.type,
-                selectedVoucherType: selectedVoucherType?.title
+                selectedVoucherType: selectedVoucherType?.title,
+                isMobileChrome
             });
             refetchAvailabilities();
-        }, 600); // small delay to allow state to settle
+            
+            // For mobile Chrome, retry multiple times to ensure data loads
+            if (isMobileChrome) {
+                for (let i = 1; i <= 3; i++) {
+                    setTimeout(() => {
+                        console.log(`[ShopifyDeepLink] Mobile Chrome retry ${i} - fetching availabilities`);
+                        refetchAvailabilities();
+                    }, 1500 * i); // 1.5s, 3s, 4.5s delays
+                }
+            }
+        }, initialDelay);
         return () => clearTimeout(timer);
     }, [shopifyStartAtVoucher, chooseLocation, activityId, chooseFlightType?.type, selectedVoucherType?.title, refetchAvailabilities]);
 
@@ -2035,6 +2061,18 @@ const Index = () => {
             // Detect Bing/Edge browser for more aggressive retry
             const isBingBrowser = navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
             
+            // Detect mobile Chrome browser specifically (critical for fixing mobile Chrome bug)
+            const isMobileChrome = (() => {
+                try {
+                    const ua = navigator.userAgent;
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                    return isMobile && isChrome;
+                } catch {
+                    return false;
+                }
+            })();
+            
             // CRITICAL: If availabilities are empty and we have activityId, fetch immediately
             const hasNoAvailabilities = !availabilities || availabilities.length === 0;
             
@@ -2049,49 +2087,62 @@ const Index = () => {
                         chooseFlightType: chooseFlightType?.type,
                         selectedVoucherType: selectedVoucherType?.title,
                         isBingBrowser,
+                        isMobileChrome,
                         hasNoAvailabilities,
                         isVoucherTypeStart
                     });
                     
                     // If availabilities are empty, fetch immediately (no delay for first load)
+                    // For mobile Chrome, fetch immediately and aggressively
                     if (hasNoAvailabilities) {
-                        console.log('🔵 Live Availability - Availabilities empty, fetching immediately');
+                        console.log('🔵 Live Availability - Availabilities empty, fetching immediately', {
+                            isMobileChrome
+                        });
                         refetchAvailabilities();
                     }
                     
-                    // For Bing browser, use longer delay and multiple retries
-                    const delay = isBingBrowser ? 800 : 500;
+                    // For mobile Chrome and Bing browser, use longer delay and multiple retries
+                    const delay = isMobileChrome ? 1000 : (isBingBrowser ? 800 : 500);
                     const timer = setTimeout(() => {
                         // Only refetch if still empty (avoid duplicate calls)
                         if (hasNoAvailabilities) {
                             refetchAvailabilities();
                         }
-                        // For Bing browser, retry once more after additional delay
-                        if (isBingBrowser) {
-                            setTimeout(() => {
-                                console.log('🔵 Bing browser - Retrying availability fetch');
-                                if (!availabilities || availabilities.length === 0) {
-                                    refetchAvailabilities();
-                                }
-                            }, 1000);
+                        // For mobile Chrome and Bing browser, retry multiple times
+                        if (isMobileChrome || isBingBrowser) {
+                            const retryCount = isMobileChrome ? 3 : 1; // Mobile Chrome needs more retries
+                            for (let i = 1; i <= retryCount; i++) {
+                                setTimeout(() => {
+                                    console.log(`🔵 ${isMobileChrome ? 'Mobile Chrome' : 'Bing browser'} - Retrying availability fetch (attempt ${i + 1})`);
+                                    if (!availabilities || availabilities.length === 0) {
+                                        refetchAvailabilities();
+                                    }
+                                }, 1000 * i); // 1s, 2s, 3s delays for mobile Chrome
+                            }
                         }
                     }, delay);
                     return () => clearTimeout(timer);
                 } else {
                     // If activityId is not ready yet, wait a bit and try again
-                    console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId', { isBingBrowser });
-                    // For Bing browser, use longer delays
-                    const initialDelay = isBingBrowser ? 1200 : 800;
-                    const retryDelay = isBingBrowser ? 1500 : 1000;
+                    console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId', { 
+                        isBingBrowser,
+                        isMobileChrome 
+                    });
+                    // For mobile Chrome and Bing browser, use longer delays
+                    const initialDelay = isMobileChrome ? 1500 : (isBingBrowser ? 1200 : 800);
+                    const retryDelay = isMobileChrome ? 2000 : (isBingBrowser ? 1500 : 1000);
                     const timer = setTimeout(() => {
                         if (activityId) {
                             console.log('🔵 Live Availability - activityId ready, fetching availabilities');
                             refetchAvailabilities();
-                            // For Bing browser, retry once more
-                            if (isBingBrowser) {
-                                setTimeout(() => {
-                                    refetchAvailabilities();
-                                }, retryDelay);
+                            // For mobile Chrome and Bing browser, retry multiple times
+                            if (isMobileChrome || isBingBrowser) {
+                                const retryCount = isMobileChrome ? 3 : 1;
+                                for (let i = 1; i <= retryCount; i++) {
+                                    setTimeout(() => {
+                                        refetchAvailabilities();
+                                    }, retryDelay * i);
+                                }
                             }
                         } else {
                             console.log('🔵 Live Availability - activityId still not ready, will retry');
@@ -2099,11 +2150,14 @@ const Index = () => {
                             setTimeout(() => {
                                 if (activityId) {
                                     refetchAvailabilities();
-                                    // For Bing browser, retry once more
-                                    if (isBingBrowser) {
-                                        setTimeout(() => {
-                                            refetchAvailabilities();
-                                        }, retryDelay);
+                                    // For mobile Chrome and Bing browser, retry multiple times
+                                    if (isMobileChrome || isBingBrowser) {
+                                        const retryCount = isMobileChrome ? 3 : 1;
+                                        for (let i = 1; i <= retryCount; i++) {
+                                            setTimeout(() => {
+                                                refetchAvailabilities();
+                                            }, retryDelay * i);
+                                        }
                                     }
                                 }
                             }, retryDelay);
@@ -2229,6 +2283,67 @@ const Index = () => {
         }
     }, [activeAccordion, chooseLocation, activityId, availabilities, chooseFlightType, selectedVoucherType, refetchAvailabilities]);
     
+    // Additional effect: For mobile Chrome browser, ensure availabilities are fetched when Live Availability section is open
+    // This is critical for fixing the mobile Chrome bug where calendar shows empty dates on first load
+    useEffect(() => {
+        // Detect mobile Chrome browser specifically
+        const isMobileChrome = (() => {
+            try {
+                const ua = navigator.userAgent;
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                return isMobile && isChrome;
+            } catch {
+                return false;
+            }
+        })();
+        
+        if (!isMobileChrome) return;
+        
+        // Check if we're in Shopify flow
+        const params = new URLSearchParams(location.search || '');
+        const isShopifyFlow = params.get('source') === 'shopify';
+        
+        // Only run when Live Availability section is open and we have location and activityId
+        // Only for Shopify flow (where the bug occurs)
+        if (isShopifyFlow && activeAccordion === "live-availability" && chooseLocation && activityId) {
+            // Check if we have availabilities data
+            const hasAvailabilities = availabilities && availabilities.length > 0;
+            
+            // If no availabilities, try to fetch them aggressively
+            if (!hasAvailabilities) {
+                console.log('🔵 Mobile Chrome - No availabilities found in Shopify flow, fetching aggressively...', {
+                    chooseLocation,
+                    activityId,
+                    chooseFlightType: chooseFlightType?.type,
+                    selectedVoucherType: selectedVoucherType?.title,
+                    activeAccordion
+                });
+                
+                // Fetch immediately
+                refetchAvailabilities();
+                
+                // Use multiple retries with increasing delays for mobile Chrome
+                // More aggressive than Bing browser due to the specific bug
+                const retryFetch = (attempt = 1) => {
+                    const delay = attempt * 800; // 800ms, 1600ms, 2400ms...
+                    setTimeout(() => {
+                        if (chooseLocation && activityId && activeAccordion === "live-availability") {
+                            console.log(`🔵 Mobile Chrome - Retrying availability fetch (attempt ${attempt + 1})`);
+                            refetchAvailabilities();
+                            // Retry up to 4 times for mobile Chrome (more than Bing)
+                            if (attempt < 4) {
+                                retryFetch(attempt + 1);
+                            }
+                        }
+                    }, delay);
+                };
+                
+                retryFetch(1);
+            }
+        }
+    }, [activeAccordion, chooseLocation, activityId, availabilities, chooseFlightType, selectedVoucherType, refetchAvailabilities, location.search]);
+    
     // Additional effect: Refetch availabilities when flight type is set from Shopify prefill
     useEffect(() => {
         // Only run for Shopify flow when flight type is set
@@ -2237,12 +2352,37 @@ const Index = () => {
         if (!chooseLocation || !activityId) return;
         if (!chooseFlightType?.type) return;
         
+        // Detect mobile Chrome browser specifically
+        const isMobileChrome = (() => {
+            try {
+                const ua = navigator.userAgent;
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                return isMobile && isChrome;
+            } catch {
+                return false;
+            }
+        })();
         
         // Small delay to ensure state is settled
+        // For mobile Chrome, use longer delay and multiple retries
+        const delay = isMobileChrome ? 1200 : 800;
         const timer = setTimeout(() => {
-            console.log('🔵 Shopify - Refetching availabilities after flight type set');
+            console.log('🔵 Shopify - Refetching availabilities after flight type set', {
+                isMobileChrome
+            });
             refetchAvailabilities();
-        }, 800);
+            
+            // For mobile Chrome, retry multiple times
+            if (isMobileChrome) {
+                for (let i = 1; i <= 2; i++) {
+                    setTimeout(() => {
+                        console.log(`🔵 Shopify Mobile Chrome - Retrying availability fetch after flight type (attempt ${i + 1})`);
+                        refetchAvailabilities();
+                    }, 1500 * i);
+                }
+            }
+        }, delay);
         return () => clearTimeout(timer);
     }, [chooseFlightType?.type, chooseLocation, activityId, location.search, refetchAvailabilities]);
 
@@ -2254,16 +2394,41 @@ const Index = () => {
         if (!chooseLocation || !activityId) return;
         if (!selectedVoucherType?.title) return;
         
+        // Detect mobile Chrome browser specifically
+        const isMobileChrome = (() => {
+            try {
+                const ua = navigator.userAgent;
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                return isMobile && isChrome;
+            } catch {
+                return false;
+            }
+        })();
+        
         // Small delay to ensure state is settled
+        // For mobile Chrome, use longer delay and multiple retries
+        const delay = isMobileChrome ? 1500 : 1000;
         const timer = setTimeout(() => {
             console.log('🔵 Shopify - Refetching availabilities after voucher type set:', {
                 voucherType: selectedVoucherType.title,
                 location: chooseLocation,
                 activityId: activityId,
-                flightType: chooseFlightType?.type
+                flightType: chooseFlightType?.type,
+                isMobileChrome
             });
             refetchAvailabilities();
-        }, 1000);
+            
+            // For mobile Chrome, retry multiple times
+            if (isMobileChrome) {
+                for (let i = 1; i <= 2; i++) {
+                    setTimeout(() => {
+                        console.log(`🔵 Shopify Mobile Chrome - Retrying availability fetch after voucher type (attempt ${i + 1})`);
+                        refetchAvailabilities();
+                    }, 1500 * i);
+                }
+            }
+        }, delay);
         return () => clearTimeout(timer);
     }, [selectedVoucherType?.title, chooseLocation, activityId, chooseFlightType?.type, location.search, refetchAvailabilities]);
 
