@@ -4,6 +4,63 @@ import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
 
+// Country codes list for phone number dropdown
+const countryCodes = [
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+1', country: 'United States', flag: '🇺🇸' },
+  { code: '+1', country: 'Canada', flag: '🇨🇦' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+39', country: 'Italy', flag: '🇮🇹' },
+  { code: '+34', country: 'Spain', flag: '🇪🇸' },
+  { code: '+31', country: 'Netherlands', flag: '🇳🇱' },
+  { code: '+32', country: 'Belgium', flag: '🇧🇪' },
+  { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+  { code: '+43', country: 'Austria', flag: '🇦🇹' },
+  { code: '+45', country: 'Denmark', flag: '🇩🇰' },
+  { code: '+46', country: 'Sweden', flag: '🇸🇪' },
+  { code: '+47', country: 'Norway', flag: '🇳🇴' },
+  { code: '+358', country: 'Finland', flag: '🇫🇮' },
+  { code: '+353', country: 'Ireland', flag: '🇮🇪' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+30', country: 'Greece', flag: '🇬🇷' },
+  { code: '+48', country: 'Poland', flag: '🇵🇱' },
+  { code: '+420', country: 'Czech Republic', flag: '🇨🇿' },
+  { code: '+36', country: 'Hungary', flag: '🇭🇺' },
+  { code: '+40', country: 'Romania', flag: '🇷🇴' },
+  { code: '+7', country: 'Russia', flag: '🇷🇺' },
+  { code: '+90', country: 'Turkey', flag: '🇹🇷' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: '+974', country: 'Qatar', flag: '🇶🇦' },
+  { code: '+965', country: 'Kuwait', flag: '🇰🇼' },
+  { code: '+973', country: 'Bahrain', flag: '🇧🇭' },
+  { code: '+968', country: 'Oman', flag: '🇴🇲' },
+  { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+82', country: 'South Korea', flag: '🇰🇷' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+  { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+  { code: '+66', country: 'Thailand', flag: '🇹🇭' },
+  { code: '+84', country: 'Vietnam', flag: '🇻🇳' },
+  { code: '+62', country: 'Indonesia', flag: '🇮🇩' },
+  { code: '+63', country: 'Philippines', flag: '🇵🇭' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+52', country: 'Mexico', flag: '🇲🇽' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+  { code: '+56', country: 'Chile', flag: '🇨🇱' },
+  { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+  { code: '+51', country: 'Peru', flag: '🇵🇪' },
+  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
+  { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
+  { code: '+254', country: 'Kenya', flag: '🇰🇪' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+];
+
 const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger, passengerData, setPassengerData, weatherRefund, setWeatherRefund, activeAccordion, setActiveAccordion, chooseFlightType, activitySelect, chooseLocation, selectedVoucherType, privateCharterWeatherRefund, setPrivateCharterWeatherRefund, onSectionCompletion, isDisabled = false, getNextSectionId = null }, ref) => {
   // Determine passengerCount
   // - For Buy Gift: fixed to 1
@@ -225,7 +282,8 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           firstName: "",
           lastName: "",
           weight: "",
-          phone: "+44",
+          phone: "",
+          countryCode: "+44",
           email: "",
           weatherRefund: weatherRefundEnabled
         });
@@ -235,6 +293,33 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       return newPassengers.slice(0, passengerCount);
     });
   }, [passengerCount, setPassengerData, chooseFlightType]);
+
+  // Clean phone numbers that contain country code prefixes
+  useEffect(() => {
+    setPassengerData((prevData) => {
+      const updatedData = prevData.map((passenger) => {
+        if (!passenger.phone) return passenger;
+        
+        let phoneValue = passenger.phone;
+        // If phone starts with any country code (starts with +), remove it
+        if (phoneValue.startsWith('+')) {
+          // Find and remove the country code prefix
+          for (const country of countryCodes) {
+            if (phoneValue.startsWith(country.code)) {
+              phoneValue = phoneValue.substring(country.code.length);
+              // Set countryCode if not already set
+              if (!passenger.countryCode) {
+                return { ...passenger, phone: phoneValue, countryCode: country.code };
+              }
+              return { ...passenger, phone: phoneValue };
+            }
+          }
+        }
+        return passenger;
+      });
+      return updatedData;
+    });
+  }, []); // Only run once on mount
 
   const [emailErrors, setEmailErrors] = useState([]);
   const [validationErrors, setValidationErrors] = useState([]);
@@ -246,7 +331,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     const hasLastName = !!(passenger.lastName && passenger.lastName.trim());
     const needsWeight = activitySelect !== 'Buy Gift';
     const hasWeight = needsWeight ? !!(passenger.weight || passenger.weight === 0 || (typeof passenger.weight === 'string' && passenger.weight.trim() !== '')) : true;
-    const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim() && passenger.phone.length > 3) : true;
+    const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim() && passenger.countryCode) : true;
     // Require a valid email address for Passenger 1 (must include domain after '@')
     const hasValidEmail = (() => {
       if (index !== 0) return true;
@@ -284,27 +369,21 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   const handlePassengerInputChange = (index, e) => {
     const { name, value } = e.target;
     
-    // Handle phone number with +44 prefix
+    // Handle phone number - only digits allowed (no country code prefix)
     if (name === 'phone') {
-      // Remove any non-digit characters except + at the start
-      let cleanedValue = value.replace(/[^\d+]/g, '');
-      
-      // If value doesn't start with +44, ensure it does
-      if (!cleanedValue.startsWith('+44')) {
-        // Remove any leading + or 44
-        cleanedValue = cleanedValue.replace(/^\+?44?/, '');
-        // Add +44 prefix
-        cleanedValue = '+44' + cleanedValue;
-      }
-      
-      // Limit to reasonable length (UK numbers are typically 13 digits with +44)
-      if (cleanedValue.length > 13) {
-        cleanedValue = cleanedValue.substring(0, 13);
-      }
+      // Remove any non-digit characters
+      const cleanedValue = value.replace(/[^\d]/g, '');
       
       setPassengerData((prevData) => {
         const updatedData = [...prevData];
         updatedData[index] = { ...updatedData[index], [name]: cleanedValue };
+        return updatedData;
+      });
+    } else if (name === 'countryCode') {
+      // Handle country code change
+      setPassengerData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[index] = { ...updatedData[index], [name]: value };
         return updatedData;
       });
     } else {
@@ -402,7 +481,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       }
       // Phone and email required for first passenger
       if (index === 0) {
-        if (!passenger.phone?.trim() || passenger.phone.length <= 3) passengerErrors.phone = true;
+        if (!passenger.phone?.trim() || !passenger.countryCode) passengerErrors.phone = true;
         if (!passenger.email?.trim()) {
           passengerErrors.email = true;
         } else {
@@ -1027,52 +1106,70 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <span style={{
-                          position: 'absolute',
-                          left: isMobile ? '10px' : '8px',
-                          fontSize: isMobile ? '12px' : '12px',
-                          color: '#6b7280',
-                          fontWeight: '500',
-                          pointerEvents: 'none',
-                          zIndex: 1
-                        }}>+44</span>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'stretch' }}>
+                        {/* Country Code Dropdown */}
+                        <select
+                          name="countryCode"
+                          value={passenger.countryCode || '+44'}
+                          onChange={(e) => handlePassengerInputChange(index, e)}
+                          disabled={!isPreviousPassengerComplete(index)}
+                          style={{
+                            fontSize: isMobile ? '11px' : '11px',
+                            padding: isMobile ? '6px 4px' : '4px 2px',
+                            minHeight: isMobile ? '36px' : '32px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px 0 0 6px',
+                            backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                            color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                            cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'pointer',
+                            fontWeight: '500',
+                            outline: 'none',
+                            width: isMobile ? '80px' : '70px',
+                            flexShrink: 0
+                          }}
+                        >
+                          {countryCodes.map((country, idx) => (
+                            <option key={idx} value={country.code}>
+                              {country.flag} {country.code}
+                            </option>
+                          ))}
+                        </select>
+                        {/* Phone Number Input */}
                         <input
                           type="tel"
                           inputMode="numeric"
                           name="phone"
-                          value={passenger.phone && passenger.phone.startsWith('+44') ? passenger.phone.substring(3) : (passenger.phone || '')}
-                          onChange={(e) => {
-                            const inputValue = e.target.value.replace(/[^\d]/g, '');
-                            const fullValue = '+44' + inputValue;
-                            const syntheticEvent = {
-                              target: {
-                                name: 'phone',
-                                value: fullValue
+                          value={(() => {
+                            // Remove country code prefix if it exists in phone value
+                            let phoneValue = passenger.phone || '';
+                            // If phone starts with any country code (starts with +), remove it
+                            if (phoneValue.startsWith('+')) {
+                              // Find and remove the country code prefix
+                              for (const country of countryCodes) {
+                                if (phoneValue.startsWith(country.code)) {
+                                  phoneValue = phoneValue.substring(country.code.length);
+                                  break;
+                                }
                               }
-                            };
-                            handlePassengerInputChange(index, syntheticEvent);
-                          }}
-                          onKeyDown={(e) => {
-                            // Prevent backspace from deleting +44 prefix
-                            if (e.key === 'Backspace' && e.target.selectionStart === 0) {
-                              e.preventDefault();
                             }
-                          }}
+                            return phoneValue;
+                          })()}
+                          onChange={(e) => handlePassengerInputChange(index, e)}
                           placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : ""}
                           required
                           disabled={!isPreviousPassengerComplete(index)}
                           style={{
-                            ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                            ...(error?.phone ? { border: '1.5px solid red', borderLeft: 'none' } : { borderLeft: 'none' }),
                             ...(isMobile ? { 
                               ...mobileInputBase,
-                              paddingLeft: '42px'
+                              borderRadius: '0 6px 6px 0',
+                              flex: 1
                             } : {
                               fontSize: '12px',
                               padding: '6px 8px',
-                              paddingLeft: '38px',
                               minHeight: '32px',
-                              width: '100%'
+                              flex: 1,
+                              borderRadius: '0 6px 6px 0'
                             }),
                             ...(!isPreviousPassengerComplete(index) ? {
                               backgroundColor: '#f3f4f6',
@@ -1449,54 +1546,73 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             display: 'block',
                             whiteSpace: 'nowrap'
                           }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
-                           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                             <span style={{
-                               position: 'absolute',
-                               left: '10px',
-                               fontSize: '13px',
-                               color: '#6b7280',
-                               fontWeight: '500',
-                               pointerEvents: 'none',
-                               zIndex: 1
-                             }}>+44</span>
+                           <div style={{ display: 'flex', gap: '4px', alignItems: 'stretch' }}>
+                             {/* Country Code Dropdown */}
+                             <select
+                               name="countryCode"
+                               value={passenger.countryCode || '+44'}
+                               onChange={(e) => handlePassengerInputChange(index, e)}
+                               disabled={!isPreviousPassengerComplete(index)}
+                               style={{
+                                 fontSize: '12px',
+                                 padding: '8px 4px',
+                                 minHeight: '36px',
+                                 border: '1px solid #d1d5db',
+                                 borderRadius: '6px 0 0 6px',
+                                 backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                 color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                 cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'pointer',
+                                 fontWeight: '500',
+                                 outline: 'none',
+                                 width: '80px',
+                                 flexShrink: 0,
+                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                 transition: 'all 0.2s ease'
+                               }}
+                             >
+                               {countryCodes.map((country, idx) => (
+                                 <option key={idx} value={country.code}>
+                                   {country.flag} {country.code}
+                                 </option>
+                               ))}
+                             </select>
+                             {/* Phone Number Input */}
                              <input
                                type="tel"
+                               inputMode="numeric"
                                name="phone"
-                               value={passenger.phone && passenger.phone.startsWith('+44') ? passenger.phone.substring(3) : (passenger.phone || '')}
-                               onChange={(e) => {
-                                 const inputValue = e.target.value.replace(/[^\d]/g, '');
-                                 const fullValue = '+44' + inputValue;
-                                 const syntheticEvent = {
-                                   target: {
-                                     name: 'phone',
-                                     value: fullValue
+                               value={(() => {
+                                 // Remove country code prefix if it exists in phone value
+                                 let phoneValue = passenger.phone || '';
+                                 // If phone starts with any country code (starts with +), remove it
+                                 if (phoneValue.startsWith('+')) {
+                                   // Find and remove the country code prefix
+                                   for (const country of countryCodes) {
+                                     if (phoneValue.startsWith(country.code)) {
+                                       phoneValue = phoneValue.substring(country.code.length);
+                                       break;
+                                     }
                                    }
-                                 };
-                                 handlePassengerInputChange(index, syntheticEvent);
-                               }}
-                               onKeyDown={(e) => {
-                                 // Prevent backspace from deleting +44 prefix
-                                 if (e.key === 'Backspace' && e.target.selectionStart === 0) {
-                                   e.preventDefault();
                                  }
-                               }}
+                                 return phoneValue;
+                               })()}
+                               onChange={(e) => handlePassengerInputChange(index, e)}
                                placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : ""}
                                disabled={!isPreviousPassengerComplete(index)}
                                style={{
-                                 ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                                 ...(error?.phone ? { border: '1.5px solid red', borderLeft: 'none' } : { borderLeft: 'none' }),
                                 fontSize: '13px',
                                 padding: '8px 10px',
-                                paddingLeft: '42px',
                                 minHeight: '36px',
-                                width: '100%',
-                                   border: '1px solid #d1d5db',
-                                   borderRadius: '6px',
-                                   backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
-                                   color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
-                                   cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
-                                   fontWeight: '400',
-                                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                                   transition: 'all 0.2s ease'
+                                flex: 1,
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0 6px 6px 0',
+                                backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
+                                fontWeight: '400',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                transition: 'all 0.2s ease'
                                }}
                              />
                            </div>

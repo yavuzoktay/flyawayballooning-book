@@ -1692,11 +1692,11 @@ const Index = () => {
                     (passengerData?.[0]?.email || "").trim() :
                     (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
                 phone: isGiftVoucher ? 
-                    (passengerData?.[0]?.phone || "").trim() :
-                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                    ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() :
+                    (recipientDetails?.phone || (passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 mobile: isGiftVoucher ? 
-                    (passengerData?.[0]?.phone || "").trim() :
-                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                    ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() :
+                    (recipientDetails?.phone || (passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 redeemed: "No",
                 paid: totalPrice, // This is already calculated correctly above
                 offer_code: "",
@@ -1709,8 +1709,8 @@ const Index = () => {
                 // Purchaser information (explicitly set for Gift Vouchers)
                 purchaser_name: isGiftVoucher ? ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() : "",
                 purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
-                purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
-                purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                purchaser_phone: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
+                purchaser_mobile: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
                 numberOfPassengers: resolveVoucherPassengerCount(),
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
@@ -1802,8 +1802,8 @@ const Index = () => {
                 voucher_type: "Redeem Voucher",
                 voucher_type_detail: selectedVoucherType?.title?.trim() || "", // Add the specific voucher type detail
                 email: passengerData?.[0]?.email || "",
-                phone: passengerData?.[0]?.phone || "",
-                mobile: passengerData?.[0]?.phone || "",
+                phone: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
+                mobile: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 redeemed: "Yes", // Redeem Voucher için redeemed = "Yes"
                 paid: 0, // Redeem Voucher için ödeme yok
                 offer_code: voucherCode || "",

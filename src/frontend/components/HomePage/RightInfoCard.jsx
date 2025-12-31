@@ -749,11 +749,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                     (passengerData?.[0]?.email || "").trim() :
                     (recipientDetails?.email || passengerData?.[0]?.email || "").trim(),
                 phone: isGiftVoucher ? 
-                    (passengerData?.[0]?.phone || "").trim() :
-                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                    ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() :
+                    (recipientDetails?.phone || (passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 mobile: isGiftVoucher ? 
-                    (passengerData?.[0]?.phone || "").trim() :
-                    (recipientDetails?.phone || passengerData?.[0]?.phone || "").trim(),
+                    ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() :
+                    (recipientDetails?.phone || (passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 redeemed: "No",
                 paid: totalPrice, // already computed correctly for both Shared and Private
                 offer_code: "",
@@ -766,8 +766,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 // Purchaser information (explicitly set for Gift Vouchers)
                 purchaser_name: isGiftVoucher ? ((passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || '')).trim() : "",
                 purchaser_email: isGiftVoucher ? (passengerData?.[0]?.email || "").trim() : "",
-                purchaser_phone: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
-                purchaser_mobile: isGiftVoucher ? (passengerData?.[0]?.phone || "").trim() : "",
+                purchaser_phone: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
+                purchaser_mobile: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
                 numberOfPassengers: computedNumberOfPassengers,
                 // Persist selection context needed for Private Charter code generation
                 preferred_location: chooseLocation || '',
