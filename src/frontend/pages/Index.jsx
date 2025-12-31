@@ -1815,8 +1815,8 @@ const Index = () => {
                 // Purchaser information (same as main contact for Redeem Voucher)
                 purchaser_name: (passengerData?.[0]?.firstName || '') + ' ' + (passengerData?.[0]?.lastName || ''),
                 purchaser_email: passengerData?.[0]?.email || "",
-                purchaser_phone: passengerData?.[0]?.phone || "",
-                purchaser_mobile: passengerData?.[0]?.phone || "",
+                purchaser_phone: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
+                purchaser_mobile: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 numberOfPassengers: resolveVoucherPassengerCount(),
                 passengerData: passengerData, // Send the actual passenger data array
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
@@ -1848,13 +1848,19 @@ const Index = () => {
                 bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
             }
             
+            // Combine countryCode and phone for each passenger in passengerData for Redeem Voucher bookingData
+            const redeemBookingPassengerDataWithPhoneCode = passengerData.map(p => ({
+                ...p,
+                phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+            }));
+
             const bookingData = {
                 activitySelect: "Redeem Voucher",
                 chooseLocation,
                 chooseFlightType,
                 selectedVoucherType,
                 chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
-                passengerData,
+                passengerData: redeemBookingPassengerDataWithPhoneCode, // Use passengerData with combined phone numbers
                 additionalInfo,
                 recipientDetails: null,
                 selectedDate: bookingDateStr,
@@ -1880,12 +1886,18 @@ const Index = () => {
                 // Collect user session data
                 const userSessionData = collectUserSessionData();
                 
+                // Combine countryCode and phone for each passenger in passengerData for Redeem Voucher
+                const redeemPassengerDataWithPhoneCode = passengerData.map(p => ({
+                    ...p,
+                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                }));
+
                 // Call simplified createRedeemBooking endpoint for Redeem Voucher
                 const redeemBookingData = {
                     activitySelect,
                     chooseLocation,
                     chooseFlightType,
-                    passengerData,
+                    passengerData: redeemPassengerDataWithPhoneCode, // Use passengerData with combined phone numbers
                     additionalInfo,
                     selectedDate: bookingDateStr,  // Use formatted date string, not raw Date object
                     selectedTime,
@@ -2002,13 +2014,19 @@ const Index = () => {
         } else if (selectedDate instanceof Date) {
             bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
         }
+        // Combine countryCode and phone for each passenger in passengerData
+        const passengerDataWithPhoneCode = passengerData.map(p => ({
+            ...p,
+            phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+        }));
+
         const bookingData = {
             activitySelect,
             chooseLocation,
             chooseFlightType,
             selectedVoucherType, // Add selectedVoucherType for voucher code generation
             chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [], // Opsiyonel - boş array olabilir
-            passengerData,
+            passengerData: passengerDataWithPhoneCode, // Use passengerData with combined phone numbers
             additionalInfo,
             recipientDetails,
             selectedDate: bookingDateStr,
@@ -2117,11 +2135,11 @@ const Index = () => {
                         if (isMobileChrome || isBingBrowser) {
                             const retryCount = isMobileChrome ? 3 : 1; // Mobile Chrome needs more retries
                             for (let i = 1; i <= retryCount; i++) {
-                                setTimeout(() => {
+                            setTimeout(() => {
                                     console.log(`🔵 ${isMobileChrome ? 'Mobile Chrome' : 'Bing browser'} - Retrying availability fetch (attempt ${i + 1})`);
-                                    if (!availabilities || availabilities.length === 0) {
-                                        refetchAvailabilities();
-                                    }
+                                if (!availabilities || availabilities.length === 0) {
+                                    refetchAvailabilities();
+                                }
                                 }, 1000 * i); // 1s, 2s, 3s delays for mobile Chrome
                             }
                         }
@@ -2144,8 +2162,8 @@ const Index = () => {
                             if (isMobileChrome || isBingBrowser) {
                                 const retryCount = isMobileChrome ? 3 : 1;
                                 for (let i = 1; i <= retryCount; i++) {
-                                    setTimeout(() => {
-                                        refetchAvailabilities();
+                                setTimeout(() => {
+                                    refetchAvailabilities();
                                     }, retryDelay * i);
                                 }
                             }
@@ -2159,8 +2177,8 @@ const Index = () => {
                                     if (isMobileChrome || isBingBrowser) {
                                         const retryCount = isMobileChrome ? 3 : 1;
                                         for (let i = 1; i <= retryCount; i++) {
-                                            setTimeout(() => {
-                                                refetchAvailabilities();
+                                        setTimeout(() => {
+                                            refetchAvailabilities();
                                             }, retryDelay * i);
                                         }
                                     }
@@ -3310,18 +3328,18 @@ const Index = () => {
                             } else {
                                 // For non-mobile Chrome: Open section immediately and fetch in parallel
                                 console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
-                                setActiveAccordion('live-availability');
-                                
-                                // Final refetch with all state ready
-                                setTimeout(() => {
-                                    console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
-                                        location: qpLocation,
-                                        activityId,
-                                        experience: derivedExperience,
-                                        voucherType: qpVoucherTitle
-                                    });
-                                    refetchAvailabilities();
-                                }, 400);
+                            setActiveAccordion('live-availability');
+                            
+                            // Final refetch with all state ready
+                            setTimeout(() => {
+                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
+                                    location: qpLocation,
+                                    activityId,
+                                    experience: derivedExperience,
+                                    voucherType: qpVoucherTitle
+                                });
+                                refetchAvailabilities();
+                            }, 400);
                             }
                         } else {
                             console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
