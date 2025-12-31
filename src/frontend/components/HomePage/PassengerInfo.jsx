@@ -225,7 +225,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
           firstName: "",
           lastName: "",
           weight: "",
-          phone: "",
+          phone: "+44",
           email: "",
           weatherRefund: weatherRefundEnabled
         });
@@ -246,7 +246,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     const hasLastName = !!(passenger.lastName && passenger.lastName.trim());
     const needsWeight = activitySelect !== 'Buy Gift';
     const hasWeight = needsWeight ? !!(passenger.weight || passenger.weight === 0 || (typeof passenger.weight === 'string' && passenger.weight.trim() !== '')) : true;
-    const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim()) : true;
+    const hasPhone = index === 0 ? !!(passenger.phone && passenger.phone.trim() && passenger.phone.length > 3) : true;
     // Require a valid email address for Passenger 1 (must include domain after '@')
     const hasValidEmail = (() => {
       if (index !== 0) return true;
@@ -283,11 +283,37 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
   // Handle passenger input change
   const handlePassengerInputChange = (index, e) => {
     const { name, value } = e.target;
-    setPassengerData((prevData) => {
-      const updatedData = [...prevData];
-      updatedData[index] = { ...updatedData[index], [name]: value };
-      return updatedData;
-    });
+    
+    // Handle phone number with +44 prefix
+    if (name === 'phone') {
+      // Remove any non-digit characters except + at the start
+      let cleanedValue = value.replace(/[^\d+]/g, '');
+      
+      // If value doesn't start with +44, ensure it does
+      if (!cleanedValue.startsWith('+44')) {
+        // Remove any leading + or 44
+        cleanedValue = cleanedValue.replace(/^\+?44?/, '');
+        // Add +44 prefix
+        cleanedValue = '+44' + cleanedValue;
+      }
+      
+      // Limit to reasonable length (UK numbers are typically 13 digits with +44)
+      if (cleanedValue.length > 13) {
+        cleanedValue = cleanedValue.substring(0, 13);
+      }
+      
+      setPassengerData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[index] = { ...updatedData[index], [name]: cleanedValue };
+        return updatedData;
+      });
+    } else {
+      setPassengerData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[index] = { ...updatedData[index], [name]: value };
+        return updatedData;
+      });
+    }
     
     // Clear validation error when user starts typing
     if (validationErrors[index] && validationErrors[index][name]) {
@@ -376,7 +402,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       }
       // Phone and email required for first passenger
       if (index === 0) {
-        if (!passenger.phone?.trim()) passengerErrors.phone = true;
+        if (!passenger.phone?.trim() || passenger.phone.length <= 3) passengerErrors.phone = true;
         if (!passenger.email?.trim()) {
           passengerErrors.email = true;
         } else {
@@ -1001,34 +1027,61 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                         display: 'block',
                         whiteSpace: 'nowrap'
                       }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
-                        name="phone"
-                        value={passenger.phone || ''}
-                        onChange={(e) => handlePassengerInputChange(index, e)}
-                        placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Mobile Number"}
-                        required
-                        disabled={!isPreviousPassengerComplete(index)}
-                        style={{
-                          ...(error?.phone ? { border: '1.5px solid red' } : {}),
-                        ...(isMobile ? { 
-                          ...mobileInputBase
-                        } : {
-                          fontSize: '12px',
-                          padding: '6px 8px',
-                          minHeight: '32px',
-                          width: '100%'
-                        }),
-                        ...(!isPreviousPassengerComplete(index) ? {
-                          backgroundColor: '#f3f4f6',
-                          color: '#9ca3af',
-                          cursor: 'not-allowed'
-                        } : {})
-                        }}
-                      />
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <span style={{
+                          position: 'absolute',
+                          left: isMobile ? '10px' : '8px',
+                          fontSize: isMobile ? '12px' : '12px',
+                          color: '#6b7280',
+                          fontWeight: '500',
+                          pointerEvents: 'none',
+                          zIndex: 1
+                        }}>+44</span>
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          name="phone"
+                          value={passenger.phone && passenger.phone.startsWith('+44') ? passenger.phone.substring(3) : (passenger.phone || '')}
+                          onChange={(e) => {
+                            const inputValue = e.target.value.replace(/[^\d]/g, '');
+                            const fullValue = '+44' + inputValue;
+                            const syntheticEvent = {
+                              target: {
+                                name: 'phone',
+                                value: fullValue
+                              }
+                            };
+                            handlePassengerInputChange(index, syntheticEvent);
+                          }}
+                          onKeyDown={(e) => {
+                            // Prevent backspace from deleting +44 prefix
+                            if (e.key === 'Backspace' && e.target.selectionStart === 0) {
+                              e.preventDefault();
+                            }
+                          }}
+                          placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : ""}
+                          required
+                          disabled={!isPreviousPassengerComplete(index)}
+                          style={{
+                            ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                            ...(isMobile ? { 
+                              ...mobileInputBase,
+                              paddingLeft: '42px'
+                            } : {
+                              fontSize: '12px',
+                              padding: '6px 8px',
+                              paddingLeft: '38px',
+                              minHeight: '32px',
+                              width: '100%'
+                            }),
+                            ...(!isPreviousPassengerComplete(index) ? {
+                              backgroundColor: '#f3f4f6',
+                              color: '#9ca3af',
+                              cursor: 'not-allowed'
+                            } : {})
+                          }}
+                        />
+                      </div>
                       {error?.phone && <span style={{ color: 'red', fontSize: 10 }}>Mobile number is required</span>}
                     </div>
                     {/* Email */}
@@ -1396,29 +1449,57 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
                             display: 'block',
                             whiteSpace: 'nowrap'
                           }}>Mobile Number<span style={{ color: 'red' }}>*</span></label>
-                           <input
-                             type="tel"
-                             name="phone"
-                             value={passenger.phone || ''}
-                             onChange={(e) => handlePassengerInputChange(index, e)}
-                             placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : "Mobile Number"}
-                             disabled={!isPreviousPassengerComplete(index)}
-                             style={{
-                               ...(error?.phone ? { border: '1.5px solid red' } : {}),
-                              fontSize: '13px',
-                              padding: '8px 10px',
-                              minHeight: '36px',
-                              width: '100%',
-                                 border: '1px solid #d1d5db',
-                                 borderRadius: '6px',
-                                 backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
-                                 color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
-                                 cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
-                                 fontWeight: '400',
-                                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                                 transition: 'all 0.2s ease'
-                             }}
-                           />
+                           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                             <span style={{
+                               position: 'absolute',
+                               left: '10px',
+                               fontSize: '13px',
+                               color: '#6b7280',
+                               fontWeight: '500',
+                               pointerEvents: 'none',
+                               zIndex: 1
+                             }}>+44</span>
+                             <input
+                               type="tel"
+                               name="phone"
+                               value={passenger.phone && passenger.phone.startsWith('+44') ? passenger.phone.substring(3) : (passenger.phone || '')}
+                               onChange={(e) => {
+                                 const inputValue = e.target.value.replace(/[^\d]/g, '');
+                                 const fullValue = '+44' + inputValue;
+                                 const syntheticEvent = {
+                                   target: {
+                                     name: 'phone',
+                                     value: fullValue
+                                   }
+                                 };
+                                 handlePassengerInputChange(index, syntheticEvent);
+                               }}
+                               onKeyDown={(e) => {
+                                 // Prevent backspace from deleting +44 prefix
+                                 if (e.key === 'Backspace' && e.target.selectionStart === 0) {
+                                   e.preventDefault();
+                                 }
+                               }}
+                               placeholder={!isPreviousPassengerComplete(index) ? "Complete previous passenger first" : ""}
+                               disabled={!isPreviousPassengerComplete(index)}
+                               style={{
+                                 ...(error?.phone ? { border: '1.5px solid red' } : {}),
+                                fontSize: '13px',
+                                padding: '8px 10px',
+                                paddingLeft: '42px',
+                                minHeight: '36px',
+                                width: '100%',
+                                   border: '1px solid #d1d5db',
+                                   borderRadius: '6px',
+                                   backgroundColor: !isPreviousPassengerComplete(index) ? '#f3f4f6' : '#ffffff',
+                                   color: !isPreviousPassengerComplete(index) ? '#9ca3af' : '#374151',
+                                   cursor: !isPreviousPassengerComplete(index) ? 'not-allowed' : 'text',
+                                   fontWeight: '400',
+                                   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                   transition: 'all 0.2s ease'
+                               }}
+                             />
+                           </div>
                           {error?.phone && <span style={{ color: 'red', fontSize: 11 }}>Mobile number is required</span>}
                          </div>
                         {/* Email */}
