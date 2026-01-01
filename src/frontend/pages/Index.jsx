@@ -1712,7 +1712,10 @@ const Index = () => {
                 purchaser_phone: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
                 purchaser_mobile: isGiftVoucher ? ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim() : "",
                 numberOfPassengers: resolveVoucherPassengerCount(),
-                passengerData: passengerData, // Send the actual passenger data array
+                passengerData: passengerData.map(p => ({
+                    ...p,
+                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                })), // Send passenger data with combined phone numbers (countryCode + phone)
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
@@ -1818,7 +1821,10 @@ const Index = () => {
                 purchaser_phone: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 purchaser_mobile: ((passengerData?.[0]?.countryCode || '') + (passengerData?.[0]?.phone || "")).trim(),
                 numberOfPassengers: resolveVoucherPassengerCount(),
-                passengerData: passengerData, // Send the actual passenger data array
+                passengerData: passengerData.map(p => ({
+                    ...p,
+                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                })), // Send passenger data with combined phone numbers (countryCode + phone)
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,

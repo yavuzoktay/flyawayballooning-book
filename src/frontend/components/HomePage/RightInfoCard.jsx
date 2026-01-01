@@ -772,7 +772,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 // Persist selection context needed for Private Charter code generation
                 preferred_location: chooseLocation || '',
                 experience_type: chooseFlightType?.type || '',
-                passengerData: passengerData, // Send the actual passenger data array
+                passengerData: passengerData.map(p => ({
+                    ...p,
+                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                })), // Send passenger data with combined phone numbers (countryCode + phone)
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
