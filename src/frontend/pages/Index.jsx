@@ -101,6 +101,11 @@ const Index = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
     
+    // Capture Google Ads IDs on page load
+    useEffect(() => {
+        captureGoogleAdsIds();
+    }, []);
+
     // Customer Portal: Fetch booking data when token is present
     useEffect(() => {
         if (token) {
@@ -137,6 +142,55 @@ const Index = () => {
             localStorage.setItem(sessionKey, sessionId);
         }
         return sessionId;
+    };
+
+    // Helper function to capture and store Google Ads click identifiers (gclid, wbraid, gbraid)
+    const captureGoogleAdsIds = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const gclid = urlParams.get('gclid');
+        const wbraid = urlParams.get('wbraid');
+        const gbraid = urlParams.get('gbraid');
+
+        // Store in localStorage (persists across sessions for up to 30 days)
+        if (gclid) {
+            localStorage.setItem('fab_gclid', gclid);
+            localStorage.setItem('fab_gclid_timestamp', Date.now().toString());
+        }
+        if (wbraid) {
+            localStorage.setItem('fab_wbraid', wbraid);
+            localStorage.setItem('fab_wbraid_timestamp', Date.now().toString());
+        }
+        if (gbraid) {
+            localStorage.setItem('fab_gbraid', gbraid);
+            localStorage.setItem('fab_gbraid_timestamp', Date.now().toString());
+        }
+
+        return { gclid, wbraid, gbraid };
+    };
+
+    // Helper function to get stored Google Ads IDs (valid for 30 days)
+    const getStoredGoogleAdsIds = () => {
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        const getStoredId = (key, timestampKey) => {
+            const timestamp = localStorage.getItem(timestampKey);
+            if (!timestamp) return null;
+            const age = now - parseInt(timestamp, 10);
+            if (age > THIRTY_DAYS_MS) {
+                // Expired, remove it
+                localStorage.removeItem(key);
+                localStorage.removeItem(timestampKey);
+                return null;
+            }
+            return localStorage.getItem(key);
+        };
+
+        return {
+            gclid: getStoredId('fab_gclid', 'fab_gclid_timestamp'),
+            wbraid: getStoredId('fab_wbraid', 'fab_wbraid_timestamp'),
+            gbraid: getStoredId('fab_gbraid', 'fab_gbraid_timestamp')
+        };
     };
 
     // Helper function to parse user agent
@@ -184,6 +238,15 @@ const Index = () => {
         const language = navigator.language || navigator.userLanguage;
         const referrer = document.referrer || '';
         const landingPage = window.location.href;
+        
+        // Get Google Ads IDs (from URL params or stored)
+        const urlIds = captureGoogleAdsIds(); // Capture from URL if present
+        const storedIds = getStoredGoogleAdsIds(); // Get stored IDs
+        const googleAdsIds = {
+            gclid: urlIds.gclid || storedIds.gclid || null,
+            wbraid: urlIds.wbraid || storedIds.wbraid || null,
+            gbraid: urlIds.gbraid || storedIds.gbraid || null
+        };
 
         return {
             session_id: sessionId,
@@ -194,7 +257,11 @@ const Index = () => {
             operating_system: os,
             device_type: deviceType,
             referrer: referrer,
-            landing_page: landingPage
+            landing_page: landingPage,
+            // Include Google Ads IDs for conversion tracking
+            gclid: googleAdsIds.gclid,
+            wbraid: googleAdsIds.wbraid,
+            gbraid: googleAdsIds.gbraid
         };
     };
 
