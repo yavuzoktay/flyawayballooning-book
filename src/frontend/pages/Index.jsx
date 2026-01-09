@@ -956,12 +956,6 @@ const Index = () => {
             return false;
         }
         
-        // If user chose "Don't enter recipient details", treat as valid for Buy Gift flow
-        if (details.isSkipped === true) {
-            console.log('✅ Recipient details explicitly skipped – treating as valid');
-            return true;
-        }
-        
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
         const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
@@ -984,7 +978,7 @@ const Index = () => {
         
         const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
         
-        console.log('🎁 recipientDetails validation (with skip support):', {
+        console.log('🎁 recipientDetails validation:', {
             details,
             hasName: { value: details.name, valid: hasName },
             hasEmail: { value: details.email, valid: hasEmail },
@@ -993,7 +987,7 @@ const Index = () => {
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields required unless user chose to skip recipient details'
+            note: 'All fields required for Buy Gift'
         });
         
         return isComplete;
@@ -1398,7 +1392,7 @@ const Index = () => {
                 if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
                 if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
-                if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
+                if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
                 // Tamamlanan section'ı da completed olarak işaretle
@@ -1584,7 +1578,7 @@ const Index = () => {
         if (passengerComplete) completedSections.push('passenger-info');
         // Additional Information is optional unless API marks specific questions required
         if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
-        if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
+        if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
         if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
 
         // Section'ın sequence'daki pozisyonunu bul
@@ -2913,7 +2907,7 @@ const Index = () => {
                 if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
                 if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
-                if ((recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) || recipientDetails?.isSkipped) completedSections.push('recipient-details');
+                if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
                 // Sıradaki tamamlanmamış section'ı bul

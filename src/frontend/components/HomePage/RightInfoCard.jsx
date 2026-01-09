@@ -170,17 +170,11 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
     
-    // Helper to check if recipient details are complete for Buy Gift (allow skip)
+    // Helper to check if recipient details are complete for Buy Gift
     const isRecipientDetailsValid = (details) => {
         if (!details || typeof details !== 'object') {
             console.log('❌ recipientDetails is null/undefined or not object:', details);
             return false;
-        }
-        
-        // If user clicked "Don't enter recipient details", treat as valid
-        if (details.isSkipped === true) {
-            console.log('✅ Recipient details marked as skipped – treating as valid');
-            return true;
         }
         
         // Check each field individually with proper null/undefined checks
@@ -205,7 +199,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
         
-        console.log('🎁 recipientDetails validation (with skip support):', {
+        console.log('🎁 recipientDetails validation:', {
             details,
             hasName: { value: details.name, valid: hasName },
             hasEmail: { value: details.email, valid: hasEmail },
@@ -214,7 +208,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             emailFormatValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields required unless user chose to skip'
+            note: 'All fields required for Buy Gift'
         });
         
         return isComplete;
@@ -264,9 +258,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                passenger.lastName && passenger.lastName.trim() !== '' &&
                (passenger.weight && (typeof passenger.weight === 'string' ? passenger.weight.trim() !== '' : passenger.weight !== null && passenger.weight !== undefined));
         
-        // Only first passenger needs: phone and email
+        // Only first passenger needs: phone and email (with countryCode)
         const contactInfoValid = isFirstPassenger ? 
-            (passenger.phone && passenger.phone.trim() !== '' && passenger.email && passenger.email.trim() !== '') : 
+            (passenger.phone && passenger.phone.trim() !== '' && (passenger.countryCode || '+44') && passenger.email && passenger.email.trim() !== '') : 
             true;
         
         const isValid = basicInfoValid && contactInfoValid;
@@ -280,6 +274,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 weight: passenger.weight,
                 weightType: typeof passenger.weight,
                 phone: passenger.phone,
+                countryCode: passenger.countryCode,
                 email: passenger.email,
                 basicInfoValid,
                 contactInfoValid,
@@ -450,18 +445,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // Email not required for Purchaser Information
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             
-            // Recipient details can be skipped
-            if (!recipientDetails?.isSkipped) {
-                if (!recipientDetails?.name?.trim()) return false;
-                if (!recipientDetails?.email?.trim()) return false;
-                if (!recipientDetails?.phone?.trim()) return false;
-                if (!recipientDetails?.date?.trim()) return false;
-                // Recipient email format validation
-                if (!emailRegex.test(recipientDetails.email.trim())) return false;
-                // Date format validation
-                const dateValue = new Date(recipientDetails.date);
-                if (isNaN(dateValue.getTime())) return false;
-            }
+            // Recipient details are required
+            if (!recipientDetails?.name?.trim()) return false;
+            if (!recipientDetails?.email?.trim()) return false;
+            if (!recipientDetails?.phone?.trim()) return false;
+            if (!recipientDetails?.date?.trim()) return false;
+            // Recipient email format validation
+            if (!emailRegex.test(recipientDetails.email.trim())) return false;
+            // Date format validation
+            const dateValue = new Date(recipientDetails.date);
+            if (isNaN(dateValue.getTime())) return false;
             
             // Additional info is optional - no validation needed
             
@@ -486,7 +479,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 email: !!passengerData[0]?.email?.trim(),
                 emailFormat: passengerData[0]?.email ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(passengerData[0].email.trim()) : false
             } : 'No first passenger',
-            recipientCheck: recipientDetails?.isSkipped ? 'SKIPPED' : {
+            recipientCheck: {
                 name: !!recipientDetails?.name?.trim(),
                 email: !!recipientDetails?.email?.trim(),
                 phone: !!recipientDetails?.phone?.trim(),
@@ -1124,7 +1117,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isBuyGiftPassengerComplete },
-            { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : (recipientDetails?.isSkipped ? 'Skipped' : ''), completed: !!recipientDetails?.name || !!recipientDetails?.isSkipped }
+            { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : '', completed: !!recipientDetails?.name }
         ] : [])
     ];
 
@@ -1208,7 +1201,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 )}
                                 {/* Swap order for Buy Gift: Purchaser Information above Recipient Details */}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Purchaser Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{data.firstName + " " + data.lastName}</p>{data.weatherRefund && <p style={{marginTop: '8px !important', color: '#666'}}>£47.50 Refundable</p>}</div> : null)) : null}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("recipient-details")}> <div className={`row-1 ${recipientDetails?.name || recipientDetails?.isSkipped ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Recipient Details</h3><p>{recipientDetails?.name ? recipientDetails.name : (recipientDetails?.isSkipped ? "Skipped" : "")}</p></div></div></div>
+                                <div className="book_data_active" onClick={() => setActiveAccordion("recipient-details")}> <div className={`row-1 ${recipientDetails?.name ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Recipient Details</h3><p>{recipientDetails?.name ? recipientDetails.name : ""}</p></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : null}</div></div></div></div>
                             </>
                         )}

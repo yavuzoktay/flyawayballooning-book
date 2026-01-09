@@ -174,7 +174,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       }
       
       for (const field of requiredFields) {
-        if (!passenger[field] || passenger[field].trim() === '') {
+        if (field === 'phone' && (i === 0 || activitySelect === 'Buy Gift')) {
+          // Special check for phone: must have both phone and countryCode
+          if (!passenger.phone || !passenger.phone.trim() || !passenger.countryCode) {
+            return false;
+          }
+        } else if (!passenger[field] || passenger[field].trim() === '') {
           return false;
         }
       }
@@ -196,7 +201,12 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     }
     
     for (const field of requiredFields) {
-      if (!passenger[field] || passenger[field].trim() === '') {
+      if (field === 'phone' && index === 0) {
+        // Special check for phone: must have both phone and countryCode
+        if (!passenger.phone || !passenger.phone.trim() || !passenger.countryCode) {
+          return false;
+        }
+      } else if (!passenger[field] || passenger[field].trim() === '') {
         return false;
       }
     }
@@ -278,7 +288,7 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
 
       // Add passenger objects if needed, inheriting current weather refund state
       for (let i = prevData.length; i < passengerCount; i++) {
-        newPassengers.push({
+newPassengers.push({
           firstName: "",
           lastName: "",
           weight: "",
@@ -290,15 +300,55 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
       }
 
       // Trim the array to match the selected passenger count
-      return newPassengers.slice(0, passengerCount);
+      const trimmed = newPassengers.slice(0, passengerCount);
+      
+      // Ensure all passengers have countryCode set (default to +44 if missing)
+      return trimmed.map(p => ({
+        ...p,
+        countryCode: p.countryCode || "+44"
+      }));
     });
   }, [passengerCount, setPassengerData, chooseFlightType]);
+
+  // Ensure all passengers have countryCode set (default to +44 if missing)
+  useEffect(() => {
+    setPassengerData((prevData) => {
+      const needsUpdate = prevData.some(p => !p || !p.countryCode);
+      if (!needsUpdate) return prevData;
+      
+      return prevData.map((passenger) => {
+        if (!passenger) {
+          return {
+            firstName: "",
+            lastName: "",
+            weight: "",
+            phone: "",
+            countryCode: "+44",
+            email: "",
+            weatherRefund: false
+          };
+        }
+        return {
+          ...passenger,
+          countryCode: passenger.countryCode || "+44"
+        };
+      });
+    });
+  }, []); // Only run once on mount
 
   // Clean phone numbers that contain country code prefixes
   useEffect(() => {
     setPassengerData((prevData) => {
       const updatedData = prevData.map((passenger) => {
-        if (!passenger.phone) return passenger;
+        if (!passenger || !passenger.phone) return passenger || {
+          firstName: "",
+          lastName: "",
+          weight: "",
+          phone: "",
+          countryCode: "+44",
+          email: "",
+          weatherRefund: false
+        };
         
         let phoneValue = passenger.phone;
         // If phone starts with any country code (starts with +), remove it
