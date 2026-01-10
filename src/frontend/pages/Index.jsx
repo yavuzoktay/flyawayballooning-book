@@ -1903,16 +1903,26 @@ const Index = () => {
             
             
             // Convert to booking data format for createBooking endpoint
+            // Use timezone-safe date formatting to avoid 1-day offset issues
             let bookingDateStr = selectedDate;
             if (selectedDate instanceof Date && selectedTime) {
                 const [h, m, s] = selectedTime.split(":");
-                const localDate = new Date(selectedDate);
-                localDate.setHours(Number(h));
-                localDate.setMinutes(Number(m));
-                localDate.setSeconds(Number(s) || 0);
-                bookingDateStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')} ${String(localDate.getHours()).padStart(2,'0')}:${String(localDate.getMinutes()).padStart(2,'0')}:${String(localDate.getSeconds()).padStart(2,'0')}`;
+                // Use getFullYear(), getMonth(), getDate() directly to avoid timezone conversions
+                // These methods return local time values, which is what we want
+                const year = selectedDate.getFullYear();
+                const month = selectedDate.getMonth() + 1; // getMonth() returns 0-11
+                const day = selectedDate.getDate();
+                const hour = Number(h);
+                const minute = Number(m);
+                const second = Number(s) || 0;
+                // Format as YYYY-MM-DD HH:mm:ss without timezone conversion
+                bookingDateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
             } else if (selectedDate instanceof Date) {
-                bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+                // Use getFullYear(), getMonth(), getDate() directly to avoid timezone conversions
+                const year = selectedDate.getFullYear();
+                const month = selectedDate.getMonth() + 1; // getMonth() returns 0-11
+                const day = selectedDate.getDate();
+                bookingDateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             }
             
             // Combine countryCode and phone for each passenger in passengerData for Redeem Voucher bookingData
