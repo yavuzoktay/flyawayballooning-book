@@ -82,6 +82,17 @@ const Index = () => {
     const liveAvailabilityGuardTimerRef = useRef(null);
     const liveAvailabilityGuardStartRef = useRef(null);
     
+    // Track Terms and Conditions loading state from VoucherType component
+    const [voucherTermsLoading, setVoucherTermsLoading] = useState(false);
+    const voucherTermsLoadedRef = useRef(false);
+    
+    // Reset terms loaded flag when voucher type changes
+    useEffect(() => {
+        if (selectedVoucherType) {
+            voucherTermsLoadedRef.current = false;
+        }
+    }, [selectedVoucherType?.title]);
+    
     // Keep activityIdRef in sync with activityId state
     useEffect(() => {
         activityIdRef.current = activityId;
@@ -1529,28 +1540,43 @@ const Index = () => {
                     fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1460',message:'Opening live availability section',data:{isShopifyFlow,isVoucherTypeStart,hasAvailabilities:!!availabilities?.length,availabilitiesCount:availabilities?.length||0,chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
                     // #endregion
                     
-                    // Shopify voucher-type flow: wait until voucher types are loaded to avoid empty calendar on slow load (5s max)
+                    // Shopify voucher-type flow: wait until voucher types are loaded AND terms are loaded to avoid empty calendar
                     if (isShopifyFlow && isVoucherTypeStart) {
                         const hasRequiredState = chooseLocation && activityId && chooseFlightType?.type && selectedVoucherType?.title;
-                        if (!hasRequiredState) {
+                        const termsReady = voucherTermsLoadedRef.current || !voucherTermsLoading; // Terms loaded or not loading
+                        
+                        console.log('[ShopifyDebug] Live Availability guard check', {
+                            hasRequiredState,
+                            termsReady,
+                            voucherTermsLoading,
+                            voucherTermsLoaded: voucherTermsLoadedRef.current
+                        });
+                        
+                        if (!hasRequiredState || !termsReady) {
                             // Cancel any previous guard timer
                             if (liveAvailabilityGuardTimerRef.current) {
                                 clearTimeout(liveAvailabilityGuardTimerRef.current);
                             }
                             liveAvailabilityGuardStartRef.current = Date.now();
                             
-                            // #region agent log
-                            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1474',message:'Delaying live availability open until voucher state ready',data:{hasRequiredState,chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-                            // #endregion
-                            
                             // Keep loading visible during wait
                             setIsLiveAvailabilityLoadingSync(true);
                             
                             const waitForState = () => {
                                 const elapsed = Date.now() - (liveAvailabilityGuardStartRef.current || Date.now());
-                                const readyNow = chooseLocationRef.current && activityIdRef.current && chooseFlightTypeRef.current?.type && selectedVoucherTypeRef.current?.title;
+                                const readyNow = chooseLocationRef.current && 
+                                                activityIdRef.current && 
+                                                chooseFlightTypeRef.current?.type && 
+                                                selectedVoucherTypeRef.current?.title &&
+                                                (voucherTermsLoadedRef.current || !voucherTermsLoading);
+                                
                                 if (readyNow || elapsed >= 5000) {
                                     // Proceed to open after state ready or 5s timeout
+                                    console.log('[ShopifyDebug] Live Availability guard complete, opening section', {
+                                        readyNow,
+                                        elapsed,
+                                        termsReady: voucherTermsLoadedRef.current || !voucherTermsLoading
+                                    });
                                     setActiveAccordion('live-availability');
                                     setIsLiveAvailabilityLoadingSync(true);
                                     // Small guard period to let voucher section finish rendering
@@ -4440,6 +4466,13 @@ const Index = () => {
                                                     passengerData={passengerData}
                                                     setPassengerData={setPassengerData}
                                                     privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                    onTermsLoadingChange={(loading) => {
+                                                        setVoucherTermsLoading(loading);
+                                                        if (!loading) {
+                                                            voucherTermsLoadedRef.current = true;
+                                                            console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                        }
+                                                    }}
                                                     setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                     isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 />
@@ -4655,6 +4688,13 @@ const Index = () => {
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
                                                     isDisabled={!getAccordionState('voucher-type').isEnabled}
+                                                    onTermsLoadingChange={(loading) => {
+                                                        setVoucherTermsLoading(loading);
+                                                        if (!loading) {
+                                                            voucherTermsLoadedRef.current = true;
+                                                            console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                        }
+                                                    }}
                                                 />
                                             )}
                                             <PassengerInfo
@@ -4768,6 +4808,13 @@ const Index = () => {
                                                     selectedTime={selectedTime}
                                                     onSectionCompletion={handleSectionCompletion}
                                                     isDisabled={!getAccordionState('voucher-type').isEnabled}
+                                                    onTermsLoadingChange={(loading) => {
+                                                        setVoucherTermsLoading(loading);
+                                                        if (!loading) {
+                                                            voucherTermsLoadedRef.current = true;
+                                                            console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                        }
+                                                    }}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (

@@ -155,7 +155,8 @@ const VoucherType = ({
     passengerData,
     setPassengerData,
     privateCharterWeatherRefund,
-    setPrivateCharterWeatherRefund
+    setPrivateCharterWeatherRefund,
+    onTermsLoadingChange
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -2047,6 +2048,10 @@ const VoucherType = ({
         } finally {
             setTermsLoading(false);
             setShowTerms(true);
+            // Notify parent component that terms loading is complete
+            if (onTermsLoadingChange) {
+                onTermsLoadingChange(false);
+            }
         }
     };
 
@@ -2060,6 +2065,10 @@ const VoucherType = ({
         // Fetch Terms & Conditions for this voucher type from backend Settings
         try {
             setTermsLoading(true);
+            // Notify parent component that terms loading started
+            if (onTermsLoadingChange) {
+                onTermsLoadingChange(true);
+            }
             const res = await fetch(`${API_BASE_URL}/api/terms-and-conditions`);
             if (res.ok) {
                 const json = await res.json();
@@ -2172,6 +2181,10 @@ const VoucherType = ({
         } finally {
             setTermsLoading(false);
             setShowTerms(true);
+            // Notify parent component that terms loading is complete
+            if (onTermsLoadingChange) {
+                onTermsLoadingChange(false);
+            }
         }
     };
 
