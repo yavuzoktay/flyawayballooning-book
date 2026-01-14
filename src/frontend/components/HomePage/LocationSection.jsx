@@ -88,6 +88,9 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
 
             if (activityResponse.status === 200 && activityResponse.data.success) {
                 const activity = activityResponse.data.activity;
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LocationSection.jsx:89',message:'Setting activityId from API',data:{activityId:activity?.id||'',location,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
                 setActivityId(activity?.id || '');
                 setSelectedActivity(activity ? [activity] : []);
                 

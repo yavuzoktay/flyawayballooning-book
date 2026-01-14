@@ -70,15 +70,49 @@ const Index = () => {
     // Use a ref to track loading state synchronously (bypasses React's async state batching)
     // This prevents race conditions when multiple handleSectionCompletion calls happen in quick succession
     const isLiveAvailabilityLoadingRef = useRef(false);
+    const chooseFlightTypeRef = useRef(null);
+    const selectedVoucherTypeRef = useRef(null);
+    const chooseLocationRef = useRef(null);
     
     // Use a ref to track activityId synchronously for polling mechanism
     // This allows polling to read the latest activityId value without closure issues
     const activityIdRef = useRef(null);
     
+    // Guard timer for delaying Live Availability open until state is ready
+    const liveAvailabilityGuardTimerRef = useRef(null);
+    const liveAvailabilityGuardStartRef = useRef(null);
+    
     // Keep activityIdRef in sync with activityId state
     useEffect(() => {
         activityIdRef.current = activityId;
+        // #region agent log
+        if (activityId) {
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:79',message:'activityId state changed',data:{activityId,chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        }
+        // #endregion
     }, [activityId]);
+    
+    // Track latest flight type and voucher type synchronously for guard checks
+    useEffect(() => {
+        chooseFlightTypeRef.current = chooseFlightType;
+    }, [chooseFlightType]);
+    
+    useEffect(() => {
+        selectedVoucherTypeRef.current = selectedVoucherType;
+    }, [selectedVoucherType]);
+    
+    useEffect(() => {
+        chooseLocationRef.current = chooseLocation;
+    }, [chooseLocation]);
+    
+    // Cleanup guard timer on unmount
+    useEffect(() => {
+        return () => {
+            if (liveAvailabilityGuardTimerRef.current) {
+                clearTimeout(liveAvailabilityGuardTimerRef.current);
+            }
+        };
+    }, []);
     
     // Wrapper to update both state and ref synchronously
     const setIsLiveAvailabilityLoadingSync = useCallback((value) => {
@@ -479,6 +513,9 @@ const Index = () => {
     // Function to re-fetch availabilities when filters change
     // Returns a promise that resolves when availabilities are fetched
     const refetchAvailabilities = useCallback(async () => {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:481',message:'refetchAvailabilities called',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         if (chooseLocation && activityId) {
             try {
                 const params = new URLSearchParams({
@@ -514,7 +551,19 @@ const Index = () => {
                 console.log('Full URL:', `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
                 console.log('================================');
                 
+                // #region agent log
+                const requestStartTime = Date.now();
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:517',message:'API request starting',data:{url:`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`,connectionType:navigator.connection?.effectiveType||'unknown',requestStartTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
+                
                 const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                
+                // #region agent log
+                const requestEndTime = Date.now();
+                const requestDuration = requestEndTime - requestStartTime;
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:518',message:'API request completed',data:{success:response.data.success,dataLength:response.data.data?.length||0,requestDuration,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
+                
                 console.log('API Response:', response.data);
                 console.log('Response success:', response.data.success);
                 console.log('Response data length:', response.data.data?.length || 0);
@@ -523,19 +572,31 @@ const Index = () => {
                     const availData = response.data.data || [];
                     setAvailabilities(availData);
                     console.log('Availabilities set to:', availData.length);
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:524',message:'Availabilities set successfully',data:{count:availData.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                    // #endregion
                     return availData; // Return the data so caller can wait for it
                 } else {
                     console.log('API returned success: false');
                     console.log('Response error:', response.data.error || 'No error message');
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:528',message:'API returned success false',data:{error:response.data.error||'No error message'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                    // #endregion
                     return [];
                 }
             } catch (error) {
                 console.error('Error refetching availabilities:', error);
                 console.error('Error details:', error.response?.data);
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:533',message:'API request error',data:{errorMessage:error.message,errorCode:error.code,hasResponse:!!error.response,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
                 return [];
             }
         } else {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:538',message:'refetchAvailabilities skipped - missing state',data:{hasLocation:!!chooseLocation,hasActivityId:!!activityId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
             return [];
         }
     }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type]);
@@ -1462,6 +1523,48 @@ const Index = () => {
                     // Even if availabilities are already loaded, we need a guard period to prevent
                     // race conditions where another completion call immediately switches to experience section
                     const isShopifyFlow = params.get('source') === 'shopify';
+                    const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
+                    
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1460',message:'Opening live availability section',data:{isShopifyFlow,isVoucherTypeStart,hasAvailabilities:!!availabilities?.length,availabilitiesCount:availabilities?.length||0,chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+                    // #endregion
+                    
+                    // Shopify voucher-type flow: wait until voucher types are loaded to avoid empty calendar on slow load (5s max)
+                    if (isShopifyFlow && isVoucherTypeStart) {
+                        const hasRequiredState = chooseLocation && activityId && chooseFlightType?.type && selectedVoucherType?.title;
+                        if (!hasRequiredState) {
+                            // Cancel any previous guard timer
+                            if (liveAvailabilityGuardTimerRef.current) {
+                                clearTimeout(liveAvailabilityGuardTimerRef.current);
+                            }
+                            liveAvailabilityGuardStartRef.current = Date.now();
+                            
+                            // #region agent log
+                            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1474',message:'Delaying live availability open until voucher state ready',data:{hasRequiredState,chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+                            // #endregion
+                            
+                            // Keep loading visible during wait
+                            setIsLiveAvailabilityLoadingSync(true);
+                            
+                            const waitForState = () => {
+                                const elapsed = Date.now() - (liveAvailabilityGuardStartRef.current || Date.now());
+                                const readyNow = chooseLocationRef.current && activityIdRef.current && chooseFlightTypeRef.current?.type && selectedVoucherTypeRef.current?.title;
+                                if (readyNow || elapsed >= 5000) {
+                                    // Proceed to open after state ready or 5s timeout
+                                    setActiveAccordion('live-availability');
+                                    setIsLiveAvailabilityLoadingSync(true);
+                                    // Small guard period to let voucher section finish rendering
+                                    setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    liveAvailabilityGuardTimerRef.current = null;
+                                    return;
+                                }
+                                liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
+                            };
+                            
+                            liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
+                            return; // Defer normal flow until ready/timeout
+                        }
+                    }
                     
                     // For Shopify flow on mobile Chrome, ALWAYS set loading state temporarily
                     // to create a guard period that blocks other completions
@@ -1473,6 +1576,9 @@ const Index = () => {
                             isShopifyFlow,
                             availabilitiesCount: availabilities?.length || 0
                         });
+                        // #region agent log
+                        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1470',message:'Setting loading state for live availability',data:{isShopifyFlow,availabilitiesCount:availabilities?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+                        // #endregion
                         
                         // For Shopify flow, ensure loading state stays active for a minimum period
                         // This prevents race conditions on mobile Chrome
@@ -2162,6 +2268,9 @@ const Index = () => {
         // For Shopify flow, use refetchAvailabilities to ensure correct parameters and timing
         // For Bing/Edge browsers, use more aggressive retry mechanism
         if (chooseLocation && activeAccordion === "live-availability") {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2160',message:'Live availability useEffect triggered',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,availabilitiesCount:availabilities?.length||0,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
             // Check if we're in Shopify flow
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
@@ -2243,90 +2352,59 @@ const Index = () => {
                         isMobileChrome 
                     });
                     
-                    // Detect connection type for adaptive polling (especially for 5G/mobile data)
-                    const connectionType = (() => {
-                        try {
-                            if (navigator.connection && navigator.connection.effectiveType) {
-                                return navigator.connection.effectiveType; // '4g', '3g', 'slow-2g', etc.
-                            }
-                        } catch {}
-                        return 'unknown';
-                    })();
-                    
-                    // For slow connections (3g, 2g) or mobile data, use more aggressive polling
-                    const isSlowConnection = connectionType === '3g' || connectionType === '2g' || connectionType === 'slow-2g';
-                    const isMobileData = isMobileChrome || (() => {
-                        try {
-                            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                        } catch {
-                            return false;
-                        }
-                    })();
-                    
                     // Poll for activityId with increasing delays
-                    // For mobile/5G connections, poll more aggressively and longer
                     let pollAttempt = 0;
-                    const maxPollAttempts = isMobileData ? 20 : 10; // More attempts for mobile
-                    const pollInterval = isSlowConnection ? 300 : 500; // Faster polling for slow connections
+                    const maxPollAttempts = 10; // Poll up to 10 times (total ~5-10 seconds)
+                    const pollInterval = 500; // Start with 500ms, increase by 200ms each time
                     
                     const pollForActivityId = () => {
                         pollAttempt++;
                         // Check current activityId value from ref (not closure value)
                         const currentActivityId = activityIdRef.current;
-                        
-                        console.log('🔵 Live Availability - Polling for activityId', {
-                            attempt: pollAttempt,
-                            maxAttempts: maxPollAttempts,
-                            currentActivityId,
-                            connectionType,
-                            isMobileData,
-                            isSlowConnection,
-                            location: chooseLocation
-                        });
+
+                        // (debug instrumentation removed)
                         
                         if (currentActivityId) {
-                            console.log('✅ Live Availability - activityId ready, fetching availabilities', {
+                            console.log('🔵 Live Availability - activityId ready, fetching availabilities', {
                                 attempt: pollAttempt,
-                                activityId: currentActivityId,
-                                connectionType
+                                activityId: currentActivityId
                             });
+
+                            // (debug instrumentation removed)
 
                             refetchAvailabilities();
                             
-                            // For mobile Chrome, Bing browser, or slow connections, retry multiple times after initial fetch
-                            if (isMobileChrome || isBingBrowser || isSlowConnection || isMobileData) {
-                                const retryCount = isMobileChrome || isSlowConnection ? 5 : 3;
-                                const retryDelay = isSlowConnection ? 1500 : (isMobileChrome ? 2000 : 1500);
+                            // For mobile Chrome and Bing browser, retry multiple times after initial fetch
+                            if (isMobileChrome || isBingBrowser) {
+                                const retryCount = isMobileChrome ? 3 : 1;
+                                const retryDelay = isMobileChrome ? 2000 : 1500;
                                 for (let i = 1; i <= retryCount; i++) {
                                     setTimeout(() => {
-                                        console.log(`🔄 Live Availability - Retry ${i}/${retryCount} fetching availabilities`, {
-                                            connectionType
-                                        });
                                         refetchAvailabilities();
                                     }, retryDelay * i);
                                 }
                             }
                         } else if (pollAttempt < maxPollAttempts && chooseLocation) {
                             // Continue polling if we haven't exceeded max attempts and location is set
-                            const nextDelay = pollInterval + (pollAttempt * (isSlowConnection ? 150 : 200)); // Increasing delay
-                            console.log('⏳ Live Availability - activityId still not ready, polling again', {
+                            const nextDelay = pollInterval + (pollAttempt * 200); // Increasing delay
+                            console.log('🔵 Live Availability - activityId still not ready, polling again', {
                                 attempt: pollAttempt,
-                                nextDelay,
-                                connectionType
+                                nextDelay
                             });
                             setTimeout(pollForActivityId, nextDelay);
                         } else {
-                            console.warn('⚠️ Live Availability - activityId polling exhausted or location not set', {
+                            console.log('🔵 Live Availability - activityId polling exhausted or location not set', {
                                 pollAttempt,
                                 maxPollAttempts,
-                                chooseLocation,
-                                connectionType
+                                chooseLocation
                             });
+
+                            // (debug instrumentation removed)
                         }
                     };
                     
-                    // Start polling after initial delay (shorter for slow connections)
-                    const initialDelay = isSlowConnection ? 300 : (isMobileChrome ? 800 : (isBingBrowser ? 600 : 400));
+                    // Start polling after initial delay
+                    const initialDelay = isMobileChrome ? 800 : (isBingBrowser ? 600 : 400);
                     const timer = setTimeout(pollForActivityId, initialDelay);
                     return () => clearTimeout(timer);
                 }
@@ -2676,10 +2754,16 @@ const Index = () => {
         if (!chooseLocation || !chooseFlightType?.type) return;
         if (isVoucherTypeStart && !selectedVoucherType?.title) {
             console.log('🔄 Shopify First Load Fix - Waiting for voucher type to be set');
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2646',message:'Retry effect - waiting for voucher type',data:{chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,activityId,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
             return;
         }
         
         console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2651',message:'Retry effect - starting aggressive polling',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         
         let retryCount = 0;
         const maxRetries = 15; // Increased retries
@@ -2694,11 +2778,17 @@ const Index = () => {
                 selectedVoucherType: selectedVoucherType?.title,
                 availabilitiesCount: availabilities?.length || 0
             });
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2657',message:'Retry fetch attempt',data:{retryCount,maxRetries,activityId,chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,availabilitiesCount:availabilities?.length||0,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
             
             if (activityId) {
                 refetchAvailabilities();
             } else {
                 console.log('🔄 Shopify First Load Fix - activityId not ready yet, waiting...');
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2670',message:'Retry fetch - activityId not ready',data:{retryCount},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+                // #endregion
             }
         };
         
@@ -3139,6 +3229,10 @@ const Index = () => {
             const qpStartAt = params.get('startAt');
             const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3095',message:'Shopify prefill - URL params parsed',data:{location:qpLocation,voucherTitle:qpVoucherTitle,passengers:qpPassengers,experience:qpExperience,startAt:qpStartAt,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
+
             console.log('🔵 Shopify prefill - URL params:', {
                 location: qpLocation,
                 voucherTitle: qpVoucherTitle,
@@ -3183,6 +3277,9 @@ const Index = () => {
             if (qpLocation) {
                 const trimmedLocation = qpLocation.trim();
                 console.log('🔵 Shopify prefill - Setting location:', trimmedLocation);
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3152',message:'Setting location state',data:{location:trimmedLocation},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                // #endregion
                 // Set location immediately
                 setChooseLocation(trimmedLocation);
                 
@@ -3214,6 +3311,9 @@ const Index = () => {
                         type: derivedExperience,
                         passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2'
                     });
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3180',message:'Setting flight type state',data:{type:derivedExperience||'Shared Flight',passengerCount:qpPassengers>0?String(qpPassengers):'2'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                    // #endregion
                     setChooseFlightType({
                         type: derivedExperience || 'Shared Flight',
                         passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
@@ -3300,6 +3400,9 @@ const Index = () => {
                         quantity: qpPassengers > 0 ? qpPassengers : 2,
                         weatherRefundable: qpWeatherRefundable
                     });
+                    // #region agent log
+                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3265',message:'Setting voucher type state',data:{title:qpVoucherTitle,quantity:qpPassengers>0?qpPassengers:2},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                    // #endregion
                     setSelectedVoucherType({
                         title: qpVoucherTitle,
                         quantity: qpPassengers > 0 ? qpPassengers : 2,
@@ -3398,104 +3501,106 @@ const Index = () => {
                     
                     // CRITICAL: After voucher type is set and all state is ready, open Live Availability
                     // and fetch availabilities with correct filters.
-                    // IMPORTANT: When coming from Shopify voucher-type deep link, ALWAYS fetch availabilities
-                    // BEFORE opening section to prevent empty calendar on slow connections (5G, mobile data, etc.)
-                    // This ensures data is loaded before the section becomes visible.
+                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar.
+                    // IMPORTANT: When coming from Shopify voucher-type deep link, wait longer (5s total)
+                    // before opening Live Availability so that slower connections have time to load data.
                     const liveAvailabilityOpenDelay = qpStartAt === 'voucher-type' ? 5000 : 2000;
-                    
-                    // Function to wait for activityId and then fetch availabilities before opening section
-                    const waitAndOpenLiveAvailability = async () => {
-                        // First, ensure activityId is ready (poll if needed)
-                        let currentActivityId = activityId;
-                        let pollAttempt = 0;
-                        const maxActivityIdPollAttempts = 15; // Poll up to 15 times (total ~7-10 seconds)
-                        
-                        // Poll for activityId if not ready
-                        while (!currentActivityId && pollAttempt < maxActivityIdPollAttempts && qpLocation) {
-                            pollAttempt++;
-                            const pollDelay = pollAttempt * 500; // 500ms, 1000ms, 1500ms...
-                            console.log(`🔵 Shopify prefill - Waiting for activityId (attempt ${pollAttempt}/${maxActivityIdPollAttempts})`, {
-                                location: qpLocation,
-                                delay: pollDelay
-                            });
+                    setTimeout(() => {
+                        // Check if all required state is ready
+                        if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
+                            // Detect mobile Chrome browser specifically
+                            const isMobileChrome = (() => {
+                                try {
+                                    const ua = navigator.userAgent;
+                                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+                                    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
+                                    return isMobile && isChrome;
+                                } catch {
+                                    return false;
+                                }
+                            })();
                             
-                            await new Promise(resolve => setTimeout(resolve, pollDelay));
-                            currentActivityId = activityIdRef.current || activityId;
-                        }
-                        
-                        // Check if we have all required state
-                        if (!qpLocation || !currentActivityId || !derivedExperience || !qpVoucherTitle) {
-                            console.error('🔵 Shopify prefill - Cannot open Live Availability: Missing required state', {
+                            console.log('🔵 Shopify prefill - All state ready, preparing to open Live Availability section', {
+                                isMobileChrome,
                                 location: qpLocation,
-                                activityId: currentActivityId,
+                                activityId,
                                 experience: derivedExperience,
                                 voucherType: qpVoucherTitle
                             });
-                            return;
-                        }
-                        
-                        console.log('🔵 Shopify prefill - All state ready, fetching availabilities BEFORE opening Live Availability section', {
-                            location: qpLocation,
-                            activityId: currentActivityId,
-                            experience: derivedExperience,
-                            voucherType: qpVoucherTitle,
-                            connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
-                        });
-                        
-                        // Set loading state before fetching
-                        setIsLiveAvailabilityLoadingSync(true);
-                        
-                        try {
-                            // Fetch availabilities and wait for them to load
-                            let fetchedData = await refetchAvailabilities();
                             
-                            // If no data, retry up to 5 times with increasing delays (especially for 5G/mobile)
-                            let retryCount = 0;
-                            const maxRetries = 5;
-                            const baseRetryDelay = 1000; // Start with 1 second
-                            
-                            while ((!fetchedData || fetchedData.length === 0) && retryCount < maxRetries) {
-                                retryCount++;
-                                const delay = baseRetryDelay * retryCount; // 1s, 2s, 3s, 4s, 5s
-                                console.log(`🔵 Shopify prefill - Retry ${retryCount}/${maxRetries} fetching availabilities after ${delay}ms`, {
-                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown',
-                                    location: qpLocation,
-                                    activityId: currentActivityId
-                                });
+                            // For mobile Chrome: Fetch availabilities FIRST, wait for them to load, THEN open section
+                            if (isMobileChrome) {
+                                console.log('🔵 Mobile Chrome - Fetching availabilities BEFORE opening Live Availability section');
                                 
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                fetchedData = await refetchAvailabilities();
-                            }
-                            
-                            if (fetchedData && fetchedData.length > 0) {
-                                console.log('✅ Shopify prefill - Availabilities loaded successfully, opening Live Availability section', {
-                                    count: fetchedData.length,
-                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
-                                });
+                                // Set loading state before fetching
+                                setIsLiveAvailabilityLoadingSync(true);
+                                
+                                // Fetch availabilities and wait for the promise to resolve
+                                const fetchAndWait = async () => {
+                                    try {
+                                        // First fetch attempt
+                                        let fetchedData = await refetchAvailabilities();
+                                        
+                                        // If no data, retry up to 3 times with increasing delays
+                                        let retryCount = 0;
+                                        const maxRetries = 3;
+                                        
+                                        while ((!fetchedData || fetchedData.length === 0) && retryCount < maxRetries) {
+                                            retryCount++;
+                                            const delay = retryCount * 800; // 800ms, 1600ms, 2400ms
+                                            console.log(`🔵 Mobile Chrome - Retry ${retryCount}/${maxRetries} after ${delay}ms`);
+                                            
+                                            await new Promise(resolve => setTimeout(resolve, delay));
+                                            fetchedData = await refetchAvailabilities();
+                                        }
+                                        
+                                        if (fetchedData && fetchedData.length > 0) {
+                                            console.log('🔵 Mobile Chrome - Availabilities loaded, opening Live Availability section', {
+                                                count: fetchedData.length
+                                            });
+                                        } else {
+                                            console.log('🔵 Mobile Chrome - No availabilities after retries, opening section anyway');
+                                        }
+                                        
+                                        // Open section after availabilities are loaded (or after retries)
+                                        setActiveAccordion('live-availability');
+                                        
+                                        // Final refetch to ensure we have the latest data
+                                        setTimeout(() => {
+                                            refetchAvailabilities();
+                                        }, 200);
+                                    } catch (error) {
+                                        console.error('🔵 Mobile Chrome - Error fetching availabilities:', error);
+                                        // Open section anyway to prevent blocking
+                                        setActiveAccordion('live-availability');
+                                    }
+                                };
+                                
+                                fetchAndWait();
                             } else {
-                                console.warn('⚠️ Shopify prefill - No availabilities after retries, opening section anyway', {
-                                    retryCount,
-                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
-                                });
-                            }
-                            
-                            // Open section AFTER availabilities are loaded (or after retries)
+                                // For non-mobile Chrome: Open section immediately and fetch in parallel
+                                console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
                             setActiveAccordion('live-availability');
                             
-                            // Final refetch to ensure we have the latest data
+                            // Final refetch with all state ready
                             setTimeout(() => {
+                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
+                                    location: qpLocation,
+                                    activityId,
+                                    experience: derivedExperience,
+                                    voucherType: qpVoucherTitle
+                                });
                                 refetchAvailabilities();
-                            }, 300);
-                        } catch (error) {
-                            console.error('❌ Shopify prefill - Error fetching availabilities:', error);
-                            // Open section anyway to prevent blocking, but show loading state
-                            setActiveAccordion('live-availability');
+                            }, 400);
+                            }
+                        } else {
+                            console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
+                                location: qpLocation,
+                                activityId,
+                                experience: derivedExperience,
+                                voucherType: qpVoucherTitle
+                            });
                         }
-                    };
-                    
-                    // Start the process after the delay
-                    setTimeout(() => {
-                        waitAndOpenLiveAvailability();
                     }, liveAvailabilityOpenDelay); // Wait longer for voucher type to be fully set (5s for voucher-type deep link)
                 } else if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
