@@ -334,7 +334,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
             );
             
-            if (shouldHaveAvailabilities) {
+            
+            // CRITICAL: For Shopify flow, show loading if availabilities are empty, even if selectedActivity is not ready yet
+            // This handles the case where Terms and Condition popup is accepted and section opens before activityId is set
+            const isShopifyFlowWithLocation = isShopifyFlow && chooseLocation && chooseFlightType?.type;
+            const shouldShowLoadingForShopify = isShopifyFlowWithLocation && (!availabilities || availabilities.length === 0);
+            
+            if (shouldHaveAvailabilities || shouldShowLoadingForShopify) {
                 // If we should have availabilities but don't have them yet, show loading
                 // For Chrome/mobile, be more aggressive about showing loading state
                 if (!availabilities || availabilities.length === 0) {
@@ -351,7 +357,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         hasLocationAndActivity,
                         chooseFlightType: chooseFlightType?.type,
                         activeAccordion,
-                        availabilitiesCount: availabilities?.length || 0
+                        availabilitiesCount: availabilities?.length || 0,
+                        shouldShowLoadingForShopify
                     });
                 } else {
                     // Availabilities loaded, hide loading after a delay to ensure render

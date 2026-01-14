@@ -73,6 +73,7 @@ const Index = () => {
     const chooseFlightTypeRef = useRef(null);
     const selectedVoucherTypeRef = useRef(null);
     const chooseLocationRef = useRef(null);
+    const availabilitiesRef = useRef([]);
     
     // Use a ref to track activityId synchronously for polling mechanism
     // This allows polling to read the latest activityId value without closure issues
@@ -86,6 +87,15 @@ const Index = () => {
     const [voucherTermsLoading, setVoucherTermsLoading] = useState(false);
     const voucherTermsLoadedRef = useRef(false);
     
+    // Track Accordion loading states from VoucherType component
+    const [accordionLoadingStates, setAccordionLoadingStates] = useState({
+        allVoucherTypesLoading: true,
+        privateCharterVoucherTypesLoading: true,
+        activityDataLoading: false,
+        isAccordionLoading: true
+    });
+    const accordionLoadedRef = useRef(false);
+    
     // Reset terms loaded flag when voucher type changes
     useEffect(() => {
         if (selectedVoucherType) {
@@ -93,14 +103,35 @@ const Index = () => {
         }
     }, [selectedVoucherType?.title]);
     
+    // Reset accordion loaded flag when location or flight type changes
+    useEffect(() => {
+        accordionLoadedRef.current = false;
+    }, [chooseLocation, chooseFlightType?.type]);
+    
+    // Track when all accordions finish loading
+    useEffect(() => {
+        const allLoaded = !accordionLoadingStates.isAccordionLoading && 
+                         !accordionLoadingStates.allVoucherTypesLoading && 
+                         !accordionLoadingStates.privateCharterVoucherTypesLoading &&
+                         !accordionLoadingStates.activityDataLoading;
+        
+        if (allLoaded && !accordionLoadedRef.current) {
+            console.log('[ShopifyDebug] All accordions finished loading', {
+                allVoucherTypesLoading: accordionLoadingStates.allVoucherTypesLoading,
+                privateCharterVoucherTypesLoading: accordionLoadingStates.privateCharterVoucherTypesLoading,
+                activityDataLoading: accordionLoadingStates.activityDataLoading
+            });
+            // Set flag after a small delay to ensure network requests are complete
+            setTimeout(() => {
+                accordionLoadedRef.current = true;
+                console.log('[ShopifyDebug] Accordion loaded flag set to true');
+            }, 500);
+        }
+    }, [accordionLoadingStates]);
+    
     // Keep activityIdRef in sync with activityId state
     useEffect(() => {
         activityIdRef.current = activityId;
-        // #region agent log
-        if (activityId) {
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:79',message:'activityId state changed',data:{activityId,chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        }
-        // #endregion
     }, [activityId]);
     
     // Track latest flight type and voucher type synchronously for guard checks
@@ -115,6 +146,10 @@ const Index = () => {
     useEffect(() => {
         chooseLocationRef.current = chooseLocation;
     }, [chooseLocation]);
+    
+    useEffect(() => {
+        availabilitiesRef.current = availabilities;
+    }, [availabilities]);
     
     // Cleanup guard timer on unmount
     useEffect(() => {
@@ -524,9 +559,6 @@ const Index = () => {
     // Function to re-fetch availabilities when filters change
     // Returns a promise that resolves when availabilities are fetched
     const refetchAvailabilities = useCallback(async () => {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:481',message:'refetchAvailabilities called',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         if (chooseLocation && activityId) {
             try {
                 const params = new URLSearchParams({
@@ -562,18 +594,7 @@ const Index = () => {
                 console.log('Full URL:', `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
                 console.log('================================');
                 
-                // #region agent log
-                const requestStartTime = Date.now();
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:517',message:'API request starting',data:{url:`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`,connectionType:navigator.connection?.effectiveType||'unknown',requestStartTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
-                
                 const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
-                
-                // #region agent log
-                const requestEndTime = Date.now();
-                const requestDuration = requestEndTime - requestStartTime;
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:518',message:'API request completed',data:{success:response.data.success,dataLength:response.data.data?.length||0,requestDuration,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
                 
                 console.log('API Response:', response.data);
                 console.log('Response success:', response.data.success);
@@ -583,31 +604,19 @@ const Index = () => {
                     const availData = response.data.data || [];
                     setAvailabilities(availData);
                     console.log('Availabilities set to:', availData.length);
-                    // #region agent log
-                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:524',message:'Availabilities set successfully',data:{count:availData.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                    // #endregion
                     return availData; // Return the data so caller can wait for it
                 } else {
                     console.log('API returned success: false');
                     console.log('Response error:', response.data.error || 'No error message');
-                    // #region agent log
-                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:528',message:'API returned success false',data:{error:response.data.error||'No error message'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                    // #endregion
                     return [];
                 }
             } catch (error) {
                 console.error('Error refetching availabilities:', error);
                 console.error('Error details:', error.response?.data);
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:533',message:'API request error',data:{errorMessage:error.message,errorCode:error.code,hasResponse:!!error.response,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
                 return [];
             }
         } else {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:538',message:'refetchAvailabilities skipped - missing state',data:{hasLocation:!!chooseLocation,hasActivityId:!!activityId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
             return [];
         }
     }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type]);
@@ -1536,23 +1545,52 @@ const Index = () => {
                     const isShopifyFlow = params.get('source') === 'shopify';
                     const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
                     
-                    // #region agent log
-                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1460',message:'Opening live availability section',data:{isShopifyFlow,isVoucherTypeStart,hasAvailabilities:!!availabilities?.length,availabilitiesCount:availabilities?.length||0,chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-                    // #endregion
-                    
-                    // Shopify voucher-type flow: wait until voucher types are loaded AND terms are loaded to avoid empty calendar
+                    // Shopify voucher-type flow: wait until ALL accordions are loaded, terms are loaded, AND network requests complete
                     if (isShopifyFlow && isVoucherTypeStart) {
-                        const hasRequiredState = chooseLocation && activityId && chooseFlightType?.type && selectedVoucherType?.title;
+                        // CRITICAL: Use ref for activityId check to avoid stale state issues
+                        const hasRequiredState = chooseLocation && activityIdRef.current && chooseFlightType?.type && selectedVoucherType?.title;
                         const termsReady = voucherTermsLoadedRef.current || !voucherTermsLoading; // Terms loaded or not loading
+                        const accordionsReady = !accordionLoadingStates.isAccordionLoading && accordionLoadedRef.current; // All accordions loaded
                         
-                        console.log('[ShopifyDebug] Live Availability guard check', {
+                        // CRITICAL FIX: If terms are accepted (termsReady) and voucher-type section is completed,
+                        // allow opening Live Availability section even if activityId is not ready yet
+                        // This ensures the section opens immediately after terms acceptance
+                        const isTermsAccepted = voucherTermsLoadedRef.current && !voucherTermsLoading;
+                        const isVoucherTypeCompleted = completedSectionId === 'voucher-type' && selectedVoucherType?.title;
+                        const shouldOpenAfterTermsAcceptance = isTermsAccepted && isVoucherTypeCompleted && chooseLocation && chooseFlightType?.type;
+                        
+                        console.log('[ShopifyDebug] Live Availability guard check - COMPREHENSIVE', {
                             hasRequiredState,
                             termsReady,
+                            accordionsReady,
                             voucherTermsLoading,
-                            voucherTermsLoaded: voucherTermsLoadedRef.current
+                            voucherTermsLoaded: voucherTermsLoadedRef.current,
+                            accordionLoadingStates,
+                            accordionLoaded: accordionLoadedRef.current,
+                            activityIdRef: activityIdRef.current,
+                            chooseLocation,
+                            hasFlightType: !!chooseFlightType?.type,
+                            hasVoucherType: !!selectedVoucherType?.title,
+                            isTermsAccepted,
+                            isVoucherTypeCompleted,
+                            shouldOpenAfterTermsAcceptance,
+                            completedSectionId
                         });
                         
-                        if (!hasRequiredState || !termsReady) {
+                        // CRITICAL FIX: If terms are accepted and voucher-type is completed, open section immediately
+                        // even if activityId is not ready yet (it will be fetched in the background)
+                        if (shouldOpenAfterTermsAcceptance && accordionsReady) {
+                            console.log('[ShopifyDebug] Terms accepted and voucher-type completed, opening Live Availability immediately');
+                            setIsLiveAvailabilityLoadingSync(true);
+                            // Open section immediately, activityId will be fetched in background
+                            setActiveAccordion('live-availability');
+                            // Continue to the "All checks passed" block to handle availabilities fetch
+                            // This ensures the section opens but loading state is maintained until data arrives
+                            // Force hasRequiredState to true to fall through to "All checks passed" block
+                            // Note: We'll still check activityId in the "All checks passed" block
+                        }
+                        
+                        if (!shouldOpenAfterTermsAcceptance && (!hasRequiredState || !termsReady || !accordionsReady)) {
                             // Cancel any previous guard timer
                             if (liveAvailabilityGuardTimerRef.current) {
                                 clearTimeout(liveAvailabilityGuardTimerRef.current);
@@ -1568,19 +1606,205 @@ const Index = () => {
                                                 activityIdRef.current && 
                                                 chooseFlightTypeRef.current?.type && 
                                                 selectedVoucherTypeRef.current?.title &&
-                                                (voucherTermsLoadedRef.current || !voucherTermsLoading);
+                                                (voucherTermsLoadedRef.current || !voucherTermsLoading) &&
+                                                (!accordionLoadingStates.isAccordionLoading && accordionLoadedRef.current);
                                 
-                                if (readyNow || elapsed >= 5000) {
-                                    // Proceed to open after state ready or 5s timeout
-                                    console.log('[ShopifyDebug] Live Availability guard complete, opening section', {
+                                // CRITICAL: Even on timeout, require activityId - do not open without it
+                                const hasActivityId = !!activityIdRef.current;
+                                
+                                if (readyNow || (elapsed >= 8000 && hasActivityId)) {
+                                    // Proceed to open after state ready or 8s timeout (increased for slow networks)
+                                    // If timeout but no activityId, continue waiting
+                                    if (elapsed >= 8000 && !hasActivityId) {
+                                        console.log('[ShopifyDebug] Guard timeout but activityId still null, continuing wait', {
+                                            elapsed,
+                                            hasActivityId
+                                        });
+                                        // Continue waiting for activityId (max 15 seconds total)
+                                        if (elapsed < 15000) {
+                                            liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
+                                        } else {
+                                            // Absolute timeout, log error but don't open
+                                            console.error('[ShopifyDebug] Guard: Absolute timeout reached, activityId still null - cannot open section');
+                                            setIsLiveAvailabilityLoadingSync(false);
+                                            liveAvailabilityGuardTimerRef.current = null;
+                                        }
+                                        return;
+                                    }
+                                    
+                                    console.log('[ShopifyDebug] Live Availability guard complete, ensuring availabilities loaded', {
                                         readyNow,
                                         elapsed,
-                                        termsReady: voucherTermsLoadedRef.current || !voucherTermsLoading
+                                        hasActivityId,
+                                        termsReady: voucherTermsLoadedRef.current || !voucherTermsLoading,
+                                        accordionsReady: !accordionLoadingStates.isAccordionLoading && accordionLoadedRef.current,
+                                        hasAvailabilities: !!availabilities?.length,
+                                        availabilitiesCount: availabilities?.length || 0
                                     });
-                                    setActiveAccordion('live-availability');
-                                    setIsLiveAvailabilityLoadingSync(true);
-                                    // Small guard period to let voucher section finish rendering
-                                    setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    
+                                    // CRITICAL FIX: Ensure availabilities are loaded before opening section
+                                    const openSection = () => {
+                                        // CRITICAL: Final check - do not open if activityId is still null
+                                        if (!activityIdRef.current) {
+                                            console.log('[ShopifyDebug] openSection: activityId still null, cannot open section');
+                                            // Continue waiting for activityId
+                                            liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
+                                            return;
+                                        }
+                                        
+                                        // CRITICAL: Verify availabilities are loaded using ref (synchronous check)
+                                        const currentAvailabilities = availabilitiesRef.current;
+                                        if (!currentAvailabilities || currentAvailabilities.length === 0) {
+                                            console.log('[ShopifyDebug] openSection: availabilities still empty, fetching before opening');
+                                            // Fetch availabilities before opening
+                                            refetchAvailabilities().then((data) => {
+                                                if (data && data.length > 0) {
+                                                    // Poll for state update
+                                                    let pollCount = 0;
+                                                    const maxPolls = 15;
+                                                    const pollForUpdate = () => {
+                                                        pollCount++;
+                                                        if (availabilitiesRef.current && availabilitiesRef.current.length > 0) {
+                                                            // Now safe to open
+                                                            console.log('[ShopifyDebug] openSection: Availabilities loaded, opening section');
+                                                            setActiveAccordion('live-availability');
+                                                            setIsLiveAvailabilityLoadingSync(true);
+                                                            setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                                        } else if (pollCount < maxPolls) {
+                                                            setTimeout(pollForUpdate, 200);
+                                                        } else {
+                                                            // Timeout, open anyway
+                                                            console.log('[ShopifyDebug] openSection: Polling timeout, opening anyway');
+                                                            setActiveAccordion('live-availability');
+                                                            setIsLiveAvailabilityLoadingSync(true);
+                                                            setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                                        }
+                                                    };
+                                                    setTimeout(pollForUpdate, 500);
+                                                } else {
+                                                    // Empty data, open anyway after delay
+                                                    console.log('[ShopifyDebug] openSection: Availabilities fetch returned empty, opening anyway');
+                                                    setActiveAccordion('live-availability');
+                                                    setIsLiveAvailabilityLoadingSync(true);
+                                                    setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                                }
+                                            }).catch(() => {
+                                                // Error, open anyway after delay
+                                                console.log('[ShopifyDebug] openSection: Availabilities fetch failed, opening anyway');
+                                                setActiveAccordion('live-availability');
+                                                setIsLiveAvailabilityLoadingSync(true);
+                                                setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                            });
+                                            return;
+                                        }
+                                        
+                                        console.log('[ShopifyDebug] Opening Live Availability section');
+                                        setActiveAccordion('live-availability');
+                                        setIsLiveAvailabilityLoadingSync(true);
+                                        // Small guard period to let voucher section finish rendering
+                                        setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    };
+                                    
+                                    // CRITICAL: Check if activityId is available before fetching
+                                    if (!activityIdRef.current) {
+                                        console.log('[ShopifyDebug] Guard: activityId not ready, waiting...');
+                                        // Continue waiting for activityId
+                                        liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
+                                        return;
+                                    }
+                                    
+                                    // If availabilities are empty, fetch them first
+                                    if (!availabilities || availabilities.length === 0) {
+                                        console.log('[ShopifyDebug] Availabilities empty in guard, fetching before opening');
+                                        
+                                        refetchAvailabilities().then((data) => {
+                                            
+                                            // CRITICAL: Verify data was actually fetched
+                                            if (!data || data.length === 0) {
+                                                console.log('[ShopifyDebug] Guard: Availabilities fetch returned empty, retrying...');
+                                                // Retry once more
+                                                setTimeout(() => {
+                                                    refetchAvailabilities().then((retryData) => {
+                                                        if (retryData && retryData.length > 0) {
+                                                            setTimeout(openSection, 2000);
+                                                        } else {
+                                                            // Still empty, open anyway after delay
+                                                            setTimeout(openSection, 3000);
+                                                        }
+                                                    }).catch(() => {
+                                                        setTimeout(openSection, 3000);
+                                                    });
+                                                }, 2000);
+                                                return;
+                                            }
+                                            
+                                            // CRITICAL: Wait for availabilities state to actually update
+                                            // Poll availabilities state to ensure it's set before opening
+                                            let pollCount = 0;
+                                            const maxPolls = 20; // 4 seconds max (200ms * 20)
+                                            const pollForAvailabilities = () => {
+                                                pollCount++;
+                                                // Check if availabilities are now loaded using ref (synchronous)
+                                                const currentAvailabilities = availabilitiesRef.current;
+                                                if (currentAvailabilities && currentAvailabilities.length > 0) {
+                                                    console.log('[ShopifyDebug] Guard: Availabilities loaded, opening section after delay', {
+                                                        count: currentAvailabilities.length
+                                                    });
+                                                    // Wait additional 1-2 seconds for network stability
+                                                    setTimeout(openSection, 2000);
+                                                } else if (pollCount < maxPolls) {
+                                                    // Continue polling
+                                                    setTimeout(pollForAvailabilities, 200);
+                                                } else {
+                                                    // Timeout, open anyway
+                                                    console.log('[ShopifyDebug] Guard: Availabilities polling timeout, opening section anyway');
+                                                    setTimeout(openSection, 2000);
+                                                }
+                                            };
+                                            
+                                            // Start polling after a short delay to let state update
+                                            setTimeout(pollForAvailabilities, 500);
+                                        }).catch((error) => {
+                                            // Open anyway after 3 seconds
+                                            setTimeout(openSection, 3000);
+                                        });
+                                    } else {
+                                        // Availabilities already loaded, wait 2.5 seconds for network stability
+                                        // But verify they're still loaded before opening using ref
+                                        setTimeout(() => {
+                                            const currentAvailabilities = availabilitiesRef.current;
+                                            if (currentAvailabilities && currentAvailabilities.length > 0) {
+                                                console.log('[ShopifyDebug] Guard: Availabilities confirmed loaded, opening section');
+                                                openSection();
+                                            } else {
+                                                console.log('[ShopifyDebug] Guard: Availabilities disappeared, fetching again');
+                                                // Availabilities disappeared, fetch again
+                                                refetchAvailabilities().then((data) => {
+                                                    if (data && data.length > 0) {
+                                                        // Poll for state update
+                                                        let pollCount = 0;
+                                                        const maxPolls = 15;
+                                                        const pollForUpdate = () => {
+                                                            pollCount++;
+                                                            if (availabilitiesRef.current && availabilitiesRef.current.length > 0) {
+                                                                setTimeout(openSection, 2000);
+                                                            } else if (pollCount < maxPolls) {
+                                                                setTimeout(pollForUpdate, 200);
+                                                            } else {
+                                                                setTimeout(openSection, 3000);
+                                                            }
+                                                        };
+                                                        setTimeout(pollForUpdate, 500);
+                                                    } else {
+                                                        setTimeout(openSection, 3000);
+                                                    }
+                                                }).catch(() => {
+                                                    setTimeout(openSection, 3000);
+                                                });
+                                            }
+                                        }, 2500);
+                                    }
+                                    
                                     liveAvailabilityGuardTimerRef.current = null;
                                     return;
                                 }
@@ -1589,6 +1813,171 @@ const Index = () => {
                             
                             liveAvailabilityGuardTimerRef.current = setTimeout(waitForState, 200);
                             return; // Defer normal flow until ready/timeout
+                        }
+                        
+                        // All checks passed (or terms accepted), but ensure availabilities are loaded before opening
+                        {
+                            console.log('[ShopifyDebug] All checks passed, ensuring availabilities are loaded before opening Live Availability');
+                            setIsLiveAvailabilityLoadingSync(true);
+                            
+                            // CRITICAL FIX: Check activityId first using ref to avoid stale state, then fetch availabilities if needed
+                            if (!activityIdRef.current) {
+                                console.log('[ShopifyDebug] activityId not ready, waiting before opening section');
+                                // Poll for activityId
+                                let pollCount = 0;
+                                const maxPolls = 20; // 4 seconds max (200ms * 20)
+                                const pollForActivityId = () => {
+                                    pollCount++;
+                                    if (activityIdRef.current) {
+                                        // activityId ready, proceed with availabilities check
+                                        if (!availabilities || availabilities.length === 0) {
+                                            fetchAndOpenSection();
+                                        } else {
+                                            setTimeout(() => {
+                                                setActiveAccordion('live-availability');
+                                                setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                            }, 2000);
+                                        }
+                                    } else if (pollCount < maxPolls) {
+                                        setTimeout(pollForActivityId, 200);
+                                    } else {
+                                        // Timeout, open anyway
+                                        console.log('[ShopifyDebug] activityId polling timeout, opening section anyway');
+                                        setActiveAccordion('live-availability');
+                                        setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    }
+                                };
+                                setTimeout(pollForActivityId, 200);
+                                return;
+                            }
+                            
+                            // Helper function to fetch and open section
+                            const fetchAndOpenSection = () => {
+                                console.log('[ShopifyDebug] Availabilities empty, fetching before opening section');
+                                
+                                // CRITICAL: If activityId is null, wait for it before fetching
+                                if (!activityIdRef.current) {
+                                    console.log('[ShopifyDebug] fetchAndOpenSection: activityId null, waiting before fetch');
+                                    // Poll for activityId
+                                    let pollCount = 0;
+                                    const maxPolls = 20; // 4 seconds max
+                                    const pollForActivityId = () => {
+                                        pollCount++;
+                                        if (activityIdRef.current) {
+                                            // activityId ready, proceed with fetch
+                                            refetchAvailabilities().then((data) => {
+                                                handleFetchResult(data);
+                                            }).catch((error) => {
+                                                handleFetchError(error);
+                                            });
+                                        } else if (pollCount < maxPolls) {
+                                            setTimeout(pollForActivityId, 200);
+                                        } else {
+                                            // Timeout, open section anyway but keep loading active
+                                            console.log('[ShopifyDebug] fetchAndOpenSection: activityId polling timeout, opening section with loading');
+                                            setActiveAccordion('live-availability');
+                                            // Keep loading state active - LiveAvailabilitySection will handle showing loading UI
+                                        }
+                                    };
+                                    setTimeout(pollForActivityId, 200);
+                                    return;
+                                }
+                                
+                                // Helper function to handle fetch result
+                                const handleFetchResult = (data) => {
+                                    
+                                    // CRITICAL: Verify data was actually fetched
+                                    if (!data || data.length === 0) {
+                                        console.log('[ShopifyDebug] Availabilities fetch returned empty, retrying...');
+                                        // Retry once more
+                                        setTimeout(() => {
+                                            refetchAvailabilities().then((retryData) => {
+                                                if (retryData && retryData.length > 0) {
+                                                    setTimeout(() => {
+                                                        setActiveAccordion('live-availability');
+                                                        setTimeout(() => {
+                                                            const currentAvailabilities = availabilitiesRef.current;
+                                                            if (currentAvailabilities && currentAvailabilities.length > 0) {
+                                                                setIsLiveAvailabilityLoadingSync(false);
+                                                            } else {
+                                                                // Keep loading state active
+                                                            }
+                                                        }, 500);
+                                                    }, 2000);
+                                                } else {
+                                                    // Still empty, open anyway but keep loading state active
+                                                    setTimeout(() => {
+                                                        setActiveAccordion('live-availability');
+                                                        // Keep loading state active - LiveAvailabilitySection will handle showing loading UI
+                                                    }, 3000);
+                                                }
+                                            }).catch(() => {
+                                                setTimeout(() => {
+                                                    setActiveAccordion('live-availability');
+                                                    // Keep loading state active on error - LiveAvailabilitySection will handle showing loading UI
+                                                }, 3000);
+                                            });
+                                        }, 2000);
+                                        return;
+                                    }
+                                    
+                                    // Wait additional 1-2 seconds for state to settle, then open
+                                    setTimeout(() => {
+                                        console.log('[ShopifyDebug] Availabilities loaded, opening Live Availability section');
+                                        setActiveAccordion('live-availability');
+                                        // CRITICAL: Verify availabilities are actually loaded before clearing loading state
+                                        setTimeout(() => {
+                                            const currentAvailabilities = availabilitiesRef.current;
+                                            if (currentAvailabilities && currentAvailabilities.length > 0) {
+                                                setIsLiveAvailabilityLoadingSync(false);
+                                            } else {
+                                                console.log('[ShopifyDebug] Availabilities still empty after fetch, keeping loading state active');
+                                                // Keep loading state active - LiveAvailabilitySection will handle showing loading UI
+                                            }
+                                        }, 500);
+                                    }, 2000);
+                                };
+                                
+                                // Helper function to handle fetch error
+                                const handleFetchError = (error) => {
+                                    // Open anyway after timeout but keep loading state active
+                                    setTimeout(() => {
+                                        setActiveAccordion('live-availability');
+                                        // Keep loading state active on error - LiveAvailabilitySection will handle showing loading UI
+                                    }, 3000);
+                                };
+                                
+                                // Fetch and wait for completion
+                                refetchAvailabilities().then((data) => {
+                                    handleFetchResult(data);
+                                }).catch((error) => {
+                                    handleFetchError(error);
+                                });
+                            };
+                            
+                            // CRITICAL FIX: If availabilities are empty, fetch them first and wait for completion
+                            if (!availabilities || availabilities.length === 0) {
+                                // CRITICAL: Keep loading state active while fetching
+                                setIsLiveAvailabilityLoadingSync(true);
+                                fetchAndOpenSection();
+                            } else {
+                                // Availabilities already loaded, wait 2-3 seconds for network stability
+                                setTimeout(() => {
+                                    console.log('[ShopifyDebug] Network stability delay complete, opening Live Availability section');
+                                    setActiveAccordion('live-availability');
+                                    // CRITICAL: If availabilities are still empty after delay, keep loading state active
+                                    setTimeout(() => {
+                                        const currentAvailabilities = availabilitiesRef.current;
+                                        if (!currentAvailabilities || currentAvailabilities.length === 0) {
+                                            console.log('[ShopifyDebug] Availabilities still empty after delay, keeping loading state active');
+                                            // Keep loading state active - LiveAvailabilitySection will handle showing loading UI
+                                        } else {
+                                            setIsLiveAvailabilityLoadingSync(false);
+                                        }
+                                    }, 500);
+                                }, 2500);
+                            }
+                            return; // Defer normal flow
                         }
                     }
                     
@@ -1602,9 +1991,6 @@ const Index = () => {
                             isShopifyFlow,
                             availabilitiesCount: availabilities?.length || 0
                         });
-                        // #region agent log
-                        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:1470',message:'Setting loading state for live availability',data:{isShopifyFlow,availabilitiesCount:availabilities?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-                        // #endregion
                         
                         // For Shopify flow, ensure loading state stays active for a minimum period
                         // This prevents race conditions on mobile Chrome
@@ -2294,9 +2680,6 @@ const Index = () => {
         // For Shopify flow, use refetchAvailabilities to ensure correct parameters and timing
         // For Bing/Edge browsers, use more aggressive retry mechanism
         if (chooseLocation && activeAccordion === "live-availability") {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2160',message:'Live availability useEffect triggered',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,availabilitiesCount:availabilities?.length||0,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
             // Check if we're in Shopify flow
             const params = new URLSearchParams(location.search || '');
             const isShopifyFlow = params.get('source') === 'shopify';
@@ -2319,7 +2702,15 @@ const Index = () => {
             
             // CRITICAL: If availabilities are empty and we have activityId, fetch immediately
             const hasNoAvailabilities = !availabilities || availabilities.length === 0;
-
+            
+            // CRITICAL FIX: For Shopify flow, if section was just opened and availabilities are empty,
+            // don't fetch immediately - wait for the guard mechanism to ensure availabilities are loaded
+            // This prevents the race condition where section opens before availabilities are ready
+            const paramsForCheck = new URLSearchParams(location.search || '');
+            const isShopifyFlowCheck = paramsForCheck.get('source') === 'shopify';
+            const isVoucherTypeStartCheck = paramsForCheck.get('startAt') === 'voucher-type';
+            const isJustOpened = isShopifyFlowCheck && isVoucherTypeStartCheck;
+            
             // (debug instrumentation removed)
             
             if (isShopifyFlow) {
@@ -2335,16 +2726,22 @@ const Index = () => {
                         isBingBrowser,
                         isMobileChrome,
                         hasNoAvailabilities,
-                        isVoucherTypeStart
+                        isVoucherTypeStart,
+                        isJustOpened
                     });
                     
-                    // If availabilities are empty, fetch immediately (no delay for first load)
-                    // For mobile Chrome, fetch immediately and aggressively
-                    if (hasNoAvailabilities) {
+                    // CRITICAL FIX: If section was just opened via guard mechanism, availabilities should already be loaded
+                    // Only fetch if availabilities are truly empty AND we're not in the initial opening flow
+                    // This prevents race conditions where section opens before availabilities are ready
+                    if (hasNoAvailabilities && !isJustOpened) {
                         console.log('🔵 Live Availability - Availabilities empty, fetching immediately', {
                             isMobileChrome
                         });
-                        refetchAvailabilities();
+                        refetchAvailabilities().then((data) => {
+                        }).catch((error) => {
+                        });
+                    } else if (hasNoAvailabilities && isJustOpened) {
+                        console.log('🔵 Live Availability - Section just opened via guard, availabilities should be loading, skipping immediate fetch');
                     }
                     
                     // For mobile Chrome and Bing browser, use longer delay and multiple retries
@@ -2813,6 +3210,12 @@ const Index = () => {
         }
     }, [activityId, chooseLocation, activeAccordion, location.search, refetchAvailabilities, chooseFlightType?.type, selectedVoucherType?.title]);
 
+    // Monitor availabilities state changes for debugging
+    useEffect(() => {
+        if (activeAccordion === 'live-availability') {
+        }
+    }, [availabilities, activeAccordion]);
+
     // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (Shopify first load issue)
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
@@ -2830,16 +3233,10 @@ const Index = () => {
         if (!chooseLocation || !chooseFlightType?.type) return;
         if (isVoucherTypeStart && !selectedVoucherType?.title) {
             console.log('🔄 Shopify First Load Fix - Waiting for voucher type to be set');
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2646',message:'Retry effect - waiting for voucher type',data:{chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,activityId,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
             return;
         }
         
         console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2651',message:'Retry effect - starting aggressive polling',data:{chooseLocation,activityId,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         
         let retryCount = 0;
         const maxRetries = 15; // Increased retries
@@ -2854,17 +3251,11 @@ const Index = () => {
                 selectedVoucherType: selectedVoucherType?.title,
                 availabilitiesCount: availabilities?.length || 0
             });
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2657',message:'Retry fetch attempt',data:{retryCount,maxRetries,activityId,chooseLocation,hasFlightType:!!chooseFlightType?.type,hasVoucherType:!!selectedVoucherType?.title,availabilitiesCount:availabilities?.length||0,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
             
             if (activityId) {
                 refetchAvailabilities();
             } else {
                 console.log('🔄 Shopify First Load Fix - activityId not ready yet, waiting...');
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:2670',message:'Retry fetch - activityId not ready',data:{retryCount},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
             }
         };
         
@@ -3305,9 +3696,6 @@ const Index = () => {
             const qpStartAt = params.get('startAt');
             const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3095',message:'Shopify prefill - URL params parsed',data:{location:qpLocation,voucherTitle:qpVoucherTitle,passengers:qpPassengers,experience:qpExperience,startAt:qpStartAt,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
 
             console.log('🔵 Shopify prefill - URL params:', {
                 location: qpLocation,
@@ -3353,9 +3741,6 @@ const Index = () => {
             if (qpLocation) {
                 const trimmedLocation = qpLocation.trim();
                 console.log('🔵 Shopify prefill - Setting location:', trimmedLocation);
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3152',message:'Setting location state',data:{location:trimmedLocation},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                // #endregion
                 // Set location immediately
                 setChooseLocation(trimmedLocation);
                 
@@ -3387,9 +3772,6 @@ const Index = () => {
                         type: derivedExperience,
                         passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2'
                     });
-                    // #region agent log
-                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3180',message:'Setting flight type state',data:{type:derivedExperience||'Shared Flight',passengerCount:qpPassengers>0?String(qpPassengers):'2'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                    // #endregion
                     setChooseFlightType({
                         type: derivedExperience || 'Shared Flight',
                         passengerCount: qpPassengers > 0 ? String(qpPassengers) : '2',
@@ -3476,9 +3858,6 @@ const Index = () => {
                         quantity: qpPassengers > 0 ? qpPassengers : 2,
                         weatherRefundable: qpWeatherRefundable
                     });
-                    // #region agent log
-                    fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Index.jsx:3265',message:'Setting voucher type state',data:{title:qpVoucherTitle,quantity:qpPassengers>0?qpPassengers:2},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                    // #endregion
                     setSelectedVoucherType({
                         title: qpVoucherTitle,
                         quantity: qpPassengers > 0 ? qpPassengers : 2,
@@ -3577,13 +3956,24 @@ const Index = () => {
                     
                     // CRITICAL: After voucher type is set and all state is ready, open Live Availability
                     // and fetch availabilities with correct filters.
-                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar.
-                    // IMPORTANT: When coming from Shopify voucher-type deep link, wait longer (5s total)
-                    // before opening Live Availability so that slower connections have time to load data.
-                    const liveAvailabilityOpenDelay = qpStartAt === 'voucher-type' ? 5000 : 2000;
+                    // IMPORTANT: When coming from Shopify voucher-type deep link, wait for ALL accordions,
+                    // terms popup, and network requests to complete before opening Live Availability.
+                    const liveAvailabilityOpenDelay = qpStartAt === 'voucher-type' ? 6000 : 3000;
                     setTimeout(() => {
-                        // Check if all required state is ready
-                        if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
+                        // Check if all required state is ready AND all accordions/terms are loaded
+                        const hasRequiredState = qpLocation && activityId && derivedExperience && qpVoucherTitle;
+                        const termsReady = voucherTermsLoadedRef.current || !voucherTermsLoading;
+                        const accordionsReady = !accordionLoadingStates.isAccordionLoading && accordionLoadedRef.current;
+                        
+                        console.log('🔵 Shopify prefill - Comprehensive check before opening Live Availability', {
+                            hasRequiredState,
+                            termsReady,
+                            accordionsReady,
+                            accordionLoadingStates,
+                            voucherTermsLoading
+                        });
+                        
+                        if (hasRequiredState && termsReady && accordionsReady) {
                             // Detect mobile Chrome browser specifically
                             const isMobileChrome = (() => {
                                 try {
@@ -3654,30 +4044,66 @@ const Index = () => {
                                 
                                 fetchAndWait();
                             } else {
-                                // For non-mobile Chrome: Open section immediately and fetch in parallel
-                                console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
-                            setActiveAccordion('live-availability');
-                            
-                            // Final refetch with all state ready
-                            setTimeout(() => {
-                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
-                                    location: qpLocation,
-                                    activityId,
-                                    experience: derivedExperience,
-                                    voucherType: qpVoucherTitle
-                                });
-                                refetchAvailabilities();
-                            }, 400);
+                                // For non-mobile Chrome: Wait additional 2-3 seconds after all checks pass, then open section
+                                console.log('🔵 Shopify prefill - All checks passed, waiting 2-3s for network stability (non-mobile Chrome)');
+                                setIsLiveAvailabilityLoadingSync(true);
+                                
+                                setTimeout(() => {
+                                    console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
+                                    setActiveAccordion('live-availability');
+                                    
+                                    // Final refetch with all state ready
+                                    setTimeout(() => {
+                                        console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
+                                            location: qpLocation,
+                                            activityId,
+                                            experience: derivedExperience,
+                                            voucherType: qpVoucherTitle
+                                        });
+                                        refetchAvailabilities();
+                                        setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    }, 400);
+                                }, 2500); // 2.5 second delay after all checks pass
                             }
                         } else {
-                            console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
+                            console.log('🔵 Shopify prefill - Not all state/accordions/terms ready yet, will retry opening Live Availability', {
                                 location: qpLocation,
                                 activityId,
                                 experience: derivedExperience,
-                                voucherType: qpVoucherTitle
+                                voucherType: qpVoucherTitle,
+                                termsReady,
+                                accordionsReady,
+                                accordionLoadingStates
                             });
+                            
+                            // Retry after additional delay
+                            setTimeout(() => {
+                                const retryHasRequiredState = qpLocation && activityId && derivedExperience && qpVoucherTitle;
+                                const retryTermsReady = voucherTermsLoadedRef.current || !voucherTermsLoading;
+                                const retryAccordionsReady = !accordionLoadingStates.isAccordionLoading && accordionLoadedRef.current;
+                                
+                                if (retryHasRequiredState && retryTermsReady && retryAccordionsReady) {
+                                    console.log('🔵 Shopify prefill - Retry successful, opening Live Availability after delay');
+                                    setIsLiveAvailabilityLoadingSync(true);
+                                    setTimeout(() => {
+                                        setActiveAccordion('live-availability');
+                                        setTimeout(() => {
+                                            refetchAvailabilities();
+                                            setIsLiveAvailabilityLoadingSync(false);
+                                        }, 400);
+                                    }, 2500);
+                                } else {
+                                    console.log('🔵 Shopify prefill - Retry still not ready, opening anyway to prevent blocking');
+                                    setActiveAccordion('live-availability');
+                                    setIsLiveAvailabilityLoadingSync(true);
+                                    setTimeout(() => {
+                                        refetchAvailabilities();
+                                        setIsLiveAvailabilityLoadingSync(false);
+                                    }, 400);
+                                }
+                            }, 3000);
                         }
-                    }, liveAvailabilityOpenDelay); // Wait longer for voucher type to be fully set (5s for voucher-type deep link)
+                    }, liveAvailabilityOpenDelay); // Wait longer for voucher type to be fully set and all accordions/terms loaded
                 } else if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
                     setActiveAccordion('voucher-type');
@@ -4472,6 +4898,9 @@ const Index = () => {
                                                             voucherTermsLoadedRef.current = true;
                                                             console.log('[ShopifyDebug] Terms and Conditions loaded');
                                                         }
+                                                    }}
+                                                    onAccordionLoadingChange={(states) => {
+                                                        setAccordionLoadingStates(states);
                                                     }}
                                                     setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                     isDisabled={!getAccordionState('voucher-type').isEnabled}

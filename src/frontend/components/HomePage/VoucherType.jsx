@@ -156,7 +156,8 @@ const VoucherType = ({
     setPassengerData,
     privateCharterWeatherRefund,
     setPrivateCharterWeatherRefund,
-    onTermsLoadingChange
+    onTermsLoadingChange,
+    onAccordionLoadingChange
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -649,6 +650,19 @@ const VoucherType = ({
     useEffect(() => {
         fetchPrivateCharterVoucherTypes();
     }, [API_BASE_URL, chooseLocation]);
+
+    // Notify parent component when accordion loading states change
+    useEffect(() => {
+        if (onAccordionLoadingChange) {
+            const isAccordionLoading = allVoucherTypesLoading || privateCharterVoucherTypesLoading || activityDataLoading;
+            onAccordionLoadingChange({
+                allVoucherTypesLoading,
+                privateCharterVoucherTypesLoading,
+                activityDataLoading,
+                isAccordionLoading
+            });
+        }
+    }, [allVoucherTypesLoading, privateCharterVoucherTypesLoading, activityDataLoading, onAccordionLoadingChange]);
 
     // Fetch available voucher types for the selected location
     useEffect(() => {
