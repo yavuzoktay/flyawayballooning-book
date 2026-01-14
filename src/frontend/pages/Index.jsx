@@ -2243,59 +2243,90 @@ const Index = () => {
                         isMobileChrome 
                     });
                     
+                    // Detect connection type for adaptive polling (especially for 5G/mobile data)
+                    const connectionType = (() => {
+                        try {
+                            if (navigator.connection && navigator.connection.effectiveType) {
+                                return navigator.connection.effectiveType; // '4g', '3g', 'slow-2g', etc.
+                            }
+                        } catch {}
+                        return 'unknown';
+                    })();
+                    
+                    // For slow connections (3g, 2g) or mobile data, use more aggressive polling
+                    const isSlowConnection = connectionType === '3g' || connectionType === '2g' || connectionType === 'slow-2g';
+                    const isMobileData = isMobileChrome || (() => {
+                        try {
+                            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        } catch {
+                            return false;
+                        }
+                    })();
+                    
                     // Poll for activityId with increasing delays
+                    // For mobile/5G connections, poll more aggressively and longer
                     let pollAttempt = 0;
-                    const maxPollAttempts = 10; // Poll up to 10 times (total ~5-10 seconds)
-                    const pollInterval = 500; // Start with 500ms, increase by 200ms each time
+                    const maxPollAttempts = isMobileData ? 20 : 10; // More attempts for mobile
+                    const pollInterval = isSlowConnection ? 300 : 500; // Faster polling for slow connections
                     
                     const pollForActivityId = () => {
                         pollAttempt++;
                         // Check current activityId value from ref (not closure value)
                         const currentActivityId = activityIdRef.current;
-
-                        // (debug instrumentation removed)
+                        
+                        console.log('🔵 Live Availability - Polling for activityId', {
+                            attempt: pollAttempt,
+                            maxAttempts: maxPollAttempts,
+                            currentActivityId,
+                            connectionType,
+                            isMobileData,
+                            isSlowConnection,
+                            location: chooseLocation
+                        });
                         
                         if (currentActivityId) {
-                            console.log('🔵 Live Availability - activityId ready, fetching availabilities', {
+                            console.log('✅ Live Availability - activityId ready, fetching availabilities', {
                                 attempt: pollAttempt,
-                                activityId: currentActivityId
+                                activityId: currentActivityId,
+                                connectionType
                             });
-
-                            // (debug instrumentation removed)
 
                             refetchAvailabilities();
                             
-                            // For mobile Chrome and Bing browser, retry multiple times after initial fetch
-                            if (isMobileChrome || isBingBrowser) {
-                                const retryCount = isMobileChrome ? 3 : 1;
-                                const retryDelay = isMobileChrome ? 2000 : 1500;
+                            // For mobile Chrome, Bing browser, or slow connections, retry multiple times after initial fetch
+                            if (isMobileChrome || isBingBrowser || isSlowConnection || isMobileData) {
+                                const retryCount = isMobileChrome || isSlowConnection ? 5 : 3;
+                                const retryDelay = isSlowConnection ? 1500 : (isMobileChrome ? 2000 : 1500);
                                 for (let i = 1; i <= retryCount; i++) {
                                     setTimeout(() => {
+                                        console.log(`🔄 Live Availability - Retry ${i}/${retryCount} fetching availabilities`, {
+                                            connectionType
+                                        });
                                         refetchAvailabilities();
                                     }, retryDelay * i);
                                 }
                             }
                         } else if (pollAttempt < maxPollAttempts && chooseLocation) {
                             // Continue polling if we haven't exceeded max attempts and location is set
-                            const nextDelay = pollInterval + (pollAttempt * 200); // Increasing delay
-                            console.log('🔵 Live Availability - activityId still not ready, polling again', {
+                            const nextDelay = pollInterval + (pollAttempt * (isSlowConnection ? 150 : 200)); // Increasing delay
+                            console.log('⏳ Live Availability - activityId still not ready, polling again', {
                                 attempt: pollAttempt,
-                                nextDelay
+                                nextDelay,
+                                connectionType
                             });
                             setTimeout(pollForActivityId, nextDelay);
                         } else {
-                            console.log('🔵 Live Availability - activityId polling exhausted or location not set', {
+                            console.warn('⚠️ Live Availability - activityId polling exhausted or location not set', {
                                 pollAttempt,
                                 maxPollAttempts,
-                                chooseLocation
+                                chooseLocation,
+                                connectionType
                             });
-
-                            // (debug instrumentation removed)
                         }
                     };
                     
-                    // Start polling after initial delay
-                    const initialDelay = isMobileChrome ? 800 : (isBingBrowser ? 600 : 400);
+                    // Start polling after initial delay (shorter for slow connections)
+                    const initialDelay = isSlowConnection ? 300 : (isMobileChrome ? 800 : (isBingBrowser ? 600 : 400));
                     const timer = setTimeout(pollForActivityId, initialDelay);
                     return () => clearTimeout(timer);
                 }
@@ -3367,106 +3398,104 @@ const Index = () => {
                     
                     // CRITICAL: After voucher type is set and all state is ready, open Live Availability
                     // and fetch availabilities with correct filters.
-                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar.
-                    // IMPORTANT: When coming from Shopify voucher-type deep link, wait longer (5s total)
-                    // before opening Live Availability so that slower connections have time to load data.
+                    // IMPORTANT: When coming from Shopify voucher-type deep link, ALWAYS fetch availabilities
+                    // BEFORE opening section to prevent empty calendar on slow connections (5G, mobile data, etc.)
+                    // This ensures data is loaded before the section becomes visible.
                     const liveAvailabilityOpenDelay = qpStartAt === 'voucher-type' ? 5000 : 2000;
-                    setTimeout(() => {
-                        // Check if all required state is ready
-                        if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
-                            // Detect mobile Chrome browser specifically
-                            const isMobileChrome = (() => {
-                                try {
-                                    const ua = navigator.userAgent;
-                                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-                                    const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
-                                    return isMobile && isChrome;
-                                } catch {
-                                    return false;
-                                }
-                            })();
-                            
-                            console.log('🔵 Shopify prefill - All state ready, preparing to open Live Availability section', {
-                                isMobileChrome,
+                    
+                    // Function to wait for activityId and then fetch availabilities before opening section
+                    const waitAndOpenLiveAvailability = async () => {
+                        // First, ensure activityId is ready (poll if needed)
+                        let currentActivityId = activityId;
+                        let pollAttempt = 0;
+                        const maxActivityIdPollAttempts = 15; // Poll up to 15 times (total ~7-10 seconds)
+                        
+                        // Poll for activityId if not ready
+                        while (!currentActivityId && pollAttempt < maxActivityIdPollAttempts && qpLocation) {
+                            pollAttempt++;
+                            const pollDelay = pollAttempt * 500; // 500ms, 1000ms, 1500ms...
+                            console.log(`🔵 Shopify prefill - Waiting for activityId (attempt ${pollAttempt}/${maxActivityIdPollAttempts})`, {
                                 location: qpLocation,
-                                activityId,
+                                delay: pollDelay
+                            });
+                            
+                            await new Promise(resolve => setTimeout(resolve, pollDelay));
+                            currentActivityId = activityIdRef.current || activityId;
+                        }
+                        
+                        // Check if we have all required state
+                        if (!qpLocation || !currentActivityId || !derivedExperience || !qpVoucherTitle) {
+                            console.error('🔵 Shopify prefill - Cannot open Live Availability: Missing required state', {
+                                location: qpLocation,
+                                activityId: currentActivityId,
                                 experience: derivedExperience,
                                 voucherType: qpVoucherTitle
                             });
+                            return;
+                        }
+                        
+                        console.log('🔵 Shopify prefill - All state ready, fetching availabilities BEFORE opening Live Availability section', {
+                            location: qpLocation,
+                            activityId: currentActivityId,
+                            experience: derivedExperience,
+                            voucherType: qpVoucherTitle,
+                            connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+                        });
+                        
+                        // Set loading state before fetching
+                        setIsLiveAvailabilityLoadingSync(true);
+                        
+                        try {
+                            // Fetch availabilities and wait for them to load
+                            let fetchedData = await refetchAvailabilities();
                             
-                            // For mobile Chrome: Fetch availabilities FIRST, wait for them to load, THEN open section
-                            if (isMobileChrome) {
-                                console.log('🔵 Mobile Chrome - Fetching availabilities BEFORE opening Live Availability section');
+                            // If no data, retry up to 5 times with increasing delays (especially for 5G/mobile)
+                            let retryCount = 0;
+                            const maxRetries = 5;
+                            const baseRetryDelay = 1000; // Start with 1 second
+                            
+                            while ((!fetchedData || fetchedData.length === 0) && retryCount < maxRetries) {
+                                retryCount++;
+                                const delay = baseRetryDelay * retryCount; // 1s, 2s, 3s, 4s, 5s
+                                console.log(`🔵 Shopify prefill - Retry ${retryCount}/${maxRetries} fetching availabilities after ${delay}ms`, {
+                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+                                    location: qpLocation,
+                                    activityId: currentActivityId
+                                });
                                 
-                                // Set loading state before fetching
-                                setIsLiveAvailabilityLoadingSync(true);
-                                
-                                // Fetch availabilities and wait for the promise to resolve
-                                const fetchAndWait = async () => {
-                                    try {
-                                        // First fetch attempt
-                                        let fetchedData = await refetchAvailabilities();
-                                        
-                                        // If no data, retry up to 3 times with increasing delays
-                                        let retryCount = 0;
-                                        const maxRetries = 3;
-                                        
-                                        while ((!fetchedData || fetchedData.length === 0) && retryCount < maxRetries) {
-                                            retryCount++;
-                                            const delay = retryCount * 800; // 800ms, 1600ms, 2400ms
-                                            console.log(`🔵 Mobile Chrome - Retry ${retryCount}/${maxRetries} after ${delay}ms`);
-                                            
-                                            await new Promise(resolve => setTimeout(resolve, delay));
-                                            fetchedData = await refetchAvailabilities();
-                                        }
-                                        
-                                        if (fetchedData && fetchedData.length > 0) {
-                                            console.log('🔵 Mobile Chrome - Availabilities loaded, opening Live Availability section', {
-                                                count: fetchedData.length
-                                            });
-                                        } else {
-                                            console.log('🔵 Mobile Chrome - No availabilities after retries, opening section anyway');
-                                        }
-                                        
-                                        // Open section after availabilities are loaded (or after retries)
-                                        setActiveAccordion('live-availability');
-                                        
-                                        // Final refetch to ensure we have the latest data
-                                        setTimeout(() => {
-                                            refetchAvailabilities();
-                                        }, 200);
-                                    } catch (error) {
-                                        console.error('🔵 Mobile Chrome - Error fetching availabilities:', error);
-                                        // Open section anyway to prevent blocking
-                                        setActiveAccordion('live-availability');
-                                    }
-                                };
-                                
-                                fetchAndWait();
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                                fetchedData = await refetchAvailabilities();
+                            }
+                            
+                            if (fetchedData && fetchedData.length > 0) {
+                                console.log('✅ Shopify prefill - Availabilities loaded successfully, opening Live Availability section', {
+                                    count: fetchedData.length,
+                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+                                });
                             } else {
-                                // For non-mobile Chrome: Open section immediately and fetch in parallel
-                                console.log('🔵 Shopify prefill - Opening Live Availability section (non-mobile Chrome)');
+                                console.warn('⚠️ Shopify prefill - No availabilities after retries, opening section anyway', {
+                                    retryCount,
+                                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+                                });
+                            }
+                            
+                            // Open section AFTER availabilities are loaded (or after retries)
                             setActiveAccordion('live-availability');
                             
-                            // Final refetch with all state ready
+                            // Final refetch to ensure we have the latest data
                             setTimeout(() => {
-                                console.log('🔵 Shopify prefill - Final refetch with all state ready for Live Availability', {
-                                    location: qpLocation,
-                                    activityId,
-                                    experience: derivedExperience,
-                                    voucherType: qpVoucherTitle
-                                });
                                 refetchAvailabilities();
-                            }, 400);
-                            }
-                        } else {
-                            console.log('🔵 Shopify prefill - Not all state ready yet, will retry opening Live Availability', {
-                                location: qpLocation,
-                                activityId,
-                                experience: derivedExperience,
-                                voucherType: qpVoucherTitle
-                            });
+                            }, 300);
+                        } catch (error) {
+                            console.error('❌ Shopify prefill - Error fetching availabilities:', error);
+                            // Open section anyway to prevent blocking, but show loading state
+                            setActiveAccordion('live-availability');
                         }
+                    };
+                    
+                    // Start the process after the delay
+                    setTimeout(() => {
+                        waitAndOpenLiveAvailability();
                     }, liveAvailabilityOpenDelay); // Wait longer for voucher type to be fully set (5s for voucher-type deep link)
                 } else if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
