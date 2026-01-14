@@ -1405,6 +1405,25 @@ const VoucherType = ({
                     <img
                         src={voucher.image}
                         alt={voucher.title}
+                        loading="lazy"
+                        onError={(e) => {
+                            // Hide image on error (blocked, 404, etc.) to prevent loading delays
+                            e.target.style.display = 'none';
+                        }}
+                        onLoad={(e) => {
+                            // Clear any timeout on successful load
+                            if (e.target.dataset.timeoutId) {
+                                clearTimeout(parseInt(e.target.dataset.timeoutId));
+                                delete e.target.dataset.timeoutId;
+                            }
+                        }}
+                        onLoadStart={(e) => {
+                            // Set timeout to hide image if it takes too long (5 seconds)
+                            const timeoutId = setTimeout(() => {
+                                e.target.style.display = 'none';
+                            }, 5000);
+                            e.target.dataset.timeoutId = timeoutId.toString();
+                        }}
                         style={{
                             width: '100%',
                             height: '100%',

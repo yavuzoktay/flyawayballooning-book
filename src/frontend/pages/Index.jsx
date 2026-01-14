@@ -83,6 +83,15 @@ const Index = () => {
     const liveAvailabilityGuardTimerRef = useRef(null);
     const liveAvailabilityGuardStartRef = useRef(null);
     
+    // Request cancellation token for aborting in-flight requests
+    const availabilitiesRequestControllerRef = useRef(null);
+    const availabilitiesDebounceTimerRef = useRef(null);
+    const lastAvailabilitiesRequestRef = useRef(null);
+    
+    // Track current calendar month for incremental loading
+    // Start with null - only set when user explicitly navigates calendar
+    const [currentCalendarDate, setCurrentCalendarDate] = useState(null);
+    
     // Track Terms and Conditions loading state from VoucherType component
     const [voucherTermsLoading, setVoucherTermsLoading] = useState(false);
     const voucherTermsLoadedRef = useRef(false);
@@ -558,8 +567,52 @@ const Index = () => {
     
     // Function to re-fetch availabilities when filters change
     // Returns a promise that resolves when availabilities are fetched
-    const refetchAvailabilities = useCallback(async () => {
+    // OPTIMIZED: Added request cancellation and debouncing to prevent duplicate requests
+    const refetchAvailabilities = useCallback(async (skipDebounce = false) => {
         if (chooseLocation && activityId) {
+            // Cancel any pending debounce timer
+            if (availabilitiesDebounceTimerRef.current) {
+                clearTimeout(availabilitiesDebounceTimerRef.current);
+                availabilitiesDebounceTimerRef.current = null;
+            }
+
+            // Cancel any in-flight request
+            if (availabilitiesRequestControllerRef.current) {
+                availabilitiesRequestControllerRef.current.abort();
+                availabilitiesRequestControllerRef.current = null;
+            }
+
+            // Create request key to detect duplicate requests (include calendar date)
+            const calendarKey = currentCalendarDate 
+                ? `${currentCalendarDate.getFullYear()}-${currentCalendarDate.getMonth() + 1}` 
+                : 'initial';
+            const requestKey = `${chooseLocation}_${activityId}_${selectedVoucherType?.title || 'none'}_${chooseFlightType?.type || 'none'}_${calendarKey}`;
+            
+            // Skip if same request is already in progress
+            if (!skipDebounce && lastAvailabilitiesRequestRef.current === requestKey) {
+                console.log('🔵 refetchAvailabilities - Skipping duplicate request:', requestKey);
+                return [];
+            }
+
+            // Debounce requests (except when explicitly skipped)
+            if (!skipDebounce) {
+                return new Promise((resolve) => {
+                    availabilitiesDebounceTimerRef.current = setTimeout(async () => {
+                        const result = await refetchAvailabilities(true);
+                        resolve(result);
+                    }, 300); // 300ms debounce
+                });
+            }
+
+            // Mark this request as in progress (only if different from current)
+            if (lastAvailabilitiesRequestRef.current !== requestKey) {
+                lastAvailabilitiesRequestRef.current = requestKey;
+            }
+
+            // Create new AbortController for this request
+            const controller = new AbortController();
+            availabilitiesRequestControllerRef.current = controller;
+
             try {
                 const params = new URLSearchParams({
                     location: chooseLocation,
@@ -587,6 +640,45 @@ const Index = () => {
                     params.append('flightType', flightTypeForBackend);
                 }
                 
+                // OPTIMIZATION: Add date range for incremental loading
+                // Only add date range if currentCalendarDate is explicitly set (user navigated calendar)
+                // For initial load, don't send date range - let backend use default 60-day range
+                if (currentCalendarDate) {
+                    const year = currentCalendarDate.getFullYear();
+                    const month = currentCalendarDate.getMonth() + 1; // 1-12 (1=Jan, 12=Dec)
+                    const monthIndex = month - 1; // Convert to 0-indexed for Date constructor
+                    
+                    // Calculate start date: 1 month before the displayed month
+                    const startMonthIndex = Math.max(0, monthIndex - 1); // At least current month, or 1 month before
+                    const startDate = new Date(year, startMonthIndex, 1);
+                    
+                    // Calculate end date: 1 month after the displayed month (last day of next month)
+                    const endDateCorrected = new Date(year, monthIndex + 2, 0); // Last day of next month
+                    
+                    // Format as YYYY-MM-DD
+                    const formatDate = (d) => {
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${y}-${m}-${day}`;
+                    };
+                    
+                    params.append('startDate', formatDate(startDate));
+                    params.append('endDate', formatDate(endDateCorrected));
+                    params.append('month', month);
+                    params.append('year', year);
+                    
+                    console.log('🔵 refetchAvailabilities - Adding date range filter:', {
+                        startDate: formatDate(startDate),
+                        endDate: formatDate(endDateCorrected),
+                        month,
+                        year
+                    });
+                } else {
+                    console.log('🔵 refetchAvailabilities - No date range filter, using backend default 60-day range');
+                }
+                // If currentCalendarDate is not set, don't add date range - backend will use default 60-day range
+                
                 // PRODUCTION DEBUG: Log API call details
                 console.log('=== refetchAvailabilities DEBUG ===');
                 console.log('API_BASE_URL:', API_BASE_URL);
@@ -594,16 +686,65 @@ const Index = () => {
                 console.log('Full URL:', `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
                 console.log('================================');
                 
-                const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
+                const fetchStartTime = Date.now();
+                
+                const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`, {
+                    signal: controller.signal
+                });
+                
+                // Clear request controller if successful
+                if (availabilitiesRequestControllerRef.current === controller) {
+                    availabilitiesRequestControllerRef.current = null;
+                }
+                
+                const fetchEndTime = Date.now();
+                const fetchDuration = fetchEndTime - fetchStartTime;
                 
                 console.log('API Response:', response.data);
                 console.log('Response success:', response.data.success);
                 console.log('Response data length:', response.data.data?.length || 0);
+                console.log('Fetch duration:', fetchDuration, 'ms');
                 
                 if (response.data.success) {
                     const availData = response.data.data || [];
-                    setAvailabilities(availData);
-                    console.log('Availabilities set to:', availData.length);
+                    
+                    // OPTIMIZATION: Merge new data with existing availabilities instead of replacing
+                    // This allows incremental loading where different months' data are combined
+                    setAvailabilities(prevAvailabilities => {
+                        if (!prevAvailabilities || prevAvailabilities.length === 0) {
+                            return availData;
+                        }
+                        
+                        // Create a map of existing availabilities by unique key (date + time + activity_id)
+                        const existingMap = new Map();
+                        prevAvailabilities.forEach(avail => {
+                            const key = `${avail.date}_${avail.time}_${avail.activity_id}`;
+                            existingMap.set(key, avail);
+                        });
+                        
+                        // Merge new data, overwriting existing entries for the same date/time
+                        availData.forEach(avail => {
+                            const key = `${avail.date}_${avail.time}_${avail.activity_id}`;
+                            existingMap.set(key, avail);
+                        });
+                        
+                        // Convert back to array and sort by date, time
+                        const merged = Array.from(existingMap.values()).sort((a, b) => {
+                            const dateCompare = a.date.localeCompare(b.date);
+                            if (dateCompare !== 0) return dateCompare;
+                            return (a.time || '').localeCompare(b.time || '');
+                        });
+                        
+                        console.log('🔵 Availabilities merged:', {
+                            previousCount: prevAvailabilities.length,
+                            newCount: availData.length,
+                            mergedCount: merged.length
+                        });
+                        
+                        return merged;
+                    });
+                    
+                    console.log('Availabilities updated, new data count:', availData.length);
                     return availData; // Return the data so caller can wait for it
                 } else {
                     console.log('API returned success: false');
@@ -611,15 +752,122 @@ const Index = () => {
                     return [];
                 }
             } catch (error) {
+                // Clear request controller on error
+                if (availabilitiesRequestControllerRef.current === controller) {
+                    availabilitiesRequestControllerRef.current = null;
+                }
+
+                // Ignore abort errors (request was cancelled)
+                if (error.name === 'CanceledError' || error.name === 'AbortError' || axios.isCancel(error)) {
+                    console.log('🔵 refetchAvailabilities - Request cancelled');
+                    return [];
+                }
+
                 console.error('Error refetching availabilities:', error);
                 console.error('Error details:', error.response?.data);
                 return [];
+            } finally {
+                // Don't clear request key immediately - keep it for duplicate detection
+                // Only clear if a new different request starts
+                // This prevents rapid duplicate calls
             }
         } else {
             console.log('refetchAvailabilities skipped - missing chooseLocation or activityId');
             return [];
         }
-    }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type]);
+    }, [chooseLocation, activityId, selectedVoucherType?.title, chooseFlightType?.type, currentCalendarDate]);
+    
+    // OPTIMIZATION: Don't initialize currentCalendarDate automatically
+    // Only set it when user explicitly navigates calendar (via handleCalendarDateChange)
+    // This allows initial load to use backend's default 60-day range
+    
+    // Track last calendar month to prevent duplicate refetches
+    const lastCalendarMonthRef = useRef(null);
+    
+    // Track if this is the first calendar date change (initial mount)
+    const isFirstCalendarDateChangeRef = useRef(true);
+    // Track if Live Availability section was just opened (to allow initial load)
+    const liveAvailabilityJustOpenedRef = useRef(false);
+    
+    // Reset first calendar date change flag when Live Availability section opens
+    useEffect(() => {
+        if (activeAccordion === 'live-availability') {
+            isFirstCalendarDateChangeRef.current = true;
+            liveAvailabilityJustOpenedRef.current = true;
+            // Reset after a short delay to allow initial load
+            setTimeout(() => {
+                liveAvailabilityJustOpenedRef.current = false;
+            }, 1000);
+        }
+    }, [activeAccordion]);
+    
+    // Callback to handle calendar date changes (only update if month actually changed)
+    const handleCalendarDateChange = useCallback((newDate) => {
+        if (!newDate) return;
+        
+        // On first change (component mount) or when section just opened, don't set currentCalendarDate immediately
+        // This allows initial load to use backend's default 60-day range
+        if (isFirstCalendarDateChangeRef.current || liveAvailabilityJustOpenedRef.current) {
+            isFirstCalendarDateChangeRef.current = false;
+            console.log('🔵 Live Availability - First calendar date change (mount or just opened), skipping to allow initial load');
+            return;
+        }
+        
+        const newMonth = `${newDate.getFullYear()}-${newDate.getMonth()}`;
+        const lastMonth = lastCalendarMonthRef.current;
+        
+        // Only update if month actually changed
+        if (newMonth !== lastMonth) {
+            setCurrentCalendarDate(newDate);
+            // Note: lastCalendarMonthRef will be updated in useEffect after fetch completes
+        }
+    }, []);
+    
+    // OPTIMIZATION: Refetch availabilities when Live Availability section opens or calendar month changes
+    useEffect(() => {
+        if (chooseLocation && activityId && activeAccordion === 'live-availability') {
+            // If currentCalendarDate is null OR section just opened, this is initial load - fetch without date range (backend default 60-day range)
+            if (!currentCalendarDate || liveAvailabilityJustOpenedRef.current) {
+                // Check if we already have availabilities to avoid duplicate fetch
+                const requestKey = `${chooseLocation}_${activityId}_${selectedVoucherType?.title || 'none'}_${chooseFlightType?.type || 'none'}_initial`;
+                if (lastAvailabilitiesRequestRef.current === requestKey) {
+                    console.log('🔵 Initial load already fetched, skipping');
+                    return;
+                }
+                
+                console.log('🔵 Live Availability opened - Initial load (no date range, using backend default 60-day range)', {
+                    currentCalendarDate: currentCalendarDate ? 'set' : 'null',
+                    justOpened: liveAvailabilityJustOpenedRef.current
+                });
+                // Fetch immediately for initial load (skip debounce for faster loading)
+                const timer = setTimeout(() => {
+                    refetchAvailabilities(true); // Skip debounce for initial load
+                }, 50); // Very small delay to ensure state is settled
+                return () => clearTimeout(timer);
+            } else {
+                // Calendar month changed - fetch with date range
+                const currentMonth = `${currentCalendarDate.getFullYear()}-${currentCalendarDate.getMonth()}`;
+                
+                // Skip if this month was already fetched (check both month ref and request key)
+                const calendarKey = `${currentCalendarDate.getFullYear()}-${currentCalendarDate.getMonth() + 1}`;
+                const expectedRequestKey = `${chooseLocation}_${activityId}_${selectedVoucherType?.title || 'none'}_${chooseFlightType?.type || 'none'}_${calendarKey}`;
+                
+                if (lastCalendarMonthRef.current === currentMonth && lastAvailabilitiesRequestRef.current === expectedRequestKey) {
+                    console.log('🔵 Calendar month already fetched, skipping:', currentMonth);
+                    return;
+                }
+                
+                console.log('🔵 Calendar month changed, refetching availabilities for month:', currentCalendarDate);
+                // Debounce the refetch to avoid multiple calls when month changes rapidly
+                const timer = setTimeout(async () => {
+                    await refetchAvailabilities(true); // Skip debounce for month changes
+                    // Mark this month as fetched after successful request
+                    lastCalendarMonthRef.current = currentMonth;
+                }, 200);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [currentCalendarDate, chooseLocation, activityId, activeAccordion, refetchAvailabilities, selectedVoucherType?.title, chooseFlightType?.type]);
 
     // Ensure availability fetch runs on first Shopify deep-link (Buy Date/Voucher) load
     useEffect(() => {
@@ -4926,6 +5174,7 @@ const Index = () => {
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
+                                                onCurrentDateChange={handleCalendarDateChange}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -5025,6 +5274,7 @@ const Index = () => {
                                                 setCountdownSeconds={setCountdownSeconds}
                                                 onSectionCompletion={handleSectionCompletion}
                                                 onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
+                                                onCurrentDateChange={handleCalendarDateChange}
                                                 isDisabled={!getAccordionState('live-availability').isEnabled}
                                             />
                                             <PassengerInfo
@@ -5265,6 +5515,7 @@ const Index = () => {
                                                     chooseFlightType={chooseFlightType}
                                                     onSectionCompletion={handleSectionCompletion}
                                                     onLoadingStateChange={setIsLiveAvailabilityLoadingSync}
+                                                    onCurrentDateChange={handleCalendarDateChange}
                                                 />
                                             )}
                                             {(activitySelect === "Redeem Voucher") && (

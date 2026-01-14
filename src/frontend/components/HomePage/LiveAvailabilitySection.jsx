@@ -23,8 +23,15 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, isDisabled = false }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
+    
+    // Notify parent when currentDate changes (for incremental loading)
+    useEffect(() => {
+        if (onCurrentDateChange) {
+            onCurrentDateChange(currentDate);
+        }
+    }, [currentDate, onCurrentDateChange]);
     const [bookedSeat, setBookedSeat] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(false);

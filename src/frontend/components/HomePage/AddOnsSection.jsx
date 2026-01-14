@@ -38,10 +38,25 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                     console.log('API response data length:', data.data ? data.data.length : 'undefined');
                     
                     if (data.success) {
-                        // Add additional cache busting to image URLs
+                        // Add additional cache busting to image URLs (normalize URL first to fix multiple ? issues)
+                        const normalizeImageUrl = (url) => {
+                            if (!url) return null;
+                            try {
+                                // Remove existing query parameters to prevent ?t=...?t=... issues
+                                const urlObj = new URL(url.startsWith('http') ? url : `${config.API_BASE_URL}${url.startsWith('/') ? url : '/' + url}`);
+                                // Add cache busting parameter
+                                urlObj.searchParams.set('cb', timestamp);
+                                return urlObj.toString();
+                            } catch (e) {
+                                // Fallback: simple string manipulation if URL parsing fails
+                                const baseUrl = url.split('?')[0];
+                                return `${baseUrl}?cb=${timestamp}`;
+                            }
+                        };
+                        
                         const itemsWithCacheBusting = data.data.map(item => ({
                             ...item,
-                            image_url: item.image_url ? `${item.image_url}${item.image_url.includes('?') ? '&' : '?'}cb=${timestamp}` : null
+                            image_url: normalizeImageUrl(item.image_url)
                         }));
                         
                         // Debug: Log experience_types for each item
@@ -367,7 +382,30 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                     <>
                                         {/* Image */}
                                         <div style={{ gridColumn: '1 / 2', gridRow: '1', width: 72, height: 72 }}>
-                                            <img src={item.image} alt={item.name} style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
+                                            <img 
+                                                src={item.image} 
+                                                alt={item.name} 
+                                                style={{ width: '72px', height: '72px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }} 
+                                                loading="lazy"
+                                                onError={(e) => { 
+                                                    // Hide image on error (blocked, 404, etc.) to prevent loading delays
+                                                    e.target.style.display = 'none'; 
+                                                }}
+                                                onLoad={(e) => {
+                                                    // Clear any timeout on successful load
+                                                    if (e.target.dataset.timeoutId) {
+                                                        clearTimeout(parseInt(e.target.dataset.timeoutId));
+                                                        delete e.target.dataset.timeoutId;
+                                                    }
+                                                }}
+                                                onLoadStart={(e) => {
+                                                    // Set timeout to hide image if it takes too long (5 seconds)
+                                                    const timeoutId = setTimeout(() => {
+                                                        e.target.style.display = 'none';
+                                                    }, 5000);
+                                                    e.target.dataset.timeoutId = timeoutId.toString();
+                                                }}
+                                            />
                                         </div>
                                         {/* Title + Price (mobile only) */}
                                         <div className="vouch-text" style={{ gridColumn: '2 / 3', gridRow: '1', minWidth: 0 }}>
@@ -386,7 +424,30 @@ const AddOnsSection = ({ isGiftVoucher, isRedeemVoucher, isFlightVoucher, choose
                                 ) : (
                                     <>
                                         <div>
-                                            <img src={item.image} alt={item.name} style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e5e7eb', flexShrink: 0 }} onError={(e) => { e.target.src = AddOn1; e.target.style.display = 'none'; }} />
+                                            <img 
+                                                src={item.image} 
+                                                alt={item.name} 
+                                                style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e5e7eb', flexShrink: 0 }} 
+                                                loading="lazy"
+                                                onError={(e) => { 
+                                                    // Hide image on error (blocked, 404, etc.) to prevent loading delays
+                                                    e.target.style.display = 'none'; 
+                                                }}
+                                                onLoad={(e) => {
+                                                    // Clear any timeout on successful load
+                                                    if (e.target.dataset.timeoutId) {
+                                                        clearTimeout(parseInt(e.target.dataset.timeoutId));
+                                                        delete e.target.dataset.timeoutId;
+                                                    }
+                                                }}
+                                                onLoadStart={(e) => {
+                                                    // Set timeout to hide image if it takes too long (5 seconds)
+                                                    const timeoutId = setTimeout(() => {
+                                                        e.target.style.display = 'none';
+                                                    }, 5000);
+                                                    e.target.dataset.timeoutId = timeoutId.toString();
+                                                }}
+                                            />
                                         </div>
                                         <div className="vouch-text" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0', justifyContent: 'center' }}>
                                             <div className="vouch-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', marginBottom: '8px', width: '100%' }}>

@@ -88,9 +88,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
 
             if (activityResponse.status === 200 && activityResponse.data.success) {
                 const activity = activityResponse.data.activity;
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LocationSection.jsx:89',message:'Setting activityId from API',data:{activityId:activity?.id||'',location,connectionType:navigator.connection?.effectiveType||'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                // #endregion
                 setActivityId(activity?.id || '');
                 setSelectedActivity(activity ? [activity] : []);
                 
@@ -308,23 +305,43 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                             Limited Availability
                                         </div>
                                     )}
-                                    <img src={loc.image} alt={loc.name} width="100%" style={{ 
-                                        height: '120px', 
-                                        objectFit: 'cover',
-                                        transition: 'transform 0.3s ease',
-                                        cursor: 'pointer'
-                                    }} 
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!isDisabled) {
-                                            e.target.style.transform = 'scale(1.05)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.transform = 'scale(1)';
-                                    }}
+                                    <img 
+                                        src={loc.image} 
+                                        alt={loc.name} 
+                                        width="100%" 
+                                        style={{ 
+                                            height: '120px', 
+                                            objectFit: 'cover',
+                                            transition: 'transform 0.3s ease',
+                                            cursor: 'pointer'
+                                        }} 
+                                        loading="lazy"
+                                        onError={(e) => {
+                                            // Hide image on error (blocked, 404, etc.) to prevent loading delays
+                                            e.target.style.display = 'none';
+                                        }}
+                                        onLoad={(e) => {
+                                            // Clear any timeout on successful load
+                                            if (e.target.dataset.timeoutId) {
+                                                clearTimeout(parseInt(e.target.dataset.timeoutId));
+                                                delete e.target.dataset.timeoutId;
+                                            }
+                                        }}
+                                        onLoadStart={(e) => {
+                                            // Set timeout to hide image if it takes too long (5 seconds)
+                                            const timeoutId = setTimeout(() => {
+                                                e.target.style.display = 'none';
+                                            }, 5000);
+                                            e.target.dataset.timeoutId = timeoutId.toString();
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!isDisabled) {
+                                                e.target.style.transform = 'scale(1.05)';
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.transform = 'scale(1)';
+                                        }}
                                     />
                                     <h3>{loc.name}</h3>
                                     <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`} style={{ 
