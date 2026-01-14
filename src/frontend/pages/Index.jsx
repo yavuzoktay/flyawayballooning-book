@@ -2695,6 +2695,56 @@ const Index = () => {
         return () => clearTimeout(timer);
     }, [activityId, chooseLocation, chooseFlightType?.type, selectedVoucherType?.title, location.search, refetchAvailabilities]);
 
+    // Diagnostic logging: when Live Availability opens via Shopify deep link but appears empty
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(location.search || '');
+            const isShopifyFlow = params.get('source') === 'shopify';
+            const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
+            if (!isShopifyFlow) return;
+            if (activeAccordion !== 'live-availability') return;
+
+            const snapshot = {
+                reason: '[ShopifyDebug] Live Availability state snapshot',
+                url: window.location.href,
+                isVoucherTypeStart,
+                chooseLocation,
+                activityId,
+                flightType: chooseFlightType?.type,
+                voucherType: selectedVoucherType?.title,
+                availabilitiesCount: Array.isArray(availabilities) ? availabilities.length : 0,
+                isLiveAvailabilityLoading,
+                activitySelect,
+                completedSections: Array.from(completedSections || []),
+            };
+
+            console.log(snapshot.reason, snapshot);
+
+            if (!availabilities || availabilities.length === 0) {
+                console.warn('[ShopifyDebug] Live Availability EMPTY for Shopify URL', {
+                    url: window.location.href,
+                    chooseLocation,
+                    activityId,
+                    flightType: chooseFlightType?.type,
+                    voucherType: selectedVoucherType?.title,
+                });
+            }
+        } catch (e) {
+            console.warn('[ShopifyDebug] Live Availability logging failed', e);
+        }
+    }, [
+        location.search,
+        activeAccordion,
+        chooseLocation,
+        activityId,
+        chooseFlightType?.type,
+        selectedVoucherType?.title,
+        availabilities,
+        isLiveAvailabilityLoading,
+        activitySelect,
+        completedSections,
+    ]);
+
     // CRITICAL FIX: When activityId becomes available for Shopify flow, immediately fetch availabilities
     // This ensures availabilities are fetched when all required state is ready
     useEffect(() => {
