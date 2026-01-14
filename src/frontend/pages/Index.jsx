@@ -3366,8 +3366,11 @@ const Index = () => {
                     }, 100);
                     
                     // CRITICAL: After voucher type is set and all state is ready, open Live Availability
-                    // and fetch availabilities with correct filters
-                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar
+                    // and fetch availabilities with correct filters.
+                    // For mobile Chrome, fetch availabilities BEFORE opening section to prevent empty calendar.
+                    // IMPORTANT: When coming from Shopify voucher-type deep link, wait longer (5s total)
+                    // before opening Live Availability so that slower connections have time to load data.
+                    const liveAvailabilityOpenDelay = qpStartAt === 'voucher-type' ? 5000 : 2000;
                     setTimeout(() => {
                         // Check if all required state is ready
                         if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
@@ -3464,7 +3467,7 @@ const Index = () => {
                                 voucherType: qpVoucherTitle
                             });
                         }
-                    }, 2000); // Wait longer for voucher type to be fully set
+                    }, liveAvailabilityOpenDelay); // Wait longer for voucher type to be fully set (5s for voucher-type deep link)
                 } else if (qpVoucherTitle) {
                     console.log('🔵 Shopify prefill - Opening voucher-type accordion (voucherTitle provided)');
                     setActiveAccordion('voucher-type');
