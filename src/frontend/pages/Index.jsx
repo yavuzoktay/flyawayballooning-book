@@ -71,6 +71,15 @@ const Index = () => {
     // This prevents race conditions when multiple handleSectionCompletion calls happen in quick succession
     const isLiveAvailabilityLoadingRef = useRef(false);
     
+    // Use a ref to track activityId synchronously for polling mechanism
+    // This allows polling to read the latest activityId value without closure issues
+    const activityIdRef = useRef(null);
+    
+    // Keep activityIdRef in sync with activityId state
+    useEffect(() => {
+        activityIdRef.current = activityId;
+    }, [activityId]);
+    
     // Wrapper to update both state and ref synchronously
     const setIsLiveAvailabilityLoadingSync = useCallback((value) => {
         isLiveAvailabilityLoadingRef.current = value; // Update ref synchronously
@@ -2175,6 +2184,8 @@ const Index = () => {
             
             // CRITICAL: If availabilities are empty and we have activityId, fetch immediately
             const hasNoAvailabilities = !availabilities || availabilities.length === 0;
+
+            // (debug instrumentation removed)
             
             if (isShopifyFlow) {
                 // For Shopify flow, ensure all required state is ready before fetching
@@ -2223,46 +2234,69 @@ const Index = () => {
                     }, delay);
                     return () => clearTimeout(timer);
                 } else {
-                    // If activityId is not ready yet, wait a bit and try again
+                    // CRITICAL FIX: If activityId is not ready yet, poll for it and fetch when ready
+                    // This fixes the issue where Live Availability opens before activityId is set
                     console.log('🔵 Live Availability opened in Shopify flow - Waiting for activityId', { 
+                        chooseLocation,
+                        flightType: chooseFlightType?.type,
                         isBingBrowser,
                         isMobileChrome 
                     });
-                    // For mobile Chrome and Bing browser, use longer delays
-                    const initialDelay = isMobileChrome ? 1500 : (isBingBrowser ? 1200 : 800);
-                    const retryDelay = isMobileChrome ? 2000 : (isBingBrowser ? 1500 : 1000);
-                    const timer = setTimeout(() => {
-                        if (activityId) {
-                            console.log('🔵 Live Availability - activityId ready, fetching availabilities');
+                    
+                    // Poll for activityId with increasing delays
+                    let pollAttempt = 0;
+                    const maxPollAttempts = 10; // Poll up to 10 times (total ~5-10 seconds)
+                    const pollInterval = 500; // Start with 500ms, increase by 200ms each time
+                    
+                    const pollForActivityId = () => {
+                        pollAttempt++;
+                        // Check current activityId value from ref (not closure value)
+                        const currentActivityId = activityIdRef.current;
+
+                        // (debug instrumentation removed)
+                        
+                        if (currentActivityId) {
+                            console.log('🔵 Live Availability - activityId ready, fetching availabilities', {
+                                attempt: pollAttempt,
+                                activityId: currentActivityId
+                            });
+
+                            // (debug instrumentation removed)
+
                             refetchAvailabilities();
-                            // For mobile Chrome and Bing browser, retry multiple times
+                            
+                            // For mobile Chrome and Bing browser, retry multiple times after initial fetch
                             if (isMobileChrome || isBingBrowser) {
                                 const retryCount = isMobileChrome ? 3 : 1;
+                                const retryDelay = isMobileChrome ? 2000 : 1500;
                                 for (let i = 1; i <= retryCount; i++) {
-                                setTimeout(() => {
-                                    refetchAvailabilities();
+                                    setTimeout(() => {
+                                        refetchAvailabilities();
                                     }, retryDelay * i);
                                 }
                             }
+                        } else if (pollAttempt < maxPollAttempts && chooseLocation) {
+                            // Continue polling if we haven't exceeded max attempts and location is set
+                            const nextDelay = pollInterval + (pollAttempt * 200); // Increasing delay
+                            console.log('🔵 Live Availability - activityId still not ready, polling again', {
+                                attempt: pollAttempt,
+                                nextDelay
+                            });
+                            setTimeout(pollForActivityId, nextDelay);
                         } else {
-                            console.log('🔵 Live Availability - activityId still not ready, will retry');
-                            // Retry once more after a longer delay
-                            setTimeout(() => {
-                                if (activityId) {
-                                    refetchAvailabilities();
-                                    // For mobile Chrome and Bing browser, retry multiple times
-                                    if (isMobileChrome || isBingBrowser) {
-                                        const retryCount = isMobileChrome ? 3 : 1;
-                                        for (let i = 1; i <= retryCount; i++) {
-                                        setTimeout(() => {
-                                            refetchAvailabilities();
-                                            }, retryDelay * i);
-                                        }
-                                    }
-                                }
-                            }, retryDelay);
+                            console.log('🔵 Live Availability - activityId polling exhausted or location not set', {
+                                pollAttempt,
+                                maxPollAttempts,
+                                chooseLocation
+                            });
+
+                            // (debug instrumentation removed)
                         }
-                    }, initialDelay);
+                    };
+                    
+                    // Start polling after initial delay
+                    const initialDelay = isMobileChrome ? 800 : (isBingBrowser ? 600 : 400);
+                    const timer = setTimeout(pollForActivityId, initialDelay);
                     return () => clearTimeout(timer);
                 }
             } else {
@@ -3097,6 +3131,8 @@ const Index = () => {
 
             console.log('🔵 Shopify prefill - Derived experience:', derivedExperience);
 
+            // (debug instrumentation removed)
+
             // Use Book Flight flow by default for Shopify deep-link
             // NOTE: activitySelect values use internal labels ('Book Flight', 'Flight Voucher', etc.),
             // while the UI shows 'Book Flight Date' as displayLabel.
@@ -3178,6 +3214,7 @@ const Index = () => {
                                 console.log('🔵 Shopify prefill - Waiting for voucher type before refetching (startAt=voucher-type)');
                             } else {
                                 console.log('🔵 Shopify prefill - Refetching availabilities immediately after flight type set');
+                                // (debug instrumentation removed)
                                 refetchAvailabilities();
                             }
                         }
@@ -3279,6 +3316,7 @@ const Index = () => {
                             });
                             if (qpLocation && activityId && derivedExperience && qpVoucherTitle) {
                                 console.log('🔵 Shopify prefill - All state ready, refetching availabilities with filters');
+                                // (debug instrumentation removed)
                                 refetchAvailabilities();
                             } else {
                                 console.log('🔵 Shopify prefill - Not all state ready yet, will retry');
