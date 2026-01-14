@@ -26,8 +26,18 @@ import CheckIcon from '@mui/icons-material/Check';
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     
+    // Track if this is the first render (to skip initial notification)
+    const isFirstRenderRef = React.useRef(true);
+    
     // Notify parent when currentDate changes (for incremental loading)
+    // Skip initial notification on mount to allow parent to use default 60-day range
     useEffect(() => {
+        if (isFirstRenderRef.current) {
+            isFirstRenderRef.current = false;
+            // Don't notify parent on initial mount - this allows initial load without date range
+            return;
+        }
+        
         if (onCurrentDateChange) {
             onCurrentDateChange(currentDate);
         }
