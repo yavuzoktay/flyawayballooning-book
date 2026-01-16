@@ -1724,7 +1724,7 @@ const VoucherType = ({
                                                         id="weather-refundable-tooltip-shared"
                                                         place="top"
                                                         content={enabled 
-                                                            ? "Fly within 6 attempts, or we'll extend your voucher free of charge - TO - Alternatively, you may request a refund within 6 months of purchase."
+                                                            ? "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                             : "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                         }
                                                         style={{
@@ -1780,7 +1780,7 @@ const VoucherType = ({
                                                         id={`weather-refundable-tooltip-private-${voucher.title}`}
                                                         place="top"
                                                         content={enabled 
-                                                            ? "Fly within 6 attempts, or we'll extend your voucher free of charge - TO - Alternatively, you may request a refund within 6 months of purchase."
+                                                            ? "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                             : "Optional weather protection: If your flight is cancelled due to weather, this cover refunds your flight price (excluding the cost of protection). Without it, your voucher is non-refundable but can be rebooked as needed."
                                                         }
                                                         style={{
