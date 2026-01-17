@@ -1500,7 +1500,7 @@ const VoucherType = ({
                                     <div key={i} style={{ marginBottom: 3 }}>
                                         {inclusion}
                                         {inclusion === 'Flight Certificate' && !isAnyDay && (
-                                            <div style={{ marginTop: 6, fontSize: isMobile ? 13 : 12, color: '#666', lineHeight: '1.2' }}>
+                                            <div style={{ marginTop: 6, fontSize: isMobile ? 14 : 12, color: '#666', lineHeight: '1.2' }}>
                                                 ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
                                             </div>
                                         )}
@@ -1566,7 +1566,7 @@ const VoucherType = ({
                         if ((isFlexibleWeekday || isWeekdayMorning) && isBookFlight) {
                             return (
                                 <div style={{
-                                    fontSize: isMobile ? 13 : 13,
+                                    fontSize: isMobile ? 14 : 13,
                                     color: '#666',
                                     marginBottom: 12,
                                     lineHeight: '1.2'
