@@ -1153,9 +1153,10 @@ const Index = () => {
                             normalizedType = mappedVoucherType;
                         }
                         
+                        const selectedVoucherTypeQuantity = !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 ? resolvedPassengerCount : 1;
                         setSelectedVoucherType({
                             title: normalizedType,
-                            quantity: !Number.isNaN(resolvedPassengerCount) && resolvedPassengerCount > 0 ? resolvedPassengerCount : 1,
+                            quantity: selectedVoucherTypeQuantity,
                             price: voucherInfo.final_amount || 0
                         });
                         

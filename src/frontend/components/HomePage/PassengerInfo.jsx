@@ -74,6 +74,10 @@ const PassengerInfo = forwardRef(({ isGiftVoucher, isFlightVoucher, addPassenger
     if (activitySelect === 'Redeem Voucher') {
       const q = parseInt(selectedVoucherType?.quantity ?? chooseFlightType?.passengerCount, 10);
       if (!Number.isNaN(q) && q > 0) return q;
+      // Fallback to passengerData.length if available (passengerData is already set correctly from backend)
+      if (passengerData && Array.isArray(passengerData) && passengerData.length > 0) {
+        return passengerData.length;
+      }
     }
     const isVoucherDriven = chooseFlightType?.type === 'Flight Voucher' || activitySelect === 'Book Flight';
     if (isVoucherDriven) {
