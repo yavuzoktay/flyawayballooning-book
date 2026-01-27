@@ -366,7 +366,8 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             activitySelect &&
             chooseLocation &&
             chooseFlightType &&
-            selectedVoucherType &&
+            // selectedVoucherType: Admin created (user-generated) voucher'larda boş gelebiliyor,
+            // bu yüzden Redeem Voucher akışında zorunlu olmamalı.
             selectedDate &&
             selectedTime &&
             isPassengerInfoComplete
@@ -402,21 +403,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             selectedDate &&
             selectedTime
         );
-
-    // IMMEDIATE DEBUG FOR BOOK DISABLED STATUS
-    console.log('📊 BOOK DISABLED CALCULATION:', {
-        activitySelect,
-        isGiftVoucher,
-        isRedeemVoucher,
-        isBookDisabled,
-        chooseLocation,
-        chooseFlightType,
-        selectedVoucherType,
-        selectedDate,
-        selectedTime,
-        isPassengerInfoComplete,
-        timestamp: new Date().toLocaleTimeString()
-    });
 
     // IMMEDIATE BUY GIFT CONDITIONS CHECK
     // Define variables outside the if block for proper scope
