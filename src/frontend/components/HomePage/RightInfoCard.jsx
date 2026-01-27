@@ -799,17 +799,20 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         
         // REDEEM VOUCHER FLOW (Stripe ödeme olmadan direkt createVoucher)
         if (isRedeemVoucher) {
-            // Debug: Log the selectedVoucherType
-            console.log('=== REDEEM VOUCHER DEBUG ===');
-            console.log('selectedVoucherType:', selectedVoucherType);
-            console.log('selectedVoucherType?.title:', selectedVoucherType?.title);
-            
-            // Validate that selectedVoucherType is set
-            if (!selectedVoucherType || !selectedVoucherType.title) {
-                alert('Please select a voucher type before proceeding.');
-                return;
-            }
-            
+            // Redeem Voucher akışında voucher type bilgisi, admin panelindeki
+            // Edit Voucher Code ekranından (voucher_type / voucher_type_detail)
+            // veya frontend'de seçilmiş voucherType'tan gelebilir.
+            const effectiveVoucherTypeTitle =
+                selectedVoucherType?.title ||
+                voucherData?.voucher_type_detail ||
+                voucherData?.voucher_type ||
+                voucherData?.applicable_voucher_types ||
+                null;
+
+            const effectiveSelectedVoucherType = selectedVoucherType || (effectiveVoucherTypeTitle
+                ? { title: effectiveVoucherTypeTitle }
+                : null);
+
             // Booking data preparation for Redeem Voucher
             let bookingDateStr = selectedDate;
             if (selectedDate instanceof Date && selectedTime) {
@@ -827,7 +830,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 activitySelect: "Redeem Voucher",
                 chooseLocation,
                 chooseFlightType,
-                selectedVoucherType,
+                selectedVoucherType: effectiveSelectedVoucherType,
                 chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
                 passengerData,
                 additionalInfo,
@@ -840,13 +843,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
-                selectedVoucherType: selectedVoucherType ? {
-                    id: selectedVoucherType.id || null,
-                    title: selectedVoucherType.title,
-                    quantity: selectedVoucherType.quantity,
-                    totalPrice: selectedVoucherType.totalPrice || totalPrice
+                selectedVoucherType: effectiveSelectedVoucherType ? {
+                    id: effectiveSelectedVoucherType.id || null,
+                    title: effectiveVoucherTypeTitle,
+                    quantity: effectiveSelectedVoucherType.quantity,
+                    totalPrice: effectiveSelectedVoucherType.totalPrice || totalPrice
                 } : null,
-                voucher_type: selectedVoucherType?.title || null
+                voucher_type: effectiveVoucherTypeTitle
             };
             
             // Debug: Log the booking data being sent
