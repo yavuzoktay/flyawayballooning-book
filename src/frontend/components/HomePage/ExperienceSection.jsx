@@ -6,6 +6,7 @@ import { BsInfoCircle } from 'react-icons/bs';
 import sharedFlightImg from '../../../assets/images/shared-flight.jpg';
 import privateCharterImg from '../../../assets/images/private-charter.jpg';
 import config from '../../../config';
+import { trackExperienceSelected } from '../../../utils/googleAdsTracking';
 
 const weatherRefundableHoverTexts = {
     sharedFlight: "You can select a weather refund option for each passenger for an additional £47.50 per person. This option can be chosen when entering passenger information.",
@@ -581,6 +582,10 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         } else {
             console.error('setChooseFlightType is not available');
         }
+        
+        // Google Ads: GA_Experience_Selected (Stage 3) - Shared flight | Private flight
+        const experienceType = type === 'Private Charter' ? 'private' : 'shared';
+        trackExperienceSelected(experienceType);
         
         // Show notification for experience selection
         setNotificationMessage(`${flightData.type} Selected`);

@@ -24,6 +24,7 @@ import CustomerPortalHeader from "../components/CustomerPortal/CustomerPortalHea
 
 import config from '../../config';
 import { loadStripe } from '@stripe/stripe-js';
+import { trackPurchaseCompleted } from '../../utils/googleAdsTracking';
 
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
@@ -1132,8 +1133,10 @@ const Index = () => {
                     
                     // If we found a voucher type, validate and set it
                     if (mappedVoucherType) {
-                        // Ensure the voucher type matches backend validation
-                        const validTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight', 'Weekday Morning Flight', 'Flexible Weekday Flight', 'Any Day'];
+                        // Valid voucher types: shared (Flexible Weekday, Weekday Morning, Any Day Flight) and private (Private Charter, Proposal Flight)
+                        const validSharedTypes = ['Weekday Morning', 'Flexible Weekday', 'Any Day Flight', 'Weekday Morning Flight', 'Flexible Weekday Flight', 'Any Day'];
+                        const validPrivateTypes = ['Private Charter', 'Proposal Flight'];
+                        const validTypes = [...validSharedTypes, ...validPrivateTypes];
                         // Normalize the type name
                         let normalizedType = mappedVoucherType;
                         if (normalizedType === 'Weekday Morning Flight') {
@@ -1145,9 +1148,13 @@ const Index = () => {
                         }
                         
                         if (!validTypes.includes(normalizedType) && !validTypes.includes(mappedVoucherType)) {
-                            // Default to 'Any Day Flight' if the type doesn't match
-                            normalizedType = 'Any Day Flight';
-                            console.warn('Voucher type not in valid list, defaulting to Any Day Flight:', mappedVoucherType);
+                            // Only default to 'Any Day Flight' for unknown types; preserve Private Charter and Proposal Flight
+                            if (validPrivateTypes.some(t => mappedVoucherType.toLowerCase().includes(t.toLowerCase().split(' ')[0]))) {
+                                normalizedType = mappedVoucherType; // Keep Private Charter or Proposal Flight as-is
+                            } else {
+                                normalizedType = 'Any Day Flight';
+                                console.warn('Voucher type not in valid list, defaulting to Any Day Flight:', mappedVoucherType);
+                            }
                         } else if (!validTypes.includes(normalizedType)) {
                             // Use the original if normalization didn't work but original is valid
                             normalizedType = mappedVoucherType;
@@ -4603,6 +4610,19 @@ const Index = () => {
                                 message: type === 'booking' ? 'reservation' : 'voucher'
                             });
                             setShowPaymentSuccess(true);
+
+                            // Google Ads: GA_Purchase_Completed (client-side redundancy)
+                            const funnelType = type === 'booking' ? 'booking' : ((response.data.voucher_type || response.data.book_flight || '').toLowerCase().includes('gift') ? 'gift' : 'voucher');
+                            const experienceType = (response.data.experience_type || response.data.chooseFlightType?.type || '').toLowerCase().includes('private') ? 'private' : 'shared';
+                            const productType = response.data.voucher_type_detail || response.data.voucher_type || '';
+                            trackPurchaseCompleted({
+                                transaction_id: session_id,
+                                value: response.data.paid_amount || 0,
+                                currency: 'GBP',
+                                funnel_type: funnelType,
+                                experience_type: experienceType,
+                                product_type: productType
+                            });
                         } else {
                         console.warn('[EmailDebug] Backend did not return success; email may not have been triggered', {
                             type,

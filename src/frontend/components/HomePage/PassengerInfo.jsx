@@ -3,6 +3,7 @@ import Accordion from "../Common/Accordion";
 import { Tooltip as ReactTooltip }  from 'react-tooltip';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { BsInfoCircle } from 'react-icons/bs';
+import { trackCheckoutStarted } from '../../../utils/googleAdsTracking';
 
 // Country codes list for phone number dropdown
 const countryCodes = [
@@ -421,6 +422,9 @@ newPassengers.push({
 
   // Handle passenger input change
   const handlePassengerInputChange = (index, e) => {
+    // Google Ads: GA_Checkout_Started (Stage 6) - trigger on first form interaction
+    trackCheckoutStarted('passenger');
+    
     const { name, value } = e.target;
     
     // Handle phone number - only digits allowed (no country code prefix)

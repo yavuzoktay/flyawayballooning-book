@@ -22,6 +22,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
+import { trackDateSelected } from '../../../utils/googleAdsTracking';
 
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -557,6 +558,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         setSelectedTime(time);
         setTimeSelectionModalOpen(false);
         setTempSelectedTime(null); // Reset temporary selection
+        
+        // Google Ads: GA_Date_Selected (Stage 5) - BOOK FLIGHT DATE FLOW ONLY
+        const dateStr = selectedDateForTime ? format(selectedDateForTime, 'yyyy-MM-dd') : '';
+        const experienceType = (chooseFlightType?.type || '').toLowerCase().includes('private') ? 'private' : 'shared';
+        if (dateStr && chooseLocation) {
+            trackDateSelected(dateStr, chooseLocation, experienceType);
+        }
         
         // Show notification for time selection
         const formattedDate = format(selectedDateForTime, 'MMMM d, yyyy');
@@ -1145,11 +1153,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         let slotsToUse = finalFilteredAvailabilities;
         if (finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0 && shouldFilterAvailabilities) {
             console.log('⚠️ Chrome - finalFilteredAvailabilities is empty, using availabilities with manual filtering');
-            // Manually filter availabilities for this date
+            // Manually filter availabilities for this date (include voucher type filter for shared vs private)
             slotsToUse = availabilities.filter(a => {
                 const matchesLoc = matchesLocation(a);
                 const matchesExp = matchesExperience(a);
-                return a.date === dateStr && matchesLoc && matchesExp;
+                const matchesVoucherTypeFilter = filterByVoucherType(a);
+                return a.date === dateStr && matchesLoc && matchesExp && matchesVoucherTypeFilter;
             });
             console.log(`Chrome - Manually filtered slots for ${dateStr}:`, slotsToUse.length);
         }

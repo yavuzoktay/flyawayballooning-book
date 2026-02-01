@@ -5,6 +5,7 @@ import { BsInfoCircle } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { trackCheckoutStarted } from '../../../utils/googleAdsTracking';
 
 const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
     const [emailError, setEmailError] = useState(false);
@@ -57,6 +58,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
     const [validationErrors, setValidationErrors] = useState({});
 
     const handleChange = (e) => {
+        // Google Ads: GA_Checkout_Started (Stage 6) - purchaser info for gift flow
+        trackCheckoutStarted('purchaser');
+        
         let value = e.target.value;
         
         // Handle input validation and filtering

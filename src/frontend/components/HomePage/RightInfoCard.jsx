@@ -4,6 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Divider, Button } from "@mui/material";
 
 import config from '../../../config';
+import { getGoogleAdsIdsForCheckout } from '../../../utils/googleAdsTracking';
 const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
@@ -771,11 +772,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             
             try {
                 // Start Stripe Checkout Session - for VOUCHER
+                const userSessionData = { ...getGoogleAdsIdsForCheckout() };
                 const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                     totalPrice,
                     currency: 'GBP',
                     voucherData,
-                    type: 'voucher'
+                    type: 'voucher',
+                    userSessionData
                 });
                 if (!sessionRes.data.success) {
                     alert('Payment could not be initiated: ' + (sessionRes.data.message || 'Unknown error'));
@@ -1012,12 +1015,13 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         };
         try {
             // Start Stripe Checkout Session
-            // localStorage.setItem('pendingBookingData', JSON.stringify(bookingData)); // ARTIK GEREK YOK
+            const userSessionData = { ...getGoogleAdsIdsForCheckout() };
             const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
                 totalPrice,
                 currency: 'GBP',
                 bookingData,
-                type: 'booking'
+                type: 'booking',
+                userSessionData
             });
             
             console.log('Backend response:', sessionRes.data);

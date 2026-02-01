@@ -7,6 +7,7 @@ import Image4 from '../../../assets/images/category1.jpeg';
 import axios from "axios";
 import Modal from "../Common/Modal";
 import config from '../../../config';
+import { trackLocationSelected } from '../../../utils/googleAdsTracking';
 
 const imageMap = {
     "Bath": Image1,
@@ -139,6 +140,11 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
 
     const confirmLocation = async (locName) => {
         setChooseLocation(locName);
+        
+        // Google Ads: GA_Location_Selected (Stage 2) - Bath, Somerset, Devon only (not Bristol Fiesta)
+        if (['Bath', 'Somerset', 'Devon'].includes(locName)) {
+            trackLocationSelected(locName);
+        }
         
         // Show notification for location selection
         setNotificationMessage(`${locName} Selected`);

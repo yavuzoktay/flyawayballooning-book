@@ -5,6 +5,7 @@ import RedeemVoucherCard from "./RedeemVoucherCard";
 import { BsInfoCircle } from 'react-icons/bs';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import config from '../../../config';
+import { trackFunnelStart, activityToFunnelType } from '../../../utils/googleAdsTracking';
 
 const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate, onSectionCompletion }) => {
     const API_BASE_URL = config.API_BASE_URL;
@@ -134,6 +135,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const handleActivitySelect = (label) => {
         // Always update the activity selection
         setActivitySelect(label);
+        
+        // Google Ads: GA_Funnel_Start (Stage 1) - only for booking/gift/voucher paths
+        const funnelType = activityToFunnelType(label);
+        if (funnelType) {
+            trackFunnelStart(funnelType);
+        }
         
         // Show notification for flight type selection
         setNotificationMessage(`${label} Selected`);

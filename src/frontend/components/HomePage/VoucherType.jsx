@@ -10,6 +10,7 @@ import config from '../../../config';
 import { BsInfoCircle } from 'react-icons/bs';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { useLocation } from 'react-router-dom';
+import { trackProductSelected } from '../../../utils/googleAdsTracking';
 
 // Add CSS animations for slide effects
 const slideAnimations = `
@@ -1193,6 +1194,11 @@ const VoucherType = ({
             setSelectedVoucher(finalEnriched);
             setSelectedVoucherType(finalEnriched);
 
+            // Google Ads: GA_Product_Selected (Stage 4) - deep link flow
+            const productType = finalEnriched?.title || '';
+            const pricePoint = finalEnriched?.priceValue ?? finalEnriched?.price ?? '';
+            if (productType) trackProductSelected(productType, pricePoint);
+
             // If coming from Shopify deep link, auto-open Terms & Conditions once and ensure accordion is open
             const isShopifySource = urlParams.get('source') === 'shopify';
             const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
@@ -2273,6 +2279,11 @@ const VoucherType = ({
                                 setSelectedVoucherType(selectedVoucher); 
                                 userDismissedTermsRef.current = true;
                                 setShowTerms(false);
+                                
+                                // Google Ads: GA_Product_Selected (Stage 4)
+                                const productType = selectedVoucher?.title || '';
+                                const pricePoint = selectedVoucher?.priceValue ?? selectedVoucher?.price ?? '';
+                                if (productType) trackProductSelected(productType, pricePoint);
                                 
                                 // Show notification for voucher type selection after confirmation
                                 setNotificationMessage(`${selectedVoucher?.title} Selected`);

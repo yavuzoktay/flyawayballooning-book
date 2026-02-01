@@ -7,6 +7,12 @@ import Index from './frontend/pages/Index';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import config from './config';
+import { captureGoogleAdsIds } from './utils/googleAdsTracking';
+
+// Capture gclid/wbraid/gbraid from URL for Google Ads conversion tracking
+if (typeof window !== 'undefined') {
+  captureGoogleAdsIds();
+}
 
 // Quick runtime check for key mode (logs TEST/LIVE only)
 if (typeof window !== 'undefined') {
