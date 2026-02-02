@@ -9,6 +9,16 @@
  */
 
 const SESSION_STORAGE_KEY = 'fab_ga_tracked';
+const GOOGLE_ADS_ID = 'AW-17848519089';
+
+// Conversion labels for gtag('event', 'conversion', { send_to: 'AW-XXX/Label' })
+// Get from Google Ads: Goals > Conversions > [action] > See event snippet
+const CONVERSION_LABELS = {
+  GA_Flight_Purchase_Shared: 'FREdCK2p-PAbEOeUzd8B', // e.g. 'AbCdEfGhIjK123456'
+  GA_Flight_Purchase_Private: 'CTrmCIKV7PAbEOeUzd8B',
+  GA_Voucher_Purchase_Shared: 'nnRxCImN7fAbEOeUzd8B',
+  GA_Voucher_Purchase_Private: 'v6dECIai7PAbEOeUzd8B'
+};
 const GCLID_STORAGE_KEY = 'fab_gclid';
 const GCLID_EXPIRY_DAYS = 30;
 
@@ -194,21 +204,57 @@ export function trackCheckoutStarted(flowType = 'passenger') {
 }
 
 /**
+ * Map funnel_type + experience_type to Google Ads conversion action name
+ */
+function getConversionActionName(funnelType, experienceType) {
+  const isFlight = funnelType === 'booking';
+  const isVoucher = funnelType === 'voucher' || funnelType === 'gift';
+  const isShared = experienceType === 'shared';
+  const isPrivate = experienceType === 'private';
+  if (isFlight && isShared) return 'GA_Flight_Purchase_Shared';
+  if (isFlight && isPrivate) return 'GA_Flight_Purchase_Private';
+  if (isVoucher && isShared) return 'GA_Voucher_Purchase_Shared';
+  if (isVoucher && isPrivate) return 'GA_Voucher_Purchase_Private';
+  return 'GA_Flight_Purchase_Shared'; // fallback
+}
+
+/**
  * GA_Purchase_Completed - Client-side (success page)
  * Primary conversion - also sent server-side via Stripe webhook
- * Fired on success page load for redundancy
+ * Fires gtag('event', 'conversion', { send_to: '...' }) so Tag Assistant can detect it
  * @param {Object} params
  */
 export function trackPurchaseCompleted(params) {
   const { transaction_id, value, currency, funnel_type, experience_type, product_type } = params;
   const key = `GA_Purchase_Completed_${transaction_id}`;
   if (wasEventTracked(key)) return;
+
+  const funnel = funnel_type || 'booking';
+  const experience = experience_type || 'shared';
+  const actionName = getConversionActionName(funnel, experience);
+  const label = CONVERSION_LABELS[actionName];
+
+  // 1. Fire gtag conversion event (required for Tag Assistant / Google Ads detection)
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function' && label) {
+    try {
+      window.gtag('event', 'conversion', {
+        send_to: `${GOOGLE_ADS_ID}/${label}`,
+        transaction_id: transaction_id || '',
+        value: Number(value) || 0,
+        currency: (currency || 'GBP').toUpperCase()
+      });
+    } catch (e) {
+      console.warn('[GA] Failed to fire gtag conversion:', e);
+    }
+  }
+
+  // 2. Fire GA_Purchase_Completed custom event (for GA4 import / analytics)
   fireGtagEvent('GA_Purchase_Completed', {
     transaction_id,
     value: Number(value),
     currency: currency || 'GBP',
-    funnel_type: funnel_type || 'booking',
-    experience_type: experience_type || 'shared',
+    funnel_type: funnel,
+    experience_type: experience,
     product_type: product_type || ''
   });
   markEventTracked(key);
