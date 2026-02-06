@@ -4422,6 +4422,11 @@ const Index = () => {
                         if (statusResp.data?.processed) {
                             console.log('Session already processed on server, skipping fallback creation.');
                             localStorage.setItem(processedKey, '1');
+                            // Fire Google Ads conversion (webhook ran first, so frontend must fire gtag for Tag Assistant)
+                            const convData = statusResp.data?.conversion_data;
+                            if (convData) {
+                                trackPurchaseCompleted(convData);
+                            }
                             return; // Avoid duplicate creation
                         }
                         // Try creating from session (fallback) with a short retry in case the webhook is still finalising

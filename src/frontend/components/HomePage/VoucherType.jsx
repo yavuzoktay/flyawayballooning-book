@@ -1109,6 +1109,77 @@ const VoucherType = ({
         }
     }, [chooseFlightType?.type, allVoucherTypesState, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
 
+    // Expose voucher types to Google Merchant Center / Shopping via structured data
+    // This generates a Product list for the current experience (Shared / Private Charter)
+    // so Google can crawl `https://flyawayballooning-book.com/` and discover all
+    // Any Day Flight, Flexible Weekday, Weekday Morning, Private Charter, Proposal Flight products.
+    useEffect(() => {
+        try {
+            if (typeof window === 'undefined' || typeof document === 'undefined') return;
+            if (!Array.isArray(voucherTypes) || voucherTypes.length === 0) return;
+
+            const origin = window.location.origin || 'https://flyawayballooning-book.com';
+            const path = window.location.pathname || '/';
+            const baseUrl = `${origin}${path}`;
+            const flightTypeLabel = chooseFlightType?.type || 'Shared Flight';
+            const locationLabel = chooseLocation || 'Bath';
+
+            const products = voucherTypes
+                .map(vt => {
+                    const basePrice = Number(vt.basePrice || vt.price || 0);
+                    if (!basePrice || Number.isNaN(basePrice)) return null;
+
+                    const title = vt.title || 'Balloon Flight';
+                    const sku = `${flightTypeLabel}-${title}`.toLowerCase().replace(/\s+/g, '-');
+
+                    const params = new URLSearchParams();
+                    params.set('startAt', 'voucher-type');
+                    params.set('voucherTitle', title);
+                    const url = `${baseUrl}?${params.toString()}`;
+
+                    return {
+                        '@type': 'Product',
+                        name: `${title} - ${flightTypeLabel} - ${locationLabel}`,
+                        image: vt.image,
+                        description: vt.description || 'Hot air balloon flight experience with Fly Away Ballooning.',
+                        brand: {
+                            '@type': 'Brand',
+                            name: 'Fly Away Ballooning'
+                        },
+                        sku,
+                        offers: {
+                            '@type': 'Offer',
+                            url,
+                            priceCurrency: 'GBP',
+                            price: basePrice,
+                            availability: 'http://schema.org/InStock'
+                        }
+                    };
+                })
+                .filter(Boolean);
+
+            if (!products.length) return;
+
+            const scriptId = 'fab-google-merchant-products';
+            let script = document.getElementById(scriptId);
+            if (!script) {
+                script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.id = scriptId;
+                document.head.appendChild(script);
+            }
+
+            const payload = {
+                '@context': 'https://schema.org',
+                '@graph': products
+            };
+
+            script.text = JSON.stringify(payload);
+        } catch (e) {
+            console.error('Error generating Google Merchant structured data:', e);
+        }
+    }, [voucherTypes, chooseFlightType?.type, chooseLocation]);
+
     // When coming from deep links (ör. Shopify) üst component sadece title/quantity
     // içeren bir selectedVoucherType gönderebiliyor. voucherTypes yüklendikten sonra
     // bu title’a göre gerçek voucher objesini bulup kartı seçili yapıyor ve fiyatı
