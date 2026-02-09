@@ -869,6 +869,25 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 console.log('✅ Total price is 0, creating booking directly without Stripe...');
                 
                 try {
+                    // Normalize selectedDate to a timezone-safe string, so backend sees exactly
+                    // the date the user picked in the calendar (no UTC shift).
+                    let bookingDateStr = selectedDate;
+                    if (selectedDate instanceof Date && selectedTime) {
+                        const [h, m, s] = selectedTime.split(':');
+                        const year = selectedDate.getFullYear();
+                        const month = selectedDate.getMonth() + 1; // 0-11
+                        const day = selectedDate.getDate();
+                        const hour = Number(h) || 0;
+                        const minute = Number(m) || 0;
+                        const second = Number(s) || 0;
+                        bookingDateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
+                    } else if (selectedDate instanceof Date) {
+                        const year = selectedDate.getFullYear();
+                        const month = selectedDate.getMonth() + 1;
+                        const day = selectedDate.getDate();
+                        bookingDateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                    }
+
                     // Call simplified createRedeemBooking endpoint for Redeem Voucher
                     const redeemBookingData = {
                         activitySelect,
@@ -876,7 +895,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         chooseFlightType,
                         passengerData,
                         additionalInfo,
-                        selectedDate,
+                        selectedDate: bookingDateStr,
                         selectedTime,
                         voucher_code: voucherCode ? voucherCode.trim() : null,
                         totalPrice,
