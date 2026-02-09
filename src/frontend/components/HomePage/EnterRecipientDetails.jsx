@@ -98,19 +98,14 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         
         const errors = {};
         
-        // All fields are required again for Buy Gift
-        
-        // Name validation
+        // Name her zaman zorunlu
         if (!recipientDetails.name || !recipientDetails.name.trim()) {
             errors.name = true;
             console.log('❌ Recipient name validation failed:', recipientDetails.name);
         }
         
-        // Email validation (format + required)
-        if (!recipientDetails.email || !recipientDetails.email.trim()) {
-            errors.email = true;
-            console.log('❌ Recipient email validation failed (empty):', recipientDetails.email);
-        } else {
+        // Email: Buy Gift için OPSİYONEL, ama DOLDURULURSA format kontrolü yap
+        if (recipientDetails.email && recipientDetails.email.trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(recipientDetails.email.trim())) {
                 errors.email = true;
@@ -118,13 +113,13 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             }
         }
         
-        // Phone validation  
-        if (!recipientDetails.phone || !recipientDetails.phone.trim()) {
+        // Phone: Buy Gift için OPSİYONEL, ama DOLDURULURSA sadece boşluk kontrolü yap
+        if (recipientDetails.phone && !recipientDetails.phone.trim()) {
             errors.phone = true;
-            console.log('❌ Recipient phone validation failed:', recipientDetails.phone);
+            console.log('❌ Recipient phone validation failed (whitespace-only):', recipientDetails.phone);
         }
         
-        // Date validation
+        // Date her zaman zorunlu
         if (!recipientDetails.date || !recipientDetails.date.trim()) {
             errors.date = true;
             console.log('❌ Recipient date validation failed:', recipientDetails.date);
@@ -141,7 +136,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
             recipientDetails,
             errors,
             isValid: Object.keys(errors).length === 0,
-            message: 'All fields are required again for Buy Gift'
+            message: 'Name and Gift Date are required; email/phone optional for Buy Gift'
         });
         
         setValidationErrors(errors);
@@ -158,7 +153,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
         if (!isGiftVoucher) return true;
         const valid = validateFields();
         if (!valid) {
-            alert('Recipient Details are required for Buy Gift. Please fill in all fields.');
+            alert('Recipient Details are required for Buy Gift. Please fill in Recipient Name and Gift Date.');
             return false; // prevent closing
         }
         return true;
@@ -243,11 +238,11 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             color: '#374151',
                             marginBottom: '4px',
                             display: 'block',
-                        }}>Recipient Email{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        }}>Recipient Email</label>
                         <input
                             type="email"
                             name="email"
-                            required={isGiftVoucher}
+                            // optional for Buy Gift
                             value={recipientDetails.email}
                             onChange={handleChange}
                             placeholder="Recipient Email"
@@ -263,7 +258,7 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             }}
                         />
                         {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
-                        {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Recipient email is required</span>}
+                        {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid or empty email</span>}
                     </div>
 
                     {/* Recipient Phone Number */}
@@ -274,13 +269,13 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                             color: '#374151',
                             marginBottom: '4px',
                             display: 'block',
-                        }}>Recipient Phone Number{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
+                        }}>Recipient Phone Number</label>
                         <input
                             type="tel"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             name="phone"
-                            required={isGiftVoucher}
+                            // optional for Buy Gift
                             value={recipientDetails.phone}
                             onChange={handleChange}
                             placeholder="Recipient Phone Number"
