@@ -181,24 +181,31 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
         const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
-        const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
+        const hasPhone = typeof details.phone === 'string' && details.phone.length > 0;
         const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
         
-        // Email format validation
+        // Email format validation (optional field)
         let emailFormatValid = true;
         if (hasEmail) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             emailFormatValid = emailRegex.test(details.email.trim());
         }
         
-        // Date format validation
+        // Phone validation: optional but must not be whitespace-only if provided
+        let phoneValid = true;
+        if (hasPhone && !details.phone.trim()) {
+            phoneValid = false;
+        }
+        
+        // Date format validation (required)
         let dateFormatValid = true;
         if (hasDate) {
             const dateValue = new Date(details.date);
             dateFormatValid = !isNaN(dateValue.getTime());
         }
         
-        const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
+        // For Buy Gift: only Recipient Name and Gift Date are required.
+        const isComplete = hasName && hasDate && emailFormatValid && phoneValid && dateFormatValid;
         
         console.log('🎁 recipientDetails validation:', {
             details,
@@ -207,9 +214,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             hasPhone: { value: details.phone, valid: hasPhone },
             hasDate: { value: details.date, valid: hasDate },
             emailFormatValid,
+            phoneValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields required for Buy Gift'
+            note: 'For Buy Gift: name and gift date required; email/phone optional'
         });
         
         return isComplete;

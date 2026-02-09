@@ -1311,24 +1311,31 @@ const Index = () => {
         // Check each field individually with proper null/undefined checks
         const hasName = details.name && typeof details.name === 'string' && details.name.trim() !== '';
         const hasEmail = details.email && typeof details.email === 'string' && details.email.trim() !== '';
-        const hasPhone = details.phone && typeof details.phone === 'string' && details.phone.trim() !== '';
+        const hasPhone = typeof details.phone === 'string' && details.phone.length > 0;
         const hasDate = details.date && typeof details.date === 'string' && details.date.trim() !== '';
         
-        // Email format validation
+        // Email format validation (optional field)
         let emailFormatValid = true;
         if (hasEmail) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             emailFormatValid = emailRegex.test(details.email.trim());
         }
         
-        // Date format validation
+        // Phone validation: optional but must not be whitespace-only if provided
+        let phoneValid = true;
+        if (hasPhone && !details.phone.trim()) {
+            phoneValid = false;
+        }
+        
+        // Date format validation (required)
         let dateFormatValid = true;
         if (hasDate) {
             const dateValue = new Date(details.date);
             dateFormatValid = !isNaN(dateValue.getTime());
         }
         
-        const isComplete = hasName && hasEmail && hasPhone && hasDate && emailFormatValid && dateFormatValid;
+        // For Buy Gift: only Recipient Name and Gift Date are required.
+        const isComplete = hasName && hasDate && emailFormatValid && phoneValid && dateFormatValid;
         
         console.log('🎁 recipientDetails validation:', {
             details,
@@ -1337,9 +1344,10 @@ const Index = () => {
             hasPhone: { value: details.phone, valid: hasPhone },
             hasDate: { value: details.date, valid: hasDate },
             emailFormatValid,
+            phoneValid,
             dateFormatValid,
             isComplete,
-            note: 'All fields required for Buy Gift'
+            note: 'For Buy Gift: name and gift date required; email/phone optional'
         });
         
         return isComplete;
@@ -2367,7 +2375,14 @@ const Index = () => {
         if (passengerComplete) completedSections.push('passenger-info');
         // Additional Information is optional unless API marks specific questions required
         if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
-        if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
+
+        // Recipient Details (Buy Gift only):
+        // Use the same validation rules as the booking button:
+        // - Recipient Name and Gift Date required
+        // - Email / Phone optional (but validated if provided)
+        if (activitySelect === 'Buy Gift' && isRecipientDetailsValid(recipientDetails)) {
+            completedSections.push('recipient-details');
+        }
         if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
 
         // Section'ın sequence'daki pozisyonunu bul
