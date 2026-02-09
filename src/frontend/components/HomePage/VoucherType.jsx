@@ -1118,9 +1118,11 @@ const VoucherType = ({
             if (typeof window === 'undefined' || typeof document === 'undefined') return;
             if (!Array.isArray(voucherTypes) || voucherTypes.length === 0) return;
 
-            const origin = window.location.origin || 'https://flyawayballooning-book.com';
-            const path = window.location.pathname || '/';
-            const baseUrl = `${origin}${path}`;
+            // Use canonical production URL for structured data so Google Merchant Center and crawlers see consistent links
+            const isProduction = typeof window !== 'undefined' && window.location.hostname === 'flyawayballooning-book.com';
+            const origin = isProduction ? 'https://flyawayballooning-book.com' : (typeof window !== 'undefined' ? window.location.origin : 'https://flyawayballooning-book.com');
+            const path = (typeof window !== 'undefined' && window.location.pathname) || '/';
+            const baseUrl = `${origin}${path}`.replace(/\/$/, '') || origin;
             const flightTypeLabel = chooseFlightType?.type || 'Shared Flight';
             const locationLabel = chooseLocation || 'Bath';
 
