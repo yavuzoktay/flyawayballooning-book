@@ -1800,12 +1800,8 @@ const Index = () => {
                 // Detect Chrome browser for special handling
                 const isChromeBrowser = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
                 const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-                const deepLinkSource = params.get('source');
-                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-                const isMerchantDeepLink = (!deepLinkSource || deepLinkSource === 'merchant-center' || deepLinkSource === 'merchant' || deepLinkSource === 'gmc') && hasVoucherTitleOrLocation;
-                const isShopifyOrMerchant = deepLinkSource === 'shopify' || isMerchantDeepLink;
                 const shouldHaveAvailabilities = hasLocationAndActivity && (
-                    (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyOrMerchant && hasLocationAndActivity))) ||
+                    (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
                     (activitySelect === 'Redeem Voucher') ||
                     (chooseLocation === 'Bristol Fiesta') ||
                     (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -3379,13 +3375,11 @@ const Index = () => {
         return () => clearTimeout(timer);
     }, [selectedVoucherType?.title, chooseLocation, activityId, chooseFlightType?.type, location.search, refetchAvailabilities]);
 
-    // Additional effect: Refetch availabilities when activityId is set from Shopify/Merchant prefill
+    // Additional effect: Refetch availabilities when activityId is set from Shopify prefill
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-        if (source !== 'shopify' && !isMerchantDeepLink) return;
+        if (source !== 'shopify') return;
         if (!chooseLocation || !activityId) return;
         
         // Small delay to ensure state is settled
@@ -3406,9 +3400,7 @@ const Index = () => {
         try {
             const params = new URLSearchParams(location.search || '');
             const source = params.get('source');
-            const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-            const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-            const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
+            const isShopifyOrMerchant = source === 'shopify';
             const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
             if (!isShopifyOrMerchant) return;
             if (activeAccordion !== 'live-availability') return;
@@ -3454,14 +3446,12 @@ const Index = () => {
         completedSections,
     ]);
 
-    // CRITICAL FIX: When activityId becomes available for deep link flow, immediately fetch availabilities
+    // CRITICAL FIX: When activityId becomes available for Shopify deep link flow, immediately fetch availabilities
     // This ensures availabilities are fetched when all required state is ready
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-        const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
+        const isShopifyOrMerchant = source === 'shopify';
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
         // Only for deep-link flows
@@ -3505,13 +3495,11 @@ const Index = () => {
         }
     }, [availabilities, activeAccordion]);
 
-    // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (deep link first load issue)
+    // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (Shopify deep link first load issue)
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-        const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
+        const isShopifyOrMerchant = source === 'shopify';
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
         // Only for voucher-type deep-link flows
@@ -3668,9 +3656,7 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-                shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
+                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
             } catch {}
             
             // Skip auto-opening if we're coming from Shopify with startAt=voucher-type
@@ -3696,9 +3682,7 @@ const Index = () => {
                     const params = new URLSearchParams(location.search || '');
                     const source = params.get('source');
                     const startAt = params.get('startAt');
-                    const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-                    const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-                    shouldSkipAutoOpenInTimeout = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
+                    shouldSkipAutoOpenInTimeout = source === 'shopify' && startAt === 'voucher-type';
                 } catch {}
                 
                 // Also check shopifyStartAtVoucher state (might be set by now)
@@ -3784,9 +3768,7 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-                if ((source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type') {
+                if (source === 'shopify' && startAt === 'voucher-type') {
                     shouldForceVoucherType = true;
                 }
             } catch {}
@@ -3806,9 +3788,7 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
-                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
-                shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
+                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
             } catch {}
 
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
@@ -3928,8 +3908,7 @@ const Index = () => {
             const params = new URLSearchParams(location.search || '');
             const source = params.get('source');
             const startAt = params.get('startAt');
-            const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
-            const shouldStartAtVoucher = startAt === 'voucher-type' && (source === 'shopify' || isMerchantDeepLink);
+            const shouldStartAtVoucher = startAt === 'voucher-type' && source === 'shopify';
             setShopifyStartAtVoucher(shouldStartAtVoucher);
         } catch {}
     }, [location.pathname, location.search]);
@@ -3940,8 +3919,8 @@ const Index = () => {
 
         const params = new URLSearchParams(location.search || '');
 
-        // Do not override the specialised Shopify flow (or Merchant deep-link voucher flow)
-        if (params.get('source') === 'shopify' || (!!params.get('voucherTitle') && !!params.get('location'))) return;
+        // Do not override the specialised Shopify flow
+        if (params.get('source') === 'shopify') return;
 
         const journeyParam = (params.get('journey') || params.get('activity') || '').toLowerCase();
         if (journeyParam === 'flight-voucher' || journeyParam === 'buy-flight-voucher' || journeyParam === 'flightvoucher') {
@@ -3983,7 +3962,7 @@ const Index = () => {
         });
     }, [shopifyStartAtVoucher, chooseFlightType?.type, location.search]);
 
-    // Prefill flow when redirected from Shopify voucher selection OR Merchant Center deep links
+    // Prefill flow when redirected from Shopify voucher selection
     useEffect(() => {
         try {
             const params = new URLSearchParams(location.search);
@@ -3995,15 +3974,7 @@ const Index = () => {
             const qpStartAt = params.get('startAt');
             const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
-            const hasVoucherTitleOrLocation = !!(qpVoucherTitle || qpLocation);
-            const isMerchantDeepLink =
-                source === 'merchant-center' ||
-                source === 'merchant' ||
-                source === 'gmc' ||
-                (!source && hasVoucherTitleOrLocation);
-
-            const isVoucherPrefillFlow = source === 'shopify' || isMerchantDeepLink;
-            if (!isVoucherPrefillFlow) return;
+            if (source !== 'shopify') return;
 
             // Prevent the activity-change reset from wiping prefilled values
             shopifyPrefillInProgress.current = true;
@@ -4989,7 +4960,7 @@ const Index = () => {
                         <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '80px' }}>
                             <div className="logo" style={{ marginRight: isMobile ? '12px' : '32px', flexShrink: 0, minWidth: isMobile ? 'auto' : '200px' }}>
                                 <a
-                                    href="https://flyawayballooning-book.com/"
+                                    href="https://flyawayballooning.com/"
                                     onClick={e => {
                                         e.preventDefault();
                                         try {
@@ -4998,7 +4969,7 @@ const Index = () => {
                                         } catch (err) {
                                             console.warn('Failed to clear storage on logo click:', err);
                                         }
-                                        window.location.href = 'https://flyawayballooning-book.com/';
+                                        window.location.href = 'https://flyawayballooning.com/';
                                     }}
                                     style={{ display: 'inline-block' }}
                                 >
