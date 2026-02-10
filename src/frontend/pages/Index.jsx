@@ -1800,8 +1800,11 @@ const Index = () => {
                 // Detect Chrome browser for special handling
                 const isChromeBrowser = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
                 const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
+                const deepLinkSource = params.get('source');
+                const isMerchantDeepLink = !deepLinkSource && !!params.get('voucherTitle') && !!params.get('location');
+                const isShopifyOrMerchant = deepLinkSource === 'shopify' || isMerchantDeepLink;
                 const shouldHaveAvailabilities = hasLocationAndActivity && (
-                    (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
+                    (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyOrMerchant && hasLocationAndActivity))) ||
                     (activitySelect === 'Redeem Voucher') ||
                     (chooseLocation === 'Bristol Fiesta') ||
                     (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
@@ -3375,16 +3378,17 @@ const Index = () => {
         return () => clearTimeout(timer);
     }, [selectedVoucherType?.title, chooseLocation, activityId, chooseFlightType?.type, location.search, refetchAvailabilities]);
 
-    // Additional effect: Refetch availabilities when activityId is set from Shopify prefill
+    // Additional effect: Refetch availabilities when activityId is set from Shopify/Merchant prefill
     useEffect(() => {
-        // Only run for Shopify flow when activityId is set
         const params = new URLSearchParams(location.search || '');
-        if (params.get('source') !== 'shopify') return;
+        const source = params.get('source');
+        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        if (source !== 'shopify' && !isMerchantDeepLink) return;
         if (!chooseLocation || !activityId) return;
         
         // Small delay to ensure state is settled
         const timer = setTimeout(() => {
-            console.log('🔵 Shopify - Refetching availabilities after activityId set:', {
+            console.log('🔵 Deep link - Refetching availabilities after activityId set:', {
                 location: chooseLocation,
                 activityId: activityId,
                 flightType: chooseFlightType?.type,
@@ -3399,13 +3403,15 @@ const Index = () => {
     useEffect(() => {
         try {
             const params = new URLSearchParams(location.search || '');
-            const isShopifyFlow = params.get('source') === 'shopify';
+            const source = params.get('source');
+            const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+            const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
             const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
-            if (!isShopifyFlow) return;
+            if (!isShopifyOrMerchant) return;
             if (activeAccordion !== 'live-availability') return;
 
             const snapshot = {
-                reason: '[ShopifyDebug] Live Availability state snapshot',
+                reason: '[DeepLinkDebug] Live Availability state snapshot',
                 url: window.location.href,
                 isVoucherTypeStart,
                 chooseLocation,
@@ -3421,7 +3427,7 @@ const Index = () => {
             console.log(snapshot.reason, snapshot);
 
             if (!availabilities || availabilities.length === 0) {
-                console.warn('[ShopifyDebug] Live Availability EMPTY for Shopify URL', {
+                console.warn('[DeepLinkDebug] Live Availability EMPTY for deep link URL', {
                     url: window.location.href,
                     chooseLocation,
                     activityId,
@@ -3430,7 +3436,7 @@ const Index = () => {
                 });
             }
         } catch (e) {
-            console.warn('[ShopifyDebug] Live Availability logging failed', e);
+            console.warn('[DeepLinkDebug] Live Availability logging failed', e);
         }
     }, [
         location.search,
@@ -3445,15 +3451,17 @@ const Index = () => {
         completedSections,
     ]);
 
-    // CRITICAL FIX: When activityId becomes available for Shopify flow, immediately fetch availabilities
+    // CRITICAL FIX: When activityId becomes available for deep link flow, immediately fetch availabilities
     // This ensures availabilities are fetched when all required state is ready
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
-        const isShopifyFlow = params.get('source') === 'shopify';
+        const source = params.get('source');
+        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
-        // Only for Shopify flow
-        if (!isShopifyFlow) return;
+        // Only for deep-link flows
+        if (!isShopifyOrMerchant) return;
         
         // Only when activityId is just set and we have required state
         if (!activityId || !chooseLocation) return;
@@ -3468,7 +3476,7 @@ const Index = () => {
         const shouldFetch = (activeAccordion === 'live-availability' || isVoucherTypeStart) && hasRequiredState;
         
         if (shouldFetch) {
-            console.log('🔄 Shopify activityId Ready - Immediately fetching availabilities', {
+            console.log('🔄 Deep link activityId Ready - Immediately fetching availabilities', {
                 activityId,
                 chooseLocation,
                 chooseFlightType: chooseFlightType?.type,
@@ -3493,14 +3501,16 @@ const Index = () => {
         }
     }, [availabilities, activeAccordion]);
 
-    // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (Shopify first load issue)
+    // CRITICAL FIX: Retry availability fetch when Live Availability section is open but availabilities are empty (deep link first load issue)
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
-        const isShopifyFlow = params.get('source') === 'shopify';
+        const source = params.get('source');
+        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
-        // Only for Shopify voucher-type flow
-        if (!isShopifyFlow || !isVoucherTypeStart) return;
+        // Only for voucher-type deep-link flows
+        if (!isShopifyOrMerchant || !isVoucherTypeStart) return;
         
         // Only when Live Availability is active and availabilities are empty
         if (activeAccordion !== 'live-availability') return;
@@ -3509,11 +3519,11 @@ const Index = () => {
         // Must have required state - for voucher-type start, we need voucher type too
         if (!chooseLocation || !chooseFlightType?.type) return;
         if (isVoucherTypeStart && !selectedVoucherType?.title) {
-            console.log('🔄 Shopify First Load Fix - Waiting for voucher type to be set');
+            console.log('🔄 Deep link First Load Fix - Waiting for voucher type to be set');
             return;
         }
         
-        console.log('🔄 Shopify First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
+        console.log('🔄 Deep link First Load Fix - Live Availability is open but empty, will retry with aggressive polling');
         
         let retryCount = 0;
         const maxRetries = 15; // Increased retries
@@ -3521,7 +3531,7 @@ const Index = () => {
         
         const retryFetch = () => {
             retryCount++;
-            console.log(`🔄 Shopify First Load Fix - Retry #${retryCount}/${maxRetries}`, {
+            console.log(`🔄 Deep link First Load Fix - Retry #${retryCount}/${maxRetries}`, {
                 activityId,
                 chooseLocation,
                 chooseFlightType: chooseFlightType?.type,
@@ -3532,28 +3542,28 @@ const Index = () => {
             if (activityId) {
                 refetchAvailabilities();
             } else {
-                console.log('🔄 Shopify First Load Fix - activityId not ready yet, waiting...');
+                console.log('🔄 Deep link First Load Fix - activityId not ready yet, waiting...');
             }
         };
         
         // Start aggressive retry loop
         const intervalId = setInterval(() => {
             if (retryCount >= maxRetries) {
-                console.log('🔄 Shopify First Load Fix - Max retries reached, stopping');
+                console.log('🔄 Deep link First Load Fix - Max retries reached, stopping');
                 clearInterval(intervalId);
                 return;
             }
             
             // Stop if availabilities are now loaded
             if (availabilities && availabilities.length > 0) {
-                console.log('🔄 Shopify First Load Fix - Availabilities loaded, stopping retries');
+                console.log('🔄 Deep link First Load Fix - Availabilities loaded, stopping retries');
                 clearInterval(intervalId);
                 return;
             }
             
             // Stop if we're no longer on live-availability
             if (activeAccordion !== 'live-availability') {
-                console.log('🔄 Shopify First Load Fix - No longer on live-availability, stopping');
+                console.log('🔄 Deep link First Load Fix - No longer on live-availability, stopping');
                 clearInterval(intervalId);
                 return;
             }
@@ -3653,7 +3663,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
+                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
             } catch {}
             
             // Skip auto-opening if we're coming from Shopify with startAt=voucher-type
@@ -3679,7 +3690,8 @@ const Index = () => {
                     const params = new URLSearchParams(location.search || '');
                     const source = params.get('source');
                     const startAt = params.get('startAt');
-                    shouldSkipAutoOpenInTimeout = source === 'shopify' && startAt === 'voucher-type';
+                    const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                    shouldSkipAutoOpenInTimeout = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
                 } catch {}
                 
                 // Also check shopifyStartAtVoucher state (might be set by now)
@@ -3765,7 +3777,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                if (source === 'shopify' && startAt === 'voucher-type') {
+                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                if ((source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type') {
                     shouldForceVoucherType = true;
                 }
             } catch {}
@@ -3785,7 +3798,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                shouldSkipAutoOpen = source === 'shopify' && startAt === 'voucher-type';
+                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
             } catch {}
 
             // Eğer mevcut açık accordion yeni sıralamada yoksa, sıradaki accordion'ı aç
@@ -3905,7 +3919,8 @@ const Index = () => {
             const params = new URLSearchParams(location.search || '');
             const source = params.get('source');
             const startAt = params.get('startAt');
-            const shouldStartAtVoucher = source === 'shopify' && startAt === 'voucher-type';
+            const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+            const shouldStartAtVoucher = startAt === 'voucher-type' && (source === 'shopify' || isMerchantDeepLink);
             setShopifyStartAtVoucher(shouldStartAtVoucher);
         } catch {}
     }, [location.pathname, location.search]);
@@ -3916,8 +3931,8 @@ const Index = () => {
 
         const params = new URLSearchParams(location.search || '');
 
-        // Do not override the specialised Shopify flow
-        if (params.get('source') === 'shopify') return;
+        // Do not override the specialised Shopify flow (or Merchant deep-link voucher flow)
+        if (params.get('source') === 'shopify' || (!!params.get('voucherTitle') && !!params.get('location'))) return;
 
         const journeyParam = (params.get('journey') || params.get('activity') || '').toLowerCase();
         if (journeyParam === 'flight-voucher' || journeyParam === 'buy-flight-voucher' || journeyParam === 'flightvoucher') {
@@ -3959,16 +3974,11 @@ const Index = () => {
         });
     }, [shopifyStartAtVoucher, chooseFlightType?.type, location.search]);
 
-    // Prefill flow when redirected from Shopify voucher selection
+    // Prefill flow when redirected from Shopify voucher selection OR Merchant Center deep links
     useEffect(() => {
         try {
             const params = new URLSearchParams(location.search);
             const source = params.get('source');
-            if (source !== 'shopify') return;
-
-            // Prevent the activity-change reset from wiping prefilled values
-            shopifyPrefillInProgress.current = true;
-
             const qpLocation = params.get('location');
             const qpVoucherTitle = params.get('voucherTitle');
             const qpPassengers = parseInt(params.get('passengers') || '2', 10);
@@ -3976,8 +3986,20 @@ const Index = () => {
             const qpStartAt = params.get('startAt');
             const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
+            const isMerchantDeepLink =
+                source === 'merchant-center' ||
+                source === 'merchant' ||
+                source === 'gmc' ||
+                (!source && !!qpLocation && !!qpVoucherTitle);
 
-            console.log('🔵 Shopify prefill - URL params:', {
+            const isVoucherPrefillFlow = source === 'shopify' || isMerchantDeepLink;
+            if (!isVoucherPrefillFlow) return;
+
+            // Prevent the activity-change reset from wiping prefilled values
+            shopifyPrefillInProgress.current = true;
+
+
+            console.log('🔵 Deep link prefill - URL params:', {
                 location: qpLocation,
                 voucherTitle: qpVoucherTitle,
                 passengers: qpPassengers,
