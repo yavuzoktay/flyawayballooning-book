@@ -1801,7 +1801,8 @@ const Index = () => {
                 const isChromeBrowser = navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
                 const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
                 const deepLinkSource = params.get('source');
-                const isMerchantDeepLink = !deepLinkSource && !!params.get('voucherTitle') && !!params.get('location');
+                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+                const isMerchantDeepLink = (!deepLinkSource || deepLinkSource === 'merchant-center' || deepLinkSource === 'merchant' || deepLinkSource === 'gmc') && hasVoucherTitleOrLocation;
                 const isShopifyOrMerchant = deepLinkSource === 'shopify' || isMerchantDeepLink;
                 const shouldHaveAvailabilities = hasLocationAndActivity && (
                     (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyOrMerchant && hasLocationAndActivity))) ||
@@ -3382,7 +3383,8 @@ const Index = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
         if (source !== 'shopify' && !isMerchantDeepLink) return;
         if (!chooseLocation || !activityId) return;
         
@@ -3404,7 +3406,8 @@ const Index = () => {
         try {
             const params = new URLSearchParams(location.search || '');
             const source = params.get('source');
-            const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+            const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+            const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
             const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
             const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
             if (!isShopifyOrMerchant) return;
@@ -3456,7 +3459,8 @@ const Index = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
         const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
@@ -3505,7 +3509,8 @@ const Index = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search || '');
         const source = params.get('source');
-        const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+        const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+        const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
         const isShopifyOrMerchant = source === 'shopify' || isMerchantDeepLink;
         const isVoucherTypeStart = params.get('startAt') === 'voucher-type';
         
@@ -3663,7 +3668,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
                 shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
             } catch {}
             
@@ -3690,7 +3696,8 @@ const Index = () => {
                     const params = new URLSearchParams(location.search || '');
                     const source = params.get('source');
                     const startAt = params.get('startAt');
-                    const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                    const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+                    const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
                     shouldSkipAutoOpenInTimeout = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
                 } catch {}
                 
@@ -3777,7 +3784,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
                 if ((source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type') {
                     shouldForceVoucherType = true;
                 }
@@ -3798,7 +3806,8 @@ const Index = () => {
                 const params = new URLSearchParams(location.search || '');
                 const source = params.get('source');
                 const startAt = params.get('startAt');
-                const isMerchantDeepLink = !source && !!params.get('voucherTitle') && !!params.get('location');
+                const hasVoucherTitleOrLocation = !!(params.get('voucherTitle') || params.get('location'));
+                const isMerchantDeepLink = (!source || source === 'merchant-center' || source === 'merchant' || source === 'gmc') && hasVoucherTitleOrLocation;
                 shouldSkipAutoOpen = (source === 'shopify' || isMerchantDeepLink) && startAt === 'voucher-type';
             } catch {}
 
@@ -3986,11 +3995,12 @@ const Index = () => {
             const qpStartAt = params.get('startAt');
             const qpWeatherRefundable = params.get('weatherRefundable') === 'true';
 
+            const hasVoucherTitleOrLocation = !!(qpVoucherTitle || qpLocation);
             const isMerchantDeepLink =
                 source === 'merchant-center' ||
                 source === 'merchant' ||
                 source === 'gmc' ||
-                (!source && !!qpLocation && !!qpVoucherTitle);
+                (!source && hasVoucherTitleOrLocation);
 
             const isVoucherPrefillFlow = source === 'shopify' || isMerchantDeepLink;
             if (!isVoucherPrefillFlow) return;
