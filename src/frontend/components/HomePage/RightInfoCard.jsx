@@ -373,15 +373,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const isBookDisabled = isRedeemVoucher
         ? !(
             activitySelect &&
+            (voucherCode && String(voucherCode).trim()) &&
+            voucherStatus === 'valid' &&
             chooseLocation &&
             chooseFlightType &&
-            // selectedVoucherType: Admin created (user-generated) voucher'larda boş gelebiliyor,
-            // bu yüzden Redeem Voucher akışında zorunlu olmamalı.
+            selectedVoucherType &&
             selectedDate &&
             selectedTime &&
             isPassengerInfoComplete
             // additionalInfo is optional for Redeem Voucher
-            // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
+            // Flight Type green tick = voucherStatus valid; Book disabled when tick missing
         )
         : isFlightVoucher
         ? !(

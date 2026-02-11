@@ -1387,6 +1387,8 @@ const Index = () => {
     const isBookDisabled = isRedeemVoucher
         ? !(
             activitySelect &&
+            (voucherCode && String(voucherCode).trim()) &&
+            voucherStatus === 'valid' &&
             chooseLocation &&
             chooseFlightType &&
             selectedVoucherType &&
@@ -1737,7 +1739,14 @@ const Index = () => {
             } else {
                 // Normal flow: check all current states
                 const completedSections = [];
-                if (activitySelect) completedSections.push('activity');
+                // For Redeem Voucher: activity only complete when voucher is validated (green tick)
+                if (activitySelect) {
+                    if (activitySelect === 'Redeem Voucher') {
+                        if (voucherStatus === 'valid') completedSections.push('activity');
+                    } else {
+                        completedSections.push('activity');
+                    }
+                }
                 if (chooseLocation) completedSections.push('location');
                 // For Redeem Voucher, experience is skipped in the flow, so don't check it for progress bar
                 if (chooseFlightType?.type && activitySelect !== 'Redeem Voucher') {
@@ -2353,7 +2362,14 @@ const Index = () => {
         
         // Tamamlanmış section'ları belirle
         const completedSections = [];
-        if (activitySelect) completedSections.push('activity');
+        // For Redeem Voucher: activity only complete when voucher is validated (green tick)
+        if (activitySelect) {
+            if (activitySelect === 'Redeem Voucher') {
+                if (voucherStatus === 'valid') completedSections.push('activity');
+            } else {
+                completedSections.push('activity');
+            }
+        }
         if (chooseLocation) completedSections.push('location');
         // For Redeem Voucher, experience is skipped in the flow, so don't check it for progress bar
         // Check if experience is completed: either chooseFlightType is set, or we're in Shopify flow with experience param
@@ -3800,7 +3816,14 @@ const Index = () => {
                 
                 // Tamamlanmış section'ları kontrol et
                 const completedSections = [];
-                if (activitySelect) completedSections.push('activity');
+                // For Redeem Voucher: activity only complete when voucher is validated (green tick)
+                if (activitySelect) {
+                    if (activitySelect === 'Redeem Voucher') {
+                        if (voucherStatus === 'valid') completedSections.push('activity');
+                    } else {
+                        completedSections.push('activity');
+                    }
+                }
                 if (chooseLocation) completedSections.push('location');
                 // For experience: check chooseFlightType OR if we're in Shopify flow with experience param
                 const hasExperienceFromShopify = (() => {
