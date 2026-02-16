@@ -192,6 +192,7 @@ const Index = () => {
     const shopifyVoucherForcedRef = useRef(false);
     const shopifyPrefillInProgress = useRef(false);
     const activityDeepLinkHandledRef = useRef(false);
+    const googleMerchantClearHandledRef = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -3958,6 +3959,36 @@ const Index = () => {
             activityDeepLinkHandledRef.current = true;
             setActivitySelect('Buy Gift');
             setCompletedSections(new Set(['activity']));
+        }
+    }, [location.search]);
+
+    // Google Merchant: When coming from Google Merchant product links (startAt=voucher-type, voucherTitle, location),
+    // ensure NO section is pre-selected. User must explicitly choose "What would you like to do?"
+    useEffect(() => {
+        if (googleMerchantClearHandledRef.current) return;
+
+        try {
+            const params = new URLSearchParams(location.search || '');
+            const source = params.get('source');
+            const startAt = params.get('startAt');
+            const voucherTitle = params.get('voucherTitle');
+
+            // Google Merchant links use startAt=voucher-type and voucherTitle but do NOT have source=shopify
+            const isGoogleMerchantStyleUrl =
+                source !== 'shopify' &&
+                (startAt === 'voucher-type' || !!voucherTitle);
+
+            if (isGoogleMerchantStyleUrl) {
+                googleMerchantClearHandledRef.current = true;
+                setActivitySelect(null);
+                setCompletedSections(new Set());
+                setActiveAccordion(null);
+                setChooseLocation(null);
+                setChooseFlightType({ type: '', passengerCount: '', price: '' });
+                setSelectedVoucherType(null);
+            }
+        } catch (e) {
+            console.warn('[GoogleMerchant] Clear pre-selection check failed', e);
         }
     }, [location.search]);
 
