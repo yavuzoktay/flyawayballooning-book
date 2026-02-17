@@ -55,7 +55,8 @@ function wasEventTracked(eventKey) {
 }
 
 /**
- * Capture gclid, wbraid, gbraid from URL and store for Stripe checkout
+ * Capture gclid, wbraid, gbraid, gad_source, gad_campaignid from URL and store for Stripe checkout.
+ * Stores in both localStorage and sessionStorage for consistency with Shopify (fab_gclid key).
  */
 export function captureGoogleAdsIds() {
   if (typeof window === 'undefined') return null;
@@ -64,14 +65,20 @@ export function captureGoogleAdsIds() {
     const gclid = params.get('gclid');
     const wbraid = params.get('wbraid');
     const gbraid = params.get('gbraid');
-    if (gclid || wbraid || gbraid) {
+    const gadSource = params.get('gad_source');
+    const gadCampaignId = params.get('gad_campaignid');
+    if (gclid || wbraid || gbraid || gadSource || gadCampaignId) {
       const payload = {
         gclid: gclid || null,
         wbraid: wbraid || null,
         gbraid: gbraid || null,
+        gad_source: gadSource || null,
+        gad_campaignid: gadCampaignId || null,
         capturedAt: Date.now()
       };
-      localStorage.setItem(GCLID_STORAGE_KEY, JSON.stringify(payload));
+      const payloadStr = JSON.stringify(payload);
+      localStorage.setItem(GCLID_STORAGE_KEY, payloadStr);
+      sessionStorage.setItem(GCLID_STORAGE_KEY, payloadStr);
       return payload;
     }
   } catch (e) {
@@ -81,18 +88,20 @@ export function captureGoogleAdsIds() {
 }
 
 /**
- * Get stored Google Ads IDs for Stripe checkout (userSessionData)
+ * Get stored Google Ads IDs for Stripe checkout (userSessionData).
+ * Reads from localStorage first, then sessionStorage as fallback.
  */
 export function getGoogleAdsIdsForCheckout() {
   if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(GCLID_STORAGE_KEY);
+    const stored = localStorage.getItem(GCLID_STORAGE_KEY) || sessionStorage.getItem(GCLID_STORAGE_KEY);
     if (!stored) return {};
     const payload = JSON.parse(stored);
     const age = Date.now() - (payload.capturedAt || 0);
     const maxAge = GCLID_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
     if (age > maxAge) {
       localStorage.removeItem(GCLID_STORAGE_KEY);
+      sessionStorage.removeItem(GCLID_STORAGE_KEY);
       return {};
     }
     return {
