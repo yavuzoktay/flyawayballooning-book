@@ -1192,6 +1192,16 @@ const VoucherType = ({
 
             // incoming from parent OR fallback to URL voucherTitle when parent does not provide one
             const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
+            const startAt = urlParams.get('startAt');
+            const voucherTitleParam = urlParams.get('voucherTitle');
+
+            // Google Merchant: No prefill when coming from Google Merchant (startAt/voucherTitle without source=shopify)
+            // User must explicitly select everything - no auto-selection from URL
+            const isGoogleMerchantUrl =
+                source !== 'shopify' && (startAt === 'voucher-type' || !!voucherTitleParam);
+            if (isGoogleMerchantUrl) return;
+
             const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
 
             const incomingTitle = selectedVoucherType?.title;
