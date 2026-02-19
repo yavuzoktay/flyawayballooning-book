@@ -4639,17 +4639,22 @@ const Index = () => {
                             });
                             setShowPaymentSuccess(true);
 
-                            // Google Ads: GA_Purchase_Completed (client-side redundancy)
+                            // Google Ads: GA_Purchase_Completed (client-side) with Enhanced Conversions user_data
                             const funnelType = type === 'booking' ? 'booking' : ((response.data.voucher_type || response.data.book_flight || '').toLowerCase().includes('gift') ? 'gift' : 'voucher');
                             const experienceType = (response.data.experience_type || response.data.chooseFlightType?.type || '').toLowerCase().includes('private') ? 'private' : 'shared';
                             const productType = response.data.voucher_type_detail || response.data.voucher_type || '';
+                            const userData = response.data.user_data || (response.data.customer_email ? {
+                                email: String(response.data.customer_email).trim().toLowerCase(),
+                                ...(response.data.customer_phone ? { phone_number: String(response.data.customer_phone).trim().replace(/\s+/g, '') } : {})
+                            } : undefined);
                             trackPurchaseCompleted({
                                 transaction_id: session_id,
                                 value: response.data.paid_amount || 0,
                                 currency: 'GBP',
                                 funnel_type: funnelType,
                                 experience_type: experienceType,
-                                product_type: productType
+                                product_type: productType,
+                                user_data: userData
                             });
                         } else {
                         console.warn('[EmailDebug] Backend did not return success; email may not have been triggered', {

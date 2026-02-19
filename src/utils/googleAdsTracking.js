@@ -228,13 +228,35 @@ function getConversionActionName(funnelType, experienceType) {
 }
 
 /**
+ * Set enhanced conversion user_data via gtag (in-page code for Google Ads)
+ * Must be called BEFORE the conversion event fires.
+ * @param {Object} userData - { email?, phone_number?, address? }
+ */
+function setEnhancedConversionUserData(userData) {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function' || !userData || typeof userData !== 'object') return;
+  const keys = Object.keys(userData);
+  if (keys.length === 0) return;
+  try {
+    const payload = {};
+    if (userData.email) payload.email = String(userData.email).trim().toLowerCase();
+    if (userData.phone_number) payload.phone_number = String(userData.phone_number).trim().replace(/\s+/g, '');
+    if (userData.address && typeof userData.address === 'object') payload.address = userData.address;
+    if (Object.keys(payload).length === 0) return;
+    window.gtag('set', 'user_data', payload);
+  } catch (e) {
+    console.warn('[GA] Failed to set enhanced conversion user_data:', e);
+  }
+}
+
+/**
  * GA_Purchase_Completed - Client-side (success page)
  * Primary conversion - also sent server-side via Stripe webhook
  * Fires gtag('event', 'conversion', { send_to: '...' }) so Tag Assistant can detect it
+ * Sends user_data for Enhanced Conversions (in-page code) when available
  * @param {Object} params
  */
 export function trackPurchaseCompleted(params) {
-  const { transaction_id, value, currency, funnel_type, experience_type, product_type } = params;
+  const { transaction_id, value, currency, funnel_type, experience_type, product_type, user_data } = params;
   const key = `GA_Purchase_Completed_${transaction_id}`;
   if (wasEventTracked(key)) return;
 
@@ -243,7 +265,12 @@ export function trackPurchaseCompleted(params) {
   const actionName = getConversionActionName(funnel, experience);
   const label = CONVERSION_LABELS[actionName];
 
-  // 1. Fire gtag conversion event (required for Tag Assistant / Google Ads detection)
+  // 1. Set enhanced conversion user_data BEFORE firing conversion (fixes "Implement In-page code" diagnostic)
+  if (user_data && Object.keys(user_data).length > 0) {
+    setEnhancedConversionUserData(user_data);
+  }
+
+  // 2. Fire gtag conversion event (required for Tag Assistant / Google Ads detection)
   if (typeof window !== 'undefined' && typeof window.gtag === 'function' && label) {
     try {
       window.gtag('event', 'conversion', {
@@ -257,7 +284,7 @@ export function trackPurchaseCompleted(params) {
     }
   }
 
-  // 2. Fire GA_Purchase_Completed custom event (for GA4 import / analytics)
+  // 3. Fire GA_Purchase_Completed custom event (for GA4 import / analytics)
   fireGtagEvent('GA_Purchase_Completed', {
     transaction_id,
     value: Number(value),
