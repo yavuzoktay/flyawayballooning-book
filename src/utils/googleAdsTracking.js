@@ -9,12 +9,13 @@
  */
 
 const SESSION_STORAGE_KEY = 'fab_ga_tracked';
-const GOOGLE_ADS_ID = 'AW-17848519089';
+const GOOGLE_ADS_ID = 'AW-468929127';
+const GA4_MEASUREMENT_ID = 'G-CGF855QXY5';
 
-// Conversion labels for gtag('event', 'conversion', { send_to: 'AW-XXX/Label' })
-// Get from Google Ads: Goals > Conversions > [action] > See event snippet
+// Conversion labels for gtag('event', 'conversion', { send_to: 'AW-468929127/Label' })
+// From Google Ads: Goals > Conversions > [action] > Tag setup > Event snippet
 const CONVERSION_LABELS = {
-  GA_Flight_Purchase_Shared: 'FREdCK2p-PAbEOeUzd8B', // e.g. 'AbCdEfGhIjK123456'
+  GA_Flight_Purchase_Shared: 'FREdCK2p-PAbEOeUzd8B',
   GA_Flight_Purchase_Private: 'CTrmCIKV7PAbEOeUzd8B',
   GA_Voucher_Purchase_Shared: 'nnRxCImN7fAbEOeUzd8B',
   GA_Voucher_Purchase_Private: 'v6dECIai7PAbEOeUzd8B'
@@ -270,7 +271,7 @@ export function trackPurchaseCompleted(params) {
     setEnhancedConversionUserData(user_data);
   }
 
-  // 2. Fire gtag conversion event (required for Tag Assistant / Google Ads detection)
+  // 2. Fire direct Google Ads conversion (GA_Flight_Purchase_Shared, GA_Voucher_Purchase_Shared, etc.)
   if (typeof window !== 'undefined' && typeof window.gtag === 'function' && label) {
     try {
       window.gtag('event', 'conversion', {
@@ -284,7 +285,24 @@ export function trackPurchaseCompleted(params) {
     }
   }
 
-  // 3. Fire GA_Purchase_Completed custom event (for GA4 import / analytics)
+  // 3. Fire GA4 standard 'purchase' event (for GA4 ecommerce sales + GA4->Google Ads import)
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    try {
+      const purchaseValue = Number(value) || 0;
+      const productName = product_type || (funnel === 'booking' ? 'Book Flight' : funnel === 'gift' ? 'Gift Voucher' : 'Flight Voucher');
+      window.gtag('event', 'purchase', {
+        send_to: GA4_MEASUREMENT_ID,
+        transaction_id: transaction_id || `T_${Date.now()}`,
+        value: purchaseValue,
+        currency: (currency || 'GBP').toUpperCase(),
+        items: [{ item_id: 'booking', item_name: productName, price: purchaseValue, quantity: 1 }]
+      });
+    } catch (e) {
+      console.warn('[GA] Failed to fire GA4 purchase event:', e);
+    }
+  }
+
+  // 4. Fire GA_Purchase_Completed custom event (funnel analytics)
   fireGtagEvent('GA_Purchase_Completed', {
     transaction_id,
     value: Number(value),
