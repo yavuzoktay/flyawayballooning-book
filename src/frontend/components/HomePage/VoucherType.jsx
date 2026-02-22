@@ -369,74 +369,81 @@ const VoucherType = ({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Sync arrows/dots while swiping vouchers on mobile (based on ExperienceSection pattern)
+    // Sync arrows/dots while swiping vouchers on mobile - use IntersectionObserver for reliable dot sync
     useEffect(() => {
         if (!isMobile) return;
         const container = voucherContainerRef.current;
-        if (!container) return;
+        if (!container || container.children.length === 0) return;
 
-        let animationFrameId = null;
+        const children = Array.from(container.children);
+        const itemCount = children.length;
+        if (itemCount === 0) return;
 
-        const getItemWidth = () => {
-            const firstChild = container.children && container.children[0];
-            if (firstChild) {
-                const styles = window.getComputedStyle(container);
-                const gap = parseInt(styles.columnGap || styles.gap || '12', 10) || 12;
-                return firstChild.getBoundingClientRect().width + gap;
-            }
-            return container.clientWidth;
-        };
-
-        const computeAndSet = () => {
-            const { scrollLeft } = container;
-            const itemCount = container.children.length;
-            const itemWidth = getItemWidth();
-            const index = Math.round(scrollLeft / itemWidth);
+        const updateIndex = (index) => {
             const clamped = Math.max(0, Math.min(index, itemCount - 1));
             setCurrentItemIndex(clamped);
             setCanScrollVouchersLeft(clamped > 0);
             setCanScrollVouchersRight(clamped < itemCount - 1);
         };
 
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.intersectionRatio >= 0.5) {
+                        const index = parseInt(entry.target.dataset.voucherIndex, 10);
+                        if (!Number.isNaN(index)) updateIndex(index);
+                    }
+                });
+            },
+            { root: container, threshold: [0.25, 0.5, 0.75, 1], rootMargin: '0px' }
+        );
+
+        children.forEach((child, i) => {
+            child.dataset.voucherIndex = String(i);
+            observer.observe(child);
+        });
+
         const handleScroll = () => {
-            computeAndSet();
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            animationFrameId = requestAnimationFrame(computeAndSet);
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            let bestIndex = 0;
+            let bestDist = Infinity;
+            children.forEach((child, i) => {
+                const cr = child.getBoundingClientRect();
+                const childCenter = cr.left + cr.width / 2;
+                const dist = Math.abs(centerX - childCenter);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIndex = i;
+                }
+            });
+            updateIndex(bestIndex);
         };
 
-        const handleScrollEnd = () => {
-            setTimeout(computeAndSet, 100);
+        let rafId = null;
+        const onScroll = () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(handleScroll);
         };
 
-        const handleTouchStart = () => computeAndSet();
-        const handleTouchMove = () => handleScroll();
-        const handleTouchEnd = () => {
-            setTimeout(computeAndSet, 50);
-            setTimeout(computeAndSet, 150);
-            setTimeout(computeAndSet, 300);
+        const onTouchEnd = () => {
+            setTimeout(handleScroll, 50);
+            setTimeout(handleScroll, 150);
         };
 
-        // initial
-        computeAndSet();
-        container.addEventListener('scroll', handleScroll, { passive: true });
-        container.addEventListener('scrollend', handleScrollEnd, { passive: true });
-        container.addEventListener('touchstart', handleTouchStart, { passive: true });
-        container.addEventListener('touchmove', handleTouchMove, { passive: true });
-        container.addEventListener('touchend', handleTouchEnd, { passive: true });
-        container.addEventListener('pointerdown', handleTouchStart, { passive: true });
-        container.addEventListener('pointerup', handleTouchEnd, { passive: true });
+        handleScroll();
+        container.addEventListener('scroll', onScroll, { passive: true });
+        container.addEventListener('touchmove', onScroll, { passive: true });
+        container.addEventListener('touchend', onTouchEnd, { passive: true });
 
         return () => {
-            container.removeEventListener('scroll', handleScroll);
-            container.removeEventListener('scrollend', handleScrollEnd);
-            container.removeEventListener('touchstart', handleTouchStart);
-            container.removeEventListener('touchmove', handleTouchMove);
-            container.removeEventListener('touchend', handleTouchEnd);
-            container.removeEventListener('pointerdown', handleTouchStart);
-            container.removeEventListener('pointerup', handleTouchEnd);
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            observer.disconnect();
+            container.removeEventListener('scroll', onScroll);
+            container.removeEventListener('touchmove', onScroll);
+            container.removeEventListener('touchend', onTouchEnd);
+            if (rafId) cancelAnimationFrame(rafId);
         };
-    }, [isMobile, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
+    }, [isMobile, activeAccordion, chooseFlightType?.type, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
