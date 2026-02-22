@@ -3,6 +3,8 @@ import Accordion from '../Common/Accordion';
 import axios from 'axios';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import GroupsIcon from '@mui/icons-material/Groups';
 import weekdayMorningImg from '../../../assets/images/category1.jpeg';
 import flexibleWeekdayImg from '../../../assets/images/category2.jpeg';
 import anyDayFlightImg from '../../../assets/images/category3.jpg';
@@ -1554,6 +1556,17 @@ const VoucherType = ({
                     position: 'relative'
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
+                    {/* Duration and Passenger Capacity - below title */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 24, marginBottom: 8, color: '#666', fontSize: isMobile ? 13 : 12, flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <AccessTimeIcon sx={{ fontSize: 18, color: '#888' }} />
+                            <span>3-4 hours</span>
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <GroupsIcon sx={{ fontSize: 18, color: '#888' }} />
+                            <span>Max {voucher.maxPassengers || 8} Passengers</span>
+                        </span>
+                    </div>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
                     <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
@@ -1564,13 +1577,40 @@ const VoucherType = ({
                         const isPrivate = chooseFlightType?.type === 'Private Charter';
                         const sharedEnabled = isShared && isAnyDay && !!localSharedWeatherRefund;
                         const privateEnabled = isPrivate && !!privateWeatherRefundByVoucher?.[voucher.title];
-                        const refundabilityText = (sharedEnabled || privateEnabled)
-                            ? 'Refundable'
-                            : (voucher.refundability || 'Non-Refundable');
+                        const isRefundable = sharedEnabled || privateEnabled;
+                        const refundabilityText = isRefundable ? 'Refundable' : (voucher.refundability || 'Non-Refundable');
+                        const emoji = isRefundable ? '🟢' : '🔴';
                         return (
-                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600 }}>{refundabilityText}</div>
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: '6px 16px' }}>
+                                {!isRefundable ? (
+                                    <>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                            <span>Re-Bookable</span>
+                                        </span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🔴</span>
+                                            <span>Non-Refundable</span>
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                            <span>Re-Bookable</span>
+                                        </span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                            <span>Refundable</span>
+                                        </span>
+                                    </>
+                                )}
+                            </div>
                         );
                     })()}
+                    <div style={{ fontSize: isMobile ? 13 : 12, color: '#666', marginBottom: 10, lineHeight: 1.4 }}>
+                        So it sits below the rebookable/refundable line and above the inclusions section.
+                    </div>
                     <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
                         {(() => {
                             console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
@@ -1585,11 +1625,15 @@ const VoucherType = ({
                             
                             return voucher.inclusions.map((inclusion, i) => {
                                 const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                                const displayText = String(inclusion || '').replace(/^[•\s]+/, '');
                                 return (
                                     <div key={i} style={{ marginBottom: 3 }}>
-                                        {inclusion}
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                                            <span style={{ color: '#90EE90', flexShrink: 0, fontSize: '1.2em', lineHeight: 1.3 }}>•</span>
+                                            <span style={{ flex: 1 }}>{displayText}</span>
+                                        </div>
                                         {inclusion === 'Flight Certificate' && !isAnyDay && (
-                                            <div style={{ marginTop: 6, fontSize: isMobile ? 14 : 12, color: '#666', lineHeight: '1.2' }}>
+                                            <div style={{ marginTop: 6, marginLeft: 18, fontSize: isMobile ? 14 : 12, color: '#666', lineHeight: '1.2' }}>
                                                 ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
                                             </div>
                                         )}
@@ -1698,52 +1742,55 @@ const VoucherType = ({
                                         type="button"
                                         onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
                                         style={{ 
-                                            padding: isMobile ? '8px 12px' : '4px 8px', 
-                                            border: '1px solid #ddd', 
-                                            background: '#f9f9f9', 
-                                            borderRadius: 4, 
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: 0,
+                                            width: isMobile ? 28 : 24,
+                                            height: isMobile ? 28 : 24,
+                                            minWidth: isMobile ? 28 : 24,
+                                            minHeight: isMobile ? 28 : 24,
+                                            border: '2px solid rgb(255, 105, 55)', 
+                                            background: 'transparent', 
+                                            borderRadius: '50%', 
                                             cursor: 'pointer',
-                                            fontSize: isMobile ? '14px' : '14px',
-                                            minHeight: isMobile ? '40px' : 'auto',
-                                            minWidth: isMobile ? '40px' : 'auto'
+                                            fontSize: isMobile ? 16 : 14,
+                                            fontWeight: 500,
+                                            color: 'rgb(255, 105, 55)',
+                                            lineHeight: 1
                                         }}
                                     >
                                         −
                                     </button>
-                                    <input 
-                                        type="number" 
-                                        min={chooseFlightType?.type === "Private Charter" ? 2 : 1}
-                                        max={availableCapacity !== null && selectedDate && selectedTime ? 
-                                            Math.min(
-                                                availableCapacity, 
-                                                chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8)
-                                            ) : 
-                                            (chooseFlightType?.type === "Private Charter" ? (voucher.title?.toLowerCase().includes('proposal') ? 2 : 8) : (voucher.maxPassengers || 8))
-                                        }
-                                        value={quantities[voucher.title] || 2} 
-                                        onChange={(e) => handleQuantityChange(voucher.title, e.target.value)} 
-                                        style={{ 
-                                            width: isMobile ? '60px' : '50px', 
-                                            padding: isMobile ? '8px 6px' : '4px 6px', 
-                                            border: '1px solid #ddd', 
-                                            borderRadius: 4, 
-                                            fontSize: isMobile ? 14 : 13, 
-                                            textAlign: 'center',
-                                            minHeight: isMobile ? '40px' : 'auto'
-                                        }} 
-                                    />
+                                    <span style={{ 
+                                        minWidth: isMobile ? 24 : 20, 
+                                        textAlign: 'center',
+                                        fontSize: isMobile ? 15 : 14, 
+                                        fontWeight: 600,
+                                        color: '#4a4a4a'
+                                    }}>
+                                        {quantities[voucher.title] || 2}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
                                         style={{ 
-                                            padding: isMobile ? '8px 12px' : '4px 8px', 
-                                            border: '1px solid #ddd', 
-                                            background: '#f9f9f9', 
-                                            borderRadius: 4, 
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: 0,
+                                            width: isMobile ? 28 : 24,
+                                            height: isMobile ? 28 : 24,
+                                            minWidth: isMobile ? 28 : 24,
+                                            minHeight: isMobile ? 28 : 24,
+                                            border: '2px solid rgb(255, 105, 55)', 
+                                            background: 'transparent', 
+                                            borderRadius: '50%', 
                                             cursor: 'pointer',
-                                            fontSize: isMobile ? '14px' : '14px',
-                                            minHeight: isMobile ? '40px' : 'auto',
-                                            minWidth: isMobile ? '40px' : 'auto'
+                                            fontSize: isMobile ? 16 : 14,
+                                            fontWeight: 500,
+                                            color: 'rgb(255, 105, 55)',
+                                            lineHeight: 1
                                         }}
                                     >
                                         +
@@ -1764,13 +1811,14 @@ const VoucherType = ({
                                 return `£${voucher.price} total`;
                             } else {
                                 const basePrice = voucher.basePrice || voucher.price;
+                                const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
                                 if (weatherRefundEnabled) {
-                                    const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
                                     const weatherRefundCost = 47.50 * passengerCount;
                                     const totalPrice = (basePrice * passengerCount) + weatherRefundCost;
                                     return `£${totalPrice.toFixed(2)} total`;
                                 } else {
-                                    return `£${basePrice} pp`;
+                                    const totalPrice = basePrice * passengerCount;
+                                    return `£${basePrice} per person | Total: £${totalPrice.toFixed(2)}`;
                                 }
                             }
                         })()}

@@ -1812,7 +1812,40 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         </div>
                     </div>
 
-                    {/* Request Date button hidden */}
+                    {/* Request Date button */}
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        marginTop: isMobile ? 20 : 24, 
+                        marginBottom: isMobile ? 16 : 20 
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => setRequestModalOpen(true)}
+                            style={{
+                                padding: isMobile ? '10px 18px' : '12px 24px',
+                                border: 'none',
+                                borderRadius: 8,
+                                background: 'rgb(0, 235, 91)',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                fontSize: isMobile ? 14 : 15,
+                                fontWeight: 600,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'background 0.2s, transform 0.1s'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = 'rgb(0, 200, 78)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = 'rgb(0, 235, 91)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            Request Date
+                        </button>
+                    </div>
                 </div>
             </Accordion>
             {
@@ -1854,7 +1887,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 setRequestName(val);
                                 setNameError(false);
                                 setNameFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: nameError || nameFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
+                            }} style={{ padding: 8, borderRadius: 4, border: nameError || nameFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44 }} required />
                             {nameError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                             {nameFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only letters allowed</div>}
                         </div>
@@ -1863,7 +1896,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 const val = e.target.value.replace(/[^0-9]/g, '');
                                 setRequestPhone(val);
                                 setPhoneFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: phoneFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} />
+                            }} style={{ padding: 8, borderRadius: 4, border: phoneFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44 }} />
                             {phoneFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only numbers allowed</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
@@ -1871,7 +1904,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 setRequestEmail(e.target.value);
                                 setEmailError(false);
                                 setEmailFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: emailError || emailFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box' }} required />
+                            }} style={{ padding: 8, borderRadius: 4, border: emailError || emailFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44 }} required />
                             {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                             {emailFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Invalid email format</div>}
                         </div>
@@ -1911,7 +1944,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                                 padding: '10px 20px',
                                 border: 'none',
                                 borderRadius: '6px',
-                                background: isFormValid ? '#10b981' : '#ccc',
+                                background: isFormValid ? 'rgb(0, 235, 91)' : '#ccc',
                                 color: '#fff',
                                 cursor: isFormValid ? 'pointer' : 'not-allowed',
                                 fontSize: '14px',
