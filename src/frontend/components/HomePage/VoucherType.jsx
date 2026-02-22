@@ -1608,9 +1608,6 @@ const VoucherType = ({
                             </div>
                         );
                     })()}
-                    <div style={{ fontSize: isMobile ? 13 : 12, color: '#666', marginBottom: 10, lineHeight: 1.4 }}>
-                        So it sits below the rebookable/refundable line and above the inclusions section.
-                    </div>
                     <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
                         {(() => {
                             console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
