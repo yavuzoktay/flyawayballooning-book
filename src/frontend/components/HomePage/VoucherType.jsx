@@ -1560,7 +1560,7 @@ const VoucherType = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 24, marginBottom: 8, color: '#666', fontSize: isMobile ? 13 : 12, flexWrap: 'wrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             <AccessTimeIcon sx={{ fontSize: 18, color: '#888' }} />
-                            <span>3-4 hours</span>
+                            <span>3-4 Hours</span>
                         </span>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             <GroupsIcon sx={{ fontSize: 18, color: '#888' }} />

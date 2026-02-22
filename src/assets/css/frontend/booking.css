@@ -2781,3 +2781,31 @@ label {
 	}
 }
 
+/* Request Date modal: Preferred Date input full width (fix Safari/iOS date input width) */
+.request-date-form .request-date-pref-date input[type="date"] {
+	width: 100% !important;
+	min-width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* Request Date modal: Select placeholder grey when empty (override mobile blue) */
+.request-date-form select:invalid {
+	color: #666 !important;
+}
+.request-date-form select:valid {
+	color: #333 !important;
+}
+
+/* Request Date modal: Select white background (override mobile grey default) */
+.request-date-form select {
+	background-color: #fff !important;
+}
+
+/* Request Date modal: Prevent iOS zoom on input focus (font-size >= 16px) */
+@media screen and (max-width: 768px) {
+	.request-date-form input,
+	.request-date-form select {
+		font-size: 16px !important;
+	}
+}
+
