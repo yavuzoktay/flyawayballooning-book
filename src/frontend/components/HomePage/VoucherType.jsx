@@ -369,81 +369,50 @@ const VoucherType = ({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Sync arrows/dots while swiping vouchers on mobile - use IntersectionObserver for reliable dot sync
+    // Sync arrows/dots while swiping vouchers on mobile - interval + events (reliable on all mobile browsers)
     useEffect(() => {
-        if (!isMobile) return;
-        const container = voucherContainerRef.current;
-        if (!container || container.children.length === 0) return;
+        if (!isMobile || activeAccordion !== 'voucher-type') return;
 
-        const children = Array.from(container.children);
-        const itemCount = children.length;
-        if (itemCount === 0) return;
-
-        const updateIndex = (index) => {
-            const clamped = Math.max(0, Math.min(index, itemCount - 1));
+        const sync = () => {
+            const container = document.querySelector('.voucher-cards-container');
+            if (!container || container.children.length === 0) return;
+            const children = Array.from(container.children);
+            const itemCount = children.length;
+            if (itemCount === 0) return;
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            let best = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < children.length; i++) {
+                const cr = children[i].getBoundingClientRect();
+                const dist = Math.abs((cr.left + cr.width / 2) - centerX);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = i;
+                }
+            }
+            const clamped = Math.max(0, Math.min(best, itemCount - 1));
             setCurrentItemIndex(clamped);
             setCanScrollVouchersLeft(clamped > 0);
             setCanScrollVouchersRight(clamped < itemCount - 1);
         };
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.intersectionRatio >= 0.5) {
-                        const index = parseInt(entry.target.dataset.voucherIndex, 10);
-                        if (!Number.isNaN(index)) updateIndex(index);
-                    }
-                });
-            },
-            { root: container, threshold: [0.25, 0.5, 0.75, 1], rootMargin: '0px' }
-        );
-
-        children.forEach((child, i) => {
-            child.dataset.voucherIndex = String(i);
-            observer.observe(child);
-        });
-
-        const handleScroll = () => {
-            const rect = container.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            let bestIndex = 0;
-            let bestDist = Infinity;
-            children.forEach((child, i) => {
-                const cr = child.getBoundingClientRect();
-                const childCenter = cr.left + cr.width / 2;
-                const dist = Math.abs(centerX - childCenter);
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    bestIndex = i;
-                }
-            });
-            updateIndex(bestIndex);
-        };
-
-        let rafId = null;
-        const onScroll = () => {
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(handleScroll);
-        };
-
-        const onTouchEnd = () => {
-            setTimeout(handleScroll, 50);
-            setTimeout(handleScroll, 150);
-        };
-
-        handleScroll();
-        container.addEventListener('scroll', onScroll, { passive: true });
-        container.addEventListener('touchmove', onScroll, { passive: true });
-        container.addEventListener('touchend', onTouchEnd, { passive: true });
-
-        return () => {
-            observer.disconnect();
-            container.removeEventListener('scroll', onScroll);
-            container.removeEventListener('touchmove', onScroll);
-            container.removeEventListener('touchend', onTouchEnd);
-            if (rafId) cancelAnimationFrame(rafId);
-        };
-    }, [isMobile, activeAccordion, chooseFlightType?.type, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
+        sync();
+        const iv = setInterval(sync, 150);
+        const container = document.querySelector('.voucher-cards-container');
+        if (container) {
+            container.addEventListener('scroll', sync, { passive: true });
+            container.addEventListener('touchmove', sync, { passive: true });
+            container.addEventListener('touchend', sync, { passive: true });
+            return () => {
+                clearInterval(iv);
+                container.removeEventListener('scroll', sync);
+                container.removeEventListener('touchmove', sync);
+                container.removeEventListener('touchend', sync);
+            };
+        }
+        return () => clearInterval(iv);
+    }, [isMobile, activeAccordion, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
