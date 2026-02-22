@@ -2593,28 +2593,26 @@ const VoucherType = ({
                                         {/* Navigation Arrows (mobile) - hide back on first, next on last */}
                                         {isMobile && activeVouchers.length > 1 && (
                                             <>
-                                                {/* Left Arrow - show only after first item on mobile */}
+                                                {/* Left Arrow - show only after first item on mobile (match Select Experience style) */}
                                                 {(currentItemIndex > 0) && (
                                                     <div style={{
                                                         position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                         background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                        cursor: 'pointer',
-                                                        opacity: 1,
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>‹</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-3px' : '0px' }}>‹</span>
                                                     </div>
                                                 )}
-                                                {/* Right Arrow - hide on last item on mobile */}
+                                                {/* Right Arrow - hide on last item on mobile (match Select Experience style) */}
                                                 {(currentItemIndex < activeVouchers.length - 1) && (
                                                     <div style={{
                                                         position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 48 : 56, height: isMobile ? 48 : 56,
+                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                         boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                     }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>›</span>
+                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-3px' : '0px' }}>›</span>
                                                     </div>
                                                 )}
                                             </>
@@ -2630,20 +2628,23 @@ const VoucherType = ({
                                             width: '100%',
                                             overflowX: 'auto',
                                             overflowY: 'visible',
-                                            paddingBottom: '10px',
+                                            paddingBottom: activeVouchers.length > 1 ? '24px' : '10px',
+                                            paddingLeft: isMobile ? 16 : 0,
+                                            paddingRight: isMobile ? 16 : 0,
                                             scrollBehavior: 'smooth',
                                             scrollSnapType: 'x mandatory',
-                                            scrollPadding: isMobile ? '0 6px' : '0 8px',
+                                            scrollPadding: isMobile ? '0 16px' : '0 8px',
                                             WebkitOverflowScrolling: 'touch',
                                             overscrollBehavior: 'contain',
-                                            position: 'relative'
+                                            position: 'relative',
+                                            boxSizing: 'border-box'
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    // On mobile, match shared vouchers width structure
-                                                    width: isMobile ? 'calc(100% - 0px)' : 'auto',
-                                                    minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
-                                                    maxWidth: isMobile ? 'calc(100% - 0px)' : 'none',
+                                                    // On mobile: full width of padded content area for equal left/right spacing
+                                                    width: isMobile ? '100%' : 'auto',
+                                                    minWidth: isMobile ? '100%' : 'auto',
+                                                    maxWidth: isMobile ? '100%' : 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',
@@ -2663,6 +2664,25 @@ const VoucherType = ({
                                             ))}
                                         </div>
 
+                                        {/* Pagination Dots (mobile) - match Select Experience */}
+                                        {isMobile && activeVouchers.length > 1 && (
+                                            <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+                                                {activeVouchers.map((_, i) => (
+                                                    <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === currentItemIndex ? '#03a9f4' : '#ddd', cursor: 'pointer' }}
+                                                        onClick={() => {
+                                                            const container = voucherContainerRef.current;
+                                                            if (!container) return;
+                                                            const firstChild = container.children[0];
+                                                            const gap = 16;
+                                                            const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+                                                            container.scrollTo({ left: i * itemWidth, behavior: 'smooth' });
+                                                            setCurrentItemIndex(i);
+                                                            setCanScrollVouchersLeft(i > 0);
+                                                            setCanScrollVouchersRight(i < activeVouchers.length - 1);
+                                                        }} />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             } else {
@@ -2848,7 +2868,7 @@ const VoucherType = ({
                                         </>
                                     )}
 
-                                    {/* Navigation Arrows - Mobile (mirror Experience) */}
+                                    {/* Navigation Arrows - Mobile (match Select Experience style) */}
                                     {(isMobile && filteredVouchers.length > 1) && (
                                         <>
                                             {/* Left Arrow (mobile) - show only after first item */}
@@ -2856,9 +2876,7 @@ const VoucherType = ({
                                                 <div style={{
                                                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                     background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 36, height: 36,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: 'pointer',
-                                                    opacity: 1,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                     boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                 }} onClick={handlePrevVoucher}>
                                                     <span style={{ fontSize: 27, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-3px' }}>‹</span>
@@ -2869,9 +2887,7 @@ const VoucherType = ({
                                                 <div style={{
                                                     position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                                                     background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 36, height: 36,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: 'pointer',
-                                                    opacity: 1,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                                                     boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
                                                 }} onClick={handleNextVoucher}>
                                                     <span style={{ fontSize: 27, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-3px' }}>›</span>
@@ -2889,19 +2905,22 @@ const VoucherType = ({
                                         alignItems: 'stretch',
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
-                                        paddingBottom: isMobile ? '10px' : '0',
+                                        paddingBottom: isMobile && filteredVouchers.length > 1 ? '24px' : isMobile ? '10px' : '0',
+                                        paddingLeft: isMobile ? 16 : 0,
+                                        paddingRight: isMobile ? 16 : 0,
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 6px' : '0',
+                                        scrollPadding: isMobile ? '0 16px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
-                                        overscrollBehavior: isMobile ? 'contain' : 'auto'
+                                        overscrollBehavior: isMobile ? 'contain' : 'auto',
+                                        boxSizing: 'border-box'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
-                                                // On mobile, match private charter width structure for consistency
-                                                width: isMobile ? 'calc(100% - 0px)' : 'auto',
-                                                minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
-                                                maxWidth: isMobile ? 'calc(100% - 0px)' : 'none',
+                                                // On mobile: full width of padded content area for equal left/right spacing
+                                                width: isMobile ? '100%' : 'auto',
+                                                minWidth: isMobile ? '100%' : 'auto',
+                                                maxWidth: isMobile ? '100%' : 'none',
                                                 display: 'flex',
                                                 height: '100%',
                                                 flexShrink: 0
@@ -2921,6 +2940,25 @@ const VoucherType = ({
                                         ))}
                                     </div>
 
+                                    {/* Pagination Dots (Shared Flight mobile) - match Select Experience */}
+                                    {isMobile && filteredVouchers.length > 1 && (
+                                        <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+                                            {filteredVouchers.map((_, i) => (
+                                                <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === currentItemIndex ? '#03a9f4' : '#ddd', cursor: 'pointer' }}
+                                                    onClick={() => {
+                                                        const container = voucherContainerRef.current;
+                                                        if (!container) return;
+                                                        const firstChild = container.children[0];
+                                                        const gap = 16;
+                                                        const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
+                                                        container.scrollTo({ left: i * itemWidth, behavior: 'smooth' });
+                                                        setCurrentItemIndex(i);
+                                                        setCanScrollVouchersLeft(i > 0);
+                                                        setCanScrollVouchersRight(i < filteredVouchers.length - 1);
+                                                    }} />
+                                            ))}
+                                        </div>
+                                    )}
                                 </>
                             );
                         }
