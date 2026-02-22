@@ -1747,13 +1747,13 @@ const VoucherType = ({
                                             height: isMobile ? 28 : 24,
                                             minWidth: isMobile ? 28 : 24,
                                             minHeight: isMobile ? 28 : 24,
-                                            border: '2px solid rgb(255, 105, 55)', 
+                                            border: '2px solid rgb(0, 235, 91)', 
                                             background: 'transparent', 
                                             borderRadius: '50%', 
                                             cursor: 'pointer',
                                             fontSize: isMobile ? 16 : 14,
                                             fontWeight: 500,
-                                            color: 'rgb(255, 105, 55)',
+                                            color: 'rgb(0, 235, 91)',
                                             lineHeight: 1
                                         }}
                                     >
@@ -1780,13 +1780,13 @@ const VoucherType = ({
                                             height: isMobile ? 28 : 24,
                                             minWidth: isMobile ? 28 : 24,
                                             minHeight: isMobile ? 28 : 24,
-                                            border: '2px solid rgb(255, 105, 55)', 
+                                            border: '2px solid rgb(0, 235, 91)', 
                                             background: 'transparent', 
                                             borderRadius: '50%', 
                                             cursor: 'pointer',
                                             fontSize: isMobile ? 16 : 14,
                                             fontWeight: 500,
-                                            color: 'rgb(255, 105, 55)',
+                                            color: 'rgb(0, 235, 91)',
                                             lineHeight: 1
                                         }}
                                     >
