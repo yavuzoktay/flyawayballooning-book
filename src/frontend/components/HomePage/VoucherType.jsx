@@ -2598,8 +2598,8 @@ const VoucherType = ({
                                                 <div key={voucher.id || index} style={{
                                                     // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
                                                     width: isMobile ? 'calc(100% - 16px)' : 'auto',
-                                                    minWidth: isMobile ? 'calc(100% - 56px)' : 'auto',
-                                                    maxWidth: isMobile ? 'calc(100% - 56px)' : 'none',
+                                                    minWidth: isMobile ? 'calc(100% - 16px)' : 'auto',
+                                                    maxWidth: isMobile ? 'calc(100% - 16px)' : 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',

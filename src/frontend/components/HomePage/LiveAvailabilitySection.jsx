@@ -1469,7 +1469,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     location: requestLocation,
                     flight_type: requestFlightType,
                     requested_date: requestDate,
-                    requested_time: requestTime
+                    preferred_time: requestTime
                 }
             );
             if (res.data.success) {
