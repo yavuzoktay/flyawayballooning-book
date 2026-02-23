@@ -735,8 +735,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {isMobile ? (
                 // Mobile: horizontal layout with arrows and dots
                 <div style={{ position: 'relative', width: '100%' }}>
-                    {/* Left Arrow */}
-                    {canScrollExperiencesLeft && (
+                    {/* Left Arrow - hidden on mobile */}
+                    {!isMobile && canScrollExperiencesLeft && (
                         <div style={{
                             position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                             background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
@@ -753,8 +753,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                             <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-3px' : '0px' }}>‹</span>
                         </div>
                     )}
-                    {/* Right Arrow */}
-                    {canScrollExperiencesRight && (
+                    {/* Right Arrow - hidden on mobile */}
+                    {!isMobile && canScrollExperiencesRight && (
                         <div style={{
                             position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
                             background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,

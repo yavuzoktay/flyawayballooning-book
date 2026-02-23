@@ -2566,33 +2566,7 @@ const VoucherType = ({
                                         flexDirection: 'column',
                                         alignItems: 'center'
                                     }}>
-                                        {/* Navigation Arrows (mobile) - hide back on first, next on last */}
-                                        {isMobile && activeVouchers.length > 1 && (
-                                            <>
-                                                {/* Left Arrow - show only after first item on mobile (match Select Experience style) */}
-                                                {(currentItemIndex > 0) && (
-                                                    <div style={{
-                                                        position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                        boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
-                                                    }} onClick={handlePrevVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-3px' : '0px' }}>‹</span>
-                                                    </div>
-                                                )}
-                                                {/* Right Arrow - hide on last item on mobile (match Select Experience style) */}
-                                                {(currentItemIndex < activeVouchers.length - 1) && (
-                                                    <div style={{
-                                                        position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                        background: 'rgb(3, 169, 244)', borderRadius: '50%', width: isMobile ? 36 : 56, height: isMobile ? 36 : 56,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                        boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
-                                                    }} onClick={handleNextVoucher}>
-                                                        <span style={{ fontSize: isMobile ? 27 : 32, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: isMobile ? '-3px' : '0px' }}>›</span>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
+                                        {/* Navigation Arrows - hidden on mobile (swipe only) */}
 
                                         {/* Voucher Cards Container - Single container like PassengerInfo */}
                                         <div ref={voucherContainerRef} className="voucher-cards-container" style={{ 
@@ -2617,10 +2591,10 @@ const VoucherType = ({
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    // On mobile: full width of padded content area for equal left/right spacing
-                                                    width: isMobile ? '100%' : 'auto',
-                                                    minWidth: isMobile ? '100%' : 'auto',
-                                                    maxWidth: isMobile ? '100%' : 'none',
+                                                    // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
+                                                    width: isMobile ? 'calc(100% - 56px)' : 'auto',
+                                                    minWidth: isMobile ? 'calc(100% - 56px)' : 'auto',
+                                                    maxWidth: isMobile ? 'calc(100% - 56px)' : 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',
@@ -2844,62 +2818,37 @@ const VoucherType = ({
                                         </>
                                     )}
 
-                                    {/* Navigation Arrows - Mobile (match Select Experience style) */}
-                                    {(isMobile && filteredVouchers.length > 1) && (
-                                        <>
-                                            {/* Left Arrow (mobile) - show only after first item */}
-                                            {(currentItemIndex > 0) && (
-                                                <div style={{
-                                                    position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 36, height: 36,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                    boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
-                                                }} onClick={handlePrevVoucher}>
-                                                    <span style={{ fontSize: 27, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-3px' }}>‹</span>
-                                                </div>
-                                            )}
-                                            {/* Right Arrow (mobile) - hide on last item */}
-                                            {(currentItemIndex < filteredVouchers.length - 1) && (
-                                                <div style={{
-                                                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10,
-                                                    background: 'rgb(3, 169, 244)', borderRadius: '50%', width: 36, height: 36,
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                                                    boxShadow: '0 3px 10px rgba(0,0,0,0.18)', border: 'none'
-                                                }} onClick={handleNextVoucher}>
-                                                    <span style={{ fontSize: 27, color: '#fff', margin: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-3px' }}>›</span>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                    {/* Navigation Arrows - hidden on mobile (swipe only) */}
 
                                     {/* Voucher Cards */}
                                     <div ref={isMobile ? voucherContainerRef : undefined} className="voucher-cards-container" style={{ 
                                         display: 'flex', 
                                         flexDirection: isMobile ? 'row' : 'row', 
-                                        gap: isMobile ? '16px' : '20px', 
+                                        gap: isMobile ? '12px' : '20px', 
                                         justifyContent: isMobile ? 'flex-start' : 'center',
                                         alignItems: 'stretch',
                                         width: '100%',
                                         overflowX: isMobile ? 'auto' : 'visible',
                                         paddingBottom: isMobile && filteredVouchers.length > 1 ? '24px' : isMobile ? '10px' : '0',
-                                        paddingLeft: isMobile ? 16 : 0,
-                                        paddingRight: isMobile ? 16 : 0,
+                                        paddingLeft: isMobile ? 8 : 0,
+                                        paddingRight: isMobile ? 8 : 0,
                                         scrollBehavior: 'smooth',
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                                        scrollPadding: isMobile ? '0 16px' : '0',
+                                        scrollPadding: isMobile ? '0 8px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
                                         overscrollBehavior: isMobile ? 'contain' : 'auto',
                                         boxSizing: 'border-box'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
-                                                // On mobile: full width of padded content area for equal left/right spacing
-                                                width: isMobile ? '100%' : 'auto',
-                                                minWidth: isMobile ? '100%' : 'auto',
-                                                maxWidth: isMobile ? '100%' : 'none',
+                                                // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
+                                                width: isMobile ? 'calc(100% - 16px)' : 'auto',
+                                                minWidth: isMobile ? 'calc(100% - 56px)' : 'auto',
+                                                maxWidth: isMobile ? 'calc(100% - 56px)' : 'none',
                                                 display: 'flex',
                                                 height: '100%',
-                                                flexShrink: 0
+                                                flexShrink: 0,
+                                                scrollSnapAlign: isMobile ? 'start' : undefined
                                             }}>
                                                 <VoucherCard
                                                     key={`${voucher.id}-${currentViewIndex}-${index}`}
@@ -2925,7 +2874,7 @@ const VoucherType = ({
                                                         const container = voucherContainerRef.current;
                                                         if (!container) return;
                                                         const firstChild = container.children[0];
-                                                        const gap = 16;
+                                                        const gap = 12;
                                                         const itemWidth = firstChild ? firstChild.getBoundingClientRect().width + gap : container.clientWidth;
                                                         container.scrollTo({ left: i * itemWidth, behavior: 'smooth' });
                                                         setCurrentItemIndex(i);
