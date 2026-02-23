@@ -2596,7 +2596,7 @@ const VoucherType = ({
                                         }}>
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
-                                                    // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
+                                                    // Mobile: calc(100% - 12px) so next card peeks ~56px, current card keeps full usable width
                                                     width: isMobile ? 'calc(100% - 12px)' : 'auto',
                                                     minWidth: isMobile ? 'calc(100% - 12px)' : 'auto',
                                                     maxWidth: isMobile ? 'calc(100% - 12px)' : 'none',
@@ -2846,7 +2846,7 @@ const VoucherType = ({
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
-                                                // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
+                                                // Mobile: calc(100% - 12px) so next card peeks ~12px, current card keeps full usable width
                                                 width: isMobile ? 'calc(100% - 12px)' : 'auto',
                                                 minWidth: isMobile ? 'calc(100% - 12px)' : 'auto',
                                                 maxWidth: isMobile ? 'calc(100% - 12px)' : 'none',

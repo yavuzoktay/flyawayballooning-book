@@ -1,27 +1,45 @@
 import React from "react";
 
-const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCloseButton = false, actionButtons }) => {
+const Modal = ({ isOpen, onClose, title, bulletPoints = [], extraContent, showCloseButton = false, actionButtons, mobileScrollable = false }) => {
     if (!isOpen) return null;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const useMobileScroll = mobileScrollable && isMobile;
+
     return (
-        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', background: 'rgba(0,0,0,0.35)', zIndex: 1000 }}>
+        <div
+            className={`modal-overlay ${useMobileScroll ? 'modal-overlay--mobile-scroll' : ''}`}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                display: 'flex',
+                alignItems: useMobileScroll ? 'flex-start' : 'center',
+                justifyContent: 'center',
+                padding: useMobileScroll ? '12px 8px' : '8px',
+                background: 'rgba(0,0,0,0.35)',
+                zIndex: 1000,
+                overflowY: useMobileScroll ? 'auto' : 'visible',
+                WebkitOverflowScrolling: useMobileScroll ? 'touch' : 'auto'
+            }}
+        >
             <div
-                className="common-modal"
+                className={`common-modal ${useMobileScroll ? 'common-modal--mobile-scroll' : ''}`}
                 style={{
-                    width: 'calc(100vw - 16px)', // ensure we never exceed viewport
-                    maxWidth: window.innerWidth <= 768 ? 'calc(100vw - 16px)' : '600px',
+                    width: 'calc(100vw - 16px)',
+                    maxWidth: isMobile ? 'calc(100vw - 16px)' : '600px',
                     background: '#fff',
                     borderRadius: 12,
-                    padding: window.innerWidth <= 768 ? '12px 8px' : '20px 16px',
+                    padding: isMobile ? '12px 8px' : '20px 16px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'stretch',
                     justifyContent: 'flex-start',
-                    maxHeight: 'calc(100vh - 16px)',
+                    maxHeight: useMobileScroll ? 'calc(100vh - 24px)' : 'calc(100vh - 16px)',
                     overflowY: 'auto',
                     overflowX: 'hidden',
+                    WebkitOverflowScrolling: 'touch',
                     boxSizing: 'border-box',
-                    margin: window.innerWidth <= 768 ? '0 4px' : '0'
+                    margin: isMobile ? '0 4px' : '0'
                 }}
             >
                 {/* Close Button (X) */}

@@ -2781,11 +2781,52 @@ label {
 	}
 }
 
-/* Request Date modal: Preferred Date input full width (fix Safari/iOS date input width) */
-.request-date-form .request-date-pref-date input[type="date"] {
+/* Request Date modal: Preferred Date - exact same as Flight Type (width, height) */
+.request-date-form .request-date-pref-date {
+	overflow: hidden;
+}
+.request-date-form .request-date-pref-date input[type="date"],
+.request-date-form .request-date-input-date {
+	display: block !important;
 	width: 100% !important;
-	min-width: 100% !important;
+	min-width: 0 !important;
 	max-width: 100% !important;
+	height: 44px !important;
+	min-height: 44px !important;
+	padding: 8px !important;
+	box-sizing: border-box !important;
+	line-height: normal !important;
+	margin: 0 !important;
+	text-align: left !important;
+}
+
+/* Request Date modal: Mobile - form stretch + Preferred Date full width (match Flight Type) */
+@media screen and (max-width: 768px) {
+	.request-date-form {
+		align-items: stretch !important;
+	}
+	.request-date-form > div {
+		width: 100% !important;
+		max-width: 420px !important;
+		align-self: stretch !important;
+	}
+	.request-date-form .request-date-pref-date input[type="date"],
+	.request-date-form .request-date-input-date {
+		font-size: 16px !important;
+		touch-action: manipulation !important;
+		width: 100% !important;
+		min-width: 100% !important;
+		box-sizing: border-box !important;
+	}
+}
+
+/* Request Date modal: Prevent iPhone zoom on input focus */
+@media screen and (max-width: 768px) {
+	.request-date-form input,
+	.request-date-form select {
+		font-size: 16px !important;
+		touch-action: manipulation !important;
+	}
 }
 
 /* Request Date modal: Select placeholder grey when empty (override mobile blue) */
@@ -2801,11 +2842,14 @@ label {
 	background-color: #fff !important;
 }
 
-/* Request Date modal: Prevent iOS zoom on input focus (font-size >= 16px) */
+/* Request Date modal: Vertical scroll on mobile - enable smooth scroll within popup */
 @media screen and (max-width: 768px) {
-	.request-date-form input,
-	.request-date-form select {
-		font-size: 16px !important;
+	.common-modal--mobile-scroll {
+		-webkit-overflow-scrolling: touch;
+		overflow-y: auto !important;
+	}
+	.modal-overlay--mobile-scroll {
+		-webkit-overflow-scrolling: touch;
 	}
 }
 

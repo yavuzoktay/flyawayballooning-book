@@ -1875,8 +1875,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onClose={() => setRequestModalOpen(false)}
                 title="Request Date"
                 showCloseButton={true}
+                mobileScrollable={true}
                 extraContent={
-                    <form className="request-date-form" style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 480, alignItems: 'center', marginLeft: 'auto', marginRight: 'auto' }} onSubmit={e => {
+                    <form className="request-date-form" style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 480, alignItems: 'center', marginLeft: 'auto', marginRight: 'auto', touchAction: isMobile ? 'manipulation' : 'auto' }} onSubmit={e => {
                         e.preventDefault();
                         let hasError = false;
                         setNameError(false); setEmailError(false); setLocationError(false); setFlightTypeError(false); setDateError(false); setTimeError(false);
@@ -1941,9 +1942,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </select>
                             {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
-                        <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
+                        <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', alignSelf: isMobile ? 'stretch' : undefined }}>
                             <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Date</label>
-                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, backgroundColor: '#fff', color: '#333', fontSize: isMobile ? 16 : 14 }} required />
+                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className="request-date-input-date" style={{ padding: 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, backgroundColor: '#fff', color: '#333', fontSize: isMobile ? 16 : 14 }} required />
                             {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
