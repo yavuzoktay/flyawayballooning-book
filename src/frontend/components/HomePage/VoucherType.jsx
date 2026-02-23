@@ -1705,10 +1705,11 @@ const VoucherType = ({
                                 color: '#4A4A4A', 
                                 fontWeight: isMobile ? 500 : 500,
                                 marginBottom: '0',
-                                whiteSpace: isMobile ? 'nowrap' : 'normal'
+                                whiteSpace: isMobile ? 'nowrap' : 'normal',
+                                lineHeight: 1
                             }}>Passengers:</label>
                             {voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (
-                                <span style={{ fontSize: isMobile ? 16 : 14, color: '#4A4A4A', fontWeight: isMobile ? 500 : 600, marginBottom: '0', whiteSpace: isMobile ? 'nowrap' : 'normal' }}>2</span>
+                                <span style={{ fontSize: isMobile ? 16 : 14, color: '#4A4A4A', fontWeight: isMobile ? 500 : 600, marginBottom: '0', whiteSpace: isMobile ? 'nowrap' : 'normal', lineHeight: 1 }}>2</span>
                             ) : (
                                 <>
                                     <button
@@ -1736,11 +1737,15 @@ const VoucherType = ({
                                         −
                                     </button>
                                     <span style={{ 
-                                        minWidth: isMobile ? 24 : 20, 
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        minWidth: isMobile ? 24 : 0, 
+                                        height: isMobile ? 28 : 24,
                                         textAlign: 'center',
                                         fontSize: isMobile ? 15 : 14, 
                                         fontWeight: 600,
-                                        color: '#4a4a4a'
+                                        color: '#4a4a4a',
+                                        lineHeight: 1
                                     }}>
                                         {quantities[voucher.title] || 2}
                                     </span>
