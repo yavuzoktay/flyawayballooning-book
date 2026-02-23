@@ -2597,9 +2597,9 @@ const VoucherType = ({
                                             {activeVouchers.map((voucher, index) => (
                                                 <div key={voucher.id || index} style={{
                                                     // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
-                                                    width: isMobile ? 'calc(100% - 16px)' : 'auto',
-                                                    minWidth: isMobile ? 'calc(100% - 16px)' : 'auto',
-                                                    maxWidth: isMobile ? 'calc(100% - 16px)' : 'none',
+                                                    width: isMobile ? 'calc(100% - 12px)' : 'auto',
+                                                    minWidth: isMobile ? 'calc(100% - 12px)' : 'auto',
+                                                    maxWidth: isMobile ? 'calc(100% - 12px)' : 'none',
                                                     flexShrink: 0,
                                                     scrollSnapAlign: 'start',
                                                     display: 'flex',
@@ -2847,9 +2847,9 @@ const VoucherType = ({
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
                                                 // Mobile: calc(100% - 56px) so next card peeks ~56px, current card keeps full usable width
-                                                width: isMobile ? 'calc(100% - 16px)' : 'auto',
-                                                minWidth: isMobile ? 'calc(100% - 16px)' : 'auto',
-                                                maxWidth: isMobile ? 'calc(100% - 16px)' : 'none',
+                                                width: isMobile ? 'calc(100% - 12px)' : 'auto',
+                                                minWidth: isMobile ? 'calc(100% - 12px)' : 'auto',
+                                                maxWidth: isMobile ? 'calc(100% - 12px)' : 'none',
                                                 display: 'flex',
                                                 height: '100%',
                                                 flexShrink: 0,
