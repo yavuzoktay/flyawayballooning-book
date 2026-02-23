@@ -1739,7 +1739,7 @@ const VoucherType = ({
                                     <span style={{ 
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        minWidth: isMobile ? 24 : 0, 
+                                        minWidth: isMobile ? 0 : 0, 
                                         height: isMobile ? 28 : 24,
                                         textAlign: 'center',
                                         fontSize: isMobile ? 15 : 14, 
