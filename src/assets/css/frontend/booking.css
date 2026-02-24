@@ -2798,6 +2798,8 @@ label {
 	line-height: normal !important;
 	margin: 0 !important;
 	text-align: left !important;
+    color: #666 !important;
+
 }
 
 /* Request Date modal: Mobile - form stretch + Preferred Date full width/height (match Flight Type) */
@@ -2823,6 +2825,7 @@ label {
 		line-height: 44px !important;
 		box-sizing: border-box !important;
 		text-align: left !important;
+        color: #666 !important;
 	}
 }
 
