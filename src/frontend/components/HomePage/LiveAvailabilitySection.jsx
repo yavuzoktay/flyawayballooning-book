@@ -177,7 +177,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [requestEmail, setRequestEmail] = useState("");
     const [requestLocation, setRequestLocation] = useState("");
     const [requestFlightType, setRequestFlightType] = useState("");
-    const [requestDate, setRequestDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
+    const [requestDate, setRequestDate] = useState("");
     const [requestTime, setRequestTime] = useState("");
     const allLocations = ["Bath", "Devon", "Somerset", "Bristol Fiesta"];
     const allFlightTypes = ["Book Flight Date", "Buy Flight Voucher", "Redeem Voucher", "Buy Gift Voucher"];
@@ -218,12 +218,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     }, [selectedActivity, chooseFlightType]);
     
-    // When Request Date modal opens, ensure Preferred Date has today if empty (fixes mobile grey display)
-    useEffect(() => {
-        if (requestModalOpen && !requestDate) {
-            setRequestDate(format(new Date(), 'yyyy-MM-dd'));
-        }
-    }, [requestModalOpen, requestDate]);
 
     // New state for time selection popup
     const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
@@ -1476,7 +1470,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 setRequestSuccess("We will be in touch shortly");
                 setTimeout(() => {
                     setRequestModalOpen(false);
-                    setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate(format(new Date(), 'yyyy-MM-dd')); setRequestTime("");
+                    setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate(""); setRequestTime("");
                     setRequestSuccess("");
                 }, 5000);
             } else {
@@ -1944,7 +1938,14 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         </div>
                         <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', alignSelf: isMobile ? 'stretch' : undefined }}>
                             <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Date</label>
-                            <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className="request-date-input-date" style={{ padding: isMobile ? '0 8px' : 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, lineHeight: isMobile ? 44 : 'normal', backgroundColor: '#fff', color: '#333', fontSize: isMobile ? 16 : 14, textAlign: 'left' }} required />
+                            <div style={{ position: 'relative' }}>
+                                <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className={`request-date-input-date${!requestDate ? ' request-date-input-empty' : ''}`} style={{ padding: isMobile ? 0 : 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, lineHeight: isMobile ? 44 : 'normal', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14, textAlign: 'left' }} required />
+                                {!requestDate && (
+                                    <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: isMobile ? 12 : 12, paddingRight: 12, color: '#666', fontSize: isMobile ? 16 : 14, pointerEvents: 'none' }}>
+                                        Select Preferred Date
+                                    </div>
+                                )}
+                            </div>
                             {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
