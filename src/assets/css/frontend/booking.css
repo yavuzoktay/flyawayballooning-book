@@ -2800,7 +2800,7 @@ label {
 	text-align: left !important;
 }
 
-/* Request Date modal: Mobile - form stretch + Preferred Date full width (match Flight Type) */
+/* Request Date modal: Mobile - form stretch + Preferred Date full width/height (match Flight Type) */
 @media screen and (max-width: 768px) {
 	.request-date-form {
 		align-items: stretch !important;
@@ -2816,7 +2816,13 @@ label {
 		touch-action: manipulation !important;
 		width: 100% !important;
 		min-width: 100% !important;
+		height: 44px !important;
+		min-height: 44px !important;
+		max-height: 44px !important;
+		padding: 0 8px !important;
+		line-height: 44px !important;
 		box-sizing: border-box !important;
+		text-align: left !important;
 	}
 }
 
