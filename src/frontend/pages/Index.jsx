@@ -591,11 +591,13 @@ const Index = () => {
                 }
                 
                 // Add flight type filter if selected - map UI values to backend values
-                if (chooseFlightType?.type) {
+                // NOTE: For "Private Charter" we deliberately DO NOT send a flightType filter.
+                // The backend already receives a specific activityId for Private Charter,
+                // and older production backends may not recognize the newer "Private" value.
+                // Skipping the filter keeps compatibility across environments.
+                if (chooseFlightType?.type && chooseFlightType.type !== 'Private Charter') {
                     let flightTypeForBackend;
-                    if (chooseFlightType.type === 'Private Charter') {
-                        flightTypeForBackend = 'Private';
-                    } else if (chooseFlightType.type === 'Shared Flight') {
+                    if (chooseFlightType.type === 'Shared Flight') {
                         flightTypeForBackend = 'Shared';
                     } else {
                         flightTypeForBackend = chooseFlightType.type;
