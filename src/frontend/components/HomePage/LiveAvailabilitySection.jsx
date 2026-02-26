@@ -415,7 +415,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onLoadingStateChange(false);
             }
         }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome, isLoadingAvailabilities]);
     
     // Safety net: never keep "Loading availability..." spinner forever.
     // In rare edge cases (backend returns unexpected shape, or debug states get stuck),
@@ -434,40 +434,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         return () => clearTimeout(timeout);
     }, [isLoadingAvailabilities, activeAccordion, onLoadingStateChange]);
     
-    // PRODUCTION DEBUG: Monitor availabilities state changes
-    useEffect(() => {
-        console.log('=== LiveAvailabilitySection availabilities changed ===');
-        console.log('New availabilities count:', availabilities?.length);
-        console.log('New availabilities data:', availabilities);
-        console.log('isLocationAndExperienceSelected:', isLocationAndExperienceSelected);
-        console.log('isLoadingAvailabilities:', isLoadingAvailabilities);
-        console.log('==================================================');
-    }, [availabilities, isLocationAndExperienceSelected, isLoadingAvailabilities]);
-    
-    // PRODUCTION DEBUG: Monitor Voucher Type changes
-    useEffect(() => {
-        console.log('=== VOUCHER TYPE CHANGED DEBUG ===');
-        console.log('selectedVoucherType:', selectedVoucherType);
-        console.log('availabilities count:', availabilities?.length);
-        console.log('availabilities data:', availabilities);
-        console.log('chooseLocation:', chooseLocation);
-        console.log('selectedActivity:', selectedActivity);
-        console.log('chooseFlightType:', chooseFlightType);
-        console.log('activitySelect:', activitySelect);
-        console.log('================================');
-    }, [selectedVoucherType, availabilities, chooseLocation, selectedActivity, chooseFlightType, activitySelect]);
-    
-    // PRODUCTION DEBUG: Monitor isLocationAndExperienceSelected changes
-    useEffect(() => {
-        console.log('=== isLocationAndExperienceSelected DEBUG ===');
-        console.log('chooseLocation:', chooseLocation);
-        console.log('selectedActivity:', selectedActivity);
-        console.log('chooseFlightType:', chooseFlightType);
-        console.log('selectedVoucherType:', selectedVoucherType);
-        console.log('activitySelect:', activitySelect);
-        console.log('Result:', isLocationAndExperienceSelected);
-        console.log('==========================================');
-    }, [chooseLocation, selectedActivity, chooseFlightType, selectedVoucherType, activitySelect, isLocationAndExperienceSelected]);
 
     const handlePrevMonth = () => {
         if (chooseLocation === "Bristol Fiesta") {

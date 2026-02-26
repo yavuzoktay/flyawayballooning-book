@@ -644,13 +644,6 @@ const Index = () => {
                 }
                 // If currentCalendarDate is not set, don't add date range - backend will use default 60-day range
                 
-                // PRODUCTION DEBUG: Log API call details
-                console.log('=== refetchAvailabilities DEBUG ===');
-                console.log('API_BASE_URL:', API_BASE_URL);
-                console.log('Params:', params.toString());
-                console.log('Full URL:', `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
-                console.log('================================');
-                
                 const fetchStartTime = Date.now();
                 const response = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`, {
                     signal: controller.signal
@@ -663,12 +656,7 @@ const Index = () => {
                 
                 const fetchEndTime = Date.now();
                 const fetchDuration = fetchEndTime - fetchStartTime;
-                
-                console.log('API Response:', response.data);
-                console.log('Response success:', response.data.success);
-                console.log('Response data length:', response.data.data?.length || 0);
-                console.log('Fetch duration:', fetchDuration, 'ms');
-                
+
                 if (response.data.success) {
                     const availData = response.data.data || [];
                     
@@ -2059,37 +2047,6 @@ const Index = () => {
                             console.log('[ShopifyDebug] All checks passed, ensuring availabilities are loaded before opening Live Availability');
                             setIsLiveAvailabilityLoadingSync(true);
                             
-                            // CRITICAL FIX: Check activityId first using ref to avoid stale state, then fetch availabilities if needed
-                            if (!activityIdRef.current) {
-                                console.log('[ShopifyDebug] activityId not ready, waiting before opening section');
-                                // Poll for activityId
-                                let pollCount = 0;
-                                const maxPolls = 20; // 4 seconds max (200ms * 20)
-                                const pollForActivityId = () => {
-                                    pollCount++;
-                                        if (activityIdRef.current) {
-                                            // activityId ready, proceed with availabilities check
-                                            if (!availabilities || availabilities.length === 0) {
-                                                fetchAndOpenSection();
-                                            } else {
-                                                setTimeout(() => {
-                                                    safeAutoOpenAccordion('live-availability');
-                                                    setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
-                                                }, 2000);
-                                            }
-                                    } else if (pollCount < maxPolls) {
-                                        setTimeout(pollForActivityId, 200);
-                                        } else {
-                                            // Timeout, open anyway
-                                            console.log('[ShopifyDebug] activityId polling timeout, opening section anyway');
-                                            safeAutoOpenAccordion('live-availability', 'pollForActivityId-timeout');
-                                            setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
-                                    }
-                                };
-                                setTimeout(pollForActivityId, 200);
-                                return;
-                            }
-                            
                             // Helper function to fetch and open section
                             const fetchAndOpenSection = () => {
                                 console.log('[ShopifyDebug] Availabilities empty, fetching before opening section');
@@ -2194,6 +2151,37 @@ const Index = () => {
                                 });
                             };
                             
+                            // CRITICAL FIX: Check activityId first using ref to avoid stale state, then fetch availabilities if needed
+                            if (!activityIdRef.current) {
+                                console.log('[ShopifyDebug] activityId not ready, waiting before opening section');
+                                // Poll for activityId
+                                let pollCount = 0;
+                                const maxPolls = 20; // 4 seconds max (200ms * 20)
+                                const pollForActivityId = () => {
+                                    pollCount++;
+                                    if (activityIdRef.current) {
+                                        // activityId ready, proceed with availabilities check
+                                        if (!availabilities || availabilities.length === 0) {
+                                            fetchAndOpenSection();
+                                        } else {
+                                            setTimeout(() => {
+                                                safeAutoOpenAccordion('live-availability');
+                                                setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                            }, 2000);
+                                        }
+                                    } else if (pollCount < maxPolls) {
+                                        setTimeout(pollForActivityId, 200);
+                                    } else {
+                                        // Timeout, open anyway
+                                        console.log('[ShopifyDebug] activityId polling timeout, opening section anyway');
+                                        safeAutoOpenAccordion('live-availability', 'pollForActivityId-timeout');
+                                        setTimeout(() => setIsLiveAvailabilityLoadingSync(false), 500);
+                                    }
+                                };
+                                setTimeout(pollForActivityId, 200);
+                                return;
+                            }
+                            
                             // CRITICAL FIX: If availabilities are empty, fetch them first and wait for completion
                             if (!availabilities || availabilities.length === 0) {
                                 // CRITICAL: Keep loading state active while fetching
@@ -2202,7 +2190,7 @@ const Index = () => {
                             } else {
                                 // Availabilities already loaded, wait 2-3 seconds for network stability
                                 setTimeout(() => {
-                                console.log('[ShopifyDebug] Network stability delay complete, opening Live Availability section');
+                                    console.log('[ShopifyDebug] Network stability delay complete, opening Live Availability section');
                                     safeAutoOpenAccordion('live-availability');
                                     // CRITICAL: If availabilities are still empty after delay, keep loading state active
                                     setTimeout(() => {
@@ -2981,6 +2969,32 @@ const Index = () => {
             
             // (debug instrumentation removed)
             
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Debug-Session-Id': '8aaf98'
+                },
+                body: JSON.stringify({
+                    sessionId: '8aaf98',
+                    runId: 'pre-fix-local-1',
+                    hypothesisId: 'H5',
+                    location: 'Index.jsx:liveAvailabilityOpenEffect',
+                    message: 'Live Availability open effect evaluated',
+                    data: {
+                        isShopifyFlow,
+                        chooseLocation,
+                        activityId,
+                        chooseFlightType: chooseFlightType?.type || null,
+                        selectedVoucherType: selectedVoucherType?.title || null,
+                        hasAvailabilities: !!(availabilities && availabilities.length > 0)
+                    },
+                    timestamp: Date.now()
+                })
+            }).catch(() => {});
+            // #endregion
+
             if (isShopifyFlow) {
                 // For Shopify flow, ensure all required state is ready before fetching
                 // Check if activityId is ready (it might be set asynchronously)
