@@ -417,6 +417,23 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome]);
     
+    // Safety net: never keep "Loading availability..." spinner forever.
+    // In rare edge cases (backend returns unexpected shape, or debug states get stuck),
+    // hide the spinner after a timeout so the calendar can render.
+    useEffect(() => {
+        if (!isLoadingAvailabilities) return;
+        if (activeAccordion !== 'live-availability') return;
+        
+        const timeout = setTimeout(() => {
+            setIsLoadingAvailabilities(false);
+            if (onLoadingStateChange) {
+                onLoadingStateChange(false);
+            }
+        }, 10000); // 10s hard cap for spinner
+        
+        return () => clearTimeout(timeout);
+    }, [isLoadingAvailabilities, activeAccordion, onLoadingStateChange]);
+    
     // PRODUCTION DEBUG: Monitor availabilities state changes
     useEffect(() => {
         console.log('=== LiveAvailabilitySection availabilities changed ===');
