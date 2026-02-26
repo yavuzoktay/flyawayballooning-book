@@ -2967,34 +2967,6 @@ const Index = () => {
             const isVoucherTypeStartCheck = paramsForCheck.get('startAt') === 'voucher-type';
             const isJustOpened = isShopifyFlowCheck && isVoucherTypeStartCheck;
             
-            // (debug instrumentation removed)
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/83d02d4f-99e4-4d11-ae4c-75c735988481', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Debug-Session-Id': '8aaf98'
-                },
-                body: JSON.stringify({
-                    sessionId: '8aaf98',
-                    runId: 'pre-fix-local-1',
-                    hypothesisId: 'H5',
-                    location: 'Index.jsx:liveAvailabilityOpenEffect',
-                    message: 'Live Availability open effect evaluated',
-                    data: {
-                        isShopifyFlow,
-                        chooseLocation,
-                        activityId,
-                        chooseFlightType: chooseFlightType?.type || null,
-                        selectedVoucherType: selectedVoucherType?.title || null,
-                        hasAvailabilities: !!(availabilities && availabilities.length > 0)
-                    },
-                    timestamp: Date.now()
-                })
-            }).catch(() => {});
-            // #endregion
-
             if (isShopifyFlow) {
                 // For Shopify flow, ensure all required state is ready before fetching
                 // Check if activityId is ready (it might be set asynchronously)
