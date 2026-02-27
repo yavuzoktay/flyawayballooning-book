@@ -642,7 +642,27 @@ const Index = () => {
                         year
                     });
                 } else {
-                    console.log('🔵 refetchAvailabilities - No date range filter, using backend default 60-day range');
+                    // For Private Charter, be more explicit: request a wide date range
+                    // so that future private slots are included even if they are
+                    // outside the backend's default 60‑day window.
+                    if (chooseFlightType?.type === 'Private Charter') {
+                        const today = new Date();
+                        const oneYearAhead = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+                        const formatDate = (d) => {
+                            const y = d.getFullYear();
+                            const m = String(d.getMonth() + 1).padStart(2, '0');
+                            const day = String(d.getDate()).padStart(2, '0');
+                            return `${y}-${m}-${day}`;
+                        };
+                        params.append('startDate', formatDate(today));
+                        params.append('endDate', formatDate(oneYearAhead));
+                        console.log('🔵 refetchAvailabilities - Private Charter wide date range:', {
+                            startDate: formatDate(today),
+                            endDate: formatDate(oneYearAhead),
+                        });
+                    } else {
+                        console.log('🔵 refetchAvailabilities - No date range filter, using backend default 60-day range');
+                    }
                 }
                 // If currentCalendarDate is not set, don't add date range - backend will use default 60-day range
                 
