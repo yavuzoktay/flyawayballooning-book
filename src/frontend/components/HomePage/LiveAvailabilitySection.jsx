@@ -361,11 +361,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             // This prevents private experiences with zero slots from getting stuck on "Loading availability...".
             const isShopifyFlowWithLocation = isShopifyFlow && chooseLocation && chooseFlightType?.type;
             const shouldShowLoadingForShopify = isShopifyFlowWithLocation && !hasLiveAvailabilityResponse;
+            const isAwaitingInitialAvailabilities = !hasLiveAvailabilityResponse;
             
             if (shouldHaveAvailabilities || shouldShowLoadingForShopify) {
-                // If we should have availabilities but don't have them yet, show loading
-                // For Chrome/mobile, be more aggressive about showing loading state
-                if (!availabilities || availabilities.length === 0) {
+                // If we are still waiting for the first availabilities response, show loading
+                // Once the first response has arrived (even if it contains zero slots), hide loading
+                // so that the calendar / "no availability" state can render.
+                if (isAwaitingInitialAvailabilities && (!availabilities || availabilities.length === 0)) {
                     // Set loading state immediately and notify parent
                     setIsLoadingAvailabilities(true);
                     // Notify parent component about loading state immediately (critical for Chrome/mobile)
@@ -416,7 +418,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                 onLoadingStateChange(false);
             }
         }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome, isLoadingAvailabilities]);
+    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, hasLiveAvailabilityResponse, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome, isLoadingAvailabilities]);
     
     // Safety net: never keep "Loading availability..." spinner forever.
     // In rare edge cases (backend returns unexpected shape, or debug states get stuck),
