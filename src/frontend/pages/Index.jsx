@@ -58,6 +58,7 @@ const Index = () => {
         activeAccordionRef.current = activeAccordion;
     }, [activeAccordion]);
     const [availabilities, setAvailabilities] = useState([]);
+    const [hasLiveAvailabilityResponse, setHasLiveAvailabilityResponse] = useState(false);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
     const [countdownSeconds, setCountdownSeconds] = useState(null);
     const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -459,6 +460,7 @@ const Index = () => {
             setVoucherData(null);
             setSelectedTime(null);
             setAvailabilities([]);
+            setHasLiveAvailabilityResponse(false);
             setSelectedVoucherType(null);
             setActiveAccordion(null);
             setShowWarning(false);
@@ -695,12 +697,14 @@ const Index = () => {
                         
                         return merged;
                     });
+                    setHasLiveAvailabilityResponse(true);
                     
                     console.log('Availabilities updated, new data count:', availData.length);
                     return availData; // Return the data so caller can wait for it
                 } else {
                     console.log('API returned success: false');
                     console.log('Response error:', response.data.error || 'No error message');
+                    setHasLiveAvailabilityResponse(true);
                     return [];
                 }
             } catch (error) {
@@ -717,6 +721,7 @@ const Index = () => {
 
                 console.error('Error refetching availabilities:', error);
                 console.error('Error details:', error.response?.data);
+                setHasLiveAvailabilityResponse(true);
                 return [];
             } finally {
                 // Don't clear request key immediately - keep it for duplicate detection
@@ -3150,13 +3155,16 @@ const Index = () => {
                         const avails = response.data.data || [];
                         console.log('Received availabilities:', avails);
                         setAvailabilities(avails);
+                        setHasLiveAvailabilityResponse(true);
                     } else {
                         console.log('No availabilities received or error');
                         setAvailabilities([]);
+                        setHasLiveAvailabilityResponse(true);
                     }
                 } catch (error) {
                     console.error('Error fetching availabilities:', error);
                     setAvailabilities([]);
+                    setHasLiveAvailabilityResponse(true);
             }
         };
         fetchAvailabilities();
@@ -5229,6 +5237,7 @@ const Index = () => {
                                                 selectedTime={selectedTime}
                                                 setSelectedTime={setSelectedTime}
                                                 availabilities={availabilities}
+                                                hasLiveAvailabilityResponse={hasLiveAvailabilityResponse}
                                                 activitySelect={activitySelect}
                                                 selectedVoucherType={selectedVoucherType}
                                                 chooseFlightType={chooseFlightType}
@@ -5572,6 +5581,7 @@ const Index = () => {
                                                     selectedTime={selectedTime}
                                                     setSelectedTime={setSelectedTime}
                                                     availabilities={availabilities}
+                                                    hasLiveAvailabilityResponse={hasLiveAvailabilityResponse}
                                                     activitySelect={activitySelect}
                                                     selectedVoucherType={selectedVoucherType}
                                                     chooseFlightType={chooseFlightType}

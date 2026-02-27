@@ -24,7 +24,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 import { trackDateSelected } from '../../../utils/googleAdsTracking';
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
+const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, hasLiveAvailabilityResponse, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     
     // Track if this is the first render (to skip initial notification)
@@ -301,7 +301,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // For Bing browser, also allow showing availabilities if we have location, activity, and availabilities data
     // This handles cases where Bing browser state updates happen in different order
     const bingBrowserWithData = isBingBrowser && hasLocationAndActivity && hasAvailabilitiesData;
-    
+
     const isLocationAndExperienceSelected = !!(
         hasLocationAndActivity && (
             (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData || bingBrowserWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data OR if Bing browser with availabilities data
@@ -356,10 +356,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             );
             
             
-            // CRITICAL: For Shopify flow, show loading if availabilities are empty, even if selectedActivity is not ready yet
-            // This handles the case where Terms and Condition popup is accepted and section opens before activityId is set
+            // CRITICAL: For Shopify flow, show loading while we are waiting for the first availability response.
+            // Once a response has been received (even if it's empty), stop forcing the loading spinner.
+            // This prevents private experiences with zero slots from getting stuck on "Loading availability...".
             const isShopifyFlowWithLocation = isShopifyFlow && chooseLocation && chooseFlightType?.type;
-            const shouldShowLoadingForShopify = isShopifyFlowWithLocation && (!availabilities || availabilities.length === 0);
+            const shouldShowLoadingForShopify = isShopifyFlowWithLocation && !hasLiveAvailabilityResponse;
             
             if (shouldHaveAvailabilities || shouldShowLoadingForShopify) {
                 // If we should have availabilities but don't have them yet, show loading
