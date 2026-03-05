@@ -10,7 +10,7 @@
 
 const SESSION_STORAGE_KEY = 'fab_ga_tracked';
 const GOOGLE_ADS_ID = 'AW-468929127';
-const GA4_MEASUREMENT_ID = 'G-CGF855QXY5';
+const GA4_MEASUREMENT_ID = 'G-ZEB9ML78NY';
 
 // Conversion labels for gtag('event', 'conversion', { send_to: 'AW-468929127/Label' })
 // From Google Ads: Goals > Conversions > [action] > Tag setup > Event snippet

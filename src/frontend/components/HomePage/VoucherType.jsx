@@ -2590,7 +2590,8 @@ const VoucherType = ({
                                             scrollSnapType: 'x mandatory',
                                             scrollPadding: isMobile ? '0 16px' : '0 8px',
                                             WebkitOverflowScrolling: 'touch',
-                                            overscrollBehavior: 'contain',
+                                            overscrollBehaviorX: 'contain',
+                                            overscrollBehaviorY: 'auto',
                                             position: 'relative',
                                             boxSizing: 'border-box'
                                         }}>
@@ -2713,7 +2714,8 @@ const VoucherType = ({
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
                                         scrollPadding: isMobile ? '0 6px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
-                                        overscrollBehavior: isMobile ? 'contain' : 'auto'
+                                        overscrollBehaviorX: isMobile ? 'contain' : 'auto',
+                                        overscrollBehaviorY: 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
                                             <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
