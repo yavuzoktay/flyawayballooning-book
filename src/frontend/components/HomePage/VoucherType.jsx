@@ -2843,7 +2843,8 @@ const VoucherType = ({
                                         scrollSnapType: isMobile ? 'x mandatory' : 'none',
                                         scrollPadding: isMobile ? '0 8px' : '0',
                                         WebkitOverflowScrolling: isMobile ? 'touch' : undefined,
-                                        overscrollBehavior: isMobile ? 'contain' : 'auto',
+                                        overscrollBehaviorX: isMobile ? 'contain' : 'auto',
+                                        overscrollBehaviorY: 'auto',
                                         boxSizing: 'border-box'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
