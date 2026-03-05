@@ -618,3 +618,31 @@
     position: absolute !important;
   }
 }
+
+/* Android mobile: match iOS sizing for "What would you like to do?" cards */
+@media (max-width: 768px) {
+  html.is-android .activity-panel .tab_box,
+  html.is-android .tab_box {
+    gap: 8px !important;
+  }
+
+  html.is-android .activity-panel .book_data,
+  html.is-android .tab_box .book_data {
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html.is-android .activity-panel .book_data_label,
+  html.is-android .book_data_label {
+    padding: 15px 10px !important;
+  }
+
+  html.is-android .activity-panel .book_data_label h3,
+  html.is-android .book_data_label h3 {
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+}

@@ -14,6 +14,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     const [voucherTypes, setVoucherTypes] = useState([]);
     const [voucherTypesLoading, setVoucherTypesLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
     const cardBackRef = useRef(null);
     
     // Mobile tooltip state for info icons
@@ -37,6 +38,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Add a global hook class for Android-specific mobile tweaks
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+        const root = document.documentElement;
+        if (!root) return;
+        if (isAndroid) root.classList.add('is-android');
+        return () => {
+            if (isAndroid) root.classList.remove('is-android');
+        };
+    }, [isAndroid]);
 
     // When leaving mobile view, close any active tooltip
     useEffect(() => {
@@ -239,17 +251,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                 console.log('Rendering item:', item.label, 'index:', index, 'isMobile:', isMobile);
                 return (
                 <div className="book_data" key={item.value} style={{ 
-                    height: isMobile ? "120px" : "220px", 
-                    minHeight: isMobile ? "120px" : "220px", 
-                    maxHeight: isMobile ? "120px" : "220px",
+                    height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", 
+                    minHeight: isMobile ? (isAndroid ? "120px" : "120px") : "220px", 
+                    maxHeight: isMobile ? (isAndroid ? "120px" : "120px") : "220px",
                     flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
                     margin: isMobile ? '0 0 8px 0' : '0', 
                     width: isMobile ? '100%' : 'calc(50% - 20px)', 
                     boxSizing: 'border-box' 
                 }}>
                     {item.label === "Redeem Voucher" ? (
-                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: isMobile ? "120px" : "220px", width: '100%', position: 'relative' }}>
-                            <div className="card-flipper" style={{ height: isMobile ? "120px" : "220px", width: '100%', position: 'relative' }}>
+                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", width: '100%', position: 'relative' }}>
+                            <div className="card-flipper" style={{ height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", width: '100%', position: 'relative' }}>
                                 <div 
                                     className="card-front"
                                     onClick={() => {
@@ -262,7 +274,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }, 3000);
                                         setIsFlipped(true);
                                     }}
-                                    style={{ height: isMobile ? '120px' : '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
+                                    style={{ height: isMobile ? (isAndroid ? '120px' : '120px') : '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
                                 >
                                                                             <label 
                                         htmlFor={`activity-${item.label}`} 
@@ -333,7 +345,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }
                                     }}
                                     style={{ 
-                                        height: isMobile ? '120px' : '220px', 
+                                        height: isMobile ? (isAndroid ? '120px' : '120px') : '220px', 
                                         width: '100%', 
                                         padding: '0', 
                                         boxSizing: 'border-box', 
@@ -511,6 +523,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     .book_data_label h3 {
                         font-size: 18px !important;
                         margin: 0 !important;
+                    }
+                }
+                /* Android mobile: match iOS card heights (avoid 140px at 576–768 widths) */
+                @media (max-width: 768px) {
+                    .is-android .tab_box .book_data,
+                    .is-android .tab_box .book_data:nth-child(1),
+                    .is-android .tab_box .book_data:nth-child(2),
+                    .is-android .tab_box .book_data:nth-child(3),
+                    .is-android .tab_box .book_data:nth-child(4) {
+                        height: 120px !important;
+                        min-height: 120px !important;
                     }
                 }
                 @media (max-width: 576px) {
