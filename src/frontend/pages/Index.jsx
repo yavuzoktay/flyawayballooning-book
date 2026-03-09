@@ -25,6 +25,7 @@ import CustomerPortalHeader from "../components/CustomerPortal/CustomerPortalHea
 import config from '../../config';
 import { loadStripe } from '@stripe/stripe-js';
 import { trackPurchaseCompleted, captureGoogleAdsIds, getGoogleAdsIdsForCheckout } from '../../utils/googleAdsTracking';
+import { MAIN_SITE_URL, clearBookingClientStorage, navigateToMainSite } from '../../utils/crossDomainNavigation';
 
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
@@ -489,8 +490,7 @@ const Index = () => {
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
-        // Redirect to main website
-        window.location.href = 'https://flyawayballooning.com/';
+        navigateToMainSite();
     };
     
     // Timeout functionality removed
@@ -5009,16 +5009,9 @@ const Index = () => {
                         <div className="header-flex-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '80px' }}>
                             <div className="logo" style={{ marginRight: isMobile ? '12px' : '32px', flexShrink: 0, minWidth: isMobile ? 'auto' : '200px' }}>
                                 <a
-                                    href="https://flyawayballooning.com/"
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        try {
-                                            sessionStorage.clear();
-                                            localStorage.clear();
-                                        } catch (err) {
-                                            console.warn('Failed to clear storage on logo click:', err);
-                                        }
-                                        window.location.href = 'https://flyawayballooning.com/';
+                                    href={MAIN_SITE_URL}
+                                    onClick={() => {
+                                        clearBookingClientStorage();
                                     }}
                                     style={{ display: 'inline-block' }}
                                 >
@@ -6225,8 +6218,7 @@ const Index = () => {
                 onClose={() => {
                     setSuccessModalOpen(false);
                     setSuccessModalData(null);
-                    // Redirect to main website after closing the modal
-                    window.location.href = 'https://flyawayballooning.com/';
+                    navigateToMainSite();
                 }}
                 maxWidth="md"
                 fullWidth
@@ -6348,8 +6340,7 @@ const Index = () => {
                         onClick={() => {
                             setSuccessModalOpen(false);
                             setSuccessModalData(null);
-                            // Redirect to main website after closing the modal
-                            window.location.href = 'https://flyawayballooning.com/';
+                            navigateToMainSite();
                         }}
                         variant="contained"
                         color="primary"

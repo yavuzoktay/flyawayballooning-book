@@ -33,6 +33,13 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      const linkedDomains = [
+        'flyawayballooning.com',
+        'www.flyawayballooning.com',
+        'flyawayballooning-book.com',
+        'www.flyawayballooning-book.com'
+      ];
+      gtag('set', 'linker', { domains: linkedDomains });
       gtag('js', new Date());
       gtag('config', 'AW-468929127');
       gtag('config', 'G-ZEB9ML78NY');

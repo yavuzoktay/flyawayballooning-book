@@ -5,6 +5,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Div
 
 import config from '../../../config';
 import { getGoogleAdsIdsForCheckout } from '../../../utils/googleAdsTracking';
+import { navigateToMainSite } from '../../../utils/crossDomainNavigation';
 const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
@@ -1448,8 +1449,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                 onClose={() => {
                     setSuccessModalOpen(false);
                     setSuccessModalData(null);
-                    // Redirect to main website after closing the modal
-                    window.location.href = 'https://flyawayballooning.com/';
+                    navigateToMainSite();
                 }}
                 maxWidth="md"
                 fullWidth
@@ -1571,8 +1571,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         onClick={() => {
                             setSuccessModalOpen(false);
                             setSuccessModalData(null);
-                            // Redirect to main website after closing the modal
-                            window.location.href = 'https://flyawayballooning.com/';
+                            navigateToMainSite();
                         }}
                         variant="contained"
                         color="primary"
