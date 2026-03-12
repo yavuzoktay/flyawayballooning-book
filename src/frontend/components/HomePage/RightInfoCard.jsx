@@ -10,7 +10,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook }) => {
     
     // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
     console.log('🔥 RightInfoCard component rendered!', { 
@@ -1102,6 +1102,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         }
     }
 
+    const triggerBookAction = onBook || handleBookData;
     const isBookFlight = activitySelect === "Book Flight";
 
     // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
@@ -1283,7 +1284,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     }}
                                     onClick={() => {
                                         setShowWarning(false);
-                                        handleBookData();
+                                        triggerBookAction();
                                     }}
                                     type="button"
                                 >
@@ -1369,7 +1370,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         <button
                             className="summary-sticky-book"
                             disabled={isBookDisabled}
-                            onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) handleBookData(); }}
+                            onClick={(e) => { e.stopPropagation(); if (!isBookDisabled) triggerBookAction(); }}
                             onMouseEnter={() => {
                                 console.log('=== MOBILE STICKY BOOK (HOVER) ===', {
                                     isBookDisabled,
@@ -1426,7 +1427,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     <button
                                         className="summary-primary"
                                         disabled={isBookDisabled}
-                                        onClick={() => { if (!isBookDisabled) handleBookData(); }}
+                                        onClick={() => { if (!isBookDisabled) triggerBookAction(); }}
                                         style={{
                                             width: '55%',
                                             maxWidth: 220,

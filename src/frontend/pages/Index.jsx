@@ -196,6 +196,11 @@ const Index = () => {
     const { token } = useParams();
     
     const location = useLocation();
+    const manualBookingParams = new URLSearchParams(location.search || '');
+    const manualBookingRequested = ['1', 'true', 'yes'].includes((manualBookingParams.get('manualBooking') || '').toLowerCase());
+    const manualBookingToken = manualBookingParams.get('manualBookingToken') || '';
+    const isManualBookingFlow = manualBookingRequested && !!manualBookingToken;
+    const hasInvalidManualBookingLink = manualBookingRequested && !manualBookingToken;
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     const shopifyVoucherForcedRef = useRef(false);
     const shopifyPrefillInProgress = useRef(false);
@@ -483,6 +488,8 @@ const Index = () => {
     // Payment success popup state
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
     const [paymentSuccessData, setPaymentSuccessData] = useState(null);
+    const [paymentInviteExpanded, setPaymentInviteExpanded] = useState(false);
+    const [paymentInviteCopyMessage, setPaymentInviteCopyMessage] = useState('');
     
     
     
@@ -490,7 +497,64 @@ const Index = () => {
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
+        setPaymentInviteExpanded(false);
+        setPaymentInviteCopyMessage('');
+        if (paymentSuccessData?.manualBooking) {
+            return;
+        }
         navigateToMainSite();
+    };
+
+    const showBookingCompletionModal = ({ type, responseData, manualBooking = false }) => {
+        setPaymentSuccessData({
+            type,
+            id: responseData.id,
+            voucherCode: responseData.voucher_code || null,
+            voucherCodes: responseData.voucher_codes || null,
+            customerName: responseData.customer_name || null,
+            customerEmail: responseData.customer_email || null,
+            paidAmount: responseData.paid_amount ?? null,
+            quotedTotal: responseData.quoted_total ?? null,
+            inviteFriends: manualBooking ? null : (responseData.invite_friends || null),
+            message: type === 'booking' ? 'reservation' : 'voucher',
+            manualBooking
+        });
+        setPaymentInviteExpanded(false);
+        setPaymentInviteCopyMessage('');
+        setShowPaymentSuccess(true);
+    };
+
+    const handlePaymentInviteShare = async (channel, inviteFriends) => {
+        if (!inviteFriends?.enabled) {
+            return;
+        }
+
+        try {
+            if (channel === 'copy') {
+                if (!navigator?.clipboard?.writeText) {
+                    throw new Error('Clipboard is not available');
+                }
+
+                await navigator.clipboard.writeText(inviteFriends.bookingUrl || '');
+                setPaymentInviteCopyMessage('Booking link copied.');
+                return;
+            }
+
+            const shareUrl = inviteFriends?.shareLinks?.[channel];
+            if (!shareUrl) {
+                return;
+            }
+
+            if (channel === 'email' || channel === 'sms') {
+                window.location.href = shareUrl;
+                return;
+            }
+
+            window.open(shareUrl, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+            console.error('Invite Friends share action failed:', error);
+            alert('We could not complete that share action. Please try again.');
+        }
     };
     
     // Timeout functionality removed
@@ -2504,10 +2568,73 @@ const Index = () => {
         setVoucherData(null);
     };
 
+    const releaseActiveHold = async () => {
+        if (!holdActive) {
+            return;
+        }
+
+        try {
+            await axios.post(`${API_BASE_URL}/api/releaseHold`, {
+                sessionId: sessionId
+            });
+            setHoldActive(false);
+        } catch (error) {
+            console.error('❌ Error releasing hold:', error);
+        }
+    };
+
+    const completeManualBookingFlow = async ({ type, bookingData = null, voucherData = null, totalPrice, userSessionData }) => {
+        if (!isManualBookingFlow) {
+            throw new Error('Manual booking link is invalid or missing.');
+        }
+
+        try {
+            const manualSessionRes = await axios.post(`${API_BASE_URL}/api/create-manual-session`, {
+                totalPrice,
+                bookingData,
+                voucherData,
+                type,
+                userSessionData,
+                manualBookingToken
+            });
+
+            if (!manualSessionRes.data?.success || !manualSessionRes.data?.sessionId) {
+                throw new Error(manualSessionRes.data?.message || 'Manual booking session could not be created.');
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/api/createBookingFromSession`, {
+                session_id: manualSessionRes.data.sessionId,
+                type
+            });
+
+            if (!response.data?.success) {
+                throw new Error(response.data?.message || 'Manual booking could not be completed.');
+            }
+
+            await releaseActiveHold();
+            showBookingCompletionModal({
+                type,
+                responseData: response.data,
+                manualBooking: true
+            });
+            resetBooking();
+
+            return response.data;
+        } catch (error) {
+            await releaseActiveHold();
+            throw error;
+        }
+    };
+
     // Send Data To Backend
     const handleBookData = async () => {
         console.log("Book button clicked");
         console.log("API_BASE_URL:", API_BASE_URL);
+
+        if (hasInvalidManualBookingLink) {
+            alert('This manual booking link is incomplete. Please reopen the booking flow from the admin system.');
+            return;
+        }
 
         const resolveVoucherPassengerCount = () => {
             const voucherQuantity = parseInt(selectedVoucherType?.quantity, 10);
@@ -2624,6 +2751,16 @@ const Index = () => {
             try {
                 // Collect user session data
                 const userSessionData = collectUserSessionData();
+
+                if (isManualBookingFlow) {
+                    await completeManualBookingFlow({
+                        type: 'voucher',
+                        voucherData,
+                        totalPrice,
+                        userSessionData
+                    });
+                    return;
+                }
                 
                 // Stripe Checkout Session başlat - VOUCHER için
                 const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
@@ -2928,6 +3065,16 @@ const Index = () => {
         try {
             // Collect user session data
             const userSessionData = collectUserSessionData();
+
+            if (isManualBookingFlow) {
+                await completeManualBookingFlow({
+                    type: 'booking',
+                    bookingData,
+                    totalPrice,
+                    userSessionData
+                });
+                return;
+            }
             
             // Stripe Checkout Session başlat - BOOKING için
             const sessionRes = await axios.post(`${API_BASE_URL}/api/create-checkout-session`, {
@@ -4482,14 +4629,7 @@ const Index = () => {
                         await new Promise(r => setTimeout(r, 2000));
                         const statusResp = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
                         if (statusResp.data?.processed) {
-                            console.log('Session already processed on server, skipping fallback creation.');
-                            localStorage.setItem(processedKey, '1');
-                            // Fire Google Ads conversion (webhook ran first, so frontend must fire gtag for Tag Assistant)
-                            const convData = statusResp.data?.conversion_data;
-                            if (convData) {
-                                trackPurchaseCompleted(convData);
-                            }
-                            return; // Avoid duplicate creation
+                            console.log('Session already processed on server, fetching final booking summary via idempotent fallback.');
                         }
                         // Try creating from session (fallback) with a short retry in case the webhook is still finalising
                         let response;
@@ -4674,8 +4814,11 @@ const Index = () => {
                                 customerName: response.data.customer_name || null,
                                 customerEmail: response.data.customer_email || null,
                                 paidAmount: response.data.paid_amount || null,
+                                inviteFriends: response.data.invite_friends || null,
                                 message: type === 'booking' ? 'reservation' : 'voucher'
                             });
+                            setPaymentInviteExpanded(false);
+                            setPaymentInviteCopyMessage('');
                             setShowPaymentSuccess(true);
 
                             // Google Ads: GA_Purchase_Completed (client-side) with Enhanced Conversions user_data
@@ -5036,6 +5179,25 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
+                    {manualBookingRequested && (
+                        <div style={{
+                            marginBottom: '16px',
+                            padding: '14px 16px',
+                            borderRadius: '12px',
+                            background: hasInvalidManualBookingLink ? '#fff1f2' : '#eff6ff',
+                            border: hasInvalidManualBookingLink ? '1px solid #fecdd3' : '1px solid #bfdbfe',
+                            color: hasInvalidManualBookingLink ? '#9f1239' : '#1d4ed8'
+                        }}>
+                            <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                {hasInvalidManualBookingLink ? 'Manual booking link invalid' : 'Manual booking mode'}
+                            </strong>
+                            <span style={{ fontSize: '14px', lineHeight: 1.5 }}>
+                                {hasInvalidManualBookingLink
+                                    ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
+                                    : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
+                            </span>
+                        </div>
+                    )}
                     {/* Progress Bar - desktop: sticky at top, mobile: fixed above summary bar */}
                     {activitySelect && !isMobile && (
                         <div style={{
@@ -5744,6 +5906,7 @@ const Index = () => {
                                 voucherData={voucherData}
                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                 activityId={activityId}
+                                onBook={handleBookData}
                             />
                         </div>
                     </div>
@@ -5824,7 +5987,9 @@ const Index = () => {
                             fontWeight: '600',
                             marginBottom: '12px'
                         }}>
-                            Payment Successfully Received!
+                            {paymentSuccessData.manualBooking
+                                ? `Manual ${paymentSuccessData.type === 'booking' ? 'Booking' : 'Voucher'} Created!`
+                                : 'Payment Successfully Received!'}
                         </h2>
                         
                         <p style={{
@@ -5833,7 +5998,9 @@ const Index = () => {
                             marginBottom: '16px',
                             lineHeight: '1.4'
                         }}>
-                            Your {paymentSuccessData.message} has been created successfully.
+                            {paymentSuccessData.manualBooking
+                                ? `Your ${paymentSuccessData.message} has been created successfully without taking payment.`
+                                : `Your ${paymentSuccessData.message} has been created successfully.`}
                         </p>
                         
                         {/* Voucher Code Display - Always show for vouchers */}
@@ -5850,7 +6017,7 @@ const Index = () => {
                                 marginBottom: '8px',
                                 fontWeight: '500'
                             }}>
-                                Voucher Code:
+                                Reference Code:
                             </p>
                             {/* Handle multiple voucher codes for Buy Gift Voucher */}
                             {(() => {
@@ -5976,7 +6143,7 @@ const Index = () => {
                         )}
                         
                         {/* Paid Amount */}
-                        {paymentSuccessData.paidAmount && (
+                        {!paymentSuccessData.manualBooking && paymentSuccessData.paidAmount && (
                             <div style={{
                                 backgroundColor: '#f9fafb',
                                 borderRadius: '8px',
@@ -5997,6 +6164,148 @@ const Index = () => {
                                 }}>
                                     £{paymentSuccessData.paidAmount}
                                 </p>
+                            </div>
+                        )}
+
+                        {paymentSuccessData.manualBooking && paymentSuccessData.quotedTotal !== null && paymentSuccessData.quotedTotal !== undefined && (
+                            <div style={{
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '8px',
+                                padding: '14px',
+                                marginBottom: '12px'
+                            }}>
+                                <p style={{
+                                    color: '#374151',
+                                    fontSize: '14px',
+                                    marginBottom: '4px'
+                                }}>
+                                    Outstanding Amount:
+                                </p>
+                                <p style={{
+                                    color: '#2563eb',
+                                    fontSize: '18px',
+                                    fontWeight: '600'
+                                }}>
+                                    £{Number(paymentSuccessData.quotedTotal || 0).toFixed(2)}
+                                </p>
+                            </div>
+                        )}
+
+                        {paymentSuccessData.inviteFriends?.visible && (
+                            <div style={{
+                                background: paymentSuccessData.inviteFriends.enabled
+                                    ? 'linear-gradient(135deg, #fff7ed 0%, #fde7cf 100%)'
+                                    : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                marginBottom: '16px',
+                                border: `1px solid ${paymentSuccessData.inviteFriends.enabled ? '#f2d5b4' : '#d1d5db'}`,
+                                textAlign: 'left'
+                            }}>
+                                <p style={{
+                                    color: '#111827',
+                                    fontSize: '20px',
+                                    fontWeight: '700',
+                                    marginBottom: '8px'
+                                }}>
+                                    {paymentSuccessData.inviteFriends.title}
+                                </p>
+                                <p style={{
+                                    color: '#4b5563',
+                                    fontSize: '14px',
+                                    lineHeight: '1.5',
+                                    marginBottom: '8px'
+                                }}>
+                                    {paymentSuccessData.inviteFriends.description}
+                                </p>
+                                <p style={{
+                                    color: '#9a3412',
+                                    fontSize: '14px',
+                                    fontWeight: '700',
+                                    marginBottom: '14px'
+                                }}>
+                                    Use code {paymentSuccessData.inviteFriends.discountCode} to give your friends 10% off.
+                                </p>
+
+                                <button
+                                    onClick={() => {
+                                        setPaymentInviteExpanded((current) => !current);
+                                        setPaymentInviteCopyMessage('');
+                                    }}
+                                    disabled={!paymentSuccessData.inviteFriends.enabled}
+                                    style={{
+                                        width: '100%',
+                                        backgroundColor: paymentSuccessData.inviteFriends.enabled ? '#0f172a' : '#94a3b8',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '12px 18px',
+                                        fontSize: '15px',
+                                        fontWeight: '700',
+                                        cursor: paymentSuccessData.inviteFriends.enabled ? 'pointer' : 'not-allowed',
+                                        marginBottom: paymentInviteExpanded && paymentSuccessData.inviteFriends.enabled ? '14px' : '0'
+                                    }}
+                                >
+                                    {paymentSuccessData.inviteFriends.buttonLabel}
+                                </button>
+
+                                {paymentInviteExpanded && paymentSuccessData.inviteFriends.enabled && (
+                                    <div>
+                                        <div style={{
+                                            backgroundColor: 'rgba(255,255,255,0.8)',
+                                            borderRadius: '10px',
+                                            padding: '12px',
+                                            border: '1px solid #e7c9a7',
+                                            marginBottom: '12px',
+                                            whiteSpace: 'pre-wrap',
+                                            color: '#334155',
+                                            fontSize: '13px',
+                                            lineHeight: '1.5'
+                                        }}>
+                                            {paymentSuccessData.inviteFriends.shareMessage}
+                                        </div>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                                            gap: '10px'
+                                        }}>
+                                            {[
+                                                ['whatsapp', 'WhatsApp'],
+                                                ['sms', 'SMS'],
+                                                ['email', 'Email'],
+                                                ['copy', 'Copy Link']
+                                            ].map(([channel, label]) => (
+                                                <button
+                                                    key={channel}
+                                                    onClick={() => handlePaymentInviteShare(channel, paymentSuccessData.inviteFriends)}
+                                                    style={{
+                                                        backgroundColor: channel === 'copy' ? 'white' : '#0f172a',
+                                                        color: channel === 'copy' ? '#0f172a' : 'white',
+                                                        border: channel === 'copy' ? '1px solid #0f172a' : 'none',
+                                                        borderRadius: '10px',
+                                                        padding: '10px 12px',
+                                                        fontSize: '14px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {paymentInviteCopyMessage && (
+                                            <p style={{
+                                                color: '#047857',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                marginTop: '10px',
+                                                marginBottom: 0
+                                            }}>
+                                                {paymentInviteCopyMessage}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                         
