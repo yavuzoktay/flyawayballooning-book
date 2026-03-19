@@ -10,7 +10,10 @@ const normalizeQuestionText = (value = '') =>
         .trim()
         .toLowerCase()
         .replace(/\s+/g, ' ')
-        .replace(/[?]/g, '');
+        .replace(/[^a-z0-9\s]/g, '');
+
+const isShortNoticeQuestion = (value = '') =>
+    normalizeQuestionText(value).includes(normalizeQuestionText(SHORT_NOTICE_QUESTION_TEXT));
 
 const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {}, isDisabled = false, onSectionCompletion }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
@@ -243,7 +246,7 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     console.log('Filtered questions for journey type:', getCurrentJourneyType(), ':', filteredQuestions);
 
     const shortNoticeQuestion = filteredQuestions.find(question =>
-        normalizeQuestionText(question.question_text) === normalizeQuestionText(SHORT_NOTICE_QUESTION_TEXT)
+        isShortNoticeQuestion(question.question_text)
     );
     const shortNoticeFieldName = shortNoticeQuestion ? `question_${shortNoticeQuestion.id}` : null;
     const shortNoticeAnswer = shortNoticeFieldName ? additionalInfo?.[shortNoticeFieldName] : undefined;
