@@ -2,6 +2,16 @@ import React, { useState, forwardRef, useImperativeHandle, useEffect, useRef } f
 import Accordion from "../Common/Accordion";
 import config from '../../../config';
 
+const SHORT_NOTICE_QUESTION_TEXT = 'Would you like to receive short notice flight availability?';
+
+const normalizeQuestionText = (value = '') =>
+    value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[?]/g, '');
+
 const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFlight, isFlightVoucher, additionalInfo, setAdditionalInfo, activeAccordion, setActiveAccordion, flightType, location, errors = {}, isDisabled = false, onSectionCompletion }, ref) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [additionalInfoQuestions, setAdditionalInfoQuestions] = useState([]);
@@ -232,6 +242,12 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
     const filteredQuestions = getFilteredQuestions();
     console.log('Filtered questions for journey type:', getCurrentJourneyType(), ':', filteredQuestions);
 
+    const shortNoticeQuestion = filteredQuestions.find(question =>
+        normalizeQuestionText(question.question_text) === normalizeQuestionText(SHORT_NOTICE_QUESTION_TEXT)
+    );
+    const shortNoticeFieldName = shortNoticeQuestion ? `question_${shortNoticeQuestion.id}` : null;
+    const shortNoticeAnswer = shortNoticeFieldName ? additionalInfo?.[shortNoticeFieldName] : undefined;
+
     // Expose required keys to parent state so global summary can validate dynamically
     useEffect(() => {
         try {
@@ -246,6 +262,30 @@ const AdditionalInfo = forwardRef(({ isGiftVoucher, isRedeemVoucher, isBookFligh
             console.warn('Failed to set required keys for Additional Information', e);
         }
     }, [JSON.stringify(filteredQuestions)]);
+
+    useEffect(() => {
+        setAdditionalInfo(prev => {
+            if (!shortNoticeFieldName) {
+                if (!prev || !Object.prototype.hasOwnProperty.call(prev, 'shortNoticeAvailabilityOptOut')) {
+                    return prev;
+                }
+
+                const nextInfo = { ...prev };
+                delete nextInfo.shortNoticeAvailabilityOptOut;
+                return nextInfo;
+            }
+
+            const shouldOptOut = (shortNoticeAnswer || '').toString().trim().toLowerCase() === 'no';
+            if ((prev?.shortNoticeAvailabilityOptOut ?? false) === shouldOptOut) {
+                return prev;
+            }
+
+            return {
+                ...(prev || {}),
+                shortNoticeAvailabilityOptOut: shouldOptOut
+            };
+        });
+    }, [shortNoticeFieldName, shortNoticeAnswer, setAdditionalInfo]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
