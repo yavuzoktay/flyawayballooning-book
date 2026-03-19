@@ -1796,7 +1796,7 @@ const VoucherType = ({
                                     return `£${totalPrice.toFixed(2)} total`;
                                 } else {
                                     const totalPrice = basePrice * passengerCount;
-                                    return `£${basePrice} per person | Total: £${totalPrice.toFixed(2)}`;
+                                    return `£${basePrice} pp | Total: £${totalPrice.toFixed(2)}`;
                                 }
                             }
                         })()}
