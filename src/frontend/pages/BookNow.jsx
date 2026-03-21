@@ -60,8 +60,8 @@ const BookNow = () => {
         },
         {
             id: 3,
-            title: "Bristol Balloon Fiesta Flights",
-            subTitle: "Fiesta Flights",
+            title: "Bristol Flights",
+            subTitle: "Bristol",
             btnText: "Shop",
             Image: Category3,
         },
@@ -90,8 +90,8 @@ const BookNow = () => {
         },
         {
             categoryId: 3,
-            title: "Bristol Balloon Fiesta Flights",
-            subTitle: "Fiesta Flights",
+            title: "Bristol Flights",
+            subTitle: "Bristol",
             btnText: "Shop",
             Image: Category3,
         },

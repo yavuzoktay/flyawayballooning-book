@@ -5,7 +5,6 @@ import Image2 from '../../../assets/images/category2.jpeg';
 import Image3 from '../../../assets/images/category3.jpg';
 import Image4 from '../../../assets/images/category1.jpeg';
 import axios from "axios";
-import Modal from "../Common/Modal";
 import config from '../../../config';
 import { trackLocationSelected } from '../../../utils/googleAdsTracking';
 
@@ -13,14 +12,12 @@ const imageMap = {
     "Bath": Image1,
     "Devon": Image2,
     "Somerset": Image3,
-    "Bristol Fiesta": Image4,
+    "Bristol": Image4,
 };
 
 const API_BASE_URL = config.API_BASE_URL;
 
 const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType, onSectionCompletion, isDisabled = false }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [pendingLocation, setPendingLocation] = useState('');
     const [locations, setLocations] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
@@ -61,22 +58,23 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             });
     }, []);
 
-    // Terms for Bristol Fiesta
-    const bristolFiestaTerms = [
-        "Balloon flights are highly dependent on weather conditions and will only proceed if deemed safe by the flight director on the day of the event.",
-        "Fiesta Flights are strictly non-refundable under any circumstances and cannot be deferred to the following year's Bristol Balloon Fiesta.",
-        "If your 2025 Bristol Balloon Fiesta Flight is cancelled, your voucher will remain valid for 24 months and can be redeemed against the equivalent flight i.e a private or shared flight (excluding fiesta flights).",
-        "Due to high demand and very limited availability, we are unable to accommodate rescheduling requests during the Fiesta.",
-        "Flight premiums are strictly non-refundable under any circumstances due to the additional costs associated with attending the event.",
-        "If you are not happy with these terms and conditions please do not book this flight."
-    ];
+    const isPrivateVoucherSelection = () => {
+        const flightType = (chooseFlightType?.type || '').toLowerCase();
+        const voucherTitle = (selectedVoucherType?.title || '').toLowerCase();
 
-    // Special link for full terms and conditions
-    const termsLink = (
-        <a href="https://flyawayballooning.com/pages/terms-conditions" target="_blank" rel="noopener noreferrer" style={{color: '#03A9F4', textDecoration: 'underline'}}>
-            See full Terms & Conditions
-        </a>
-    );
+        return (
+            flightType.includes('private') ||
+            flightType.includes('proposal') ||
+            voucherTitle.includes('private') ||
+            voucherTitle.includes('proposal')
+        );
+    };
+
+    const shouldDisableLocation = (locName) => {
+        if (locName !== 'Bristol') return false;
+        if (!isRedeemVoucher) return false;
+        return !isPrivateVoucherSelection();
+    };
 
     // Get Activity Id   
 
@@ -130,19 +128,22 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
     }
 
     const handleLocationSelect = (locName) => {
-        // Disable Bristol Fiesta for Book Flight Date step
-        if (locName === "Bristol Fiesta") {
-            return; // Do nothing, location is disabled
+        if (shouldDisableLocation(locName)) {
+            setNotificationMessage("Bristol is available only for private vouchers.");
+            setShowNotification(true);
+            setTimeout(() => {
+                setShowNotification(false);
+            }, 3000);
+            return;
         }
-        // Remove modal for Bristol Fiesta, select directly
+
         confirmLocation(locName);
     };
 
     const confirmLocation = async (locName) => {
         setChooseLocation(locName);
         
-        // Google Ads: GA_Location_Selected (Stage 2) - Bath, Somerset, Devon only (not Bristol Fiesta)
-        if (['Bath', 'Somerset', 'Devon'].includes(locName)) {
+        if (['Bath', 'Somerset', 'Devon', 'Bristol'].includes(locName)) {
             trackLocationSelected(locName);
         }
         
@@ -229,18 +230,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
         }
     };
 
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-        setPendingLocation('');
-    };
-
-    const handleModalConfirm = () => {
-        setIsModalOpen(false);
-        if (pendingLocation) {
-            confirmLocation(pendingLocation);
-        }
-    };
-
     return (
         <>
             {/* Notification for location selection */}
@@ -278,7 +267,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     {isMobile ? (
                         // Mobile: Single column layout
                         locations.map((loc) => {
-                            const isDisabled = loc.name === "Bristol Fiesta";
+                            const isDisabled = shouldDisableLocation(loc.name);
                             return (
                                 <div 
                                     className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
@@ -294,23 +283,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                         height: 'auto'
                                     }}
                                 >
-                                    {loc.name === 'Bristol Fiesta' && (
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 10,
-                                            left: 10,
-                                            background: '#ff7a59',
-                                            color: '#fff',
-                                            padding: '6px 10px',
-                                            borderRadius: 16,
-                                            fontWeight: 700,
-                                            fontSize: 12,
-                                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                            zIndex: 3
-                                        }}>
-                                            Limited Availability
-                                        </div>
-                                    )}
                                     <img 
                                         src={loc.image} 
                                         alt={loc.name} 
@@ -375,7 +347,7 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                         Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
                             <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
                                 {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => {
-                                    const isDisabled = loc.name === "Bristol Fiesta";
+                                    const isDisabled = shouldDisableLocation(loc.name);
                                     return (
                                         <div 
                                             className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
@@ -388,23 +360,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                                                 position: 'relative'
                                             }}
                                         >
-                                            {loc.name === 'Bristol Fiesta' && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: 10,
-                                                    left: 10,
-                                                    background: '#ff7a59',
-                                                    color: '#fff',
-                                                    padding: '6px 10px',
-                                                    borderRadius: 16,
-                                                    fontWeight: 700,
-                                                    fontSize: 12,
-                                                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                                    zIndex: 3
-                                                }}>
-                                                    Limited Availability
-                                                </div>
-                                            )}
                                             <img src={loc.image} alt={loc.name} width="100%" onError={(e) => { e.target.style.display = 'none'; }} />
                                             <h3>{loc.name}</h3>
                                             <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
@@ -416,9 +371,6 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     )}
                 </div>
             </Accordion>
-
-            {/* Modal for Bristol Fiesta */}
-            {/* Modal removed as per new requirements */}
             
             {/* Mobile-specific CSS for better responsive design */}
             <style>{`

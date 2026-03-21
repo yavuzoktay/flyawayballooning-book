@@ -164,6 +164,24 @@ const Index = () => {
     useEffect(() => {
         chooseLocationRef.current = chooseLocation;
     }, [chooseLocation]);
+
+    useEffect(() => {
+        if (chooseLocation !== 'Bristol') return;
+
+        const flightType = (chooseFlightType?.type || '').toLowerCase();
+        const voucherTitle = (selectedVoucherType?.title || '').toLowerCase();
+        const hasSharedSelection = flightType.includes('shared') || (voucherTitle && !voucherTitle.includes('private') && !voucherTitle.includes('proposal'));
+
+        if (!hasSharedSelection) return;
+
+        setChooseFlightType({ type: '', passengerCount: '', price: '' });
+        setSelectedVoucherType(null);
+        setSelectedDate(null);
+        setSelectedTime(null);
+        setAvailabilities([]);
+        setHasLiveAvailabilityResponse(false);
+        setActiveAccordion('experience');
+    }, [chooseLocation, chooseFlightType?.type, selectedVoucherType?.title]);
     
     useEffect(() => {
         availabilitiesRef.current = availabilities;
@@ -347,7 +365,7 @@ const Index = () => {
 
     // Define progress sections based on activity type
     const progressSections = activitySelect === 'Book Flight' 
-        ? ['activity', 'location', 'experience', ...(chooseLocation !== 'Bristol Fiesta' ? ['voucher-type'] : []), 'live-availability', 'passenger-info', 'additional-info', 'add-on']
+        ? ['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
         : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
         ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'additional-info', 'add-on']
         : activitySelect === 'Buy Gift'
@@ -1630,9 +1648,7 @@ const Index = () => {
             // Required order: Location → Experience → Voucher Type → Live Availability
             sequence.push('location');
             sequence.push('experience');
-            if (currentLocation !== 'Bristol Fiesta') {
-                sequence.push('voucher-type');
-            }
+            sequence.push('voucher-type');
             sequence.push('live-availability');
             sequence.push('passenger-info');
             sequence.push('additional-info');
@@ -1849,7 +1865,6 @@ const Index = () => {
                 const shouldHaveAvailabilities = hasLocationAndActivity && (
                     (activitySelect === 'Book Flight' && (chooseFlightType?.type || (params.get('source') === 'shopify' && hasLocationAndActivity))) ||
                     (activitySelect === 'Redeem Voucher') ||
-                    (chooseLocation === 'Bristol Fiesta') ||
                     (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
                 );
                 
@@ -5370,37 +5385,35 @@ const Index = () => {
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('experience').isEnabled}
                                             />
-                                            {chooseLocation !== "Bristol Fiesta" && (
-                                                <VoucherType 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                    selectedVoucherType={selectedVoucherType} 
-                                                    setSelectedVoucherType={setSelectedVoucherType}
-                                                    activitySelect={activitySelect}
-                                                    chooseFlightType={chooseFlightType}
-                                                    chooseLocation={chooseLocation}
-                                                    selectedActivity={selectedActivity}
-                                                    availableCapacity={getAvailableCapacityForSelection()}
-                                                    selectedDate={selectedDate}
-                                                    selectedTime={selectedTime}
-                                                    onSectionCompletion={handleSectionCompletion}
-                                                    passengerData={passengerData}
-                                                    setPassengerData={setPassengerData}
-                                                    privateCharterWeatherRefund={privateCharterWeatherRefund}
-                                                    onTermsLoadingChange={(loading) => {
-                                                        setVoucherTermsLoading(loading);
-                                                        if (!loading) {
-                                                            voucherTermsLoadedRef.current = true;
-                                                            console.log('[ShopifyDebug] Terms and Conditions loaded');
-                                                        }
-                                                    }}
-                                                    onAccordionLoadingChange={(states) => {
-                                                        setAccordionLoadingStates(states);
-                                                    }}
-                                                    setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
-                                                    isDisabled={!getAccordionState('voucher-type').isEnabled}
-                                                />
-                                            )}
+                                            <VoucherType 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                selectedVoucherType={selectedVoucherType} 
+                                                setSelectedVoucherType={setSelectedVoucherType}
+                                                activitySelect={activitySelect}
+                                                chooseFlightType={chooseFlightType}
+                                                chooseLocation={chooseLocation}
+                                                selectedActivity={selectedActivity}
+                                                availableCapacity={getAvailableCapacityForSelection()}
+                                                selectedDate={selectedDate}
+                                                selectedTime={selectedTime}
+                                                onSectionCompletion={handleSectionCompletion}
+                                                passengerData={passengerData}
+                                                setPassengerData={setPassengerData}
+                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                onTermsLoadingChange={(loading) => {
+                                                    setVoucherTermsLoading(loading);
+                                                    if (!loading) {
+                                                        voucherTermsLoadedRef.current = true;
+                                                        console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                    }
+                                                }}
+                                                onAccordionLoadingChange={(states) => {
+                                                    setAccordionLoadingStates(states);
+                                                }}
+                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
+                                                isDisabled={!getAccordionState('voucher-type').isEnabled}
+                                            />
                                             <LiveAvailabilitySection 
                                                 isGiftVoucher={isGiftVoucher} 
                                                 isFlightVoucher={isFlightVoucher} 
@@ -5600,30 +5613,28 @@ const Index = () => {
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('experience').isEnabled}
                                             />
-                                            {chooseLocation !== "Bristol Fiesta" && (
-                                                <VoucherType 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                    selectedVoucherType={selectedVoucherType} 
-                                                    setSelectedVoucherType={setSelectedVoucherType}
-                                                    activitySelect={activitySelect}
-                                                    chooseFlightType={chooseFlightType}
-                                                    chooseLocation={chooseLocation}
-                                                    selectedActivity={selectedActivity}
-                                                    availableCapacity={getAvailableCapacityForSelection()}
-                                                    selectedDate={selectedDate}
-                                                    selectedTime={selectedTime}
-                                                    onSectionCompletion={handleSectionCompletion}
-                                                    isDisabled={!getAccordionState('voucher-type').isEnabled}
-                                                    onTermsLoadingChange={(loading) => {
-                                                        setVoucherTermsLoading(loading);
-                                                        if (!loading) {
-                                                            voucherTermsLoadedRef.current = true;
-                                                            console.log('[ShopifyDebug] Terms and Conditions loaded');
-                                                        }
-                                                    }}
-                                                />
-                                            )}
+                                            <VoucherType 
+                                                activeAccordion={activeAccordion} 
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                selectedVoucherType={selectedVoucherType} 
+                                                setSelectedVoucherType={setSelectedVoucherType}
+                                                activitySelect={activitySelect}
+                                                chooseFlightType={chooseFlightType}
+                                                chooseLocation={chooseLocation}
+                                                selectedActivity={selectedActivity}
+                                                availableCapacity={getAvailableCapacityForSelection()}
+                                                selectedDate={selectedDate}
+                                                selectedTime={selectedTime}
+                                                onSectionCompletion={handleSectionCompletion}
+                                                isDisabled={!getAccordionState('voucher-type').isEnabled}
+                                                onTermsLoadingChange={(loading) => {
+                                                    setVoucherTermsLoading(loading);
+                                                    if (!loading) {
+                                                        voucherTermsLoadedRef.current = true;
+                                                        console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                    }
+                                                }}
+                                            />
                                             <PassengerInfo
                                                 ref={passengerInfoRef}
                                                 isGiftVoucher={isGiftVoucher}
@@ -5720,7 +5731,7 @@ const Index = () => {
                                                     onSectionCompletion={handleSectionCompletion}
                                                 />
                                             )}
-                                            {activitySelect === "Buy Gift" && chooseLocation !== "Bristol Fiesta" && (
+                                            {activitySelect === "Buy Gift" && (
                                                 <VoucherType 
                                                     activeAccordion={activeAccordion} 
                                                     setActiveAccordion={handleSetActiveAccordionWithValidation} 
@@ -5848,7 +5859,7 @@ const Index = () => {
                                                 />
                                             )}
 
-                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && chooseLocation !== "Bristol Fiesta" && (
+                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && (
                                                 <AdditionalInfo 
                                                     ref={additionalInfoRef}
                                                     isGiftVoucher={isGiftVoucher} 

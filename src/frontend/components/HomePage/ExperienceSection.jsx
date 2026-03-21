@@ -174,12 +174,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         };
     }, [isMobile, experiences.length]);
 
-    // Determine if Bristol pricing should be used
-    const isBristol = useMemo(() => chooseLocation === 'Bristol Fiesta', [chooseLocation]);
-
-    // Bristol-specific prices
-    const bristolSharedPrice = 305;
-    const bristolPrivatePrices = { 2: 1200, 3: 1500 };
+    const isBristol = useMemo(() => chooseLocation === 'Bristol', [chooseLocation]);
 
     // Helper function to format price display
     const formatPriceDisplay = (price) => {
@@ -221,12 +216,6 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         };
     };
 
-    // Debug: Log when isBristol changes
-    useEffect(() => {
-        console.log('ExperienceSection: isBristol changed to:', isBristol);
-        console.log('ExperienceSection: chooseLocation is:', chooseLocation);
-    }, [isBristol, chooseLocation]);
-
     const lastFetchedLocationRef = useRef(null);
 
     // Fetch activities with flight types when location changes
@@ -262,25 +251,8 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         if (lastFetchedLocationRef.current === chooseLocation) return;
         lastFetchedLocationRef.current = chooseLocation;
 
-        if (isBristol) {
-            // For Bristol, set specific pricing data
-            setLocationPricing({
-                shared_flight_from_price: bristolSharedPrice,
-                private_charter_from_price: bristolPrivatePrices[2], // Use 2-person price as base
-                flight_type: ['Private', 'Shared'], // Use array format for consistency
-                experiences: ['Private Charter', 'Shared Flight'] // Map to experience names
-            });
-        } else {
-            fetchLocationPricing();
-        }
+        fetchLocationPricing();
     }, [chooseLocation, isBristol]);
-
-    // Debug: Log when locationPricing changes
-    useEffect(() => {
-        console.log('ExperienceSection: locationPricing updated:', locationPricing);
-        console.log('ExperienceSection: isBristol:', isBristol);
-        console.log('ExperienceSection: chooseLocation:', chooseLocation);
-    }, [locationPricing, isBristol, chooseLocation]);
 
     // Fetch experiences from API on component mount and when flight voucher status changes
     useEffect(() => {
@@ -309,15 +281,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     const getExperiences = useMemo(() => {
         // Define experiencesArray first
         const sharedPriceState = buildExperiencePriceState(
-            isBristol ? bristolSharedPrice : (locationPricing?.shared_flight_from_price || 180),
-            isBristol ? null : locationPricing?.shared_flight_from_sale_price
+            locationPricing?.shared_flight_from_price || 180,
+            locationPricing?.shared_flight_from_sale_price
         );
         const privatePriceState = buildExperiencePriceState(
-            isBristol ? (bristolPrivatePrices[2] / 2) : (locationPricing?.private_charter_from_price || 900),
-            isBristol ? null : locationPricing?.private_charter_from_sale_price
+            locationPricing?.private_charter_from_price || 900,
+            locationPricing?.private_charter_from_sale_price
         );
         const sharedPrice = sharedPriceState.currentPriceValue || 180;
-        const privatePrice = isBristol ? null : (privatePriceState.currentPriceValue || 900);
+        const privatePrice = privatePriceState.currentPriceValue || 900;
 
         console.log('ExperienceSection: getExperiences - isBristol:', isBristol);
         console.log('ExperienceSection: getExperiences - sharedPrice:', sharedPrice);
@@ -350,24 +322,17 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
             {
                 title: "Private Charter",
                 img: privateCharterImg,
-                price: isBristol 
-                    ? formatPriceDisplay(bristolPrivatePrices[2] / 2)
-                    : formatPriceDisplay(privatePrice || 900),
-                priceValue: isBristol ? (bristolPrivatePrices[2] / 2) : (privatePrice || 900),
-                originalPriceValue: isBristol ? (bristolPrivatePrices[2] / 2) : (privatePriceState.originalPriceValue || privatePrice || 900),
-                salePriceValue: isBristol ? null : privatePriceState.salePriceValue,
-                hasSalePrice: isBristol ? false : privatePriceState.hasSalePrice,
-                priceUnit: isBristol ? 'pp' : 'total',
-                desc: isBristol 
-                    ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
-                    : "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
+                price: formatPriceDisplay(privatePrice || 900),
+                priceValue: privatePrice || 900,
+                originalPriceValue: privatePriceState.originalPriceValue || privatePrice || 900,
+                salePriceValue: privatePriceState.salePriceValue,
+                hasSalePrice: privatePriceState.hasSalePrice,
+                priceUnit: 'total',
+                desc: "Private Charter balloon flights for 2,3,4 or 8 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends.",
                 details: [],
                 maxFlight: "",
-                passengerOptions: isBristol ? [2, 3] : [2, 3, 4, 8],
-                specialPrices: isBristol ? {
-                    2: bristolPrivatePrices[2] / 2,  // Price per person for 2 passengers
-                    3: bristolPrivatePrices[3] / 3   // Price per person for 3 passengers
-                } : {
+                passengerOptions: [2, 3, 4, 8],
+                specialPrices: {
                     2: privatePrice || 900,  // Total price for 2 passengers
                     3: privatePrice ? Math.round(privatePrice * 1.5) : 1050,  // Total price for 3 passengers
                     4: privatePrice ? Math.round(privatePrice * 2) : 1200,  // Total price for 4 passengers
@@ -388,8 +353,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 .filter((type, index, arr) => arr.indexOf(type) === index); // Remove duplicates
         }
 
-        // If no flight types from activities, try to get from locationPricing
-        if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
+        if (isBristol) {
+            allowedFlightTypes = ['Private Charter'];
+        } else if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
             allowedFlightTypes = locationPricing.experiences;
         }
 
@@ -406,7 +372,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
 
         console.log('ExperienceSection: Filtered experiences:', filteredExperiences);
         return filteredExperiences;
-    }, [locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation]);
+    }, [locationPricing, isBristol, activitiesWithFlightTypes, chooseLocation]);
 
     // Fetch experiences from API
     const fetchExperiences = async () => {
@@ -446,8 +412,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     .filter((type, index, arr) => arr.indexOf(type) === index);
             }
 
-            // If no flight types from activities, try to get from locationPricing
-            if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
+            if (isBristol) {
+                allowedFlightTypes = ['Private Charter'];
+            } else if (allowedFlightTypes.length === 0 && locationPricing?.experiences) {
                 allowedFlightTypes = locationPricing.experiences;
             }
 
@@ -491,13 +458,13 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     } else {
                         // Fallback to default pricing
                         if (exp.title.toLowerCase().includes('shared')) {
-                            price = isBristol ? bristolSharedPrice : 180;
+                            price = 180;
                             originalPriceValue = price;
                             priceUnit = 'pp';
                         } else if (exp.title.toLowerCase().includes('private')) {
-                            price = isBristol ? (bristolPrivatePrices[2] / 2) : 900;
+                            price = 900;
                             originalPriceValue = price;
-                            priceUnit = isBristol ? 'pp' : 'total';
+                            priceUnit = 'total';
                         }
                     }
                     
@@ -526,7 +493,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         
         // Fallback to default experiences only if not loading
         return getExperiences;
-    }, [experiences, experiencesLoading, locationPricing, isBristol, bristolSharedPrice, bristolPrivatePrices, activitiesWithFlightTypes, chooseLocation, getExperiences, cacheTimestamp]);
+    }, [experiences, experiencesLoading, locationPricing, isBristol, activitiesWithFlightTypes, chooseLocation, getExperiences, cacheTimestamp]);
 
     // Use finalExperiences instead of the old logic
     const filteredExperiences = finalExperiences || [];
@@ -560,8 +527,7 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         if (!passengerCount) {
             // If no passenger selected yet for Private Charter, default to minimum allowed
             if (type === 'Private Charter') {
-                const defaultPax = isBristol ? 2 : 2;
-                passengerCount = defaultPax;
+                passengerCount = 2;
                 console.log('Defaulting Private Charter pax to', passengerCount);
             } else {
                 console.error('No passenger count provided');
@@ -585,16 +551,12 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         // Calculate the correct price using priceValue and priceUnit
         let finalPrice, totalPrice;
         const isPrivate = type === 'Private Charter';
-        
+
         if (isBristol && !isPrivate) {
-            // Shared Flight, Bristol pricing
-            finalPrice = bristolSharedPrice;
-            totalPrice = bristolSharedPrice * passengerCount;
-        } else if (isBristol && isPrivate && (passengerCount === 2 || passengerCount === 3)) {
-            // Private Flight, Bristol pricing for 2 or 3
-            finalPrice = bristolPrivatePrices[passengerCount];
-            totalPrice = bristolPrivatePrices[passengerCount];
-        } else if (isPrivate) {
+            return;
+        }
+
+        if (isPrivate) {
             if (selectedExp.specialPrices && selectedExp.specialPrices[passengerCount]) {
                 // Use special pricing if available (fallback experiences)
                 const totalForGroup = selectedExp.specialPrices[passengerCount];

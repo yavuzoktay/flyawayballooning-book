@@ -51,24 +51,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
     
-    // Bristol Fiesta için Ağustos ayı mantığı, diğer lokasyonlar için güncel ay
     useEffect(() => {
-        if (chooseLocation === "Bristol Fiesta") {
-            const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth(); // 0-11, Ağustos = 7
-            
-            // Eğer şu anki ay Ağustos'tan sonraysa, gelecek yılın Ağustos'unu göster
-            // Eğer şu anki ay Ağustos'tan önceyse, bu yılın Ağustos'unu göster
-            let targetYear = currentYear;
-            if (currentMonth > 7) { // Ağustos'tan sonra
-                targetYear = currentYear + 1;
-            }
-            
-            // Ağustos ayını hedefle (month = 7, 0-indexed)
-            const augustDate = new Date(targetYear, 7, 1);
-            setCurrentDate(augustDate);
-        } else if (chooseLocation) {
-            // Diğer lokasyonlar için güncel aya dön
+        if (chooseLocation) {
             const now = new Date();
             setCurrentDate(now);
         }
@@ -79,7 +63,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     useEffect(() => {
         const isSharedFlight = (chooseFlightType?.type || '').toLowerCase().includes('shared');
         if (!isSharedFlight) return;
-        if (chooseLocation === "Bristol Fiesta") return; // Bristol özel mantığına dokunma
         if (activeAccordion !== 'live-availability') return; // Sadece Live Availability açıldığında uygula
 
         const now = new Date();
@@ -102,70 +85,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             setCurrentDate(targetDate);
         }
     }, [chooseFlightType, chooseLocation, activeAccordion]);
-
-    // Bristol Fiesta için müsaitlik kontrolü - Ağustos aylarında müsaitlik var mı kontrol et
-    useEffect(() => {
-        if (chooseLocation === "Bristol Fiesta") {
-            // Müsaitlik verisi henüz yüklenmemişse, sadece Ağustos ayına geç
-            if (!availabilities || availabilities.length === 0) {
-                const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth();
-                
-                let startYear = currentYear;
-                if (currentMonth > 7) { // Ağustos'tan sonra
-                    startYear = currentYear + 1;
-                }
-                
-                const augustDate = new Date(startYear, 7, 1);
-                setCurrentDate(augustDate);
-                console.log(`Bristol Fiesta: No availabilities loaded yet, setting to August ${startYear}`);
-                return;
-            }
-            
-            const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth();
-            
-            // Başlangıç yılı belirle
-            let startYear = currentYear;
-            if (currentMonth > 7) { // Ağustos'tan sonra
-                startYear = currentYear + 1;
-            }
-            
-            // Ağustos aylarında müsaitlik kontrolü (maksimum 5 yıl ileriye bak)
-            let targetYear = startYear;
-            let foundAvailability = false;
-            
-            for (let year = startYear; year <= startYear + 5; year++) {
-                const augustDate = new Date(year, 7, 1); // Ağustos ayı
-                const yearMonth = format(augustDate, 'yyyy-MM');
-                
-                // Bu yılın Ağustos ayında müsaitlik var mı kontrol et
-                const augustAvailabilities = availabilities.filter(a => {
-                    if (!a.date) return false;
-                    const availabilityDate = new Date(a.date);
-                    const availabilityYearMonth = format(availabilityDate, 'yyyy-MM');
-                    return availabilityYearMonth === yearMonth && 
-                           (a.status === 'Open' || a.status === 'open') && 
-                           a.capacity > 0;
-                });
-                
-                if (augustAvailabilities.length > 0) {
-                    targetYear = year;
-                    foundAvailability = true;
-                    break;
-                }
-            }
-            
-            // Müsaitlik bulunan yılın Ağustos ayına geç
-            if (foundAvailability) {
-                const targetAugustDate = new Date(targetYear, 7, 1);
-                setCurrentDate(targetAugustDate);
-                console.log(`Bristol Fiesta: Found availability in August ${targetYear}, switching to that month`);
-            } else {
-                console.log(`Bristol Fiesta: No availability found in August for years ${startYear}-${startYear + 5}`);
-            }
-        }
-    }, [chooseLocation, availabilities]);
     
     // Notification state for time selection
     const [showNotification, setShowNotification] = useState(false);
@@ -179,7 +98,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [requestFlightType, setRequestFlightType] = useState("");
     const [requestDate, setRequestDate] = useState("");
     const [requestTime, setRequestTime] = useState("");
-    const allLocations = ["Bath", "Devon", "Somerset", "Bristol Fiesta"];
+    const allLocations = ["Bath", "Devon", "Somerset", "Bristol"];
     const allFlightTypes = ["Book Flight Date", "Buy Flight Voucher", "Redeem Voucher", "Buy Gift Voucher"];
     const [requestSuccess, setRequestSuccess] = useState("");
     const [requestError, setRequestError] = useState("");
@@ -268,7 +187,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Check if location and experience are selected
     // For Book Flight: need flight type (voucher type filtering happens later in the filter function, so we allow filtering even without voucher type)
     // For Redeem Voucher: only need location and activity
-    // For Bristol Fiesta: only need location and activity (no voucher type required)
     // For Shopify flow: if selectedActivity exists, allow showing availabilities even if chooseFlightType is temporarily reset
     const isShopifyFlow = (() => {
         try {
@@ -306,20 +224,9 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         hasLocationAndActivity && (
             (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData || bingBrowserWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data OR if Bing browser with availabilities data
         (activitySelect === 'Redeem Voucher') ||
-        (chooseLocation === 'Bristol Fiesta') || // Bristol Fiesta için sadece lokasyon ve aktivite yeterli
         (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
         )
     );
-    
-    // Terms for Bristol Fiesta
-    const bristolFiestaTerms = [
-        "Ballooning is a weather dependent activity.",
-        "Your voucher is valid for 24 months.",
-        "Without the weather refundable option your voucher is non-refundable under any circumstances. However, re-bookable as needed within voucher validity period.",
-        "If you make 10 attempts to fly within 24 months which are cancelled by us, we will extend your voucher for a further 12 months free of charge.",
-        "Within 48 hours of your flight no changes or cancellations can be made.",
-        "Your flight will never expire so long as you meet the terms & conditions. "
-    ];
     
     // Detect Chrome browser for loading state management
     const isChromeBrowser = (() => {
@@ -351,7 +258,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
             const shouldHaveAvailabilities = hasLocationAndActivity && (
                 (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity))) ||
                 (activitySelect === 'Redeem Voucher') ||
-                (chooseLocation === 'Bristol Fiesta') ||
                 (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
             );
             
@@ -439,23 +345,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     
 
     const handlePrevMonth = () => {
-        if (chooseLocation === "Bristol Fiesta") {
-            // Bristol Fiesta için sadece Ağustos ayları arasında geçiş yap
-            const prevAugust = subMonths(currentDate, 12); // 1 yıl önceki Ağustos
-            setCurrentDate(prevAugust);
-        } else {
-            setCurrentDate(subMonths(currentDate, 1));
-        }
+        setCurrentDate(subMonths(currentDate, 1));
     };
 
     const handleNextMonth = () => {
-        if (chooseLocation === "Bristol Fiesta") {
-            // Bristol Fiesta için sadece Ağustos ayları arasında geçiş yap
-            const nextAugust = addMonths(currentDate, 12); // 1 yıl sonraki Ağustos
-            setCurrentDate(nextAugust);
-        } else {
-            setCurrentDate(addMonths(currentDate, 1));
-        }
+        setCurrentDate(addMonths(currentDate, 1));
     };
 
     // Minimum swipe distance (in px)
@@ -1055,7 +949,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         const chromeShouldFilter = hasLocationAndActivity && (
             (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) ||
             (activitySelect === 'Redeem Voucher') ||
-            (chooseLocation === 'Bristol Fiesta') ||
             (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
         );
         
@@ -1844,8 +1737,8 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <Modal
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
-                        title={activitySelect === 'Redeem Voucher' ? "Select Location & Experience" : "Bristol Balloon Fiesta - Terms & Conditions"}
-                        bulletPoints={activitySelect === 'Redeem Voucher' ? ["Please select a flight location and experience first to view available dates and times."] : bristolFiestaTerms}
+                        title="Select Location & Experience"
+                        bulletPoints={["Please select a flight location and experience first to view available dates and times."]}
                     />
                     :
                     ""
