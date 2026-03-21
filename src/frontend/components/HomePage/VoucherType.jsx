@@ -196,6 +196,14 @@ const resolveVoucherPricing = ({ originalPrice, salePrice, fallbackPrice }) => {
     };
 };
 
+const hasMeaningfulSalePrice = (originalPrice, currentPrice) => {
+    const original = parsePriceNumber(originalPrice);
+    const current = parsePriceNumber(currentPrice);
+
+    if (original === null || current === null) return false;
+    return current < original;
+};
+
 const getSharedActivityPriceFieldNames = (title) => {
     return SHARED_VOUCHER_PRICE_FIELDS[normalizeVoucherPriceTitle(title)] || null;
 };
@@ -1476,7 +1484,32 @@ const VoucherType = ({
                 privateCharterDisplayTotal = originalTierPrice;
                 privateCharterHasSalePrice = false;
             }
+
+            if (!privateCharterHasSalePrice) {
+                privateCharterHasSalePrice = hasMeaningfulSalePrice(privateCharterOriginalTotal, privateCharterDisplayTotal);
+            }
         }
+        const sharedPricingState = chooseFlightType?.type === 'Shared Flight'
+            ? resolveVoucherPricing({
+                originalPrice:
+                    voucher.originalBasePrice
+                    ?? getSharedActivityOriginalPrice(activityData, voucher.title)
+                    ?? getSharedActivityOriginalPrice(locationPricing, voucher.title)
+                    ?? voucher.basePrice
+                    ?? voucher.price,
+                salePrice:
+                    voucher.saleBasePrice
+                    ?? getSharedActivitySalePrice(activityData, voucher.title)
+                    ?? getSharedActivitySalePrice(locationPricing, voucher.title)
+                    ?? (voucher.hasSalePrice ? (voucher.basePrice || voucher.price) : null),
+                fallbackPrice: voucher.basePrice || voucher.price
+            })
+            : null;
+        const sharedDisplayBasePrice = sharedPricingState?.currentPrice ?? voucher.basePrice ?? voucher.price;
+        const sharedOriginalBasePrice = sharedPricingState?.originalPrice ?? sharedDisplayBasePrice;
+        const sharedHasSalePrice = sharedPricingState
+            ? (sharedPricingState.hasSalePrice || hasMeaningfulSalePrice(sharedOriginalBasePrice, sharedDisplayBasePrice))
+            : !!voucher.hasSalePrice;
         const isBuyVoucherFlow = activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift';
         const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
         const cardMinHeight = (() => {
@@ -1869,12 +1902,12 @@ const VoucherType = ({
 
                                 return `£${formatVoucherAmount(currentTotalPrice)} total`;
                             } else {
-                                const basePrice = voucher.basePrice || voucher.price;
-                                const originalBasePrice = voucher.originalBasePrice || basePrice;
+                                const basePrice = sharedDisplayBasePrice;
+                                const originalBasePrice = sharedOriginalBasePrice;
                                 if (weatherRefundEnabled) {
                                     const weatherRefundCost = 47.50 * passengerCount;
                                     const totalPrice = (basePrice * passengerCount) + weatherRefundCost;
-                                    if (voucher.hasSalePrice) {
+                                    if (sharedHasSalePrice) {
                                         return (
                                             <>
                                                 <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
@@ -1886,7 +1919,7 @@ const VoucherType = ({
                                 }
 
                                 const totalPrice = basePrice * passengerCount;
-                                if (voucher.hasSalePrice) {
+                                if (sharedHasSalePrice) {
                                     return (
                                         <>
                                             <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
@@ -2143,6 +2176,10 @@ const VoucherType = ({
                 hasSalePrice = false;
             }
 
+            if (!hasSalePrice) {
+                hasSalePrice = hasMeaningfulSalePrice(effectiveOriginalBasePrice, effectiveBasePrice);
+            }
+
             totalPrice = (effectiveBasePrice || 0);
             console.log('VoucherType: Private Charter total pricing (no per-passenger multiply):', totalPrice);
         } else if (voucher.priceUnit === 'total') {
@@ -2150,6 +2187,26 @@ const VoucherType = ({
             totalPrice = effectiveBasePrice || voucher.price;
             console.log('VoucherType: Using total pricing:', totalPrice);
         } else {
+            const sharedPricingState = resolveVoucherPricing({
+                originalPrice:
+                    voucher.originalBasePrice
+                    ?? getSharedActivityOriginalPrice(activityData, voucher.title)
+                    ?? getSharedActivityOriginalPrice(locationPricing, voucher.title)
+                    ?? voucher.basePrice
+                    ?? voucher.price,
+                salePrice:
+                    voucher.saleBasePrice
+                    ?? getSharedActivitySalePrice(activityData, voucher.title)
+                    ?? getSharedActivitySalePrice(locationPricing, voucher.title)
+                    ?? (voucher.hasSalePrice ? (voucher.basePrice || voucher.price) : null),
+                fallbackPrice: voucher.basePrice || voucher.price
+            });
+
+            effectiveBasePrice = sharedPricingState.currentPrice ?? effectiveBasePrice ?? voucher.price;
+            effectiveOriginalBasePrice = sharedPricingState.originalPrice ?? effectiveOriginalBasePrice ?? effectiveBasePrice;
+            effectiveSaleBasePrice = sharedPricingState.salePrice;
+            hasSalePrice = sharedPricingState.hasSalePrice || hasMeaningfulSalePrice(effectiveOriginalBasePrice, effectiveBasePrice);
+
             // For per-person pricing, multiply by quantity
             totalPrice = (effectiveBasePrice || voucher.price) * safeQuantity;
             console.log('VoucherType: Using per-person pricing:', effectiveBasePrice || voucher.price, '×', safeQuantity, '=', totalPrice);
