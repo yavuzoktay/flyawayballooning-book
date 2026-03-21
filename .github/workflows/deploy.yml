@@ -1,4 +1,4 @@
-name: Build and Deploy build.tar.gz to S3 
+name: Build and Deploy build.tar.gz to S3
 
 on:
   push:
@@ -33,3 +33,51 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
+
+      - name: Deploy build to EC2 public directory
+        env:
+          SSH_HOSTS: ${{ secrets.SSH_HOSTS }}
+          SSH_HOST_SINGLE: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -e
+
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "SSH_PRIVATE_KEY is not configured for this repository, skipping EC2 deploy."
+            exit 0
+          fi
+
+          echo "$SSH_PRIVATE_KEY" > deploy_key
+          chmod 600 deploy_key
+
+          if [ -z "$SSH_HOSTS" ]; then
+            if [ -n "$SSH_HOST_SINGLE" ]; then
+              SSH_HOSTS="$SSH_HOST_SINGLE"
+            else
+              SSH_HOSTS="54.174.83.100"
+            fi
+          fi
+
+          echo "Deploy targets: $SSH_HOSTS"
+
+          for HOST in $(echo "$SSH_HOSTS" | tr ',' ' '); do
+            echo "=== Deploying flyawayballooning-book to $HOST ==="
+
+            ssh -i deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@$HOST "mkdir -p /home/ec2-user/flyawayballooning-book"
+            scp -i deploy_key -o StrictHostKeyChecking=no build.tar.gz ec2-user@$HOST:/home/ec2-user/flyawayballooning-book/build.tar.gz
+
+            ssh -i deploy_key -o StrictHostKeyChecking=no ec2-user@$HOST '
+              set -e
+              cd /home/ec2-user/flyawayballooning-book
+              rm -rf build
+              tar -xzf build.tar.gz
+              mkdir -p public
+              find public -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+              cp -R build/* public/
+              chmod -R u+rwX,go+rX public
+              find public -type f -exec chmod 644 {} \;
+              find public -type d -exec chmod 755 {} \;
+              echo "Deployed files:"
+              ls -la public | sed -n "1,20p"
+            '
+          done
