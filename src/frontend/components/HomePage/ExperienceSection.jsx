@@ -196,6 +196,25 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         return numPrice.toFixed(2).replace(/\.?0+$/, '');
     };
 
+    const parseExperiencePrice = (value) => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = parseFloat(String(value).replace(/,/g, '').trim());
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const buildExperiencePriceState = (originalPrice, salePrice) => {
+        const resolvedOriginal = parseExperiencePrice(originalPrice);
+        const resolvedSale = parseExperiencePrice(salePrice);
+        const currentPrice = resolvedSale !== null ? resolvedSale : resolvedOriginal;
+
+        return {
+            originalPriceValue: resolvedOriginal,
+            salePriceValue: resolvedSale,
+            currentPriceValue: currentPrice,
+            hasSalePrice: resolvedSale !== null
+        };
+    };
+
     // Debug: Log when isBristol changes
     useEffect(() => {
         console.log('ExperienceSection: isBristol changed to:', isBristol);
@@ -283,8 +302,16 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
     // Create dynamic experiences based on location pricing and activity flight types
     const getExperiences = useMemo(() => {
         // Define experiencesArray first
-        const sharedPrice = isBristol ? bristolSharedPrice : (locationPricing?.shared_flight_from_price || 180);
-        const privatePrice = isBristol ? null : (locationPricing?.private_charter_from_price || 900);
+        const sharedPriceState = buildExperiencePriceState(
+            isBristol ? bristolSharedPrice : (locationPricing?.shared_flight_from_price || 180),
+            isBristol ? null : locationPricing?.shared_flight_from_sale_price
+        );
+        const privatePriceState = buildExperiencePriceState(
+            isBristol ? (bristolPrivatePrices[2] / 2) : (locationPricing?.private_charter_from_price || 900),
+            isBristol ? null : locationPricing?.private_charter_from_sale_price
+        );
+        const sharedPrice = sharedPriceState.currentPriceValue || 180;
+        const privatePrice = isBristol ? null : (privatePriceState.currentPriceValue || 900);
 
         console.log('ExperienceSection: getExperiences - isBristol:', isBristol);
         console.log('ExperienceSection: getExperiences - sharedPrice:', sharedPrice);
@@ -305,6 +332,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 img: sharedFlightImg,
                 price: formatPriceDisplay(sharedPrice),
                 priceValue: sharedPrice,
+                originalPriceValue: sharedPriceState.originalPriceValue ?? sharedPrice,
+                salePriceValue: sharedPriceState.salePriceValue,
+                hasSalePrice: sharedPriceState.hasSalePrice,
                 priceUnit: 'pp',
                 desc: "Join a Shared Flight with a maximum of 8 passengers. Perfect for Solo Travellers, Couples and Groups looking to Celebrate Special Occasions or Experience Ballooning.",
                 details: [],
@@ -318,6 +348,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                     ? formatPriceDisplay(bristolPrivatePrices[2] / 2)
                     : formatPriceDisplay(privatePrice || 900),
                 priceValue: isBristol ? (bristolPrivatePrices[2] / 2) : (privatePrice || 900),
+                originalPriceValue: isBristol ? (bristolPrivatePrices[2] / 2) : (privatePriceState.originalPriceValue || privatePrice || 900),
+                salePriceValue: isBristol ? null : privatePriceState.salePriceValue,
+                hasSalePrice: isBristol ? false : privatePriceState.hasSalePrice,
                 priceUnit: isBristol ? 'pp' : 'total',
                 desc: isBristol 
                     ? "Private Charter balloon flights for 2 or 3 passengers. Mostly purchased for Significant Milestones, Proposals, Major Birthdays, Families or Groups of Friends."
@@ -422,23 +455,42 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                 return filteredExperiences.map(exp => {
                     // Get pricing from selected activity based on experience type
                     let price = '';
+                    let originalPriceValue = null;
+                    let salePriceValue = null;
+                    let hasSalePrice = false;
                     let priceUnit = 'pp';
                     
                     if (locationPricing) {
                         if (exp.title.toLowerCase().includes('shared')) {
-                            price = locationPricing.shared_flight_from_price || 180;
+                            const sharedState = buildExperiencePriceState(
+                                locationPricing.shared_flight_from_price || 180,
+                                locationPricing.shared_flight_from_sale_price
+                            );
+                            price = sharedState.currentPriceValue || 180;
+                            originalPriceValue = sharedState.originalPriceValue ?? price;
+                            salePriceValue = sharedState.salePriceValue;
+                            hasSalePrice = sharedState.hasSalePrice;
                             priceUnit = 'pp';
                         } else if (exp.title.toLowerCase().includes('private')) {
-                            price = locationPricing.private_charter_from_price || 900;
+                            const privateState = buildExperiencePriceState(
+                                locationPricing.private_charter_from_price || 900,
+                                locationPricing.private_charter_from_sale_price
+                            );
+                            price = privateState.currentPriceValue || 900;
+                            originalPriceValue = privateState.originalPriceValue ?? price;
+                            salePriceValue = privateState.salePriceValue;
+                            hasSalePrice = privateState.hasSalePrice;
                             priceUnit = 'total';
                         }
                     } else {
                         // Fallback to default pricing
                         if (exp.title.toLowerCase().includes('shared')) {
                             price = isBristol ? bristolSharedPrice : 180;
+                            originalPriceValue = price;
                             priceUnit = 'pp';
                         } else if (exp.title.toLowerCase().includes('private')) {
                             price = isBristol ? (bristolPrivatePrices[2] / 2) : 900;
+                            originalPriceValue = price;
                             priceUnit = isBristol ? 'pp' : 'total';
                         }
                     }
@@ -453,6 +505,9 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                         img: imageUrlWithCache, // Add cache-busting timestamp
                         price: formatPriceDisplay(price),
                         priceValue: price,
+                        originalPriceValue: originalPriceValue ?? price,
+                        salePriceValue: salePriceValue,
+                        hasSalePrice: hasSalePrice,
                         priceUnit: priceUnit,
                         desc: exp.description || 'No description available',
                         details: [],
@@ -842,9 +897,24 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 {experience.desc}
                             </div>
                             <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 20 }}>
-                                {experience.title === 'Shared Flight' 
-                                    ? `From £${experience.price} per person` 
-                                    : `From £${experience.price} per flight`}
+                                {experience.hasSalePrice ? (
+                                    <>
+                                        <span style={{ textDecoration: 'line-through', color: '#9ca3af', marginRight: 8 }}>
+                                            {experience.title === 'Shared Flight'
+                                                ? `From £${formatPriceDisplay(experience.originalPriceValue)} per person`
+                                                : `From £${formatPriceDisplay(experience.originalPriceValue)} per flight`}
+                                        </span>
+                                        <span>
+                                            {experience.title === 'Shared Flight'
+                                                ? `From £${experience.price} per person`
+                                                : `From £${experience.price} per flight`}
+                                        </span>
+                                    </>
+                                ) : (
+                                    experience.title === 'Shared Flight' 
+                                        ? `From £${experience.price} per person` 
+                                        : `From £${experience.price} per flight`
+                                )}
                             </div>
                             <button
                                 style={{
@@ -946,9 +1016,24 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
                                 <div style={{ borderBottom: '1px solid #e0e0e0', margin: '6px 0 12px 0' }} />
                                 <div style={{ fontSize: 14, color: '#444', marginBottom: 12, lineHeight: '1.4', flex: '1' }}>{experience.desc}</div>
                                 <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 12 }}>
-                                    {experience.title === 'Shared Flight' 
-                                        ? `From £${experience.price} per person` 
-                                        : `From £${experience.price} per flight`}
+                                    {experience.hasSalePrice ? (
+                                        <>
+                                            <span style={{ textDecoration: 'line-through', color: '#9ca3af', marginRight: 8 }}>
+                                                {experience.title === 'Shared Flight'
+                                                    ? `From £${formatPriceDisplay(experience.originalPriceValue)} per person`
+                                                    : `From £${formatPriceDisplay(experience.originalPriceValue)} per flight`}
+                                            </span>
+                                            <span>
+                                                {experience.title === 'Shared Flight'
+                                                    ? `From £${experience.price} per person`
+                                                    : `From £${experience.price} per flight`}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        experience.title === 'Shared Flight' 
+                                            ? `From £${experience.price} per person` 
+                                            : `From £${experience.price} per flight`
+                                    )}
                                 </div>
                                 <button
                                     style={{

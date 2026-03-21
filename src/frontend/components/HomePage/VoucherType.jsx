@@ -141,6 +141,117 @@ const scrollbarStyles = `
     }
 `;
 
+const SHARED_VOUCHER_PRICE_FIELDS = {
+    'weekday morning': {
+        original: 'weekday_morning_price',
+        sale: 'weekday_morning_sale_price'
+    },
+    'flexible weekday': {
+        original: 'flexible_weekday_price',
+        sale: 'flexible_weekday_sale_price'
+    },
+    'any day flight': {
+        original: 'any_day_flight_price',
+        sale: 'any_day_flight_sale_price'
+    }
+};
+
+const normalizeVoucherPriceTitle = (title) => (title || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+
+const parsePriceNumber = (value) => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const parsed = parseFloat(String(value).replace(/,/g, '').trim());
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const formatVoucherAmount = (value) => {
+    const parsed = parsePriceNumber(value);
+    if (parsed === null) return '0';
+    if (Number.isInteger(parsed)) return parsed.toString();
+    return parsed.toFixed(2).replace(/\.?0+$/, '');
+};
+
+const formatVoucherTotal = (value) => {
+    const parsed = parsePriceNumber(value) || 0;
+    return parsed.toFixed(2);
+};
+
+const resolveVoucherPricing = ({ originalPrice, salePrice, fallbackPrice }) => {
+    const resolvedOriginal = parsePriceNumber(
+        originalPrice !== undefined && originalPrice !== null && originalPrice !== ''
+            ? originalPrice
+            : fallbackPrice
+    );
+    const resolvedSale = parsePriceNumber(salePrice);
+    const currentPrice = resolvedSale !== null ? resolvedSale : resolvedOriginal;
+
+    return {
+        originalPrice: resolvedOriginal,
+        salePrice: resolvedSale,
+        currentPrice,
+        hasSalePrice: resolvedSale !== null
+    };
+};
+
+const getSharedActivityPriceFieldNames = (title) => {
+    return SHARED_VOUCHER_PRICE_FIELDS[normalizeVoucherPriceTitle(title)] || null;
+};
+
+const getSharedActivityOriginalPrice = (pricingSource, title) => {
+    const fieldNames = getSharedActivityPriceFieldNames(title);
+    if (!fieldNames || !pricingSource) return null;
+    return parsePriceNumber(pricingSource[fieldNames.original]);
+};
+
+const getSharedActivitySalePrice = (pricingSource, title) => {
+    const fieldNames = getSharedActivityPriceFieldNames(title);
+    if (!fieldNames || !pricingSource) return null;
+    return parsePriceNumber(pricingSource[fieldNames.sale]);
+};
+
+const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
+    if (pricingDataRaw == null) return null;
+
+    let pricingData = pricingDataRaw;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (typeof pricingData !== 'string') break;
+        try {
+            pricingData = JSON.parse(pricingData);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return null;
+
+    const titleNorm = normalizeVoucherPriceTitle(voucherTitleRaw);
+    const resolveForTitle = (obj, title) => {
+        if (!obj || typeof obj !== 'object') return undefined;
+        if (obj[title] != null) return obj[title];
+        if (obj[title?.trim?.()] != null) return obj[title.trim()];
+        for (const key of Object.keys(obj)) {
+            if (normalizeVoucherPriceTitle(key) === titleNorm) {
+                return obj[key];
+            }
+        }
+        return undefined;
+    };
+
+    const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+    if (byTitle == null) return null;
+
+    if (typeof byTitle === 'object' && !Array.isArray(byTitle)) {
+        const key = String([2, 3, 4, 8].includes(passengers) ? passengers : 2);
+        const value = byTitle[key] ?? byTitle['2'];
+        return parsePriceNumber(value);
+    }
+
+    return parsePriceNumber(byTitle);
+};
+
 const VoucherType = ({ 
     activeAccordion, 
     setActiveAccordion = () => {}, 
@@ -674,8 +785,11 @@ const VoucherType = ({
             const activity = selectedActivity[0];
             const newPricing = {
                 weekday_morning_price: parseFloat(activity.weekday_morning_price) || 180,
+                weekday_morning_sale_price: parsePriceNumber(activity.weekday_morning_sale_price),
                 flexible_weekday_price: parseFloat(activity.flexible_weekday_price) || 200,
-                any_day_flight_price: parseFloat(activity.any_day_flight_price) || 220
+                flexible_weekday_sale_price: parsePriceNumber(activity.flexible_weekday_sale_price),
+                any_day_flight_price: parseFloat(activity.any_day_flight_price) || 220,
+                any_day_flight_sale_price: parsePriceNumber(activity.any_day_flight_sale_price)
             };
             console.log('VoucherType: Setting locationPricing from activity:', newPricing);
             setLocationPricing(newPricing);
@@ -683,8 +797,11 @@ const VoucherType = ({
             // Fallback to default pricing
             const defaultPricing = {
                 weekday_morning_price: 180,
+                weekday_morning_sale_price: null,
                 flexible_weekday_price: 200,
-                any_day_flight_price: 220
+                flexible_weekday_sale_price: null,
+                any_day_flight_price: 220,
+                any_day_flight_sale_price: null
             };
             console.log('VoucherType: Using default pricing:', defaultPricing);
             setLocationPricing(defaultPricing);
@@ -784,38 +901,6 @@ const VoucherType = ({
             console.log('VoucherType: Active Private Charter voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
             console.log('VoucherType: Raw private charter voucher types data:', activePrivateCharterVoucherTypes.map(vt => ({ id: vt.id, title: vt.title, terms: vt.terms })));
             
-            // Helper to find a price in activity private_charter_pricing by tolerant title matching
-            const findGroupPriceForTitle = (pricingDataRaw, voucherTitleRaw) => {
-                if (pricingDataRaw == null) return undefined;
-                let pricingData = pricingDataRaw;
-                try {
-                    if (typeof pricingData === 'string') {
-                        pricingData = JSON.parse(pricingData);
-                    }
-                } catch {
-                    return undefined;
-                }
-                // Guard: parsed value must be a plain object
-                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) {
-                    return undefined;
-                }
-
-                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-                const titleNorm = normalize(voucherTitleRaw);
-
-                // Direct hits (with optional chaining safety)
-                if (pricingData && pricingData[voucherTitleRaw] != null) return pricingData[voucherTitleRaw];
-                if (pricingData && pricingData[voucherTitleRaw?.trim?.()] != null) return pricingData[voucherTitleRaw.trim()];
-
-                // Normalized scan
-                for (const key of Object.keys(pricingData)) {
-                    if (normalize(key) === titleNorm) {
-                        return pricingData[key];
-                    }
-                }
-                return undefined;
-            };
-
             const privateVouchers = activePrivateCharterVoucherTypes.map(vt => {
                 console.log(`VoucherType: Processing voucher type: ${vt.title} (ID: ${vt.id})`);
                 
@@ -857,38 +942,28 @@ const VoucherType = ({
                     console.warn(`VoucherType: ${vt.title} - No features available in database. Please check the Features (JSON Array) field in the admin panel.`);
                 }
 
-                // For private charter, use the enhanced pricing from the API (which includes activity-specific pricing)
-                let basePrice = 300; // Default fallback base price per person
-                let priceUnit = 'pp'; // Default to per person pricing
+                const activityOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, vt.title, 2);
+                const activitySalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, vt.title, 2);
+                const pricingState = resolveVoucherPricing({
+                    originalPrice: vt.original_price ?? activityOriginalPrice,
+                    salePrice: vt.sale_price ?? activitySalePrice,
+                    fallbackPrice: vt.price_per_person
+                });
+                const basePrice = pricingState.currentPrice ?? 300;
+                const originalBasePrice = pricingState.originalPrice ?? basePrice;
+                const saleBasePrice = pricingState.salePrice;
+                const priceUnit = vt.price_unit || ((activityOriginalPrice !== null || activitySalePrice !== null) ? 'total' : 'pp');
                 
                 console.log(`VoucherType: Processing pricing for ${vt.title} (ID: ${vt.id})`);
                 console.log(`VoucherType: Voucher type price_per_person: ${vt.price_per_person}, price_unit: ${vt.price_unit}`);
                 console.log(`VoucherType: Activity data available:`, !!activityData);
                 console.log(`VoucherType: Private charter pricing available:`, !!(activityData && activityData.private_charter_pricing));
-                
-                // Use the enhanced pricing from the API (which includes activity-specific pricing)
-                if (vt.price_per_person && vt.price_per_person !== "0.00") {
-                    basePrice = parseFloat(vt.price_per_person);
-                    priceUnit = vt.price_unit || 'total';
-                    console.log(`VoucherType: Using enhanced API pricing for ${vt.title}: £${basePrice} (unit: ${priceUnit})`);
-                } else {
-                    // Fallback to activity data pricing if API doesn't have it
-                    if (activityData && activityData.private_charter_pricing) {
-                        const matched = findGroupPriceForTitle(activityData.private_charter_pricing, vt.title);
-                        if (matched != null && matched !== '') {
-                            const parsed = parseFloat(matched);
-                            if (!Number.isNaN(parsed)) {
-                                basePrice = parsed;
-                                priceUnit = 'pp';
-                                console.log(`VoucherType: Using tolerant group pricing for ${vt.title}: £${basePrice} per person (matched=${matched})`);
-                            }
-                        } else {
-                            console.log(`VoucherType: No tolerant group pricing match for ${vt.title}`);
-                        }
-                    } else {
-                        console.log(`VoucherType: No activity data or pricing available for ${vt.title}, using default: £${basePrice} per person`);
-                    }
-                }
+                console.log(`VoucherType: Resolved private charter pricing for ${vt.title}:`, {
+                    originalBasePrice,
+                    saleBasePrice,
+                    basePrice,
+                    priceUnit
+                });
                 
                 // For Private Charter with total pricing, card should show the total
                 const totalPrice = basePrice;
@@ -921,6 +996,9 @@ const VoucherType = ({
                     weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
                     price: totalPrice, // Total price for selected tier
                     basePrice: basePrice, // Store base price (total) for calculations
+                    originalBasePrice: originalBasePrice,
+                    saleBasePrice: saleBasePrice,
+                    hasSalePrice: pricingState.hasSalePrice,
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
                     flightTime: vt.flight_time || 'AM & PM',
@@ -953,35 +1031,25 @@ const VoucherType = ({
             })));
             
             const sharedFlightVouchers = allVoucherTypesState.map(vt => {
-                // Use the updated price_per_person from the voucher types API (which now includes activity pricing)
-                let basePrice = parseFloat(vt.price_per_person) || 180; // Use API price, fallback to default
-                let priceUnit = 'pp';
+                const activityOriginalPrice = getSharedActivityOriginalPrice(activityData, vt.title);
+                const activitySalePrice = getSharedActivitySalePrice(activityData, vt.title);
+                const locationOriginalPrice = getSharedActivityOriginalPrice(locationPricing, vt.title);
+                const locationSalePrice = getSharedActivitySalePrice(locationPricing, vt.title);
+                const pricingState = resolveVoucherPricing({
+                    originalPrice: vt.original_price ?? activityOriginalPrice ?? locationOriginalPrice,
+                    salePrice: vt.sale_price ?? activitySalePrice ?? locationSalePrice,
+                    fallbackPrice: vt.price_per_person
+                });
+                const basePrice = pricingState.currentPrice ?? 180;
+                const originalBasePrice = pricingState.originalPrice ?? basePrice;
+                const saleBasePrice = pricingState.salePrice;
+                const priceUnit = 'pp';
                 
-                console.log(`VoucherType: ${vt.title} - Using price_per_person from API: ${basePrice}`);
-                
-                // Fallback to activity data if API price is not available
-                if (!vt.price_per_person || vt.price_per_person === '0.00') {
-                    if (activityData) {
-                        // Use activity-specific pricing if available
-                        if (vt.title === 'Weekday Morning' && activityData.weekday_morning_price) {
-                            basePrice = parseFloat(activityData.weekday_morning_price);
-                        } else if (vt.title === 'Flexible Weekday' && activityData.flexible_weekday_price) {
-                            basePrice = parseFloat(activityData.flexible_weekday_price);
-                        } else if (vt.title === 'Any Day Flight' && activityData.any_day_flight_price) {
-                            basePrice = parseFloat(activityData.any_day_flight_price);
-                        }
-                    } else {
-                        // Fallback to locationPricing
-                        if (vt.title === 'Weekday Morning') {
-                            basePrice = locationPricing.weekday_morning_price;
-                        } else if (vt.title === 'Flexible Weekday') {
-                            basePrice = locationPricing.flexible_weekday_price;
-                        } else if (vt.title === 'Any Day Flight') {
-                            basePrice = locationPricing.any_day_flight_price;
-                        }
-                    }
-                    console.log(`VoucherType: ${vt.title} - Using fallback pricing: ${basePrice}`);
-                }
+                console.log(`VoucherType: ${vt.title} - Resolved shared pricing:`, {
+                    originalBasePrice,
+                    saleBasePrice,
+                    basePrice
+                });
 
                 // Don't calculate total price here - let the summary panel calculate it dynamically
                 // based on the actual passenger count selected by the user
@@ -1060,6 +1128,9 @@ const VoucherType = ({
                     weatherClause: (vt.terms && vt.terms.trim() !== '') ? vt.terms : '',
                     price: basePrice, // Set price to basePrice, let summary calculate total
                     basePrice: basePrice,
+                    originalBasePrice: originalBasePrice,
+                    saleBasePrice: saleBasePrice,
+                    hasSalePrice: pricingState.hasSalePrice,
                     priceUnit: priceUnit,
                     maxPassengers: vt.max_passengers || 8,
                     flightTime: vt.flight_time || 'AM & PM',
@@ -1386,42 +1457,25 @@ const VoucherType = ({
     // VoucherCard component for displaying individual voucher cards
     const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers, shouldAnimate }) => {
         // Compute dynamic display price for Private Charter based on selected passengers
-        let privateCharterDisplayTotal = voucher.price;
+        let privateCharterDisplayTotal = voucher.basePrice || voucher.price;
+        let privateCharterOriginalTotal = voucher.originalBasePrice || privateCharterDisplayTotal;
+        let privateCharterHasSalePrice = !!voucher.hasSalePrice;
         if (chooseFlightType?.type === "Private Charter") {
             const selectedPassengers = parseInt(quantities[voucher.title] || 2, 10);
-            // Try to get tiered price from activityData.private_charter_pricing
-            const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
-                if (pricingDataRaw == null) return undefined;
-                let pricingData = pricingDataRaw;
-                try {
-                    if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
-                } catch {
-                    return undefined;
-                }
-                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return undefined;
-                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-                const titleNorm = normalize(voucherTitleRaw);
-                const resolveForTitle = (obj, title) => {
-                    if (!obj || typeof obj !== 'object') return undefined;
-                    if (obj[title] != null) return obj[title];
-                    if (obj[title?.trim?.()] != null) return obj[title.trim()];
-                    for (const k of Object.keys(obj)) { if (normalize(k) === titleNorm) return obj[k]; }
-                    return undefined;
-                };
-                const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
-                if (byTitle == null) return undefined;
-                if (typeof byTitle === 'object') {
-                    const key = String([2,3,4,8].includes(passengers) ? passengers : 2);
-                    const v = byTitle[key] ?? byTitle['2'];
-                    const p = parseFloat(v);
-                    return Number.isNaN(p) ? undefined : p;
-                }
-                const p = parseFloat(byTitle);
-                return Number.isNaN(p) ? undefined : p;
-            };
-            const tier = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers);
-            if (tier !== undefined) privateCharterDisplayTotal = tier;
-            else privateCharterDisplayTotal = voucher.basePrice || voucher.price;
+            const originalTierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers);
+            const saleTierPrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, selectedPassengers);
+
+            if (originalTierPrice !== null) {
+                privateCharterOriginalTotal = originalTierPrice;
+            }
+
+            if (saleTierPrice !== null) {
+                privateCharterDisplayTotal = saleTierPrice;
+                privateCharterHasSalePrice = true;
+            } else if (originalTierPrice !== null) {
+                privateCharterDisplayTotal = originalTierPrice;
+                privateCharterHasSalePrice = false;
+            }
         }
         const isBuyVoucherFlow = activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift';
         const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
@@ -1782,22 +1836,66 @@ const VoucherType = ({
                             const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
                             const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
                             const weatherRefundEnabled = isSharedFlight && isAnyDay && localSharedWeatherRefund;
+                            const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
+                            const strikePriceStyle = {
+                                textDecoration: 'line-through',
+                                color: '#9ca3af',
+                                fontWeight: 500,
+                                marginRight: 8
+                            };
                             
                             if (chooseFlightType?.type === "Private Charter") {
-                                return `£${(privateCharterDisplayTotal || 0)} total`;
+                                if (privateCharterHasSalePrice) {
+                                    return (
+                                        <>
+                                            <span style={strikePriceStyle}>£{formatVoucherAmount(privateCharterOriginalTotal)} total</span>
+                                            <span>£{formatVoucherAmount(privateCharterDisplayTotal || 0)} total</span>
+                                        </>
+                                    );
+                                }
+                                return `£${formatVoucherAmount(privateCharterDisplayTotal || 0)} total`;
                             } else if (voucher.priceUnit === 'total') {
-                                return `£${voucher.price} total`;
+                                const currentTotalPrice = voucher.basePrice || voucher.price;
+                                const originalTotalPrice = voucher.originalBasePrice || currentTotalPrice;
+
+                                if (voucher.hasSalePrice) {
+                                    return (
+                                        <>
+                                            <span style={strikePriceStyle}>£{formatVoucherAmount(originalTotalPrice)} total</span>
+                                            <span>£{formatVoucherAmount(currentTotalPrice)} total</span>
+                                        </>
+                                    );
+                                }
+
+                                return `£${formatVoucherAmount(currentTotalPrice)} total`;
                             } else {
                                 const basePrice = voucher.basePrice || voucher.price;
-                                const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
+                                const originalBasePrice = voucher.originalBasePrice || basePrice;
                                 if (weatherRefundEnabled) {
                                     const weatherRefundCost = 47.50 * passengerCount;
                                     const totalPrice = (basePrice * passengerCount) + weatherRefundCost;
-                                    return `£${totalPrice.toFixed(2)} total`;
-                                } else {
-                                    const totalPrice = basePrice * passengerCount;
-                                    return `£${basePrice} pp | Total: £${totalPrice.toFixed(2)}`;
+                                    if (voucher.hasSalePrice) {
+                                        return (
+                                            <>
+                                                <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
+                                                <span>£{formatVoucherAmount(basePrice)} pp | Total: £{formatVoucherTotal(totalPrice)}</span>
+                                            </>
+                                        );
+                                    }
+                                    return `£${formatVoucherTotal(totalPrice)} total`;
                                 }
+
+                                const totalPrice = basePrice * passengerCount;
+                                if (voucher.hasSalePrice) {
+                                    return (
+                                        <>
+                                            <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
+                                            <span>£{formatVoucherAmount(basePrice)} pp | Total: £{formatVoucherTotal(totalPrice)}</span>
+                                        </>
+                                    );
+                                }
+
+                                return `£${formatVoucherAmount(basePrice)} pp | Total: £${formatVoucherTotal(totalPrice)}`;
                             }
                         })()}
                     </div>
@@ -2022,59 +2120,39 @@ const VoucherType = ({
         // Calculate total price based on price unit and experience type
         let totalPrice;
         let effectiveBasePrice = voucher.basePrice;
+        let effectiveOriginalBasePrice = voucher.originalBasePrice ?? voucher.basePrice;
+        let effectiveSaleBasePrice = voucher.saleBasePrice ?? null;
+        let hasSalePrice = !!voucher.hasSalePrice;
 
         if (chooseFlightType?.type === "Private Charter") {
             // Use total price from activity tiered pricing; do NOT multiply by passenger count
-            const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
-                if (pricingDataRaw == null) return undefined;
-                let pricingData = pricingDataRaw;
-                try {
-                    if (typeof pricingData === 'string') pricingData = JSON.parse(pricingData);
-                } catch {
-                    return undefined;
-                }
-                // Ensure we have an object map; guard against null or arrays
-                if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return undefined;
+            const tierOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity);
+            const tierSalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, safeQuantity);
 
-                const normalize = (s) => (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-                const titleNorm = normalize(voucherTitleRaw);
-                let value = undefined;
-                const resolveForTitle = (obj, title) => {
-                    if (!obj || typeof obj !== 'object') return undefined;
-                    if (obj[title] != null) return obj[title];
-                    if (obj[title?.trim?.()] != null) return obj[title.trim()];
-                    for (const k of Object.keys(obj)) {
-                        if (normalize(k) === titleNorm) return obj[k];
-                    }
-                    return undefined;
-                };
-                const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
-                if (byTitle == null) return undefined;
-                if (typeof byTitle === 'object') {
-                    const key = String([2,3,4,8].includes(passengers) ? passengers : 2);
-                    value = byTitle[key] ?? byTitle['2'];
-                } else {
-                    value = byTitle; // backward compatible single price (treated as pp)
-                }
-                const parsed = parseFloat(value);
-                return Number.isNaN(parsed) ? undefined : parsed;
-            };
+            if (tierOriginalPrice !== null) {
+                effectiveOriginalBasePrice = tierOriginalPrice;
+            }
 
-            const tierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity);
-            if (tierPrice !== undefined) {
-                effectiveBasePrice = tierPrice;
+            if (tierSalePrice !== null) {
+                effectiveBasePrice = tierSalePrice;
+                effectiveSaleBasePrice = tierSalePrice;
+                hasSalePrice = true;
+            } else if (tierOriginalPrice !== null) {
+                effectiveBasePrice = tierOriginalPrice;
+                effectiveSaleBasePrice = null;
+                hasSalePrice = false;
             }
 
             totalPrice = (effectiveBasePrice || 0);
             console.log('VoucherType: Private Charter total pricing (no per-passenger multiply):', totalPrice);
         } else if (voucher.priceUnit === 'total') {
             // For total pricing, the price is already the total for the group
-            totalPrice = voucher.price;
+            totalPrice = effectiveBasePrice || voucher.price;
             console.log('VoucherType: Using total pricing:', totalPrice);
         } else {
             // For per-person pricing, multiply by quantity
-            totalPrice = voucher.price * safeQuantity;
-            console.log('VoucherType: Using per-person pricing:', voucher.price, '×', safeQuantity, '=', totalPrice);
+            totalPrice = (effectiveBasePrice || voucher.price) * safeQuantity;
+            console.log('VoucherType: Using per-person pricing:', effectiveBasePrice || voucher.price, '×', safeQuantity, '=', totalPrice);
         }
 
         return {
@@ -2082,9 +2160,14 @@ const VoucherType = ({
             quantity: safeQuantity,
             totalPrice: totalPrice,
             basePrice: effectiveBasePrice || voucher.basePrice,
+            originalBasePrice: effectiveOriginalBasePrice || effectiveBasePrice || voucher.basePrice,
+            saleBasePrice: effectiveSaleBasePrice,
+            hasSalePrice,
             priceUnit: voucher.priceUnit,
             // Ensure summary uses the correct total price for Private Charter
-            price: (chooseFlightType?.type === "Private Charter") ? totalPrice : (voucher.priceUnit === 'total' ? voucher.price : (voucher.basePrice || voucher.price))
+            price: (chooseFlightType?.type === "Private Charter")
+                ? totalPrice
+                : (voucher.priceUnit === 'total' ? (effectiveBasePrice || voucher.price) : (effectiveBasePrice || voucher.basePrice || voucher.price))
         };
     };
 
