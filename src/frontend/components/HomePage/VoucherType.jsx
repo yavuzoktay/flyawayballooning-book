@@ -167,6 +167,12 @@ const parsePriceNumber = (value) => {
     return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parseSalePriceNumber = (value) => {
+    const parsed = parsePriceNumber(value);
+    if (parsed === null || parsed <= 0) return null;
+    return parsed;
+};
+
 const formatVoucherAmount = (value) => {
     const parsed = parsePriceNumber(value);
     if (parsed === null) return '0';
@@ -185,7 +191,7 @@ const resolveVoucherPricing = ({ originalPrice, salePrice, fallbackPrice }) => {
             ? originalPrice
             : fallbackPrice
     );
-    const resolvedSale = parsePriceNumber(salePrice);
+    const resolvedSale = parseSalePriceNumber(salePrice);
     const currentPrice = resolvedSale !== null ? resolvedSale : resolvedOriginal;
 
     return {
@@ -793,11 +799,11 @@ const VoucherType = ({
             const activity = selectedActivity[0];
             const newPricing = {
                 weekday_morning_price: parseFloat(activity.weekday_morning_price) || 180,
-                weekday_morning_sale_price: parsePriceNumber(activity.weekday_morning_sale_price),
+                weekday_morning_sale_price: parseSalePriceNumber(activity.weekday_morning_sale_price),
                 flexible_weekday_price: parseFloat(activity.flexible_weekday_price) || 200,
-                flexible_weekday_sale_price: parsePriceNumber(activity.flexible_weekday_sale_price),
+                flexible_weekday_sale_price: parseSalePriceNumber(activity.flexible_weekday_sale_price),
                 any_day_flight_price: parseFloat(activity.any_day_flight_price) || 220,
-                any_day_flight_sale_price: parsePriceNumber(activity.any_day_flight_sale_price)
+                any_day_flight_sale_price: parseSalePriceNumber(activity.any_day_flight_sale_price)
             };
             console.log('VoucherType: Setting locationPricing from activity:', newPricing);
             setLocationPricing(newPricing);

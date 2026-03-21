@@ -202,9 +202,15 @@ const ExperienceSection = ({ isRedeemVoucher, setChooseFlightType, addPassenger,
         return Number.isFinite(parsed) ? parsed : null;
     };
 
+    const parseExperienceSalePrice = (value) => {
+        const parsed = parseExperiencePrice(value);
+        if (parsed === null || parsed <= 0) return null;
+        return parsed;
+    };
+
     const buildExperiencePriceState = (originalPrice, salePrice) => {
         const resolvedOriginal = parseExperiencePrice(originalPrice);
-        const resolvedSale = parseExperiencePrice(salePrice);
+        const resolvedSale = parseExperienceSalePrice(salePrice);
         const currentPrice = resolvedSale !== null ? resolvedSale : resolvedOriginal;
 
         return {
