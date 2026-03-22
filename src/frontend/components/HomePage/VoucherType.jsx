@@ -1788,7 +1788,7 @@ const VoucherType = ({
                         <div style={{ 
                             display: 'flex', 
                             alignItems: 'center', 
-                            gap: isMobile ? '4px' : '8px',
+                            gap: isMobile ? '8px' : '8px',
                             flexWrap: isMobile ? 'nowrap' : 'wrap',
                             // Ensure Proposal Flight passenger section has same height as Private Charter selector
                             minHeight: voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (isMobile ? '40px' : '32px') : 'auto'
@@ -1804,7 +1804,13 @@ const VoucherType = ({
                             {voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (
                                 <span style={{ fontSize: isMobile ? 16 : 14, color: '#4A4A4A', fontWeight: isMobile ? 500 : 600, marginBottom: '0', whiteSpace: isMobile ? 'nowrap' : 'normal', lineHeight: 1 }}>2</span>
                             ) : (
-                                <>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: isMobile ? '14px' : '8px',
+                                    }}
+                                >
                                     <button
                                         type="button"
                                         onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
@@ -1866,7 +1872,7 @@ const VoucherType = ({
                                     >
                                         +
                                     </button>
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>
