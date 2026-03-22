@@ -18,11 +18,14 @@ import Modal from "../Common/Modal";
 import LocationSection from "./LocationSection";
 import ChooseActivityCard from "./ChooseActivityCard";
 import axios from 'axios';
+import config from '../../../config';
 import Tooltip from '@mui/material/Tooltip';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import CheckIcon from '@mui/icons-material/Check';
 import { trackDateSelected } from '../../../utils/googleAdsTracking';
+
+const API_BASE_URL = config.API_BASE_URL;
 
 const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, hasLiveAvailabilityResponse, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -98,7 +101,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [requestFlightType, setRequestFlightType] = useState("");
     const [requestDate, setRequestDate] = useState("");
     const [requestTime, setRequestTime] = useState("");
-    const allLocations = ["Bath", "Devon", "Somerset", "Bristol"];
+    const [requestFormLocations, setRequestFormLocations] = useState(['Bath', 'Devon', 'Somerset', 'Bristol']);
+
+    useEffect(() => {
+        axios.get(`${API_BASE_URL}/api/activeLocations`)
+            .then((res) => {
+                if (res.data?.success && Array.isArray(res.data.data)) {
+                    const names = res.data.data.map((l) => l.location).filter(Boolean);
+                    if (names.length > 0) {
+                        setRequestFormLocations(names);
+                    }
+                }
+            })
+            .catch(() => {});
+    }, []);
     const allFlightTypes = ["Book Flight Date", "Buy Flight Voucher", "Redeem Voucher", "Buy Gift Voucher"];
     const [requestSuccess, setRequestSuccess] = useState("");
     const [requestError, setRequestError] = useState("");
@@ -1801,7 +1817,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Location</label>
                             <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal', color: requestLocation ? '#333' : '#666', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14 }} required>
                                 <option value="">Select Location</option>
-                                {allLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                                {requestFormLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                             </select>
                             {locationError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
