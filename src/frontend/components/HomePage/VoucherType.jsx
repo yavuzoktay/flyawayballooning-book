@@ -139,6 +139,16 @@ const scrollbarStyles = `
             padding: 0 2px !important;
         }
     }
+
+    /* Voucher cards (Passengers row): mobile-only gap — aligns with isMobile (window.innerWidth <= 576) */
+    @media (max-width: 576px) {
+        .voucher-type-passenger-row {
+            gap: 8px !important;
+        }
+        .voucher-type-passenger-stepper {
+            gap: 14px !important;
+        }
+    }
 `;
 
 const SHARED_VOUCHER_PRICE_FIELDS = {
@@ -3126,22 +3136,23 @@ const areEqual = (prevProps, nextProps) => {
 
 export default memo(VoucherType, areEqual);
 
-// Mobile scroll bar styles
+// Mobile scroll bar styles + passenger row gaps (ships with bundle; fixes stale 4px on flyawayballooning-book.com)
 const mobileScrollStyles = `
     @media (max-width: 576px) {
         /* Hide scrollbar for voucher cards container */
         .voucher-cards-container::-webkit-scrollbar {
             display: none;
         }
-        
-        /* For Firefox */
         .voucher-cards-container {
             scrollbar-width: none;
-        }
-        
-        /* Smooth scrolling */
-        .voucher-cards-container {
             -webkit-overflow-scrolling: touch;
+        }
+        /* VoucherType card: label + (− / count / +) — was 4px on mobile in older builds */
+        .voucher-type-passenger-row {
+            gap: 8px !important;
+        }
+        .voucher-type-passenger-stepper {
+            gap: 14px !important;
         }
     }
 `;

@@ -2867,15 +2867,11 @@ label {
 	}
 }
 
-/* VoucherType: passenger label + stepper row — enforce 8px gap (overrides stale inline 4px) */
-.voucher-type-passenger-row {
-	gap: 8px !important;
-}
-.voucher-type-passenger-stepper {
-	gap: 8px !important;
-}
-/* Match VoucherType.jsx isMobile breakpoint (innerWidth <= 576) */
+/* VoucherType: mobile only — match JS isMobile (innerWidth <= 576); overrides stale inline gap:4px */
 @media screen and (max-width: 576px) {
+	.voucher-type-passenger-row {
+		gap: 8px !important;
+	}
 	.voucher-type-passenger-stepper {
 		gap: 14px !important;
 	}
