@@ -61,6 +61,7 @@ const Index = () => {
     const [availabilities, setAvailabilities] = useState([]);
     const [hasLiveAvailabilityResponse, setHasLiveAvailabilityResponse] = useState(false);
     const [selectedVoucherType, setSelectedVoucherType] = useState(null);
+    const [seasonSaver, setSeasonSaver] = useState(false);
     const [countdownSeconds, setCountdownSeconds] = useState(null);
     const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     const [holdActive, setHoldActive] = useState(false);
@@ -2731,10 +2732,11 @@ const Index = () => {
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
                 additionalInfo: additionalInfo, // Add additional information data
-                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null, // Add add to booking items
-                selectedVoucherType: selectedVoucherType // Include the full selectedVoucherType object for backend fallback
+                add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null,
+                selectedVoucherType: selectedVoucherType,
+                season_saver: seasonSaver ? 1 : 0
             };
-            
+
             // Sending voucher data to backend
             console.log('chooseAddOn state:', chooseAddOn);
             console.log('chooseAddOn length:', chooseAddOn ? chooseAddOn.length : 'null/undefined');
@@ -3074,9 +3076,10 @@ const Index = () => {
             preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
             preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
             preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
-            activity_id: activityId
+            activity_id: activityId,
+            season_saver: seasonSaver ? 1 : 0
         };
-        
+
         try {
             // Collect user session data
             const userSessionData = collectUserSessionData();
@@ -5413,13 +5416,15 @@ const Index = () => {
                                                 }}
                                                 setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
                                                 isDisabled={!getAccordionState('voucher-type').isEnabled}
+                                                seasonSaver={seasonSaver}
+                                                setSeasonSaver={setSeasonSaver}
                                             />
-                                            <LiveAvailabilitySection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                selectedDate={selectedDate} 
-                                                setSelectedDate={setSelectedDate} 
-                                                activeAccordion={activeAccordion} 
+                                            <LiveAvailabilitySection
+                                                isGiftVoucher={isGiftVoucher}
+                                                isFlightVoucher={isFlightVoucher}
+                                                selectedDate={selectedDate}
+                                                setSelectedDate={setSelectedDate}
+                                                activeAccordion={activeAccordion}
                                                 setActiveAccordion={handleSetActiveAccordionWithValidation} 
                                                 selectedActivity={selectedActivity} 
                                                 availableSeats={availableSeats} 
@@ -5613,10 +5618,10 @@ const Index = () => {
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('experience').isEnabled}
                                             />
-                                            <VoucherType 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                selectedVoucherType={selectedVoucherType} 
+                                            <VoucherType
+                                                activeAccordion={activeAccordion}
+                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
+                                                selectedVoucherType={selectedVoucherType}
                                                 setSelectedVoucherType={setSelectedVoucherType}
                                                 activitySelect={activitySelect}
                                                 chooseFlightType={chooseFlightType}
@@ -5634,6 +5639,8 @@ const Index = () => {
                                                         console.log('[ShopifyDebug] Terms and Conditions loaded');
                                                     }
                                                 }}
+                                                seasonSaver={seasonSaver}
+                                                setSeasonSaver={setSeasonSaver}
                                             />
                                             <PassengerInfo
                                                 ref={passengerInfoRef}
@@ -5732,10 +5739,10 @@ const Index = () => {
                                                 />
                                             )}
                                             {activitySelect === "Buy Gift" && (
-                                                <VoucherType 
-                                                    activeAccordion={activeAccordion} 
-                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                    selectedVoucherType={selectedVoucherType} 
+                                                <VoucherType
+                                                    activeAccordion={activeAccordion}
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
+                                                    selectedVoucherType={selectedVoucherType}
                                                     setSelectedVoucherType={setSelectedVoucherType}
                                                     activitySelect={activitySelect}
                                                     chooseFlightType={chooseFlightType}
@@ -5753,6 +5760,8 @@ const Index = () => {
                                                             console.log('[ShopifyDebug] Terms and Conditions loaded');
                                                         }
                                                     }}
+                                                    seasonSaver={seasonSaver}
+                                                    setSeasonSaver={setSeasonSaver}
                                                 />
                                             )}
                                             {!(activitySelect === "Flight Voucher" || activitySelect === "Redeem Voucher" || activitySelect === "Buy Gift") && (
@@ -5918,6 +5927,7 @@ const Index = () => {
                                 privateCharterWeatherRefund={privateCharterWeatherRefund}
                                 activityId={activityId}
                                 onBook={handleBookData}
+                                seasonSaver={seasonSaver}
                             />
                         </div>
                     </div>

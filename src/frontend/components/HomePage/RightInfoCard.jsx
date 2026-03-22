@@ -10,7 +10,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook, seasonSaver }) => {
     
     // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
     console.log('🔥 RightInfoCard component rendered!', { 
@@ -1115,7 +1115,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // Required order: Location → Experience → Voucher Type (if applicable) → Live Availability
             { id: 'location', title: 'Location', value: chooseLocation || '', completed: !!chooseLocation },
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
-            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
+            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${seasonSaver ? '☘️ ' : ''}${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : '', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
@@ -1131,14 +1131,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         ] : []),
         ...(activitySelect === 'Flight Voucher' ? [
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
-            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
+            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${seasonSaver ? '☘️ ' : ''}${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
             { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
             { id: 'add-on', title: 'Add To Booking', value: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) ? `${chooseAddOn.length} selected` : '', completed: (Array.isArray(chooseAddOn) && chooseAddOn.length > 0) }
         ] : []),
         ...(activitySelect === 'Buy Gift' ? [
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
-            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
+            { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${seasonSaver ? '☘️ ' : ''}${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isBuyGiftPassengerComplete },
             { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : '', completed: !!recipientDetails?.name }
         ] : [])

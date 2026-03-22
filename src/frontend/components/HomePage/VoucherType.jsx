@@ -295,7 +295,9 @@ const VoucherType = ({
     privateCharterWeatherRefund,
     setPrivateCharterWeatherRefund,
     onTermsLoadingChange,
-    onAccordionLoadingChange
+    onAccordionLoadingChange,
+    seasonSaver,
+    setSeasonSaver
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -358,6 +360,15 @@ const VoucherType = ({
         } catch {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedVoucherType, selectedVoucher, privateWeatherRefundByVoucher]);
+
+    // Re-build selected voucher pricing when Season Saver toggle changes
+    useEffect(() => {
+        if (!selectedVoucher || selectedVoucher.title !== 'Flexible Weekday') return;
+        const rebuilt = buildVoucherWithQuantity(selectedVoucher);
+        setSelectedVoucher(rebuilt);
+        setSelectedVoucherType(rebuilt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [seasonSaver]);
 
     // Prefill passenger count and weather refundable from URL parameters (Shopify deep-link)
     // Wait for voucher types to be loaded before setting passenger count
@@ -436,6 +447,12 @@ const VoucherType = ({
                                 setPrivateCharterWeatherRefund(true);
                             }
                         }
+                    }
+
+                    // Set Season Saver toggle if provided
+                    const qpSeasonSaver = params.get('seasonSaver') === 'true';
+                    if (qpSeasonSaver && normalize(targetTitle) === 'flexible weekday' && setSeasonSaver) {
+                        setSeasonSaver(true);
                     }
                 } else {
                     console.log('🔵 VoucherType: Voucher title not found in available types:', {
@@ -1928,12 +1945,14 @@ const VoucherType = ({
 
                                 return `£${formatVoucherAmount(currentTotalPrice)} total`;
                             } else {
-                                const basePrice = sharedDisplayBasePrice;
-                                const originalBasePrice = sharedOriginalBasePrice;
+                                const isFlexWeekday = voucher.title === 'Flexible Weekday';
+                                const seasonSaverActive = isFlexWeekday && seasonSaver && activityData?.season_saver_enabled && activityData?.season_saver_price;
+                                const basePrice = seasonSaverActive ? parseFloat(activityData.season_saver_price) : sharedDisplayBasePrice;
+                                const originalBasePrice = seasonSaverActive ? sharedDisplayBasePrice : sharedOriginalBasePrice;
                                 if (weatherRefundEnabled) {
                                     const weatherRefundCost = 47.50 * passengerCount;
                                     const totalPrice = (basePrice * passengerCount) + weatherRefundCost;
-                                    if (sharedHasSalePrice) {
+                                    if (sharedHasSalePrice && !seasonSaverActive) {
                                         return (
                                             <>
                                                 <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
@@ -1945,6 +1964,14 @@ const VoucherType = ({
                                 }
 
                                 const totalPrice = basePrice * passengerCount;
+                                if (seasonSaverActive) {
+                                    return (
+                                        <>
+                                            <span style={strikePriceStyle}>£{formatVoucherAmount(originalBasePrice)} pp</span>
+                                            <span style={{color:'#16a34a'}}>£{formatVoucherAmount(basePrice)} pp | Total: £{formatVoucherTotal(totalPrice)}</span>
+                                        </>
+                                    );
+                                }
                                 if (sharedHasSalePrice) {
                                     return (
                                         <>
@@ -1964,20 +1991,22 @@ const VoucherType = ({
                         const isWeekdayMorning = voucher.title === 'Weekday Morning';
                         const showWeatherRefundableShared = chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight' && isAnyDay;
                         const showWeatherRefundablePrivate = chooseFlightType?.type === 'Private Charter' && activitySelect === 'Book Flight';
-                        
+                        const showSeasonSaver = chooseFlightType?.type === 'Shared Flight' && activitySelect === 'Book Flight' && isFlexibleWeekday && activityData?.season_saver_enabled;
+
                                 // Always render a container div to maintain consistent card height across all vouchers
                                 const shouldShowWeatherContainer = showWeatherRefundableShared || showWeatherRefundablePrivate;
+                                const shouldShowToggleContainer = shouldShowWeatherContainer || showSeasonSaver;
                                 const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
-                        
+
                         return (
                             <div style={{
-                                background: showWeatherRefundableShared || showWeatherRefundablePrivate ? '#f8fafc' : 'transparent',
-                                border: showWeatherRefundableShared || showWeatherRefundablePrivate ? '1px solid #e5e7eb' : 'none',
+                                background: shouldShowToggleContainer ? '#f8fafc' : 'transparent',
+                                border: shouldShowToggleContainer ? '1px solid #e5e7eb' : 'none',
                                 borderRadius: 12,
-                                padding: showWeatherRefundableShared || showWeatherRefundablePrivate ? '10px 12px' : '0',
-                                marginBottom: shouldShowWeatherContainer ? 10 : 0,
-                                // Only reserve space when a weather container is actually shown; otherwise no extra gap (fix mobile extra spacer)
-                                minHeight: (showWeatherRefundableShared || showWeatherRefundablePrivate) ? '0px' : 0,
+                                padding: shouldShowToggleContainer ? '10px 12px' : '0',
+                                marginBottom: shouldShowToggleContainer ? 10 : 0,
+                                // Only reserve space when a toggle container is actually shown; otherwise no extra gap (fix mobile extra spacer)
+                                minHeight: shouldShowToggleContainer ? '0px' : 0,
                                 overflow: 'visible',
                                 position: 'relative'
                             }}>
@@ -2096,15 +2125,64 @@ const VoucherType = ({
                                         </>
                                     );
                                 })()}
+                                {showSeasonSaver && (() => {
+                                    const enabled = !!seasonSaver;
+                                    return (
+                                        <>
+                                            {shouldShowWeatherContainer && <div style={{borderTop:'1px solid #e5e7eb',margin:'8px 0'}} />}
+                                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:6,overflow:'visible'}}>
+                                                    <span style={{fontWeight:600,fontSize:14}}>☘️ Season Saver</span>
+                                                    <BsInfoCircle
+                                                        data-tooltip-id="season-saver-tooltip"
+                                                        style={{ color: '#16a34a', cursor: 'pointer', width: 14, height: 14 }}
+                                                    />
+                                                    <ReactTooltip
+                                                        id="season-saver-tooltip"
+                                                        place="top"
+                                                        content="Save with our Season Saver fare! Flights available October to May only (excludes June–August). Your voucher can be rebooked within the eligible season. Upgrade to a standard Flexible Weekday fare anytime via your customer portal."
+                                                        style={{
+                                                            maxWidth: '280px',
+                                                            fontSize: '13px',
+                                                            textAlign: 'center',
+                                                            backgroundColor: '#1f2937',
+                                                            color: '#ffffff',
+                                                            borderRadius: '8px',
+                                                            padding: '8px 12px',
+                                                            zIndex: 9999
+                                                        }}
+                                                    />
+                                                </div>
+                                                <label className="switch" style={{margin:0}}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={enabled}
+                                                        onChange={() => {
+                                                            if (setSeasonSaver) setSeasonSaver(!enabled);
+                                                        }}
+                                                    />
+                                                    <span className="slider round"></span>
+                                                </label>
+                                            </div>
+                                            {enabled && (
+                                                <div style={{textAlign:'right'}}>
+                                                    <span className="toggle-price-pill" style={{background:'#dcfce7',color:'#16a34a'}}>
+                                                        £{parseFloat(activityData?.season_saver_price || 175).toFixed(2)} pp
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         );
                     })()}
-                    <button 
-                        style={{ 
-                            width: '100%', 
-                            background: isSelected ? '#00c24a' : '#00eb5b', 
-                            color: '#fff', 
-                            border: 'none', 
+                    <button
+                        style={{
+                            width: '100%',
+                            background: isSelected ? '#00c24a' : '#00eb5b',
+                            color: '#fff',
+                            border: 'none',
                             borderRadius: 8, 
                             padding: '10px 0', 
                             fontSize: 15, 
@@ -2232,6 +2310,14 @@ const VoucherType = ({
             effectiveOriginalBasePrice = sharedPricingState.originalPrice ?? effectiveOriginalBasePrice ?? effectiveBasePrice;
             effectiveSaleBasePrice = sharedPricingState.salePrice;
             hasSalePrice = sharedPricingState.hasSalePrice || hasMeaningfulSalePrice(effectiveOriginalBasePrice, effectiveBasePrice);
+
+            // Season Saver price override for Flexible Weekday
+            const isFlexWeekday = typeof voucher.title === 'string' && voucher.title === 'Flexible Weekday';
+            if (isFlexWeekday && seasonSaver && activityData?.season_saver_enabled && activityData?.season_saver_price) {
+                effectiveBasePrice = parseFloat(activityData.season_saver_price);
+                hasSalePrice = false;
+                effectiveSaleBasePrice = null;
+            }
 
             // For per-person pricing, multiply by quantity
             totalPrice = (effectiveBasePrice || voucher.price) * safeQuantity;
@@ -2370,8 +2456,12 @@ const VoucherType = ({
     };
 
     const handleSelectVoucher = async (voucher) => {
+        // Reset Season Saver when selecting a non-Flexible-Weekday voucher
+        if (voucher.title !== 'Flexible Weekday' && setSeasonSaver) {
+            setSeasonSaver(false);
+        }
         const voucherWithQuantity = buildVoucherWithQuantity(voucher);
-        
+
         console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
