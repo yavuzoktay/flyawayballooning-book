@@ -1783,16 +1783,19 @@ const VoucherType = ({
                         flexDirection: isMobile ? 'column' : 'row', 
                         alignItems: isMobile ? 'flex-start' : 'center', 
                         marginBottom: (activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift') ? 6 : 12, 
-                        gap: isMobile ? '8px' : '8px' 
+                        gap: '8px'
                     }}>
-                        <div style={{ 
+                        <div
+                            className="voucher-type-passenger-row"
+                            style={{ 
                             display: 'flex', 
                             alignItems: 'center', 
-                            gap: isMobile ? '8px' : '8px',
+                            gap: '8px',
                             flexWrap: isMobile ? 'nowrap' : 'wrap',
                             // Ensure Proposal Flight passenger section has same height as Private Charter selector
                             minHeight: voucher.title && typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('proposal') ? (isMobile ? '40px' : '32px') : 'auto'
-                        }}>
+                        }}
+                        >
                             <label style={{ 
                                 fontSize: isMobile ? 16 : 14, 
                                 color: '#4A4A4A', 
@@ -1805,6 +1808,7 @@ const VoucherType = ({
                                 <span style={{ fontSize: isMobile ? 16 : 14, color: '#4A4A4A', fontWeight: isMobile ? 500 : 600, marginBottom: '0', whiteSpace: isMobile ? 'nowrap' : 'normal', lineHeight: 1 }}>2</span>
                             ) : (
                                 <div
+                                    className="voucher-type-passenger-stepper"
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
