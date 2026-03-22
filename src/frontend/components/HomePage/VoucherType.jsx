@@ -146,7 +146,7 @@ const scrollbarStyles = `
             gap: 8px !important;
         }
         .voucher-type-passenger-stepper {
-            gap: 14px !important;
+            gap: 8px !important;
         }
     }
 `;
@@ -3152,7 +3152,7 @@ const mobileScrollStyles = `
             gap: 8px !important;
         }
         .voucher-type-passenger-stepper {
-            gap: 14px !important;
+            gap: 8px !important;
         }
     }
 `;
