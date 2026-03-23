@@ -1694,25 +1694,25 @@ const VoucherType = ({
                         const refundabilityText = isRefundable ? 'Refundable' : (voucher.refundability || 'Non-Refundable');
                         const emoji = isRefundable ? '🟢' : '🔴';
                         return (
-                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: '6px 16px' }}>
+                            <div style={{ fontSize: isMobile ? 12 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: isMobile ? '4px 8px' : '6px 16px' }}>
                                 {!isRefundable ? (
                                     <>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                                             <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
                                             <span>Re-Bookable</span>
                                         </span>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                                             <span style={{ flexShrink: 0, lineHeight: 1 }}>🔴</span>
                                             <span>Non-Refundable</span>
                                         </span>
                                     </>
                                 ) : (
                                     <>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                                             <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
                                             <span>Re-Bookable</span>
                                         </span>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                                             <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
                                             <span>Refundable</span>
                                         </span>
