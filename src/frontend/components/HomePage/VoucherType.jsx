@@ -758,8 +758,12 @@ const VoucherType = ({
             // Get only active private charter voucher types for frontend display
             // Include location to get activity-specific pricing
             const locationParam = chooseLocation ? `&location=${encodeURIComponent(chooseLocation)}` : '';
-            // Include passengers to receive tiered per-person pricing from backend
-            const selectedPassengers = 2; // default for card display; total recalculated on selection
+            // Include passengers to receive tiered pricing from backend.
+            // Shopify deep-link passes ?source=shopify&passengers=<2|3|4|8>, so use it instead of a hardcoded default.
+            const params = new URLSearchParams(location.search);
+            const isShopifySource = params.get('source') === 'shopify';
+            const qpPassengers = parseInt(params.get('passengers') || '0', 10);
+            const selectedPassengers = isShopifySource && Number.isFinite(qpPassengers) && qpPassengers > 0 ? qpPassengers : 2;
             const response = await fetch(`${API_BASE_URL}/api/private-charter-voucher-types?active=true${locationParam}&passengers=${selectedPassengers}`);
             console.log('Private charter voucher types response status:', response.status);
             
@@ -773,7 +777,7 @@ const VoucherType = ({
                     // Initialize quantities for private charter voucher types
                     const newQuantities = { ...quantities };
                     data.data.forEach(vt => {
-                        newQuantities[vt.title] = 2;
+                        newQuantities[vt.title] = selectedPassengers;
                     });
                     setQuantities(newQuantities);
                     
@@ -793,7 +797,7 @@ const VoucherType = ({
 
     useEffect(() => {
         fetchPrivateCharterVoucherTypes();
-    }, [API_BASE_URL, chooseLocation]);
+    }, [API_BASE_URL, chooseLocation, location.search]);
 
     // Notify parent component when accordion loading states change
     useEffect(() => {
