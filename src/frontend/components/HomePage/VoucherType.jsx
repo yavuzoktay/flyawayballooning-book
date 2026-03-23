@@ -167,6 +167,7 @@ const SHARED_VOUCHER_PRICE_FIELDS = {
 };
 
 const normalizeVoucherPriceTitle = (title) => (title || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+const normalizeVoucherPriceTitleLoose = (title) => normalizeVoucherPriceTitle(title).replace(/[^a-z0-9]/g, '');
 
 const parsePriceNumber = (value) => {
     if (value === undefined || value === null || value === '') {
@@ -236,7 +237,7 @@ const getSharedActivitySalePrice = (pricingSource, title) => {
     return parsePriceNumber(pricingSource[fieldNames.sale]);
 };
 
-const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
+const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers, voucherIdRaw = null) => {
     if (pricingDataRaw == null) return null;
 
     let pricingData = pricingDataRaw;
@@ -252,23 +253,35 @@ const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
     if (pricingData == null || typeof pricingData !== 'object' || Array.isArray(pricingData)) return null;
 
     const titleNorm = normalizeVoucherPriceTitle(voucherTitleRaw);
+    const titleLooseNorm = normalizeVoucherPriceTitleLoose(voucherTitleRaw);
     const resolveForTitle = (obj, title) => {
         if (!obj || typeof obj !== 'object') return undefined;
         if (obj[title] != null) return obj[title];
         if (obj[title?.trim?.()] != null) return obj[title.trim()];
         for (const key of Object.keys(obj)) {
-            if (normalizeVoucherPriceTitle(key) === titleNorm) {
+            if (
+                normalizeVoucherPriceTitle(key) === titleNorm ||
+                normalizeVoucherPriceTitleLoose(key) === titleLooseNorm
+            ) {
                 return obj[key];
             }
         }
         return undefined;
     };
 
-    const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+    let byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+
+    // Legacy compatibility: some rows were saved with voucher id keys.
+    if (byTitle == null && voucherIdRaw !== null && voucherIdRaw !== undefined && voucherIdRaw !== '') {
+        const voucherId = String(voucherIdRaw).trim();
+        byTitle = pricingData[voucherId] ?? pricingData[Number(voucherId)];
+    }
+
     if (byTitle == null) return null;
 
     if (typeof byTitle === 'object' && !Array.isArray(byTitle)) {
-        const key = String([2, 3, 4, 8].includes(passengers) ? passengers : 2);
+        const pax = Number(passengers);
+        const key = String([2, 3, 4, 8].includes(pax) ? pax : 2);
         const value = byTitle[key] ?? byTitle['2'];
         return parsePriceNumber(value);
     }
@@ -983,8 +996,8 @@ const VoucherType = ({
                     console.warn(`VoucherType: ${vt.title} - No features available in database. Please check the Features (JSON Array) field in the admin panel.`);
                 }
 
-                const activityOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, vt.title, 2);
-                const activitySalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, vt.title, 2);
+                const activityOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, vt.title, 2, vt.id);
+                const activitySalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, vt.title, 2, vt.id);
                 const pricingState = resolveVoucherPricing({
                     originalPrice: vt.original_price ?? activityOriginalPrice,
                     salePrice: vt.sale_price ?? activitySalePrice,
@@ -1498,30 +1511,23 @@ const VoucherType = ({
     // VoucherCard component for displaying individual voucher cards
     const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers, shouldAnimate }) => {
         // Compute dynamic display price for Private Charter based on selected passengers
-        // Activity page stores tier pricing as "per person".
-        // In this card we display the "total for the selected group size".
         let privateCharterDisplayTotal = voucher.basePrice || voucher.price;
         let privateCharterOriginalTotal = voucher.originalBasePrice || privateCharterDisplayTotal;
         let privateCharterHasSalePrice = !!voucher.hasSalePrice;
         if (chooseFlightType?.type === "Private Charter") {
             const selectedPassengers = parseInt(quantities[voucher.title] || 2, 10);
-            const perPersonFallback = voucher.basePrice || voucher.price || 0;
-            const perPersonOriginalFallback = voucher.originalBasePrice || perPersonFallback;
-            privateCharterDisplayTotal = perPersonFallback * selectedPassengers;
-            privateCharterOriginalTotal = perPersonOriginalFallback * selectedPassengers;
-            const originalTierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers);
-            const saleTierPrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, selectedPassengers);
+            const originalTierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers, voucher.id);
+            const saleTierPrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, selectedPassengers, voucher.id);
 
-            // Convert "per person" tier price -> "total for group"
             if (originalTierPrice !== null) {
-                privateCharterOriginalTotal = originalTierPrice * selectedPassengers;
+                privateCharterOriginalTotal = originalTierPrice;
             }
 
             if (saleTierPrice !== null) {
-                privateCharterDisplayTotal = saleTierPrice * selectedPassengers;
+                privateCharterDisplayTotal = saleTierPrice;
                 privateCharterHasSalePrice = true;
             } else if (originalTierPrice !== null) {
-                privateCharterDisplayTotal = originalTierPrice * selectedPassengers;
+                privateCharterDisplayTotal = originalTierPrice;
                 privateCharterHasSalePrice = false;
             }
 
@@ -2269,9 +2275,9 @@ const VoucherType = ({
         let hasSalePrice = !!voucher.hasSalePrice;
 
         if (chooseFlightType?.type === "Private Charter") {
-            // Activity tier values are per person; convert to group total using selectedPassengers.
-            const tierOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity);
-            const tierSalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, safeQuantity);
+            // Activity tier values are already total for the selected passenger tier.
+            const tierOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity, voucher.id);
+            const tierSalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, safeQuantity, voucher.id);
 
             if (tierOriginalPrice !== null) {
                 effectiveOriginalBasePrice = tierOriginalPrice;
@@ -2291,9 +2297,8 @@ const VoucherType = ({
                 hasSalePrice = hasMeaningfulSalePrice(effectiveOriginalBasePrice, effectiveBasePrice);
             }
 
-            // Activity tier values are per person. Convert to group total.
-            totalPrice = (effectiveBasePrice || 0) * safeQuantity;
-            console.log('VoucherType: Private Charter total pricing (per-person tiers × passengers):', totalPrice);
+            totalPrice = (effectiveBasePrice || 0);
+            console.log('VoucherType: Private Charter total pricing (tier total, no multiply):', totalPrice);
         } else if (voucher.priceUnit === 'total') {
             // For total pricing, the price is already the total for the group
             totalPrice = effectiveBasePrice || voucher.price;
