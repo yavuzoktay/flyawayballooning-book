@@ -236,7 +236,7 @@ const getSharedActivitySalePrice = (pricingSource, title) => {
     return parsePriceNumber(pricingSource[fieldNames.sale]);
 };
 
-const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
+const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers, voucherIdRaw = null) => {
     if (pricingDataRaw == null) return null;
 
     let pricingData = pricingDataRaw;
@@ -264,7 +264,14 @@ const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers) => {
         return undefined;
     };
 
-    const byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+    let byTitle = resolveForTitle(pricingData, voucherTitleRaw);
+
+    // Some legacy rows store tier maps by voucher id rather than title.
+    if (byTitle == null && voucherIdRaw !== null && voucherIdRaw !== undefined && voucherIdRaw !== '') {
+        const voucherId = String(voucherIdRaw).trim();
+        byTitle = pricingData[voucherId] ?? pricingData[Number(voucherId)];
+    }
+
     if (byTitle == null) return null;
 
     if (typeof byTitle === 'object' && !Array.isArray(byTitle)) {
@@ -983,8 +990,8 @@ const VoucherType = ({
                     console.warn(`VoucherType: ${vt.title} - No features available in database. Please check the Features (JSON Array) field in the admin panel.`);
                 }
 
-                const activityOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, vt.title, 2);
-                const activitySalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, vt.title, 2);
+                const activityOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, vt.title, 2, vt.id);
+                const activitySalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, vt.title, 2, vt.id);
                 const pricingState = resolveVoucherPricing({
                     originalPrice: vt.original_price ?? activityOriginalPrice,
                     salePrice: vt.sale_price ?? activitySalePrice,
@@ -1503,8 +1510,8 @@ const VoucherType = ({
         let privateCharterHasSalePrice = !!voucher.hasSalePrice;
         if (chooseFlightType?.type === "Private Charter") {
             const selectedPassengers = parseInt(quantities[voucher.title] || 2, 10);
-            const originalTierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers);
-            const saleTierPrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, selectedPassengers);
+            const originalTierPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, selectedPassengers, voucher.id);
+            const saleTierPrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, selectedPassengers, voucher.id);
 
             if (originalTierPrice !== null) {
                 privateCharterOriginalTotal = originalTierPrice;
@@ -2263,8 +2270,8 @@ const VoucherType = ({
 
         if (chooseFlightType?.type === "Private Charter") {
             // Use total price from activity tiered pricing; do NOT multiply by passenger count
-            const tierOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity);
-            const tierSalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, safeQuantity);
+            const tierOriginalPrice = getTieredGroupPrice(activityData?.private_charter_pricing, voucher.title, safeQuantity, voucher.id);
+            const tierSalePrice = getTieredGroupPrice(activityData?.private_charter_sale_pricing, voucher.title, safeQuantity, voucher.id);
 
             if (tierOriginalPrice !== null) {
                 effectiveOriginalBasePrice = tierOriginalPrice;
