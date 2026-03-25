@@ -507,8 +507,6 @@ const Index = () => {
     // Payment success popup state
     const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
     const [paymentSuccessData, setPaymentSuccessData] = useState(null);
-    const [paymentInviteExpanded, setPaymentInviteExpanded] = useState(false);
-    const [paymentInviteCopyMessage, setPaymentInviteCopyMessage] = useState('');
     
     
     
@@ -516,8 +514,6 @@ const Index = () => {
     const closePaymentSuccess = () => {
         setShowPaymentSuccess(false);
         setPaymentSuccessData(null);
-        setPaymentInviteExpanded(false);
-        setPaymentInviteCopyMessage('');
         if (paymentSuccessData?.manualBooking) {
             return;
         }
@@ -534,46 +530,10 @@ const Index = () => {
             customerEmail: responseData.customer_email || null,
             paidAmount: responseData.paid_amount ?? null,
             quotedTotal: responseData.quoted_total ?? null,
-            inviteFriends: manualBooking ? null : (responseData.invite_friends || null),
             message: type === 'booking' ? 'reservation' : 'voucher',
             manualBooking
         });
-        setPaymentInviteExpanded(false);
-        setPaymentInviteCopyMessage('');
         setShowPaymentSuccess(true);
-    };
-
-    const handlePaymentInviteShare = async (channel, inviteFriends) => {
-        if (!inviteFriends?.enabled) {
-            return;
-        }
-
-        try {
-            if (channel === 'copy') {
-                if (!navigator?.clipboard?.writeText) {
-                    throw new Error('Clipboard is not available');
-                }
-
-                await navigator.clipboard.writeText(inviteFriends.bookingUrl || '');
-                setPaymentInviteCopyMessage('Booking link copied.');
-                return;
-            }
-
-            const shareUrl = inviteFriends?.shareLinks?.[channel];
-            if (!shareUrl) {
-                return;
-            }
-
-            if (channel === 'email' || channel === 'sms') {
-                window.location.href = shareUrl;
-                return;
-            }
-
-            window.open(shareUrl, '_blank', 'noopener,noreferrer');
-        } catch (error) {
-            console.error('Invite Friends share action failed:', error);
-            alert('We could not complete that share action. Please try again.');
-        }
     };
     
     // Timeout functionality removed
@@ -4832,11 +4792,8 @@ const Index = () => {
                                 customerName: response.data.customer_name || null,
                                 customerEmail: response.data.customer_email || null,
                                 paidAmount: response.data.paid_amount || null,
-                                inviteFriends: response.data.invite_friends || null,
                                 message: type === 'booking' ? 'reservation' : 'voucher'
                             });
-                            setPaymentInviteExpanded(false);
-                            setPaymentInviteCopyMessage('');
                             setShowPaymentSuccess(true);
 
                             // Google Ads: GA_Purchase_Completed (client-side) with Enhanced Conversions user_data
@@ -6137,123 +6094,7 @@ const Index = () => {
                             </div>
                         )}
 
-                        {paymentSuccessData.inviteFriends?.visible && (
-                            <div style={{
-                                background: paymentSuccessData.inviteFriends.enabled
-                                    ? 'linear-gradient(135deg, #fff7ed 0%, #fde7cf 100%)'
-                                    : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-                                borderRadius: '12px',
-                                padding: '16px',
-                                marginBottom: '16px',
-                                border: `1px solid ${paymentSuccessData.inviteFriends.enabled ? '#f2d5b4' : '#d1d5db'}`,
-                                textAlign: 'left'
-                            }}>
-                                <p style={{
-                                    color: '#111827',
-                                    fontSize: '20px',
-                                    fontWeight: '700',
-                                    marginBottom: '8px'
-                                }}>
-                                    {paymentSuccessData.inviteFriends.title}
-                                </p>
-                                <p style={{
-                                    color: '#4b5563',
-                                    fontSize: '14px',
-                                    lineHeight: '1.5',
-                                    marginBottom: '8px'
-                                }}>
-                                    {paymentSuccessData.inviteFriends.description}
-                                </p>
-                                <p style={{
-                                    color: '#9a3412',
-                                    fontSize: '14px',
-                                    fontWeight: '700',
-                                    marginBottom: '14px'
-                                }}>
-                                    Use code {paymentSuccessData.inviteFriends.discountCode} to give your friends 10% off.
-                                </p>
-
-                                <button
-                                    onClick={() => {
-                                        setPaymentInviteExpanded((current) => !current);
-                                        setPaymentInviteCopyMessage('');
-                                    }}
-                                    disabled={!paymentSuccessData.inviteFriends.enabled}
-                                    style={{
-                                        width: '100%',
-                                        backgroundColor: paymentSuccessData.inviteFriends.enabled ? '#0f172a' : '#94a3b8',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '10px',
-                                        padding: '12px 18px',
-                                        fontSize: '15px',
-                                        fontWeight: '700',
-                                        cursor: paymentSuccessData.inviteFriends.enabled ? 'pointer' : 'not-allowed',
-                                        marginBottom: paymentInviteExpanded && paymentSuccessData.inviteFriends.enabled ? '14px' : '0'
-                                    }}
-                                >
-                                    {paymentSuccessData.inviteFriends.buttonLabel}
-                                </button>
-
-                                {paymentInviteExpanded && paymentSuccessData.inviteFriends.enabled && (
-                                    <div>
-                                        <div style={{
-                                            backgroundColor: 'rgba(255,255,255,0.8)',
-                                            borderRadius: '10px',
-                                            padding: '12px',
-                                            border: '1px solid #e7c9a7',
-                                            marginBottom: '12px',
-                                            whiteSpace: 'pre-wrap',
-                                            color: '#334155',
-                                            fontSize: '13px',
-                                            lineHeight: '1.5'
-                                        }}>
-                                            {paymentSuccessData.inviteFriends.shareMessage}
-                                        </div>
-                                        <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                                            gap: '10px'
-                                        }}>
-                                            {[
-                                                ['whatsapp', 'WhatsApp'],
-                                                ['sms', 'SMS'],
-                                                ['email', 'Email'],
-                                                ['copy', 'Copy Link']
-                                            ].map(([channel, label]) => (
-                                                <button
-                                                    key={channel}
-                                                    onClick={() => handlePaymentInviteShare(channel, paymentSuccessData.inviteFriends)}
-                                                    style={{
-                                                        backgroundColor: channel === 'copy' ? 'white' : '#0f172a',
-                                                        color: channel === 'copy' ? '#0f172a' : 'white',
-                                                        border: channel === 'copy' ? '1px solid #0f172a' : 'none',
-                                                        borderRadius: '10px',
-                                                        padding: '10px 12px',
-                                                        fontSize: '14px',
-                                                        fontWeight: '700',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    {label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {paymentInviteCopyMessage && (
-                                            <p style={{
-                                                color: '#047857',
-                                                fontSize: '13px',
-                                                fontWeight: '600',
-                                                marginTop: '10px',
-                                                marginBottom: 0
-                                            }}>
-                                                {paymentInviteCopyMessage}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        {/* Invite Friends / spaces CTA removed — shown on customer portal instead */}
                         
                         {/* Reservation/Voucher ID removed per request */}
                         
