@@ -1560,8 +1560,8 @@ const VoucherType = ({
         }
     };
 
-    // VoucherCard component for displaying individual voucher cards
-    const VoucherCard = ({ voucher, onSelect, quantities, setQuantities, isSelected, slideDirection, showTwoVouchers, shouldAnimate }) => {
+    // Render voucher cards inline so mobile scroll state changes do not remount the image tree.
+    const renderVoucherCard = ({ voucher, onSelect, quantities, isSelected, slideDirection, shouldAnimate }) => {
         // Compute dynamic display price for Private Charter based on selected passengers
         let privateCharterDisplayTotal = voucher.basePrice || voucher.price;
         let privateCharterOriginalTotal = voucher.originalBasePrice || privateCharterDisplayTotal;
@@ -1657,7 +1657,9 @@ const VoucherType = ({
                     <img
                         src={voucher.image}
                         alt={voucher.title}
-                        loading="lazy"
+                        loading={isMobile ? 'eager' : 'lazy'}
+                        decoding="async"
+                        draggable={false}
                         onError={(e) => {
                             // Hide image on error (blocked, 404, etc.) to prevent loading delays
                             e.target.style.display = 'none';
@@ -2931,16 +2933,14 @@ const VoucherType = ({
                                                     display: 'flex',
                                                     height: '100%'
                                                 }}>
-                                                    <VoucherCard
-                                                        voucher={voucher}
-                                                        isSelected={selectedVoucherType?.id === voucher.id}
-                                                        onSelect={handleSelectVoucher}
-                                                        quantities={quantities}
-                                                        onQuantityChange={handleQuantityChange}
-                                                        chooseFlightType={chooseFlightType}
-                                                        isMobile={isMobile}
-                                                        shouldAnimate={shouldAnimate}
-                                                    />
+                                                    {renderVoucherCard({
+                                                        voucher,
+                                                        isSelected: selectedVoucherType?.id === voucher.id,
+                                                        onSelect: handleSelectVoucher,
+                                                        quantities,
+                                                        slideDirection,
+                                                        shouldAnimate
+                                                    })}
                                                 </div>
                                             ))}
                                         </div>
@@ -3052,16 +3052,14 @@ const VoucherType = ({
                                                 height: '100%',
                                                 flexShrink: 0
                                             }}>
-                                                <VoucherCard
-                                                    voucher={voucher}
-                                                    onSelect={handleSelectVoucher}
-                                                    quantities={quantities}
-                                                    setQuantities={setQuantities}
-                                                    isSelected={selectedVoucher?.id === voucher.id}
-                                                    slideDirection={slideDirection}
-                                                    showTwoVouchers={vouchersToShow.length > 1}
-                                                    shouldAnimate={shouldAnimate}
-                                                />
+                                                {renderVoucherCard({
+                                                    voucher,
+                                                    onSelect: handleSelectVoucher,
+                                                    quantities,
+                                                    isSelected: selectedVoucher?.id === voucher.id,
+                                                    slideDirection,
+                                                    shouldAnimate
+                                                })}
                                             </div>
                                         ))}
                                     </div>
@@ -3182,16 +3180,14 @@ const VoucherType = ({
                                                 flexShrink: 0,
                                                 scrollSnapAlign: isMobile ? 'start' : undefined
                                             }}>
-                                                <VoucherCard
-                                                    voucher={voucher}
-                                                    onSelect={handleSelectVoucher}
-                                                    quantities={quantities}
-                                                    setQuantities={setQuantities}
-                                                    isSelected={selectedVoucher?.id === voucher.id}
-                                                    slideDirection={slideDirection}
-                                                    showTwoVouchers={vouchersToShow.length > 1}
-                                                    shouldAnimate={shouldAnimate}
-                                                />
+                                                {renderVoucherCard({
+                                                    voucher,
+                                                    onSelect: handleSelectVoucher,
+                                                    quantities,
+                                                    isSelected: selectedVoucher?.id === voucher.id,
+                                                    slideDirection,
+                                                    shouldAnimate
+                                                })}
                                             </div>
                                         ))}
                                     </div>
