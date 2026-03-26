@@ -2848,9 +2848,11 @@ const Index = () => {
             }
             
             // Combine countryCode and phone for each passenger in passengerData for Redeem Voucher bookingData
+            const privateWeatherRefundSelected = chooseFlightType?.type === 'Private Charter' && privateCharterWeatherRefund;
             const redeemBookingPassengerDataWithPhoneCode = passengerData.map(p => ({
                 ...p,
-                phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || ''),
+                weatherRefund: privateWeatherRefundSelected ? true : !!p.weatherRefund
             }));
 
             const bookingData = {
@@ -2878,7 +2880,7 @@ const Index = () => {
                 } : null,
                 voucher_type: selectedVoucherType?.title || null,
                 // Include privateCharterWeatherRefund for Private Charter bookings
-                privateCharterWeatherRefund: chooseFlightType?.type === 'Private Charter' ? privateCharterWeatherRefund : false
+                privateCharterWeatherRefund: privateWeatherRefundSelected
             };
 
             try {
@@ -2888,7 +2890,8 @@ const Index = () => {
                 // Combine countryCode and phone for each passenger in passengerData for Redeem Voucher
                 const redeemPassengerDataWithPhoneCode = passengerData.map(p => ({
                     ...p,
-                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+                    phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || ''),
+                    weatherRefund: privateWeatherRefundSelected ? true : !!p.weatherRefund
                 }));
 
                 // Call simplified createRedeemBooking endpoint for Redeem Voucher
@@ -2903,6 +2906,7 @@ const Index = () => {
                     voucher_code: voucherCode,
                     totalPrice,
                     activity_id: activityId,
+                    privateCharterWeatherRefund: privateWeatherRefundSelected,
                     userSessionData: userSessionData
                 };
                 
@@ -3014,9 +3018,11 @@ const Index = () => {
             bookingDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
         }
         // Combine countryCode and phone for each passenger in passengerData
+        const privateWeatherRefundSelected = chooseFlightType?.type === 'Private Charter' && privateCharterWeatherRefund;
         const passengerDataWithPhoneCode = passengerData.map(p => ({
             ...p,
-            phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || '')
+            phone: (p.countryCode && p.phone) ? `${p.countryCode}${p.phone}`.trim() : (p.phone || ''),
+            weatherRefund: privateWeatherRefundSelected ? true : !!p.weatherRefund
         }));
 
         const bookingData = {
@@ -3037,7 +3043,8 @@ const Index = () => {
             preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
             preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
             activity_id: activityId,
-            season_saver: seasonSaver ? 1 : 0
+            season_saver: seasonSaver ? 1 : 0,
+            privateCharterWeatherRefund: privateWeatherRefundSelected
         };
 
         try {

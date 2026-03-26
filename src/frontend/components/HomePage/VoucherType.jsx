@@ -455,6 +455,10 @@ const VoucherType = ({
                                 ...prev,
                                 [targetTitle]: true
                             }));
+                            if (Array.isArray(passengerData) && setPassengerData) {
+                                const updated = passengerData.map(p => ({ ...p, weatherRefund: true }));
+                                setPassengerData(updated);
+                            }
                             // If this voucher is selected, also update global state
                             if (selectedVoucherType?.title === targetTitle && setPrivateCharterWeatherRefund) {
                                 setPrivateCharterWeatherRefund(true);
@@ -516,6 +520,19 @@ const VoucherType = ({
     const [canScrollVouchersRight, setCanScrollVouchersRight] = useState(true);
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
     const voucherContainerRef = useRef(null);
+    const voucherHydrationStateRef = useRef({
+        allVoucherTypesCount: 0,
+        allVoucherTypesLoading: true,
+        privateCharterVoucherTypesCount: 0,
+        privateCharterVoucherTypesLoading: true,
+        hasActivityData: false,
+        activityDataLoading: false,
+        chooseLocation: null
+    });
+    const activePrivateCharterVoucherCount = useMemo(
+        () => privateCharterVoucherTypes.filter(vt => vt.is_active === 1).length,
+        [privateCharterVoucherTypes]
+    );
     
     // Helper: compute one slide width (+ gap) reliably on mobile
     const getMobileItemWidth = (container) => {
@@ -534,12 +551,12 @@ const VoucherType = ({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Sync arrows/dots while swiping vouchers on mobile - interval + events (reliable on all mobile browsers)
+    // Sync arrows/dots while swiping vouchers on mobile without a polling loop.
     useEffect(() => {
         if (!isMobile || activeAccordion !== 'voucher-type') return;
 
         const sync = () => {
-            const container = document.querySelector('.voucher-cards-container');
+            const container = voucherContainerRef.current || document.querySelector('.voucher-cards-container');
             if (!container || container.children.length === 0) return;
             const children = Array.from(container.children);
             const itemCount = children.length;
@@ -562,22 +579,37 @@ const VoucherType = ({
             setCanScrollVouchersRight(clamped < itemCount - 1);
         };
 
-        sync();
-        const iv = setInterval(sync, 150);
-        const container = document.querySelector('.voucher-cards-container');
+        let frameId = null;
+        const requestSync = () => {
+            if (frameId !== null) {
+                cancelAnimationFrame(frameId);
+            }
+            frameId = requestAnimationFrame(sync);
+        };
+
+        requestSync();
+        const container = voucherContainerRef.current || document.querySelector('.voucher-cards-container');
         if (container) {
-            container.addEventListener('scroll', sync, { passive: true });
-            container.addEventListener('touchmove', sync, { passive: true });
-            container.addEventListener('touchend', sync, { passive: true });
+            container.addEventListener('scroll', requestSync, { passive: true });
+            container.addEventListener('touchmove', requestSync, { passive: true });
+            container.addEventListener('touchend', requestSync, { passive: true });
+            window.addEventListener('resize', requestSync);
             return () => {
-                clearInterval(iv);
-                container.removeEventListener('scroll', sync);
-                container.removeEventListener('touchmove', sync);
-                container.removeEventListener('touchend', sync);
+                if (frameId !== null) {
+                    cancelAnimationFrame(frameId);
+                }
+                container.removeEventListener('scroll', requestSync);
+                container.removeEventListener('touchmove', requestSync);
+                container.removeEventListener('touchend', requestSync);
+                window.removeEventListener('resize', requestSync);
             };
         }
-        return () => clearInterval(iv);
-    }, [isMobile, activeAccordion, allVoucherTypesState.length, privateCharterVoucherTypes.length]);
+        return () => {
+            if (frameId !== null) {
+                cancelAnimationFrame(frameId);
+            }
+        };
+    }, [isMobile, activeAccordion, allVoucherTypesState.length, privateCharterVoucherTypes.length, chooseFlightType?.type]);
 
     // Reset animation flag after animation completes
     useEffect(() => {
@@ -597,28 +629,27 @@ const VoucherType = ({
             // For Private Charter, always show two vouchers if available
             if (chooseFlightType?.type === "Private Charter") {
                 // Check if we have active private charter voucher types available
-                const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
-                if (activePrivateCharterVoucherTypes && activePrivateCharterVoucherTypes.length >= 2) {
+                if (activePrivateCharterVoucherCount >= 2) {
                     // Always start with two vouchers view for Private Charter
                     setShowTwoVouchers(true);
                     setCurrentViewIndex(0);
-                    console.log('VoucherType: Setting Private Charter to show two vouchers (active count:', activePrivateCharterVoucherTypes.length, ')');
-                    console.log('VoucherType: Available voucher types:', activePrivateCharterVoucherTypes.map(vt => vt.title));
+                    console.log('VoucherType: Setting Private Charter to show two vouchers (active count:', activePrivateCharterVoucherCount, ')');
+                    console.log('VoucherType: Available voucher types:', privateCharterVoucherTypes.filter(vt => vt.is_active === 1).map(vt => vt.title));
                     
                     // If there are more than 2 voucher types, we'll show navigation arrows and dots
-                    if (activePrivateCharterVoucherTypes.length > 2) {
+                    if (activePrivateCharterVoucherCount > 2) {
                         console.log('VoucherType: Private Charter has more than 2 voucher types, navigation arrows and dots will be shown');
-                        console.log('VoucherType: Total available:', activePrivateCharterVoucherTypes.length);
+                        console.log('VoucherType: Total available:', activePrivateCharterVoucherCount);
                         console.log('VoucherType: Will show first 2 initially, then allow navigation to others');
                     }
-                } else if (activePrivateCharterVoucherTypes && activePrivateCharterVoucherTypes.length === 1) {
+                } else if (activePrivateCharterVoucherCount === 1) {
                     setShowTwoVouchers(false);
                     setCurrentViewIndex(0);
-                    console.log('VoucherType: Setting Private Charter to show single voucher (active count:', activePrivateCharterVoucherTypes.length, ')');
+                    console.log('VoucherType: Setting Private Charter to show single voucher (active count:', activePrivateCharterVoucherCount, ')');
                 } else {
                     setShowTwoVouchers(false);
                     setCurrentViewIndex(0);
-                    console.log('VoucherType: Setting Private Charter to show no vouchers (active count:', activePrivateCharterVoucherTypes.length, ')');
+                    console.log('VoucherType: Setting Private Charter to show no vouchers (active count:', activePrivateCharterVoucherCount, ')');
                 }
             } else {
                 // For Shared Flight, default to two vouchers
@@ -627,7 +658,7 @@ const VoucherType = ({
                 console.log('VoucherType: Setting Shared Flight to show two vouchers');
             }
         }
-    }, [isMobile, chooseFlightType?.type, privateCharterVoucherTypes, availableVoucherTypes]);
+    }, [isMobile, chooseFlightType?.type, activePrivateCharterVoucherCount, availableVoucherTypes.length]);
 
     // Fetch all voucher types from API
     const fetchAllVoucherTypes = async () => {
@@ -692,34 +723,55 @@ const VoucherType = ({
         fetchAllVoucherTypes();
     }, [API_BASE_URL, chooseLocation]); // Auto-refresh when location changes
 
-    // Auto-refresh when component mounts or when dependencies change
     useEffect(() => {
-        // Initial fetch
-        fetchAllVoucherTypes();
-        
-        // Set up interval for periodic refresh (every 2 minutes)
-        const interval = setInterval(() => {
-            console.log('VoucherType: Auto-refreshing voucher types...');
-            fetchAllVoucherTypes();
-        }, 2 * 60 * 1000); // 2 minutes
+        voucherHydrationStateRef.current = {
+            allVoucherTypesCount: allVoucherTypesState.length,
+            allVoucherTypesLoading,
+            privateCharterVoucherTypesCount: privateCharterVoucherTypes.length,
+            privateCharterVoucherTypesLoading,
+            hasActivityData: Boolean(activityData),
+            activityDataLoading,
+            chooseLocation
+        };
+    }, [
+        activityData,
+        activityDataLoading,
+        allVoucherTypesLoading,
+        allVoucherTypesState.length,
+        chooseLocation,
+        privateCharterVoucherTypes.length,
+        privateCharterVoucherTypesLoading
+    ]);
 
-        return () => clearInterval(interval);
-    }, [chooseLocation]); // Re-run when location changes
-
-    // Refresh data when accordion becomes active
+    // Hydrate missing data when the accordion becomes active without forcing a reset.
     useEffect(() => {
-        if (activeAccordion === 'voucher-type') {
-            console.log('VoucherType: Accordion became active, refreshing data...');
+        if (activeAccordion !== 'voucher-type') return;
+
+        const {
+            allVoucherTypesCount,
+            allVoucherTypesLoading: sharedLoading,
+            privateCharterVoucherTypesCount,
+            privateCharterVoucherTypesLoading: privateLoading,
+            hasActivityData,
+            activityDataLoading: activityLoading,
+            chooseLocation: selectedLocation
+        } = voucherHydrationStateRef.current;
+
+        if (allVoucherTypesCount === 0 && !sharedLoading) {
+            console.log('VoucherType: Accordion became active with empty shared vouchers, loading...');
             fetchAllVoucherTypes();
-            fetchPrivateCharterVoucherTypes();
-            
-            // Also refresh activity data for pricing
-            if (chooseLocation) {
-                // Force immediate refresh with cache busting
-                setTimeout(() => fetchActivityData(), 100);
-            }
         }
-    }, [activeAccordion, chooseLocation]);
+
+        if (privateCharterVoucherTypesCount === 0 && !privateLoading) {
+            console.log('VoucherType: Accordion became active with empty private charter vouchers, loading...');
+            fetchPrivateCharterVoucherTypes();
+        }
+
+        if (selectedLocation && !hasActivityData && !activityLoading) {
+            console.log('VoucherType: Accordion became active without activity data, loading...');
+            fetchActivityData();
+        }
+    }, [activeAccordion]);
 
     // Force refresh all data (can be called manually if needed)
     const forceRefreshAllData = () => {
@@ -909,14 +961,6 @@ const VoucherType = ({
     // Fetch activity data when location changes
     useEffect(() => {
         fetchActivityData();
-        
-        // Set up interval for periodic refresh of activity data (every 1 minute)
-        const interval = setInterval(() => {
-            console.log('VoucherType: Auto-refreshing activity data...');
-            fetchActivityData();
-        }, 1 * 60 * 1000); // 1 minute
-
-        return () => clearInterval(interval);
     }, [chooseLocation]);
 
     // Ensure activity data is also available when switching flows (e.g., Flight Voucher / Buy Gift)
@@ -1373,6 +1417,10 @@ const VoucherType = ({
                         ...prev,
                         [matched.title]: true
                     }));
+                    if (Array.isArray(passengerData) && setPassengerData) {
+                        const updated = passengerData.map(p => ({ ...p, weatherRefund: true }));
+                        setPassengerData(updated);
+                    }
                     // Also update global state
                     if (setPrivateCharterWeatherRefund) {
                         setPrivateCharterWeatherRefund(true);
@@ -2125,6 +2173,10 @@ const VoucherType = ({
                                                                 if (next) state[voucher.title] = true; // only this one on
                                                                 return state; // all others implicitly off
                                                             });
+                                                            if (Array.isArray(passengerData) && setPassengerData) {
+                                                                const updated = passengerData.map((p) => ({ ...p, weatherRefund: next }));
+                                                                setPassengerData(updated);
+                                                            }
                                                             // If this card is selected, reflect to global for summary
                                                             if (isSelected && setPrivateCharterWeatherRefund) {
                                                                 setPrivateCharterWeatherRefund(next);
@@ -2991,7 +3043,7 @@ const VoucherType = ({
                                         overscrollBehaviorY: 'auto'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
-                                            <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                            <div key={`wrapper-${voucher.id || voucher.title || index}`} style={{
                                                 // On mobile, match private charter width structure for consistency
                                                 width: isMobile ? 'calc(100% - 0px)' : 'auto',
                                                 minWidth: isMobile ? 'calc(100% - 0px)' : 'auto',
@@ -3001,7 +3053,6 @@ const VoucherType = ({
                                                 flexShrink: 0
                                             }}>
                                                 <VoucherCard
-                                                    key={`${voucher.id}-${currentViewIndex}-${index}`}
                                                     voucher={voucher}
                                                     onSelect={handleSelectVoucher}
                                                     quantities={quantities}
@@ -3121,7 +3172,7 @@ const VoucherType = ({
                                         boxSizing: 'border-box'
                                     }}>
                                         {vouchersToShow.map((voucher, index) => (
-                                            <div key={`wrapper-${voucher.id}-${currentViewIndex}-${index}`} style={{
+                                            <div key={`wrapper-${voucher.id || voucher.title || index}`} style={{
                                                 // Mobile: calc(100% - 12px) so next card peeks ~12px, current card keeps full usable width
                                                 width: isMobile ? 'calc(100% - 12px)' : 'auto',
                                                 minWidth: isMobile ? 'calc(100% - 12px)' : 'auto',
@@ -3132,7 +3183,6 @@ const VoucherType = ({
                                                 scrollSnapAlign: isMobile ? 'start' : undefined
                                             }}>
                                                 <VoucherCard
-                                                    key={`${voucher.id}-${currentViewIndex}-${index}`}
                                                     voucher={voucher}
                                                     onSelect={handleSelectVoucher}
                                                     quantities={quantities}
