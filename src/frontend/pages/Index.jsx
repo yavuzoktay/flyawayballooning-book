@@ -229,6 +229,7 @@ const Index = () => {
     const shouldShowManualBookingBanner = manualBookingRequested || isDedicatedManualBookingFlow;
     const hiddenVoucherTitlesForDedicatedFlow = ['Proposal Flight', 'Flexible Weekday', 'Weekday Morning'];
     const shouldHideAddOns = isDedicatedManualBookingFlow;
+    const shouldHideAdditionalInfoSection = isDedicatedManualBookingFlow;
     const [manualBookingContact, setManualBookingContact] = useState({
         accommodationName: '',
         email: '',
@@ -408,17 +409,19 @@ const Index = () => {
         return titles[id] || id;
     };
 
+    const withOptionalAdditionalInfoStep = (sections) => shouldHideAdditionalInfoSection ? sections : [...sections, 'additional-info'];
     const withOptionalAddOnStep = (sections) => shouldHideAddOns ? sections : [...sections, 'add-on'];
+    const withOptionalHotelFlowSteps = (sections) => withOptionalAddOnStep(withOptionalAdditionalInfoStep(sections));
 
     // Define progress sections based on activity type
     const progressSections = activitySelect === 'Book Flight' 
-        ? withOptionalAddOnStep(['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info'])
+        ? withOptionalHotelFlowSteps(['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info'])
         : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
-        ? withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'additional-info'])
+        ? withOptionalHotelFlowSteps(['activity', 'experience', 'voucher-type', 'passenger-info'])
         : activitySelect === 'Buy Gift'
         ? withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details'])
         : activitySelect === 'Redeem Voucher'
-        ? withOptionalAddOnStep(['activity', 'location', 'live-availability', 'passenger-info', 'additional-info']) // Experience removed from progress bar for Redeem Voucher
+        ? withOptionalHotelFlowSteps(['activity', 'location', 'live-availability', 'passenger-info']) // Experience removed from progress bar for Redeem Voucher
         : [];
 
     // Start/maintain 5-minute countdown when a date and time are selected
@@ -1364,6 +1367,8 @@ const Index = () => {
         });
     };
 
+    const isAdditionalInfoStepComplete = shouldHideAdditionalInfoSection || isAdditionalInfoValid(additionalInfo);
+
     const isRecipientDetailsValid = (details) => {
         if (!details || typeof details !== 'object') {
             console.log('❌ recipientDetails is null/undefined or not object:', details);
@@ -1469,7 +1474,7 @@ const Index = () => {
             chooseFlightType &&
             selectedVoucherType &&
             isPassengerInfoComplete &&
-            isAdditionalInfoValid(additionalInfo)
+            isAdditionalInfoStepComplete
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
@@ -1491,7 +1496,7 @@ const Index = () => {
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
             // Enforce Additional Information required fields dynamically
-            isAdditionalInfoValid(additionalInfo) &&
+            isAdditionalInfoStepComplete &&
             selectedDate &&
             selectedTime
         );
@@ -1664,8 +1669,7 @@ const Index = () => {
             sequence.push('voucher-type');
             sequence.push('live-availability');
             sequence.push('passenger-info');
-            sequence.push('additional-info');
-            return withOptionalAddOnStep(sequence);
+            return withOptionalHotelFlowSteps(sequence);
         }
         
         if (activityType === 'Redeem Voucher') {
@@ -1674,8 +1678,7 @@ const Index = () => {
             sequence.push('experience');
             sequence.push('live-availability');
             sequence.push('passenger-info');
-            sequence.push('additional-info');
-            return withOptionalAddOnStep(sequence);
+            return withOptionalHotelFlowSteps(sequence);
         }
         
         if (activityType === 'Flight Voucher') {
@@ -1683,8 +1686,7 @@ const Index = () => {
             sequence.push('experience');
             sequence.push('voucher-type');
             sequence.push('passenger-info');
-            sequence.push('additional-info');
-            return withOptionalAddOnStep(sequence);
+            return withOptionalHotelFlowSteps(sequence);
         }
         
         if (activityType === 'Buy Gift') {
@@ -1822,7 +1824,7 @@ const Index = () => {
                 const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
                 if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
-                if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
+                if (!shouldHideAdditionalInfoSection && isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
@@ -2470,7 +2472,7 @@ const Index = () => {
         const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
         if (passengerComplete) completedSections.push('passenger-info');
         // Additional Information is optional unless API marks specific questions required
-        if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
+        if (!shouldHideAdditionalInfoSection && isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
 
         // Recipient Details (Buy Gift only):
         // Use the same validation rules as the booking button:
@@ -4035,7 +4037,7 @@ const Index = () => {
                 const passengerComplete = isGiftVoucher ? isBuyGiftPassengerComplete : isPassengerInfoComplete;
                 if (passengerComplete) completedSections.push('passenger-info');
                 // Additional Information is optional unless API marks specific questions required
-                if (isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
+                if (!shouldHideAdditionalInfoSection && isAdditionalInfoValid(additionalInfo)) completedSections.push('additional-info');
                 if (recipientDetails?.name && recipientDetails?.email && recipientDetails?.phone && recipientDetails?.date) completedSections.push('recipient-details');
                 if (chooseAddOn && chooseAddOn.length > 0) completedSections.push('add-on');
                 
@@ -5528,19 +5530,21 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
                                                 getNextSectionId={getNextSectionId}
                                             />
-                                            <AdditionalInfo 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                isBookFlight={isBookFlight}
-                                                additionalInfo={additionalInfo} 
-                                                setAdditionalInfo={setAdditionalInfo} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
-                                                flightType={chooseFlightType.type}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('additional-info').isEnabled}
-                                            />
+                                            {!shouldHideAdditionalInfoSection && (
+                                                <AdditionalInfo 
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isBookFlight={isBookFlight}
+                                                    additionalInfo={additionalInfo} 
+                                                    setAdditionalInfo={setAdditionalInfo} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
+                                                    flightType={chooseFlightType.type}
+                                                    onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('additional-info').isEnabled}
+                                                />
+                                            )}
                                             
                                             {!shouldHideAddOns && (
                                                 <>
@@ -5632,19 +5636,21 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
                                                 getNextSectionId={getNextSectionId}
                                             />
-                                            <AdditionalInfo 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                isBookFlight={isBookFlight}
-                                                additionalInfo={additionalInfo} 
-                                                setAdditionalInfo={setAdditionalInfo} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
-                                                flightType={chooseFlightType.type}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('additional-info').isEnabled}
-                                            />
+                                            {!shouldHideAdditionalInfoSection && (
+                                                <AdditionalInfo 
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isBookFlight={isBookFlight}
+                                                    additionalInfo={additionalInfo} 
+                                                    setAdditionalInfo={setAdditionalInfo} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
+                                                    flightType={chooseFlightType.type}
+                                                    onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('additional-info').isEnabled}
+                                                />
+                                            )}
                                             {!shouldHideAddOns && (
                                                 <>
                                                     <AddOnsSection 
@@ -5736,21 +5742,23 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('passenger-info').isEnabled}
                                                 getNextSectionId={getNextSectionId}
                                             />
-                                            <AdditionalInfo 
-                                                ref={additionalInfoRef}
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                isBookFlight={isBookFlight}
-                                                additionalInfo={additionalInfo} 
-                                                setAdditionalInfo={setAdditionalInfo} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation}
-                                                flightType={chooseFlightType.type}
-                                                location={chooseLocation}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('additional-info').isEnabled}
-                                            />
+                                            {!shouldHideAdditionalInfoSection && (
+                                                <AdditionalInfo 
+                                                    ref={additionalInfoRef}
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isBookFlight={isBookFlight}
+                                                    additionalInfo={additionalInfo} 
+                                                    setAdditionalInfo={setAdditionalInfo} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation}
+                                                    flightType={chooseFlightType.type}
+                                                    location={chooseLocation}
+                                                    onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('additional-info').isEnabled}
+                                                />
+                                            )}
                                             {/* EnterPreferences removed for Flight Voucher */}
                                             {!shouldHideAddOns && (
                                                 <>
@@ -5945,7 +5953,7 @@ const Index = () => {
                                                 />
                                             )}
 
-                                            {(activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && (
+                                            {!shouldHideAdditionalInfoSection && (activitySelect === "Book Flight" || activitySelect === "Redeem Voucher" || activitySelect === "Flight Voucher") && (
                                                 <AdditionalInfo 
                                                     ref={additionalInfoRef}
                                                     isGiftVoucher={isGiftVoucher} 
@@ -6006,6 +6014,7 @@ const Index = () => {
                                 onBook={handleBookData}
                                 seasonSaver={seasonSaver}
                                 hideAddOnsSection={shouldHideAddOns}
+                                hideAdditionalInfoSection={shouldHideAdditionalInfoSection}
                             />
                         </div>
                     </div>
@@ -6389,8 +6398,8 @@ const Index = () => {
                                 • Voucher Type<br/>
                                 • Live Availability (Date & Time)<br/>
                                 • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
+                                {!shouldHideAdditionalInfoSection && <>• Additional Information<br/></>}
+                                {!shouldHideAddOns && <>• Add to Booking</>}
                             </>
                         )}
                         {activitySelect === 'Redeem Voucher' && (
@@ -6399,8 +6408,8 @@ const Index = () => {
                                 • Flight Location and Experience<br/>
                                 • Live Availability (Date & Time)<br/>
                                 • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
+                                {!shouldHideAdditionalInfoSection && <>• Additional Information<br/></>}
+                                {!shouldHideAddOns && <>• Add to Booking</>}
                             </>
                         )}
                         {activitySelect === 'Flight Voucher' && (
@@ -6408,8 +6417,8 @@ const Index = () => {
                                 Please complete all required fields:<br/>
                                 • Experience<br/>
                                 • Passenger Information (All fields required)<br/>
-                                • Additional Information<br/>
-                                • Add to Booking
+                                {!shouldHideAdditionalInfoSection && <>• Additional Information<br/></>}
+                                {!shouldHideAddOns && <>• Add to Booking</>}
                             </>
                         )}
                         {activitySelect === 'Buy Gift' && (
@@ -6514,7 +6523,7 @@ const Index = () => {
                                 )}
                             </Box>
 
-                            {successModalData.additionalInfo && (successModalData.additionalInfo.notes || Object.keys(successModalData.additionalInfo).length > 0) && (
+                            {!shouldHideAdditionalInfoSection && successModalData.additionalInfo && (successModalData.additionalInfo.notes || Object.keys(successModalData.additionalInfo).length > 0) && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
                                     <Box sx={{ mb: 2 }}>

@@ -10,7 +10,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook, seasonSaver, hideAddOnsSection = false }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook, seasonSaver, hideAddOnsSection = false, hideAdditionalInfoSection = false }) => {
     
     // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
     console.log('🔥 RightInfoCard component rendered!', { 
@@ -390,7 +390,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             chooseFlightType &&
             selectedVoucherType &&
             isPassengerInfoComplete &&
-            isAdditionalInfoValid(additionalInfo)
+            (hideAdditionalInfoSection || isAdditionalInfoValid(additionalInfo))
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
         )
         : isGiftVoucher
@@ -410,7 +410,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
             isPassengerInfoComplete &&
             // Enforce Additional Information required fields dynamically
-            isAdditionalInfoValid(additionalInfo) &&
+            (hideAdditionalInfoSection || isAdditionalInfoValid(additionalInfo)) &&
             selectedDate &&
             selectedTime
         );
@@ -1105,6 +1105,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const triggerBookAction = onBook || handleBookData;
     const isBookFlight = activitySelect === "Book Flight";
     const shouldShowAddOnSummary = !hideAddOnsSection;
+    const shouldShowAdditionalInfoSummary = !hideAdditionalInfoSection;
 
     // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
     const sectionSpacing = { marginBottom: '24px' };
@@ -1119,7 +1120,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${seasonSaver ? '☘️ ' : ''}${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : '', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
+            ...(shouldShowAdditionalInfoSummary ? [{ id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) }] : []),
             ...(shouldShowAddOnSummary ? [{
                 id: 'add-on',
                 title: 'Add To Booking',
@@ -1132,7 +1133,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
             { id: 'live-availability', title: 'Live Availability', value: (selectedDate && selectedTime) ? formatDateWithTime(selectedDate, selectedTime) : '', completed: !!(selectedDate && selectedTime) },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
+            ...(shouldShowAdditionalInfoSummary ? [{ id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) }] : []),
             ...(shouldShowAddOnSummary ? [{
                 id: 'add-on',
                 title: 'Add To Booking',
@@ -1144,7 +1145,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'experience', title: 'Experience', value: chooseFlightType?.type || '', completed: !!chooseFlightType?.type },
             { id: 'voucher-type', title: 'Voucher Type', value: selectedVoucherType ? `${seasonSaver ? '☘️ ' : ''}${selectedVoucherType.title} (${selectedVoucherType.quantity})` : '', completed: !!selectedVoucherType },
             { id: 'passenger-info', title: 'Passenger Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isPassengerInfoComplete },
-            { id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) },
+            ...(shouldShowAdditionalInfoSummary ? [{ id: 'additional-info', title: 'Additional Information', value: isAdditionalInfoValid(additionalInfo) ? 'Provided' : '', completed: isAdditionalInfoValid(additionalInfo) }] : []),
             ...(shouldShowAddOnSummary ? [{
                 id: 'add-on',
                 title: 'Add To Booking',
@@ -1205,7 +1206,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 )}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDateWithTime(selectedDate, selectedTime) : ""}</p></div></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p></div> : null)) : null}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3></div></div></div></div>
+                                {shouldShowAdditionalInfoSummary && <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3></div></div></div></div>}
                                 {/* Preferences only for non-Book Flight and non-Redeem Voucher */}
                                 {activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher' && (
                                     <div className="book_data_active" onClick={() => setActiveAccordion("select-preferences")}> <div className={`row-1 ${(activeAccordion === 'select-preferences' || activeAccordion === 'preference') ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Preferences</h3>{(preference && ((preference.location && Object.values(preference.location).some(Boolean)) || (preference.time && Object.values(preference.time).some(Boolean)) || (preference.day && Object.values(preference.day).some(Boolean)))) ? null : <p>Not Provided</p>}</div></div></div></div>
@@ -1218,7 +1219,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : ""}</p></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("live-availability")}> <div className={`row-1 ${selectedDate && selectedTime ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Live Availability</h3><p>{selectedDate && selectedTime ? formatDateWithTime(selectedDate, selectedTime) : ""}</p></div></div></div></div>
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p></div> : null)) : null}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3></div></div></div></div>
+                                {shouldShowAdditionalInfoSummary && <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3></div></div></div></div>}
                                 {/* Preferences REMOVED for Redeem Voucher */}
                                 {shouldShowAddOnSummary && <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="book-cont final-active-book-cont" key={index}><div className="book-left" ><p>{data.name}</p></div><div className="book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : null}</div></div></div></div>}
                             </>
@@ -1252,7 +1253,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     <div className="book_data_active"> <div className="row-1 active-card-val"> <span className="active-book-card"></span><div className="book-cont final-active-book-cont"><div className="book-left"><h3>Weather Refundable</h3><p>£47.50 per passenger</p></div><div className="book-right"><p>£{weatherRefundPrice.toFixed(2)}</p></div></div></div></div>
                                 )}
                                 <div className="book_data_active" onClick={() => setActiveAccordion("passenger-info")}> <div className={`row-1 ${passengerData && passengerData.length > 0 && passengerData[0].firstName !== '' ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Passenger Information</h3>{(passengerData && passengerData.length > 0 && passengerData.some(p => p.firstName && p.firstName.trim() !== '')) ? passengerData.map((data, index) => (data.firstName ? <div key={index}><p>{"Passenger " + `${index + 1}` + ": " + data.firstName + " " + data.lastName + " " + data.weight + "kg"}</p></div> : null)) : null}</div></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : null}</div></div></div></div>
+                                {shouldShowAdditionalInfoSummary && <div className="book_data_active" onClick={() => setActiveAccordion("additional-info")}> <div className={`row-1 ${isAdditionalInfoValid(additionalInfo) ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div className="active-book-left"><h3>Additional Information</h3>{isAdditionalInfoValid(additionalInfo) ? null : null}</div></div></div></div>}
                                 {/* Preferences removed for Flight Voucher */}
                                 {shouldShowAddOnSummary && <div className="book_data_active" onClick={() => setActiveAccordion("add-on")}> <div className={`row-1 ${chooseAddOn && chooseAddOn.length > 0 ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Add To Booking</h3>{chooseAddOn?.length > 0 ? chooseAddOn?.map((data, index) => (<div className="active-book-cont final-active-book-cont" key={index}><div className="active-book-left" ><p>{data.name}</p></div><div className="active-book-right"><p>£{(data.name == 'Weather Refundable' || data.name == 'Weather Refundable ') ? ' 47.50' : data.price}</p></div></div>)) : null}</div></div></div></div>}
                             </>
@@ -1306,32 +1307,32 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                             <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
                                 {activitySelect === 'Book Flight' && (
                                     <>
-                                        Please complete all required fields:<br/>
-                                        • Flight Location and Experience<br/>
-                                        • Voucher Type<br/>
-                                        • Live Availability (Date & Time)<br/>
-                                        • Passenger Information (All fields required)<br/>
-                                        • Additional Information<br/>
-                                        • Add to Booking
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Voucher Type<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                        {shouldShowAdditionalInfoSummary && <>• Additional Information<br/></>}
+                                        {shouldShowAddOnSummary && <>• Add to Booking</>}
                                     </>
                                 )}
                                 {activitySelect === 'Redeem Voucher' && (
                                     <>
-                                        Please complete all required fields:<br/>
-                                        • Flight Location and Experience<br/>
-                                        • Live Availability (Date & Time)<br/>
-                                        • Passenger Information (All fields required)<br/>
-                                        • Additional Information<br/>
-                                        • Add to Booking
+                                Please complete all required fields:<br/>
+                                • Flight Location and Experience<br/>
+                                • Live Availability (Date & Time)<br/>
+                                • Passenger Information (All fields required)<br/>
+                                        {shouldShowAdditionalInfoSummary && <>• Additional Information<br/></>}
+                                        {shouldShowAddOnSummary && <>• Add to Booking</>}
                                     </>
                                 )}
                                 {activitySelect === 'Flight Voucher' && (
                                     <>
-                                        Please complete all required fields:<br/>
-                                        • Experience<br/>
-                                        • Passenger Information (All fields required)<br/>
-                                        • Additional Information<br/>
-                                        • Add to Booking
+                                Please complete all required fields:<br/>
+                                • Experience<br/>
+                                • Passenger Information (All fields required)<br/>
+                                        {shouldShowAdditionalInfoSummary && <>• Additional Information<br/></>}
+                                        {shouldShowAddOnSummary && <>• Add to Booking</>}
                                     </>
                                 )}
                                 {activitySelect === 'Buy Gift' && (
@@ -1539,7 +1540,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 )}
                             </Box>
 
-                            {successModalData.additionalInfo && (successModalData.additionalInfo.notes || Object.keys(successModalData.additionalInfo).length > 0) && (
+                            {shouldShowAdditionalInfoSummary && successModalData.additionalInfo && (successModalData.additionalInfo.notes || Object.keys(successModalData.additionalInfo).length > 0) && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
                                     <Box sx={{ mb: 2 }}>
