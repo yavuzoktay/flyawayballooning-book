@@ -23,6 +23,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     // Notification state for flight type selection
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState("");
+    const mobileActivityCardHeight = '120px';
+    const desktopActivityCardHeight = '220px';
+    const activityCardHeight = isMobile ? mobileActivityCardHeight : desktopActivityCardHeight;
 
     // Handle window resize for responsive design
     useEffect(() => {
@@ -238,7 +241,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             {/* Notification for flight type selection */}
             {/* Local 'Selected' toast removed - global Selected+Next toast handles this */}
             
-            <div className="tab_box" style={{ 
+            <div className="tab_box choose-activity-tab-box" style={{ 
             display: 'flex', 
             flexWrap: 'wrap', 
             gap: isMobile ? '8px' : '10px', 
@@ -250,18 +253,18 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             {selectActivityData.map((item, index) => {
                 console.log('Rendering item:', item.label, 'index:', index, 'isMobile:', isMobile);
                 return (
-                <div className="book_data" key={item.value} style={{ 
-                    height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", 
-                    minHeight: isMobile ? (isAndroid ? "120px" : "120px") : "220px", 
-                    maxHeight: isMobile ? (isAndroid ? "120px" : "120px") : "220px",
+                <div className="book_data choose-activity-card" key={item.value} style={{ 
+                    height: activityCardHeight, 
+                    minHeight: activityCardHeight, 
+                    maxHeight: activityCardHeight,
                     flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
                     margin: isMobile ? '0 0 8px 0' : '0', 
                     width: isMobile ? '100%' : 'calc(50% - 20px)', 
                     boxSizing: 'border-box' 
                 }}>
                     {item.label === "Redeem Voucher" ? (
-                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", width: '100%', position: 'relative' }}>
-                            <div className="card-flipper" style={{ height: isMobile ? (isAndroid ? "120px" : "120px") : "220px", width: '100%', position: 'relative' }}>
+                        <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: activityCardHeight, width: '100%', position: 'relative' }}>
+                            <div className="card-flipper" style={{ height: activityCardHeight, width: '100%', position: 'relative' }}>
                                 <div 
                                     className="card-front"
                                     onClick={() => {
@@ -274,11 +277,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }, 3000);
                                         setIsFlipped(true);
                                     }}
-                                    style={{ height: isMobile ? (isAndroid ? '120px' : '120px') : '220px', width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
+                                    style={{ height: activityCardHeight, width: '100%', padding: '0', boxSizing: 'border-box', position: 'absolute', top: 0, left: 0 }}
                                 >
                                                                             <label 
                                         htmlFor={`activity-${item.label}`} 
-                                        className={`book_data_label ${activitySelect === item.label ? 'active_book_data_label' : ""}`}
+                                        className={`book_data_label choose-activity-card-label ${activitySelect === item.label ? 'active_book_data_label' : ""}`}
                                         style={{ 
                                             height: '100%',
                                             width: '100%',
@@ -345,7 +348,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                         }
                                     }}
                                     style={{ 
-                                        height: isMobile ? (isAndroid ? '120px' : '120px') : '220px', 
+                                        height: activityCardHeight, 
                                         width: '100%', 
                                         padding: '0', 
                                         boxSizing: 'border-box', 
@@ -372,7 +375,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                             </div>
                         </div>
                     ) : (
-                        <label htmlFor={`activity-${item.label}`} className={`book_data_label ${activitySelect === item.label ? 'active_book_data_label' : ""}`} style={{ 
+                        <label htmlFor={`activity-${item.label}`} className={`book_data_label choose-activity-card-label ${activitySelect === item.label ? 'active_book_data_label' : ""}`} style={{ 
                             height: '100%', 
                             width: '100%', 
                             display: 'flex', 
@@ -475,11 +478,17 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             })}
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
-                .tab_box { overflow: visible !important; }
-                .tab_box .book_data { overflow: visible !important; position: relative; }
-                .book_data_label, .card-front, .card-back { overflow: visible !important; position: relative; z-index: 2; }
+                .choose-activity-tab-box { overflow: visible !important; }
+                .choose-activity-tab-box .choose-activity-card { overflow: visible !important; position: relative; }
+                .choose-activity-card-label,
+                .choose-activity-card .card-front,
+                .choose-activity-card .card-back {
+                    overflow: visible !important;
+                    position: relative;
+                    z-index: 2;
+                }
                 @media (max-width: 768px) {
-                    .tab_box { 
+                    .choose-activity-tab-box { 
                         gap: 8px !important; 
                         flex-direction: column !important;
                         width: 100% !important;
@@ -508,11 +517,12 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
                     }
                     /* Ensure cards don't cover the tooltip */
-                    .tab_box .book_data { position: relative !important; z-index: 1 !important; }
-                    .tab_box .book_data { 
+                    .choose-activity-tab-box .choose-activity-card { position: relative !important; z-index: 1 !important; }
+                    .choose-activity-tab-box .choose-activity-card { 
                         width: 100% !important; 
-                        min-height: 140px !important; 
-                        height: 140px !important; 
+                        min-height: ${mobileActivityCardHeight} !important; 
+                        height: ${mobileActivityCardHeight} !important; 
+                        max-height: ${mobileActivityCardHeight} !important;
                         flex: 1 1 100% !important; 
                         margin: 0 0 8px 0 !important;
                         max-width: 100% !important;
@@ -520,63 +530,75 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                         visibility: visible !important;
                         opacity: 1 !important;
                     }
-                    .book_data_label h3 {
-                        font-size: 18px !important;
+                    .choose-activity-card-label {
+                        min-height: ${mobileActivityCardHeight} !important;
+                        max-height: ${mobileActivityCardHeight} !important;
+                        padding: 16px 14px !important;
+                        justify-content: center !important;
+                    }
+                    .choose-activity-card-label h3 {
+                        font-size: 17px !important;
+                        line-height: 1.25 !important;
                         margin: 0 !important;
                     }
                 }
-                /* Android mobile: match iOS card heights (avoid 140px at 576–768 widths) */
+                /* Android mobile: match iOS card heights */
                 @media (max-width: 768px) {
-                    .is-android .tab_box .book_data,
-                    .is-android .tab_box .book_data:nth-child(1),
-                    .is-android .tab_box .book_data:nth-child(2),
-                    .is-android .tab_box .book_data:nth-child(3),
-                    .is-android .tab_box .book_data:nth-child(4) {
-                        height: 120px !important;
-                        min-height: 120px !important;
+                    .is-android .choose-activity-tab-box .choose-activity-card,
+                    .is-android .choose-activity-tab-box .choose-activity-card:nth-child(1),
+                    .is-android .choose-activity-tab-box .choose-activity-card:nth-child(2),
+                    .is-android .choose-activity-tab-box .choose-activity-card:nth-child(3),
+                    .is-android .choose-activity-tab-box .choose-activity-card:nth-child(4) {
+                        height: ${mobileActivityCardHeight} !important;
+                        min-height: ${mobileActivityCardHeight} !important;
+                        max-height: ${mobileActivityCardHeight} !important;
                     }
                 }
                 @media (max-width: 576px) {
-                    .tab_box { 
+                    .choose-activity-tab-box { 
                         gap: 6px !important; 
                     }
-                    .tab_box .book_data { 
-                        min-height: 120px !important; 
-                        height: 120px !important; 
+                    .choose-activity-tab-box .choose-activity-card { 
+                        min-height: ${mobileActivityCardHeight} !important; 
+                        height: ${mobileActivityCardHeight} !important; 
+                        max-height: ${mobileActivityCardHeight} !important;
                         margin: 0 0 6px 0 !important;
                     }
-                    .book_data_label h3 {
+                    .choose-activity-card-label h3 {
                         font-size: 16px !important;
                     }
                 }
                 @media (max-width: 480px) {
-                    .tab_box { 
+                    .choose-activity-tab-box { 
                         gap: 4px !important; 
                     }
-                    .tab_box .book_data { 
-                        min-height: 110px !important; 
-                        height: 110px !important; 
+                    .choose-activity-tab-box .choose-activity-card { 
+                        min-height: ${mobileActivityCardHeight} !important; 
+                        height: ${mobileActivityCardHeight} !important; 
+                        max-height: ${mobileActivityCardHeight} !important;
                         margin: 0 0 4px 0 !important;
                     }
-                    .book_data_label h3 {
+                    .choose-activity-card-label h3 {
                         font-size: 15px !important;
                     }
-                    .book_data_label {
+                    .choose-activity-card-label {
                         border-radius: 16px !important;
+                        padding: 14px 12px !important;
                     }
                 }
                 
                 /* Force all items to be visible on mobile */
                 @media (max-width: 768px) {
-                    .tab_box .book_data:nth-child(1),
-                    .tab_box .book_data:nth-child(2),
-                    .tab_box .book_data:nth-child(3),
-                    .tab_box .book_data:nth-child(4) {
+                    .choose-activity-tab-box .choose-activity-card:nth-child(1),
+                    .choose-activity-tab-box .choose-activity-card:nth-child(2),
+                    .choose-activity-tab-box .choose-activity-card:nth-child(3),
+                    .choose-activity-tab-box .choose-activity-card:nth-child(4) {
                         display: block !important;
                         visibility: visible !important;
                         opacity: 1 !important;
-                        height: 120px !important;
-                        min-height: 120px !important;
+                        height: ${mobileActivityCardHeight} !important;
+                        min-height: ${mobileActivityCardHeight} !important;
+                        max-height: ${mobileActivityCardHeight} !important;
                     }
                 }
                 
