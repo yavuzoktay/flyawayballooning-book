@@ -1312,13 +1312,20 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             </div>
                         )}
                         {soldOut && !isPastDate && (
-                            <div style={{ 
-                                fontSize: isMobile ? 7.5 : 11, 
-                                marginTop: isMobile ? 2 : 4, 
+                            <div
+                                className="day-status sold-out-status"
+                                style={{ 
+                                fontSize: isMobile ? Math.max(5.5, Math.min(7, daySize / 5.6)) : 11, 
+                                marginTop: isMobile ? 1 : 4, 
                                 color: '#fff', 
                                 fontWeight: 600,
-                                lineHeight: 1,
-                                textAlign: 'center'
+                                lineHeight: isMobile ? 1.05 : 1,
+                                textAlign: 'center',
+                                width: isMobile ? '92%' : '100%',
+                                maxWidth: '100%',
+                                whiteSpace: isMobile ? 'normal' : 'nowrap',
+                                overflowWrap: 'anywhere',
+                                wordBreak: 'break-word'
                             }}>
                                 Not Available
                             </div>
@@ -1440,6 +1447,16 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         .calendar .realtime-badge svg {
                             font-size: 16px !important;
                         }
+
+                        .calendar .day .sold-out-status {
+                            display: block !important;
+                            width: 92% !important;
+                            margin: 1px auto 0 !important;
+                            white-space: normal !important;
+                            overflow-wrap: anywhere !important;
+                            word-break: break-word !important;
+                            text-wrap: balance;
+                        }
                     }
                     
                     @media (max-width: 480px) {
@@ -1458,6 +1475,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             font-size: 10px !important;
                             margin-bottom: 2px !important;
                             padding: 0px !important;
+                        }
+
+                        .calendar .day .sold-out-status {
+                            font-size: 6px !important;
+                            line-height: 1.05 !important;
                         }
                     }
                     
