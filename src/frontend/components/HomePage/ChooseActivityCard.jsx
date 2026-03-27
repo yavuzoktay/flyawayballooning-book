@@ -7,7 +7,7 @@ import { Tooltip as ReactTooltip } from 'react-tooltip';
 import config from '../../../config';
 import { trackFunnelStart, activityToFunnelType } from '../../../utils/googleAdsTracking';
 
-const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate, onSectionCompletion }) => {
+const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit, voucherStatus, voucherCode, voucherData, onValidate, onSectionCompletion, allowedActivities = null }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [isFlipped, setIsFlipped] = useState(false);
     const [localVoucherCode, setLocalVoucherCode] = useState("");
@@ -133,6 +133,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         { value: 3, label: "Buy Gift", displayLabel: "Buy Gift Voucher", subText: "" },
         { value: 2, label: "Redeem Voucher", subText: "" }
     ];
+    const visibleActivityCards = Array.isArray(allowedActivities) && allowedActivities.length > 0
+        ? selectActivityData.filter((item) => allowedActivities.includes(item.label))
+        : selectActivityData;
 
     const getTooltipContent = (label) => {
         switch (label) {
@@ -234,7 +237,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
     };
 
     // Debug: Log the data being rendered
-    console.log('ChooseActivityCard render:', { isMobile, selectActivityData: selectActivityData.length });
+    console.log('ChooseActivityCard render:', { isMobile, selectActivityData: visibleActivityCards.length });
     
     return (
         <>
@@ -250,7 +253,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
         }}>
             {/* Debug: Show total count */}
 
-            {selectActivityData.map((item, index) => {
+            {visibleActivityCards.map((item, index) => {
                 console.log('Rendering item:', item.label, 'index:', index, 'isMobile:', isMobile);
                 return (
                 <div className="book_data choose-activity-card" key={item.value} style={{ 

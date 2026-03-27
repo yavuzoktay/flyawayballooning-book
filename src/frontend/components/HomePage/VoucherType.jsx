@@ -310,7 +310,9 @@ const VoucherType = ({
     onTermsLoadingChange,
     onAccordionLoadingChange,
     seasonSaver,
-    setSeasonSaver
+    setSeasonSaver,
+    hiddenVoucherTitles = [],
+    forceWeatherRefundable = false
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -354,12 +356,69 @@ const VoucherType = ({
     const [localSharedWeatherRefund, setLocalSharedWeatherRefund] = useState(false);
     // For Private Charter: per-voucher toggle state (title -> boolean)
     const [privateWeatherRefundByVoucher, setPrivateWeatherRefundByVoucher] = useState({});
+    const hiddenVoucherTitleSet = useMemo(
+        () => new Set((hiddenVoucherTitles || []).map((title) => normalizeVoucherPriceTitle(title))),
+        [hiddenVoucherTitles]
+    );
+
+    const isVoucherTitleHidden = (title) => hiddenVoucherTitleSet.has(normalizeVoucherPriceTitle(title));
 
     // Sync local shared toggle from passengerData
     useEffect(() => {
         const enabled = Array.isArray(passengerData) && passengerData.some(p => p && p.weatherRefund);
         setLocalSharedWeatherRefund(!!enabled);
     }, [passengerData]);
+
+    useEffect(() => {
+        if (!forceWeatherRefundable) return;
+
+        const currentTitle = selectedVoucherType?.title || selectedVoucher?.title || '';
+        const hasMissingWeatherRefund = Array.isArray(passengerData) && passengerData.some((passenger) => !passenger?.weatherRefund);
+
+        if (chooseFlightType?.type === 'Shared Flight' && normalizeVoucherPriceTitle(currentTitle).includes('any day')) {
+            if (!localSharedWeatherRefund) {
+                setLocalSharedWeatherRefund(true);
+            }
+
+            if (hasMissingWeatherRefund && setPassengerData) {
+                setPassengerData(passengerData.map((passenger) => ({
+                    ...passenger,
+                    weatherRefund: true
+                })));
+            }
+        }
+
+        if (chooseFlightType?.type === 'Private Charter' && currentTitle) {
+            if (!privateWeatherRefundByVoucher[currentTitle]) {
+                setPrivateWeatherRefundByVoucher((prev) => ({
+                    ...prev,
+                    [currentTitle]: true
+                }));
+            }
+
+            if (setPrivateCharterWeatherRefund && !privateCharterWeatherRefund) {
+                setPrivateCharterWeatherRefund(true);
+            }
+
+            if (hasMissingWeatherRefund && setPassengerData) {
+                setPassengerData(passengerData.map((passenger) => ({
+                    ...passenger,
+                    weatherRefund: true
+                })));
+            }
+        }
+    }, [
+        chooseFlightType?.type,
+        forceWeatherRefundable,
+        localSharedWeatherRefund,
+        passengerData,
+        privateCharterWeatherRefund,
+        privateWeatherRefundByVoucher,
+        selectedVoucher,
+        selectedVoucherType,
+        setPassengerData,
+        setPrivateCharterWeatherRefund
+    ]);
 
     // Keep global privateCharterWeatherRefund in sync with the currently selected voucher's toggle
     useEffect(() => {
@@ -990,7 +1049,9 @@ const VoucherType = ({
             }
             
             // Filter only active private charter voucher types
-            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(vt => vt.is_active === 1);
+            const activePrivateCharterVoucherTypes = privateCharterVoucherTypes.filter(
+                (vt) => vt.is_active === 1 && !isVoucherTitleHidden(vt.title)
+            );
             
             if (activePrivateCharterVoucherTypes.length === 0) {
                 console.log('VoucherType: Private Charter - no active voucher types available');
@@ -1132,7 +1193,9 @@ const VoucherType = ({
                 featuresType: typeof vt.features 
             })));
             
-            const sharedFlightVouchers = allVoucherTypesState.map(vt => {
+            const sharedFlightVouchers = allVoucherTypesState
+                .filter((vt) => !isVoucherTitleHidden(vt.title))
+                .map(vt => {
                 const activityOriginalPrice = getSharedActivityOriginalPrice(activityData, vt.title);
                 const activitySalePrice = getSharedActivitySalePrice(activityData, vt.title);
                 const locationOriginalPrice = getSharedActivityOriginalPrice(locationPricing, vt.title);
@@ -1258,7 +1321,7 @@ const VoucherType = ({
             })));
             return sharedFlightVouchers;
         }
-    }, [chooseFlightType?.type, allVoucherTypesState, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation]);
+    }, [chooseFlightType?.type, allVoucherTypesState, allVoucherTypesLoading, privateCharterVoucherTypes, privateCharterVoucherTypesLoading, activityData, locationPricing, API_BASE_URL, chooseLocation, hiddenVoucherTitleSet]);
 
     // Expose voucher types to Google Merchant Center / Shopping via structured data
     // This generates a Product list for the current experience (Shared / Private Charter)
@@ -2111,7 +2174,9 @@ const VoucherType = ({
                                                     <input
                                                         type="checkbox"
                                                         checked={enabled}
+                                                        disabled={forceWeatherRefundable}
                                                         onChange={() => {
+                                                            if (forceWeatherRefundable) return;
                                                             const next = !enabled;
                                                             setLocalSharedWeatherRefund(next);
                                                             if (Array.isArray(passengerData) && setPassengerData) {
@@ -2167,7 +2232,9 @@ const VoucherType = ({
                                                     <input
                                                         type="checkbox"
                                                         checked={enabled}
+                                                        disabled={forceWeatherRefundable}
                                                         onChange={() => {
+                                                            if (forceWeatherRefundable) return;
                                                             const next = !enabled;
                                                             // Enforce mutual exclusivity across voucher items
                                                             setPrivateWeatherRefundByVoucher(() => {

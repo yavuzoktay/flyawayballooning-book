@@ -29,6 +29,7 @@ function App() {
         <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/hotel-manual-booking" element={<Index />} />
               <Route path="/book" element={<BookNow />} />
               <Route path="/customerPortal/:token/index" element={<Index />} />
             </Routes>

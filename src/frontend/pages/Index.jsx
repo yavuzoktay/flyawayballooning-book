@@ -13,6 +13,7 @@ import PassengerInfo from "../components/HomePage/PassengerInfo";
 import EnterPreferences from "../components/HomePage/EnterPreferences";
 import EnterRecipientDetails from "../components/HomePage/EnterRecipientDetails";
 import AdditionalInfo from "../components/HomePage/AdditionalInfo";
+import ManualBookingContactStep from "../components/HomePage/ManualBookingContactStep";
 import BookingHeader from "../components/Common/BookingHeader";
 import Accordion from "../components/Common/Accordion";
 import ProgressBar from "../components/Common/ProgressBar";
@@ -29,6 +30,7 @@ import { MAIN_SITE_URL, clearBookingClientStorage, navigateToMainSite } from '..
 
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
+const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
@@ -216,15 +218,57 @@ const Index = () => {
     
     const location = useLocation();
     const manualBookingParams = new URLSearchParams(location.search || '');
+    const normalizedPath = (location.pathname || '/').replace(/\/+$/, '') || '/';
+    const isHotelManualBookingRoute = normalizedPath === '/hotel-manual-booking';
+    const isDedicatedManualBookingFlow = isHotelManualBookingRoute;
     const manualBookingRequested = ['1', 'true', 'yes'].includes((manualBookingParams.get('manualBooking') || '').toLowerCase());
     const manualBookingToken = manualBookingParams.get('manualBookingToken') || '';
-    const isManualBookingFlow = manualBookingRequested && !!manualBookingToken;
-    const hasInvalidManualBookingLink = manualBookingRequested && !manualBookingToken;
+    const requiresManualBookingToken = manualBookingRequested || isDedicatedManualBookingFlow;
+    const isManualBookingFlow = requiresManualBookingToken && !!manualBookingToken;
+    const hasInvalidManualBookingLink = requiresManualBookingToken && !manualBookingToken;
+    const shouldShowManualBookingBanner = manualBookingRequested || isDedicatedManualBookingFlow;
+    const hiddenVoucherTitlesForDedicatedFlow = ['Proposal Flight', 'Flexible Weekday', 'Weekday Morning'];
+    const shouldHideAddOns = isDedicatedManualBookingFlow;
+    const [manualBookingContact, setManualBookingContact] = useState({
+        accommodationName: '',
+        email: '',
+        staffName: ''
+    });
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     const shopifyVoucherForcedRef = useRef(false);
     const shopifyPrefillInProgress = useRef(false);
     const activityDeepLinkHandledRef = useRef(false);
     const googleMerchantClearHandledRef = useRef(false);
+
+    const isManualBookingContactValid = useCallback((details) => {
+        if (!isDedicatedManualBookingFlow) return true;
+        if (!details || typeof details !== 'object') return false;
+
+        const accommodationName = (details.accommodationName || '').trim();
+        const email = (details.email || '').trim();
+        const staffName = (details.staffName || '').trim();
+
+        return !!accommodationName && !!staffName && manualBookingEmailPattern.test(email);
+    }, [isDedicatedManualBookingFlow]);
+
+    const manualBookingContactComplete = isManualBookingContactValid(manualBookingContact);
+    const isDedicatedFlowLocked = isDedicatedManualBookingFlow && !manualBookingContactComplete;
+
+    const buildSubmissionAdditionalInfo = useCallback((info) => {
+        const normalizedInfo = info && typeof info === 'object' ? { ...info } : {};
+
+        if (!isDedicatedManualBookingFlow) {
+            return normalizedInfo;
+        }
+
+        normalizedInfo.manual_booking_profile = {
+            accommodation_name: (manualBookingContact.accommodationName || '').trim(),
+            contact_email: (manualBookingContact.email || '').trim(),
+            staff_name: (manualBookingContact.staffName || '').trim()
+        };
+
+        return normalizedInfo;
+    }, [isDedicatedManualBookingFlow, manualBookingContact]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -364,15 +408,17 @@ const Index = () => {
         return titles[id] || id;
     };
 
+    const withOptionalAddOnStep = (sections) => shouldHideAddOns ? sections : [...sections, 'add-on'];
+
     // Define progress sections based on activity type
     const progressSections = activitySelect === 'Book Flight' 
-        ? ['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info', 'add-on']
+        ? withOptionalAddOnStep(['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info', 'additional-info'])
         : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
-        ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'additional-info', 'add-on']
+        ? withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'additional-info'])
         : activitySelect === 'Buy Gift'
-        ? ['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details', 'add-on']
+        ? withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details'])
         : activitySelect === 'Redeem Voucher'
-        ? ['activity', 'location', 'live-availability', 'passenger-info', 'additional-info', 'add-on'] // Experience removed from progress bar for Redeem Voucher
+        ? withOptionalAddOnStep(['activity', 'location', 'live-availability', 'passenger-info', 'additional-info']) // Experience removed from progress bar for Redeem Voucher
         : [];
 
     // Start/maintain 5-minute countdown when a date and time are selected
@@ -1400,8 +1446,11 @@ const Index = () => {
         return basicInfoValid && contactInfoValid;
     });
 
+    const hasDedicatedManualBookingRequirements = !isDedicatedManualBookingFlow || manualBookingContactComplete;
+
     const isBookDisabled = isRedeemVoucher
         ? !(
+            hasDedicatedManualBookingRequirements &&
             activitySelect &&
             (voucherCode && String(voucherCode).trim()) &&
             voucherStatus === 'valid' &&
@@ -1416,6 +1465,7 @@ const Index = () => {
         )
         : isFlightVoucher
         ? !(
+            hasDedicatedManualBookingRequirements &&
             chooseFlightType &&
             selectedVoucherType &&
             isPassengerInfoComplete &&
@@ -1424,6 +1474,7 @@ const Index = () => {
         )
         : isGiftVoucher
         ? !(
+            hasDedicatedManualBookingRequirements &&
             chooseFlightType &&
             selectedVoucherType &&
             // chooseAddOn artık opsiyonel - isNonEmptyArray(chooseAddOn) kaldırıldı
@@ -1432,6 +1483,7 @@ const Index = () => {
             isRecipientDetailsValid(recipientDetails)
         )
         : !(
+            hasDedicatedManualBookingRequirements &&
             activitySelect &&
             chooseLocation &&
             chooseFlightType &&
@@ -1613,8 +1665,7 @@ const Index = () => {
             sequence.push('live-availability');
             sequence.push('passenger-info');
             sequence.push('additional-info');
-            sequence.push('add-on');
-            return sequence;
+            return withOptionalAddOnStep(sequence);
         }
         
         if (activityType === 'Redeem Voucher') {
@@ -1624,28 +1675,25 @@ const Index = () => {
             sequence.push('live-availability');
             sequence.push('passenger-info');
             sequence.push('additional-info');
-            sequence.push('add-on');
-            return sequence;
+            return withOptionalAddOnStep(sequence);
         }
         
         if (activityType === 'Flight Voucher') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-                sequence.push('voucher-type');
+            sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('additional-info');
-            sequence.push('add-on');
-            return sequence;
+            return withOptionalAddOnStep(sequence);
         }
         
         if (activityType === 'Buy Gift') {
             const sequence = [...baseSequence];
             sequence.push('experience');
-                sequence.push('voucher-type');
+            sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('recipient-details');
-            sequence.push('add-on');
-            return sequence;
+            return withOptionalAddOnStep(sequence);
         }
         
         return baseSequence;
@@ -2385,6 +2433,10 @@ const Index = () => {
             return sectionId === 'activity' ? { isEnabled: true } : { isEnabled: false };
         }
 
+        if (isDedicatedFlowLocked && sectionId !== 'activity') {
+            return { isEnabled: false };
+        }
+
         // Mevcut sequence'ı al
         const sequence = getSectionSequence(activitySelect, chooseLocation, passengerData, additionalInfo, recipientDetails);
         
@@ -2478,6 +2530,10 @@ const Index = () => {
             return; // Eğer aktivite seçilmediyse, hiçbir şey yapma
         }
 
+        if (isDedicatedFlowLocked && sectionId !== 'activity') {
+            return;
+        }
+
         // Accordion'ın enabled olup olmadığını kontrol et
         const { isEnabled } = getAccordionState(sectionId);
         if (!isEnabled) {
@@ -2542,6 +2598,11 @@ const Index = () => {
         setVoucherCode("");
         setVoucherStatus(null);
         setVoucherData(null);
+        setManualBookingContact({
+            accommodationName: '',
+            email: '',
+            staffName: ''
+        });
     };
 
     const releaseActiveHold = async () => {
@@ -2611,6 +2672,13 @@ const Index = () => {
             alert('This manual booking link is incomplete. Please reopen the booking flow from the admin system.');
             return;
         }
+
+        if (isDedicatedManualBookingFlow && !manualBookingContactComplete) {
+            alert('Please complete the hotel, email and staff details before continuing.');
+            return;
+        }
+
+        const submissionAdditionalInfo = buildSubmissionAdditionalInfo(additionalInfo);
 
         const resolveVoucherPassengerCount = () => {
             const voucherQuantity = parseInt(selectedVoucherType?.quantity, 10);
@@ -2691,7 +2759,7 @@ const Index = () => {
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
-                additionalInfo: additionalInfo, // Add additional information data
+                additionalInfo: submissionAdditionalInfo, // Add additional information data
                 add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null,
                 selectedVoucherType: selectedVoucherType,
                 season_saver: seasonSaver ? 1 : 0
@@ -2713,7 +2781,7 @@ const Index = () => {
             // Test additional info endpoint
             try {
                 const testResponse = await axios.post(`${API_BASE_URL}/api/testAdditionalInfo`, {
-                    additionalInfo: additionalInfo
+                    additionalInfo: submissionAdditionalInfo
                 });
                 console.log('Test endpoint response:', testResponse.data);
             } catch (testError) {
@@ -2811,7 +2879,7 @@ const Index = () => {
                 preferred_location: preference && preference.location ? Object.keys(preference.location).filter(k => preference.location[k]).join(', ') : null,
                 preferred_time: preference && preference.time ? Object.keys(preference.time).filter(k => preference.time[k]).join(', ') : null,
                 preferred_day: preference && preference.day ? Object.keys(preference.day).filter(k => preference.day[k]).join(', ') : null,
-                additionalInfo: additionalInfo, // Add additional information data
+                additionalInfo: submissionAdditionalInfo, // Add additional information data
                 add_to_booking_items: chooseAddOn && chooseAddOn.length > 0 ? chooseAddOn : null, // Add add to booking items
                 selectedVoucherType: selectedVoucherType // Include the full selectedVoucherType object for backend fallback
             };
@@ -2862,7 +2930,7 @@ const Index = () => {
                 selectedVoucherType,
                 chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [],
                 passengerData: redeemBookingPassengerDataWithPhoneCode, // Use passengerData with combined phone numbers
-                additionalInfo,
+                additionalInfo: submissionAdditionalInfo,
                 recipientDetails: null,
                 selectedDate: bookingDateStr,
                 selectedTime: selectedTime || null,
@@ -2900,7 +2968,7 @@ const Index = () => {
                     chooseLocation,
                     chooseFlightType,
                     passengerData: redeemPassengerDataWithPhoneCode, // Use passengerData with combined phone numbers
-                    additionalInfo,
+                    additionalInfo: submissionAdditionalInfo,
                     selectedDate: bookingDateStr,  // Use formatted date string, not raw Date object
                     selectedTime,
                     voucher_code: voucherCode,
@@ -2942,7 +3010,7 @@ const Index = () => {
                             selectedTime: selectedTime,
                             passengers: passengerData,
                             voucherCode: voucherCode,
-                            additionalInfo: additionalInfo,
+                            additionalInfo: submissionAdditionalInfo,
                             addToBooking: chooseAddOn,
                             voucherMarkError: redeemResponse.data.success ? null : redeemResponse.data.message
                         });
@@ -2973,7 +3041,7 @@ const Index = () => {
                             selectedTime: selectedTime,
                             passengers: passengerData,
                             voucherCode: voucherCode,
-                            additionalInfo: additionalInfo,
+                            additionalInfo: submissionAdditionalInfo,
                             addToBooking: chooseAddOn,
                             voucherMarkError: redeemError.response?.data?.message || redeemError.message
                         });
@@ -3032,7 +3100,7 @@ const Index = () => {
             selectedVoucherType, // Add selectedVoucherType for voucher code generation
             chooseAddOn: Array.isArray(chooseAddOn) ? chooseAddOn : [], // Opsiyonel - boş array olabilir
             passengerData: passengerDataWithPhoneCode, // Use passengerData with combined phone numbers
-            additionalInfo,
+            additionalInfo: submissionAdditionalInfo,
             recipientDetails,
             selectedDate: bookingDateStr,
             selectedTime: selectedTime || null,
@@ -5161,7 +5229,7 @@ const Index = () => {
                     <div className="header-top">
                         
                     </div>
-                    {manualBookingRequested && (
+                    {shouldShowManualBookingBanner && (
                         <div style={{
                             marginBottom: '16px',
                             padding: '14px 16px',
@@ -5171,11 +5239,15 @@ const Index = () => {
                             color: hasInvalidManualBookingLink ? '#9f1239' : '#1d4ed8'
                         }}>
                             <strong style={{ display: 'block', marginBottom: '4px' }}>
-                                {hasInvalidManualBookingLink ? 'Manual booking link invalid' : 'Manual booking mode'}
+                                {hasInvalidManualBookingLink
+                                    ? (isDedicatedManualBookingFlow ? 'Hotel manual booking link invalid' : 'Manual booking link invalid')
+                                    : (isDedicatedManualBookingFlow ? 'Hotel manual booking mode' : 'Manual booking mode')}
                             </strong>
                             <span style={{ fontSize: '14px', lineHeight: 1.5 }}>
                                 {hasInvalidManualBookingLink
                                     ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
+                                    : isDedicatedManualBookingFlow
+                                    ? 'This hotel manual booking flow collects accommodation details first, hides voucher journeys, and creates the booking without Stripe payment so payment can be added later from admin.'
                                     : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
                             </span>
                         </div>
@@ -5200,7 +5272,7 @@ const Index = () => {
                                     completed: completedSections.has(id)
                                 }))}
                                 activeSection={activeAccordion}
-                                onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
+                                onCircleClick={handleSetActiveAccordionWithValidation}
                                 isMobile={isMobile}
                             />
                         </div>
@@ -5214,6 +5286,13 @@ const Index = () => {
                                     marginBottom: isMobile ? '15px' : '30px',
                                     padding: isMobile ? '0 8px' : '0'
                                 }}>
+                                    {isDedicatedManualBookingFlow && (
+                                        <ManualBookingContactStep
+                                            details={manualBookingContact}
+                                            onChange={setManualBookingContact}
+                                            isMobile={isMobile}
+                                        />
+                                    )}
                                     <h3 style={{ 
                                         fontSize: isMobile ? '20px' : '20px', 
                                         textAlign: 'center', 
@@ -5228,16 +5307,33 @@ const Index = () => {
                                         }
                                     `}</style>
                                     <div id="scroll-target-booking" style={{ scrollMarginTop: isMobile ? '90px' : '140px' }} />
-                                    <ChooseActivityCard 
-                                        activitySelect={activitySelect} 
-                                        setActivitySelect={setActivitySelect} 
-                                        onVoucherSubmit={handleVoucherSubmit}
-                                        voucherStatus={voucherStatus}
-                                        voucherCode={voucherCode}
-                                        voucherData={voucherData}
-                                        onValidate={validateVoucherCode}
-                                        onSectionCompletion={handleSectionCompletion}
-                                    />
+                                    <div style={{
+                                        opacity: isDedicatedFlowLocked ? 0.55 : 1,
+                                        pointerEvents: isDedicatedFlowLocked ? 'none' : 'auto',
+                                        transition: 'opacity 0.2s ease'
+                                    }}>
+                                        <ChooseActivityCard 
+                                            activitySelect={activitySelect} 
+                                            setActivitySelect={setActivitySelect} 
+                                            onVoucherSubmit={handleVoucherSubmit}
+                                            voucherStatus={voucherStatus}
+                                            voucherCode={voucherCode}
+                                            voucherData={voucherData}
+                                            onValidate={validateVoucherCode}
+                                            onSectionCompletion={handleSectionCompletion}
+                                            allowedActivities={isDedicatedManualBookingFlow ? ['Book Flight'] : null}
+                                        />
+                                    </div>
+                                    {isDedicatedFlowLocked && (
+                                        <p style={{
+                                            margin: '12px 0 0',
+                                            textAlign: 'center',
+                                            color: '#4b5c75',
+                                            fontSize: '14px'
+                                        }}>
+                                            Complete the hotel, email and staff details to unlock this booking flow.
+                                        </p>
+                                    )}
                                     {/* Down arrow button below the activity cards */}
                                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                                         <button 
@@ -5317,7 +5413,10 @@ const Index = () => {
                                     </div>
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
-                                <div style={{ opacity: activitySelect === null ? '0.5' : '1', pointerEvents: activitySelect === null ? 'none' : 'auto' }}>
+                                <div style={{
+                                    opacity: activitySelect === null || isDedicatedFlowLocked ? '0.5' : '1',
+                                    pointerEvents: activitySelect === null || isDedicatedFlowLocked ? 'none' : 'auto'
+                                }}>
                                     {activitySelect === "Book Flight" ? (
                                         <>
                                             <LocationSection 
@@ -5382,6 +5481,8 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('voucher-type').isEnabled}
                                                 seasonSaver={seasonSaver}
                                                 setSeasonSaver={setSeasonSaver}
+                                                hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
+                                                forceWeatherRefundable={isDedicatedManualBookingFlow}
                                             />
                                             <LiveAvailabilitySection
                                                 isGiftVoucher={isGiftVoucher}
@@ -5441,30 +5542,34 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
                                             
-                                            <AddOnsSection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                chooseAddOn={chooseAddOn} 
-                                                setChooseAddOn={setChooseAddOn} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                chooseLocation={chooseLocation} 
-                                                chooseFlightType={chooseFlightType} 
-                                                activitySelect={activitySelect}
-                                                flightType={chooseFlightType.type}
-                                                disabled={false}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('add-on').isEnabled}
-                                            />
-                                            {console.log('🔍 AddOnsSection called with:', {
-                                                activitySelect,
-                                                chooseLocation,
-                                                flightType: chooseFlightType.type,
-                                                isGiftVoucher,
-                                                isRedeemVoucher,
-                                                isFlightVoucher
-                                            })}
+                                            {!shouldHideAddOns && (
+                                                <>
+                                                    <AddOnsSection 
+                                                        isGiftVoucher={isGiftVoucher} 
+                                                        isRedeemVoucher={isRedeemVoucher} 
+                                                        isFlightVoucher={isFlightVoucher} 
+                                                        chooseAddOn={chooseAddOn} 
+                                                        setChooseAddOn={setChooseAddOn} 
+                                                        activeAccordion={activeAccordion} 
+                                                        setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                        chooseLocation={chooseLocation} 
+                                                        chooseFlightType={chooseFlightType} 
+                                                        activitySelect={activitySelect}
+                                                        flightType={chooseFlightType.type}
+                                                        disabled={false}
+                                                        onSectionCompletion={handleSectionCompletion}
+                                                        isDisabled={!getAccordionState('add-on').isEnabled}
+                                                    />
+                                                    {console.log('🔍 AddOnsSection called with:', {
+                                                        activitySelect,
+                                                        chooseLocation,
+                                                        flightType: chooseFlightType.type,
+                                                        isGiftVoucher,
+                                                        isRedeemVoucher,
+                                                        isFlightVoucher
+                                                    })}
+                                                </>
+                                            )}
                                         </>
                                     ) : activitySelect === "Redeem Voucher" ? (
                                         <>
@@ -5540,29 +5645,33 @@ const Index = () => {
                                                 onSectionCompletion={handleSectionCompletion}
                                                 isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
-                                            <AddOnsSection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                chooseAddOn={chooseAddOn} 
-                                                setChooseAddOn={setChooseAddOn} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                chooseLocation={chooseLocation} 
-                                                chooseFlightType={chooseFlightType} 
-                                                activitySelect={activitySelect}
-                                                flightType={chooseFlightType.type}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('add-on').isEnabled}
-                                            />
-                                            {console.log('🔍 AddOnsSection (Redeem Voucher) called with:', {
-                                                activitySelect,
-                                                chooseLocation,
-                                                flightType: chooseFlightType.type,
-                                                isGiftVoucher,
-                                                isRedeemVoucher,
-                                                isFlightVoucher
-                                            })}
+                                            {!shouldHideAddOns && (
+                                                <>
+                                                    <AddOnsSection 
+                                                        isGiftVoucher={isGiftVoucher} 
+                                                        isRedeemVoucher={isRedeemVoucher} 
+                                                        isFlightVoucher={isFlightVoucher} 
+                                                        chooseAddOn={chooseAddOn} 
+                                                        setChooseAddOn={setChooseAddOn} 
+                                                        activeAccordion={activeAccordion} 
+                                                        setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                        chooseLocation={chooseLocation} 
+                                                        chooseFlightType={chooseFlightType} 
+                                                        activitySelect={activitySelect}
+                                                        flightType={chooseFlightType.type}
+                                                        onSectionCompletion={handleSectionCompletion}
+                                                        isDisabled={!getAccordionState('add-on').isEnabled}
+                                                    />
+                                                    {console.log('🔍 AddOnsSection (Redeem Voucher) called with:', {
+                                                        activitySelect,
+                                                        chooseLocation,
+                                                        flightType: chooseFlightType.type,
+                                                        isGiftVoucher,
+                                                        isRedeemVoucher,
+                                                        isFlightVoucher
+                                                    })}
+                                                </>
+                                            )}
                                         </>
                                     ) : activitySelect === "Flight Voucher" ? (
                                         <>
@@ -5643,29 +5752,33 @@ const Index = () => {
                                                 isDisabled={!getAccordionState('additional-info').isEnabled}
                                             />
                                             {/* EnterPreferences removed for Flight Voucher */}
-                                            <AddOnsSection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                chooseAddOn={chooseAddOn} 
-                                                setChooseAddOn={setChooseAddOn} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                chooseLocation={chooseLocation} 
-                                                chooseFlightType={chooseFlightType} 
-                                                activitySelect={activitySelect}
-                                                flightType={chooseFlightType.type}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('add-on').isEnabled}
-                                            />
-                                            {console.log('🔍 AddOnsSection (Flight Voucher) called with:', {
-                                                activitySelect,
-                                                chooseLocation,
-                                                flightType: chooseFlightType.type,
-                                                isGiftVoucher,
-                                                isRedeemVoucher,
-                                                isFlightVoucher
-                                            })}
+                                            {!shouldHideAddOns && (
+                                                <>
+                                                    <AddOnsSection 
+                                                        isGiftVoucher={isGiftVoucher} 
+                                                        isRedeemVoucher={isRedeemVoucher} 
+                                                        isFlightVoucher={isFlightVoucher} 
+                                                        chooseAddOn={chooseAddOn} 
+                                                        setChooseAddOn={setChooseAddOn} 
+                                                        activeAccordion={activeAccordion} 
+                                                        setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                        chooseLocation={chooseLocation} 
+                                                        chooseFlightType={chooseFlightType} 
+                                                        activitySelect={activitySelect}
+                                                        flightType={chooseFlightType.type}
+                                                        onSectionCompletion={handleSectionCompletion}
+                                                        isDisabled={!getAccordionState('add-on').isEnabled}
+                                                    />
+                                                    {console.log('🔍 AddOnsSection (Flight Voucher) called with:', {
+                                                        activitySelect,
+                                                        chooseLocation,
+                                                        flightType: chooseFlightType.type,
+                                                        isGiftVoucher,
+                                                        isRedeemVoucher,
+                                                        isFlightVoucher
+                                                    })}
+                                                </>
+                                            )}
                                         </>
                                     ) : (
                                         <>
@@ -5751,7 +5864,7 @@ const Index = () => {
                                                     onCurrentDateChange={handleCalendarDateChange}
                                                 />
                                             )}
-                                            {(activitySelect === "Redeem Voucher") && (
+                                            {(activitySelect === "Redeem Voucher" && !shouldHideAddOns) && (
                                                 <AddOnsSection 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -5814,7 +5927,7 @@ const Index = () => {
                                             )}
 
                                             {/* For Buy Gift, move Add To Booking below Purchaser Information */}
-                                            {activitySelect === "Buy Gift" && (
+                                            {(activitySelect === "Buy Gift" && !shouldHideAddOns) && (
                                                 <AddOnsSection 
                                                     isGiftVoucher={isGiftVoucher} 
                                                     isRedeemVoucher={isRedeemVoucher} 
@@ -5892,6 +6005,7 @@ const Index = () => {
                                 activityId={activityId}
                                 onBook={handleBookData}
                                 seasonSaver={seasonSaver}
+                                hideAddOnsSection={shouldHideAddOns}
                             />
                         </div>
                     </div>
@@ -5919,7 +6033,7 @@ const Index = () => {
                             completed: completedSections.has(id)
                         }))}
                         activeSection={activeAccordion}
-                        onCircleClick={(sectionId) => setActiveAccordion(sectionId)}
+                        onCircleClick={handleSetActiveAccordionWithValidation}
                         isMobile={isMobile}
                     />
                 </div>
