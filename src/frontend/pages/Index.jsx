@@ -31,6 +31,61 @@ import { MAIN_SITE_URL, clearBookingClientStorage, navigateToMainSite } from '..
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HOTEL_MANUAL_BOOKING_GUIDE = [
+    {
+        title: 'Experiences Available',
+        items: [
+            'Shared Flights: £267.50 per person (£220 refundable fare)',
+            'Max 8 passengers per balloon',
+            'Private Charter Flights:',
+            '£990 (2 people)',
+            '£1,155 (3 people)',
+            '£1,320 (4-6 people)',
+            '£1,980 (up to 8 people)',
+            'Refundable less 10%',
+        ]
+    },
+    {
+        title: 'Availability & Capacity',
+        items: [
+            'Check availability directly on our booking system (live and up to date)',
+        ]
+    },
+    {
+        title: 'Taking Payment',
+        items: [
+            'Hotels take full payment from the guest at time of booking',
+            'We will invoice you less £30 per person commission',
+        ]
+    },
+    {
+        title: 'Guest Confirmation',
+        items: [
+            'All flight confirmations and details are sent directly to the passenger',
+        ]
+    },
+    {
+        title: 'Weather Dependency',
+        items: [
+            'Flights are highly weather dependent and may be cancelled',
+            'Guests will be notified directly if this happens',
+        ]
+    },
+    {
+        title: 'Refund Policy (Weather Cancellation)',
+        items: [
+            'Shared Flights: Refund guest £220 per person',
+            'Private Flights: Refund less 10%',
+        ]
+    },
+    {
+        title: 'Hotel Invoicing (If Cancelled)',
+        items: [
+            'Shared flights -> We will invoice you £17.50 per person (after refund and commission)',
+            'Private flights -> We will invoice you the 10% cancellation fee minus your £30 per person commission',
+        ]
+    },
+];
 
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
@@ -5243,15 +5298,38 @@ const Index = () => {
                             <strong style={{ display: 'block', marginBottom: '4px' }}>
                                 {hasInvalidManualBookingLink
                                     ? (isDedicatedManualBookingFlow ? 'Hotel manual booking link invalid' : 'Manual booking link invalid')
-                                    : (isDedicatedManualBookingFlow ? 'Hotel manual booking mode' : 'Manual booking mode')}
+                                    : (isDedicatedManualBookingFlow ? 'Hot Air Balloon Booking – Guide' : 'Manual booking mode')}
                             </strong>
-                            <span style={{ fontSize: '14px', lineHeight: 1.5 }}>
+                            <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
                                 {hasInvalidManualBookingLink
                                     ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
                                     : isDedicatedManualBookingFlow
-                                    ? 'This hotel manual booking flow collects accommodation details first, hides voucher journeys, and creates the booking without Stripe payment so payment can be added later from admin.'
+                                    ? (
+                                        <div>
+                                            {HOTEL_MANUAL_BOOKING_GUIDE.map((section, index) => (
+                                                <div
+                                                    key={section.title}
+                                                    style={{ marginTop: index === 0 ? '0' : '12px' }}
+                                                >
+                                                    <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                                        {section.title}
+                                                    </strong>
+                                                    <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+                                                        {section.items.map((item) => (
+                                                            <li
+                                                                key={`${section.title}-${item}`}
+                                                                style={{ marginBottom: '4px' }}
+                                                            >
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )
                                     : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
-                            </span>
+                            </div>
                         </div>
                     )}
                     {/* Progress Bar - desktop: sticky at top, mobile: fixed above summary bar */}
