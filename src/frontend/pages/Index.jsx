@@ -50,7 +50,7 @@ const HOTEL_MANUAL_BOOKING_GUIDE = [
                 items: [
                     '£990 (2 people)',
                     '£1,155 (3 people)',
-                    '£1,320 (4-6 people)',
+                    '£1,320 (4 people)',
                     '£1,980 (up to 8 people)',
                     'Refundable less 10%',
                 ],
