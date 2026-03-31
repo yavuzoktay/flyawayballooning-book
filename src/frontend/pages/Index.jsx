@@ -31,58 +31,90 @@ import { MAIN_SITE_URL, clearBookingClientStorage, navigateToMainSite } from '..
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FAQ_LINK = 'https://flyawayballooning.com/pages/faq';
+const WHATSAPP_LINK = 'https://api.whatsapp.com/message/CQZBMWVAP2LWM1';
 const HOTEL_MANUAL_BOOKING_GUIDE = [
     {
         title: 'Experiences Available',
         items: [
-            'Shared Flights: £267.50 per person (£220 refundable fare)',
-            'Max 8 passengers per balloon',
-            'Private Charter Flights:',
-            '£990 (2 people)',
-            '£1,155 (3 people)',
-            '£1,320 (4-6 people)',
-            '£1,980 (up to 8 people)',
-            'Refundable less 10%',
+            {
+                title: 'Shared Flights',
+                items: [
+                    '£267.50 per person',
+                    '£220 refundable fare',
+                    'Maximum of 8 passengers per balloon',
+                ],
+            },
+            {
+                title: 'Private Charter Flights',
+                items: [
+                    '£990 (2 people)',
+                    '£1,155 (3 people)',
+                    '£1,320 (4-6 people)',
+                    '£1,980 (up to 8 people)',
+                    'Refundable less 10%',
+                ],
+            },
         ]
     },
     {
         title: 'Availability & Capacity',
         items: [
-            'Check availability directly on our booking system (live and up to date)',
+            'Availability can be checked via our live booking system (always up to date)',
         ]
     },
     {
         title: 'Taking Payment',
         items: [
-            'Hotels take full payment from the guest at time of booking',
-            'We will invoice you less £30 per person commission',
+            'Hotels take full payment from the guest at the time of booking',
+            'We will invoice you minus £30 per person commission',
         ]
     },
     {
         title: 'Guest Confirmation',
         items: [
-            'All flight confirmations and details are sent directly to the passenger',
+            'All booking confirmations and flight details are sent directly to the guest',
         ]
     },
     {
         title: 'Weather Dependency',
         items: [
-            'Flights are highly weather dependent and may be cancelled',
-            'Guests will be notified directly if this happens',
+            'All flights are weather dependent and may be cancelled',
+            'Guests will be notified directly in the event of a cancellation',
         ]
     },
     {
         title: 'Refund Policy (Weather Cancellation)',
         items: [
-            'Shared Flights: Refund guest £220 per person',
-            'Private Flights: Refund less 10%',
+            {
+                title: 'Shared Flights',
+                items: [
+                    'Guests are refunded £220 per person',
+                ],
+            },
+            {
+                title: 'Private Flights',
+                items: [
+                    'Refund issued minus 10%',
+                ],
+            },
         ]
     },
     {
         title: 'Hotel Invoicing (If Cancelled)',
         items: [
-            'Shared flights -> We will invoice you £17.50 per person (after refund and commission)',
-            'Private flights -> We will invoice you the 10% cancellation fee minus your £30 per person commission',
+            {
+                title: 'Shared Flights',
+                items: [
+                    'We will invoice £17.50 per person (after refund and commission)',
+                ],
+            },
+            {
+                title: 'Private Flights',
+                items: [
+                    'We will invoice the 10% cancellation fee, minus £30 per person commission',
+                ],
+            },
         ]
     },
 ];
@@ -5298,35 +5330,80 @@ const Index = () => {
                             <strong style={{ display: 'block', marginBottom: '4px' }}>
                                 {hasInvalidManualBookingLink
                                     ? (isDedicatedManualBookingFlow ? 'Hotel manual booking link invalid' : 'Manual booking link invalid')
-                                    : (isDedicatedManualBookingFlow ? 'Hot Air Balloon Booking – Guide' : 'Manual booking mode')}
+                                    : (isDedicatedManualBookingFlow ? 'Hot Air Balloon Booking Guide' : 'Manual booking mode')}
                             </strong>
                             <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
                                 {hasInvalidManualBookingLink
                                     ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
                                     : isDedicatedManualBookingFlow
                                     ? (
-                                        <div>
-                                            {HOTEL_MANUAL_BOOKING_GUIDE.map((section, index) => (
-                                                <div
-                                                    key={section.title}
-                                                    style={{ marginTop: index === 0 ? '0' : '12px' }}
-                                                >
-                                                    <strong style={{ display: 'block', marginBottom: '4px' }}>
-                                                        {section.title}
-                                                    </strong>
-                                                    <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
-                                                        {section.items.map((item) => (
-                                                            <li
-                                                                key={`${section.title}-${item}`}
-                                                                style={{ marginBottom: '4px' }}
-                                                            >
-                                                                {item}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                        <details style={{ marginTop: '4px' }}>
+                                            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                                                View booking guide details
+                                            </summary>
+                                            <div style={{ marginTop: '10px' }}>
+                                                {HOTEL_MANUAL_BOOKING_GUIDE.map((section, index) => (
+                                                    <div
+                                                        key={section.title}
+                                                        style={{ marginTop: index === 0 ? '0' : '12px' }}
+                                                    >
+                                                        <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                                            {section.title}
+                                                        </strong>
+                                                        <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+                                                            {section.items.map((item) => {
+                                                                if (typeof item === 'string') {
+                                                                    return (
+                                                                        <li
+                                                                            key={`${section.title}-${item}`}
+                                                                            style={{ marginBottom: '4px' }}
+                                                                        >
+                                                                            {item}
+                                                                        </li>
+                                                                    );
+                                                                }
+
+                                                                return (
+                                                                    <li
+                                                                        key={`${section.title}-${item.title}`}
+                                                                        style={{ marginBottom: '6px' }}
+                                                                    >
+                                                                        <strong style={{ display: 'block', marginBottom: '2px' }}>
+                                                                            {item.title}
+                                                                        </strong>
+                                                                        <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+                                                                            {item.items.map((subItem) => (
+                                                                                <li key={`${section.title}-${item.title}-${subItem}`} style={{ marginBottom: '3px' }}>
+                                                                                    {subItem}
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                                <div style={{ marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                    <a
+                                                        href={FAQ_LINK}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
+                                                    >
+                                                        FAQ
+                                                    </a>
+                                                    <a
+                                                        href={WHATSAPP_LINK}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
+                                                    >
+                                                        WhatsApp us
+                                                    </a>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        </details>
                                     )
                                     : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
                             </div>
