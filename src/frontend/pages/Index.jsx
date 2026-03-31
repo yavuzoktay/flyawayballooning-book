@@ -5640,6 +5640,7 @@ const Index = () => {
                                                 setSeasonSaver={setSeasonSaver}
                                                 hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
                                                 forceWeatherRefundable={isDedicatedManualBookingFlow}
+                                                disableTermsPopup={isDedicatedManualBookingFlow}
                                             />
                                             <LiveAvailabilitySection
                                                 isGiftVoucher={isGiftVoucher}

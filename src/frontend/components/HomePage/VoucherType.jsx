@@ -312,7 +312,8 @@ const VoucherType = ({
     seasonSaver,
     setSeasonSaver,
     hiddenVoucherTitles = [],
-    forceWeatherRefundable = false
+    forceWeatherRefundable = false,
+    disableTermsPopup = false
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
     const [quantities, setQuantities] = useState({});
@@ -1503,7 +1504,7 @@ const VoucherType = ({
             // If coming from Shopify deep link, auto-open Terms & Conditions once and ensure accordion is open
             const isShopifySource = urlParams.get('source') === 'shopify';
             const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
-            if (isShopifySource && startAtVoucher && !hasOpenedTermsFromDeepLink.current) {
+            if (!disableTermsPopup && isShopifySource && startAtVoucher && !hasOpenedTermsFromDeepLink.current) {
                 hasOpenedTermsFromDeepLink.current = true;
                 if (typeof setActiveAccordion === 'function') {
                     setActiveAccordion('voucher-type');
@@ -1525,6 +1526,7 @@ const VoucherType = ({
         const isShopifySource = urlParams.get('source') === 'shopify';
         const startAtVoucher = urlParams.get('startAt') === 'voucher-type' || !!urlParams.get('voucherTitle');
         if (
+            !disableTermsPopup &&
             isShopifySource &&
             startAtVoucher &&
             autoOpenedTermsRef.current &&
@@ -1537,7 +1539,7 @@ const VoucherType = ({
             }
             setShowTerms(true);
         }
-    }, [showTerms, selectedVoucher, setActiveAccordion, location.search]);
+    }, [showTerms, selectedVoucher, setActiveAccordion, location.search, disableTermsPopup]);
 
     // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
 
@@ -2479,6 +2481,16 @@ const VoucherType = ({
     };
 
     const openTermsForVoucher = async (voucherObj) => {
+        if (disableTermsPopup) {
+            setSelectedVoucher(voucherObj);
+            setSelectedVoucherType(voucherObj);
+            setShowTerms(false);
+            if (onTermsLoadingChange) {
+                onTermsLoadingChange(false);
+            }
+            return;
+        }
+
         // Ensure selected voucher is set before opening terms
         setSelectedVoucher(voucherObj);
 
@@ -2603,6 +2615,20 @@ const VoucherType = ({
         console.log('VoucherType: handleSelectVoucher called with:', voucher);
         console.log('VoucherType: Created voucherWithQuantity:', voucherWithQuantity);
         setSelectedVoucher(voucherWithQuantity);
+
+        if (disableTermsPopup) {
+            setSelectedVoucherType(voucherWithQuantity);
+            setShowTerms(false);
+            setNotificationMessage(`${voucherWithQuantity?.title} Selected`);
+            setShowNotification(true);
+            setTimeout(() => {
+                setShowNotification(false);
+            }, 3000);
+            if (onTermsLoadingChange) {
+                onTermsLoadingChange(false);
+            }
+            return;
+        }
         
         // Fetch Terms & Conditions for this voucher type from backend Settings
         try {
@@ -2763,7 +2789,7 @@ const VoucherType = ({
             )}
             
             <style>{scrollbarStyles}</style>
-            {showTerms && selectedVoucher && (
+            {!disableTermsPopup && showTerms && selectedVoucher && (
                 <div className="modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',justifyContent:'center',alignItems:'center'}}>
                     <div className="modal-content" style={{background:'#ffffff',borderRadius:12,maxWidth:720,width:'92%',padding:'20px 24px',boxShadow:'0 10px 40px rgba(0,0,0,0.2)'}}>
                         <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:12}}>
