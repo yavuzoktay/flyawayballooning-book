@@ -1790,12 +1790,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', alignSelf: isMobile ? 'stretch' : undefined }}>
                             <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Date</label>
                             <div style={{ position: 'relative' }}>
-                                <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className={`request-date-input-date${!requestDate ? ' request-date-input-empty' : ''}`} style={{ padding: isMobile ? 0 : 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, lineHeight: isMobile ? 44 : 'normal', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14, textAlign: 'left' }} required />
-                                {!requestDate && (
-                                    <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: isMobile ? 12 : 12, paddingRight: 12, color: '#666', fontSize: isMobile ? 16 : 14, pointerEvents: 'none' }}>
-                                        Select Preferred Date
-                                    </div>
-                                )}
+                                <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className="request-date-input-date" style={{ padding: isMobile ? 0 : 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, lineHeight: isMobile ? 44 : 'normal', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14, textAlign: 'left' }} required />
                             </div>
                             {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>

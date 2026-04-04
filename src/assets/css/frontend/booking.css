@@ -2800,9 +2800,6 @@ label {
 	text-align: left !important;
 	color: #666 !important;
 }
-.request-date-form .request-date-input-date.request-date-input-empty {
-	color: transparent !important;
-}
 
 /* Request Date modal: Mobile - form stretch + Preferred Date full width/height (match Flight Type) */
 @media screen and (max-width: 768px) {
@@ -2828,9 +2825,6 @@ label {
 		box-sizing: border-box !important;
 		text-align: left !important;
 		color: #666 !important;
-	}
-	.request-date-form .request-date-input-date.request-date-input-empty {
-		color: transparent !important;
 	}
 }
 
@@ -2876,4 +2870,3 @@ label {
 		gap: 8px !important;
 	}
 }
-
