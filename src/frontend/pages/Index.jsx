@@ -144,7 +144,7 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
         hideAddOns: true,
         hideAdditionalInfo: true,
         hiddenVoucherTitles: ['Proposal Flight'],
-        hiddenSectionIds: ['location', 'experience', 'voucher-type'],
+        hiddenSectionIds: ['location', 'experience'],
         contactTitle: 'Hotel Details',
         contactDescription: null,
         tokenParam: 't',
@@ -158,6 +158,7 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
             experience: 'Private Charter',
             voucherTitle: 'Private Charter',
             passengers: 2,
+            privateCharterPassengerOptions: [2, 3, 4, 6, 7, 8],
             weatherRefundable: true,
             passengerEmail: 'reservations@thenewtinsomerset.com',
             passengerCountryCode: '+44',
@@ -5880,7 +5881,8 @@ const Index = () => {
                                                         seasonSaver={seasonSaver}
                                                         setSeasonSaver={setSeasonSaver}
                                                         hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
-                                                        forceWeatherRefundable={isDedicatedManualBookingFlow}
+                                                        privateCharterPassengerOptions={dedicatedBookingDefaults?.privateCharterPassengerOptions}
+                                                        forceWeatherRefundable={!!dedicatedBookingDefaults?.weatherRefundable}
                                                         disableTermsPopup={isDedicatedManualBookingFlow}
                                                     />
                                                 </div>

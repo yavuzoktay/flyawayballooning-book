@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, memo, useRef, useCallback } from 'react';
 import Accordion from '../Common/Accordion';
 import axios from 'axios';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -237,6 +237,14 @@ const getSharedActivitySalePrice = (pricingSource, title) => {
     return parsePriceNumber(pricingSource[fieldNames.sale]);
 };
 
+const resolvePrivateCharterTierPassengerKey = (passengers) => {
+    const pax = Number(passengers);
+    if (!Number.isFinite(pax) || pax <= 0) return '2';
+    if ([2, 3, 4].includes(pax)) return String(pax);
+    if (pax >= 5) return '8';
+    return '2';
+};
+
 const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers, voucherIdRaw = null) => {
     if (pricingDataRaw == null) return null;
 
@@ -280,8 +288,7 @@ const getTieredGroupPrice = (pricingDataRaw, voucherTitleRaw, passengers, vouche
     if (byTitle == null) return null;
 
     if (typeof byTitle === 'object' && !Array.isArray(byTitle)) {
-        const pax = Number(passengers);
-        const key = String([2, 3, 4, 8].includes(pax) ? pax : 2);
+        const key = resolvePrivateCharterTierPassengerKey(passengers);
         const value = byTitle[key] ?? byTitle['2'];
         return parsePriceNumber(value);
     }
@@ -313,6 +320,7 @@ const VoucherType = ({
     setSeasonSaver,
     hiddenVoucherTitles = [],
     forceWeatherRefundable = false,
+    privateCharterPassengerOptions = null,
     disableTermsPopup = false
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
@@ -363,6 +371,32 @@ const VoucherType = ({
     );
 
     const isVoucherTitleHidden = (title) => hiddenVoucherTitleSet.has(normalizeVoucherPriceTitle(title));
+    const normalizedPrivateCharterPassengerOptions = useMemo(() => {
+        if (!Array.isArray(privateCharterPassengerOptions) || privateCharterPassengerOptions.length === 0) {
+            return [2, 3, 4, 8];
+        }
+
+        const uniqueSorted = Array.from(new Set(
+            privateCharterPassengerOptions
+                .map((value) => parseInt(value, 10))
+                .filter((value) => Number.isFinite(value) && value > 0)
+        )).sort((a, b) => a - b);
+
+        return uniqueSorted.length > 0 ? uniqueSorted : [2, 3, 4, 8];
+    }, [privateCharterPassengerOptions]);
+
+    const getAllowedPassengerOptions = useCallback((voucherTitle = '') => {
+        if (chooseFlightType?.type !== "Private Charter") {
+            return [1, 2, 3, 4, 5, 6, 7, 8];
+        }
+
+        const isProposal = typeof voucherTitle === 'string' && voucherTitle.toLowerCase().includes('proposal');
+        if (isProposal) {
+            return [2];
+        }
+
+        return normalizedPrivateCharterPassengerOptions;
+    }, [chooseFlightType?.type, normalizedPrivateCharterPassengerOptions]);
 
     // Sync local shared toggle from passengerData
     useEffect(() => {
@@ -1555,9 +1589,7 @@ const VoucherType = ({
         
         // For Private Charter, only allow specific passenger counts: 2, 3, 4, 8
         if (chooseFlightType?.type === "Private Charter") {
-            // For Proposal Flight, cap at 2 passengers only
-            const isProposal = typeof voucherTitle === 'string' && voucherTitle.toLowerCase().includes('proposal');
-            const allowedPassengers = isProposal ? [2] : [2, 3, 4, 8];
+            const allowedPassengers = getAllowedPassengerOptions(voucherTitle);
             let finalValue = newValue;
             
             // If it's a manual input, find the closest allowed value
@@ -1609,11 +1641,9 @@ const VoucherType = ({
     };
 
     // Helper function to get next allowed passenger count
-    const getNextAllowedPassenger = (current, direction) => {
-        // For Private Charter, only 2,3,4,8 are valid steps so the + button should jump 4 -> 8
-        const isProposal = typeof current === 'number' ? false : false; // current unused for detection here
+    const getNextAllowedPassenger = (current, direction, voucherTitle = '') => {
         const allowedPassengers = (chooseFlightType?.type === "Private Charter")
-            ? [2, 3, 4, 8]
+            ? getAllowedPassengerOptions(voucherTitle)
             : [1, 2, 3, 4, 5, 6, 7, 8];
         const currentIndex = allowedPassengers.indexOf(current);
         // If current not in array (e.g., direct input), snap to nearest valid value
@@ -1976,7 +2006,7 @@ const VoucherType = ({
                                 >
                                     <button
                                         type="button"
-                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev'))}
+                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'prev', voucher.title))}
                                         style={{ 
                                             display: 'inline-flex',
                                             alignItems: 'center',
@@ -2013,7 +2043,7 @@ const VoucherType = ({
                                     </span>
                                     <button
                                         type="button"
-                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next'))}
+                                        onClick={() => handleQuantityChange(voucher.title, getNextAllowedPassenger(parseInt(quantities[voucher.title] || 2, 10), 'next', voucher.title))}
                                         style={{ 
                                             display: 'inline-flex',
                                             alignItems: 'center',
@@ -2479,6 +2509,70 @@ const VoucherType = ({
                 : (voucher.priceUnit === 'total' ? (effectiveBasePrice || voucher.price) : (effectiveBasePrice || voucher.basePrice || voucher.price))
         };
     };
+
+    useEffect(() => {
+        const currentTitle = selectedVoucherType?.title || selectedVoucher?.title;
+        if (!currentTitle) return;
+
+        const nextQuantity = parseInt(
+            quantities[currentTitle]
+            ?? selectedVoucherType?.quantity
+            ?? selectedVoucherType?.passengers
+            ?? selectedVoucher?.quantity
+            ?? selectedVoucher?.passengers
+            ?? 0,
+            10
+        ) || 0;
+
+        if (!nextQuantity) return;
+
+        const currentQuantity = parseInt(
+            selectedVoucherType?.quantity
+            ?? selectedVoucherType?.passengers
+            ?? selectedVoucher?.quantity
+            ?? selectedVoucher?.passengers
+            ?? 0,
+            10
+        ) || 0;
+
+        if (currentQuantity === nextQuantity && Number(selectedVoucherType?.totalPrice ?? selectedVoucher?.totalPrice ?? 0) > 0) {
+            return;
+        }
+
+        const sourceVoucher = voucherTypes.find((voucher) =>
+            Number(voucher.id) === Number(selectedVoucherType?.id || selectedVoucher?.id)
+            || normalizeVoucherPriceTitle(voucher.title) === normalizeVoucherPriceTitle(currentTitle)
+        ) || selectedVoucher || selectedVoucherType;
+
+        if (!sourceVoucher) return;
+
+        const rebuilt = buildVoucherWithQuantity(sourceVoucher, nextQuantity);
+        const sameQuantity = Number(selectedVoucherType?.quantity ?? selectedVoucher?.quantity ?? 0) === Number(rebuilt.quantity);
+        const sameTotal = Number(selectedVoucherType?.totalPrice ?? selectedVoucher?.totalPrice ?? 0) === Number(rebuilt.totalPrice ?? 0);
+        const samePrice = Number(selectedVoucherType?.price ?? selectedVoucher?.price ?? 0) === Number(rebuilt.price ?? 0);
+
+        if (sameQuantity && sameTotal && samePrice && (selectedVoucherType?.id || selectedVoucher?.id || null) === (rebuilt.id || null)) {
+            return;
+        }
+
+        setSelectedVoucher(rebuilt);
+        setSelectedVoucherType(rebuilt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        chooseFlightType?.type,
+        quantities,
+        selectedVoucher?.id,
+        selectedVoucher?.price,
+        selectedVoucher?.quantity,
+        selectedVoucher?.title,
+        selectedVoucher?.totalPrice,
+        selectedVoucherType?.id,
+        selectedVoucherType?.price,
+        selectedVoucherType?.quantity,
+        selectedVoucherType?.title,
+        selectedVoucherType?.totalPrice,
+        voucherTypes
+    ]);
 
     const openTermsForVoucher = async (voucherObj) => {
         if (disableTermsPopup) {
