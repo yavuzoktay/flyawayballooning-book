@@ -1383,6 +1383,16 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
         }
     };
 
+    const openRequestDateModal = () => {
+        setRequestLocation(chooseLocation || "");
+        setRequestFlightType(chooseFlightType?.type || "");
+        setLocationError(false);
+        setFlightTypeError(false);
+        setRequestSuccess("");
+        setRequestError("");
+        setRequestModalOpen(true);
+    };
+
 
 
     return (
@@ -1729,7 +1739,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     }}>
                         <button
                             type="button"
-                            onClick={() => setRequestModalOpen(true)}
+                            onClick={openRequestDateModal}
                             style={{
                                 padding: isMobile ? '10px 18px' : '12px 24px',
                                 border: 'none',
