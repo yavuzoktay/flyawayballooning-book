@@ -101,30 +101,11 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [requestFlightType, setRequestFlightType] = useState("");
     const [requestDate, setRequestDate] = useState("");
     const [requestTime, setRequestTime] = useState("");
-    const [requestFormLocations, setRequestFormLocations] = useState(['Bath', 'Devon', 'Somerset', 'Bristol']);
-
-    useEffect(() => {
-        axios.get(`${API_BASE_URL}/api/activeLocations`)
-            .then((res) => {
-                if (res.data?.success && Array.isArray(res.data.data)) {
-                    const names = res.data.data.map((l) => l.location).filter(Boolean);
-                    if (names.length > 0) {
-                        setRequestFormLocations(names);
-                    }
-                }
-            })
-            .catch(() => {});
-    }, []);
-    const allFlightTypes = ["Book Flight Date", "Buy Flight Voucher", "Redeem Voucher", "Buy Gift Voucher"];
     const [requestSuccess, setRequestSuccess] = useState("");
     const [requestError, setRequestError] = useState("");
-    // State'e yeni bir error ekle
-    const [formError, setFormError] = useState("");
     // Her input için ayrı error state
     const [nameError, setNameError] = useState(false);
     const [emailError, setEmailError] = useState(false);
-    const [locationError, setLocationError] = useState(false);
-    const [flightTypeError, setFlightTypeError] = useState(false);
     const [dateError, setDateError] = useState(false);
     const [timeError, setTimeError] = useState(false);
     // Ek hata state'leri
@@ -132,28 +113,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     const [phoneFormatError, setPhoneFormatError] = useState(false);
     const [emailFormatError, setEmailFormatError] = useState(false);
     
-    // Derive available experiences for selected location from ExperienceSection data
-    const availableExperiencesForLocation = React.useMemo(() => {
-        try {
-            if (Array.isArray(selectedActivity) && selectedActivity.length > 0) {
-                const names = new Set();
-                selectedActivity.forEach(a => {
-                    if (Array.isArray(a?.flight_types)) {
-                        a.flight_types.forEach(ft => ft?.type && names.add(ft.type));
-                    } else if (a?.experience_type) {
-                        names.add(a.experience_type);
-                    }
-                });
-                if (names.size > 0) return Array.from(names);
-            }
-            if (chooseFlightType?.type) return [chooseFlightType.type];
-            return ['Shared Flight', 'Private Charter'];
-        } catch (_) {
-            return ['Shared Flight', 'Private Charter'];
-        }
-    }, [selectedActivity, chooseFlightType]);
-    
-
     // New state for time selection popup
     const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
     const [selectedDateForTime, setSelectedDateForTime] = useState(null);
@@ -491,15 +450,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
 
     // Check if form is valid for submission
     const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate && requestTime;
-
-    const handleShowAllErrors = () => {
-        if (!requestName.trim()) setNameError(true);
-        if (!requestEmail.trim()) setEmailError(true);
-        if (!requestLocation) setLocationError(true);
-        if (!requestFlightType) setFlightTypeError(true);
-        if (!requestDate) setDateError(true);
-        if (!requestTime) setTimeError(true);
-    };
 
     if (chooseLocation === '') {
         setIsModalOpen(true);
@@ -1384,10 +1334,13 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     };
 
     const openRequestDateModal = () => {
+        if (!chooseLocation || !chooseFlightType?.type) {
+            setIsModalOpen(true);
+            return;
+        }
+
         setRequestLocation(chooseLocation || "");
         setRequestFlightType(chooseFlightType?.type || "");
-        setLocationError(false);
-        setFlightTypeError(false);
         setRequestSuccess("");
         setRequestError("");
         setRequestModalOpen(true);
@@ -1787,14 +1740,17 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     <form className="request-date-form" style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 480, alignItems: 'center', marginLeft: 'auto', marginRight: 'auto', touchAction: isMobile ? 'manipulation' : 'auto' }} onSubmit={e => {
                         e.preventDefault();
                         let hasError = false;
-                        setNameError(false); setEmailError(false); setLocationError(false); setFlightTypeError(false); setDateError(false); setTimeError(false);
+                        setNameError(false); setEmailError(false); setDateError(false); setTimeError(false);
                         setNameFormatError(false); setPhoneFormatError(false); setEmailFormatError(false);
                         if (!requestName.trim()) { setNameError(true); hasError = true; }
                         if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) { setNameFormatError(true); hasError = true; }
                         if (!requestEmail.trim()) { setEmailError(true); hasError = true; }
                         if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) { setEmailFormatError(true); hasError = true; }
-                        if (!requestLocation) { setLocationError(true); hasError = true; }
-                        if (!requestFlightType) { setFlightTypeError(true); hasError = true; }
+                        if (!requestLocation || !requestFlightType) {
+                            setRequestModalOpen(false);
+                            setIsModalOpen(true);
+                            return;
+                        }
                         if (!requestDate) { setDateError(true); hasError = true; }
                         if (!requestTime) { setTimeError(true); hasError = true; }
                         if (requestPhone && /[^0-9]/.test(requestPhone)) { setPhoneFormatError(true); hasError = true; }
@@ -1830,24 +1786,6 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                             }} style={{ padding: 8, borderRadius: 4, border: emailError || emailFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, fontSize: isMobile ? 16 : 14 }} required />
                             {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                             {emailFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Invalid email format</div>}
-                        </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Location</label>
-                            <select value={requestLocation} onChange={e => { setRequestLocation(e.target.value); setLocationError(false); }} style={{ padding: 8, borderRadius: 4, border: locationError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal', color: requestLocation ? '#333' : '#666', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14 }} required>
-                                <option value="">Select Location</option>
-                                {requestFormLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                            </select>
-                            {locationError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
-                        </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Flight Type</label>
-                            <select value={requestFlightType} onChange={e => { setRequestFlightType(e.target.value); setFlightTypeError(false); }} style={{ padding: 8, borderRadius: 4, border: flightTypeError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal', color: requestFlightType ? '#333' : '#666', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14 }} required>
-                                <option value="">Select Flight Type</option>
-                                {(chooseLocation && Array.isArray(availableExperiencesForLocation) ? availableExperiencesForLocation : ['Shared Flight','Private Charter']).map((label) => (
-                                    <option key={label} value={label}>{label}</option>
-                                ))}
-                            </select>
-                            {flightTypeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
                         </div>
                         <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', alignSelf: isMobile ? 'stretch' : undefined }}>
                             <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Date</label>
