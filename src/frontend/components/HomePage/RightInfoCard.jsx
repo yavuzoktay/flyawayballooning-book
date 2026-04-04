@@ -1106,7 +1106,15 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const isBookFlight = activitySelect === "Book Flight";
     const shouldShowAddOnSummary = !hideAddOnsSection;
     const shouldShowAdditionalInfoSummary = !hideAdditionalInfoSection;
-    const isSectionVisible = (sectionId) => !hiddenSectionIds.includes(sectionId);
+    const isSectionInteractive = (sectionId) => !hiddenSectionIds.includes(sectionId);
+    const getSectionClickHandler = (sectionId) => (
+        isSectionInteractive(sectionId)
+            ? () => setActiveAccordion(sectionId)
+            : undefined
+    );
+    const getSectionRowStyle = (sectionId) => ({
+        cursor: isSectionInteractive(sectionId) ? 'pointer' : 'default'
+    });
 
     // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
     const sectionSpacing = { marginBottom: '24px' };
@@ -1160,7 +1168,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isBuyGiftPassengerComplete },
             { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : '', completed: !!recipientDetails?.name }
         ] : [])
-    ].filter((section) => isSectionVisible(section.id));
+    ];
 
     return (
         <>
@@ -1195,9 +1203,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                         {activitySelect === 'Book Flight' && (
                             <>
-                                {isSectionVisible('location') && <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : ""}</p></div></div></div>}
-                                {isSectionVisible('experience') && <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : ""}</p></div></div></div>}
-                                {isSectionVisible('voucher-type') && <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : ""}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + ((chooseFlightType?.type === 'Private Charter' ? (selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? 0) : voucherTypePrice).toFixed(2)) : ""}</p></div></div></div></div>}
+                                <div className="book_data_active" onClick={getSectionClickHandler("location")} style={getSectionRowStyle("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : ""}</p></div></div></div>
+                                <div className="book_data_active" onClick={getSectionClickHandler("experience")} style={getSectionRowStyle("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : ""}</p></div></div></div>
+                                <div className="book_data_active" onClick={getSectionClickHandler("voucher-type")} style={getSectionRowStyle("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : ""}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + ((chooseFlightType?.type === 'Private Charter' ? (selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? 0) : voucherTypePrice).toFixed(2)) : ""}</p></div></div></div></div>
                                 {/* Private Charter Weather Refundable Display */}
                                 {chooseFlightType?.type === "Private Charter" && privateCharterWeatherRefund && (
                                     <div className="book_data_active"> <div className="row-1 active-card-val"> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Weather Refundable</h3><p>One-time charge for entire booking</p></div><div className="active-book-right"><p>£{(selectedVoucherType?.price * 0.1).toFixed(2)}</p></div></div></div></div>
@@ -1405,7 +1413,16 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 </div>
                                 <div className="summary-drawer-body">
                                     {mobileSections.map((s) => (
-                                        <div key={s.id} className={`summary-row ${s.completed ? 'completed' : ''}`} onClick={() => { setIsDrawerOpen(false); setActiveAccordion(s.id); }}>
+                                        <div
+                                            key={s.id}
+                                            className={`summary-row ${s.completed ? 'completed' : ''}`}
+                                            onClick={() => {
+                                                if (!isSectionInteractive(s.id)) return;
+                                                setIsDrawerOpen(false);
+                                                setActiveAccordion(s.id);
+                                            }}
+                                            style={{ cursor: isSectionInteractive(s.id) ? 'pointer' : 'default' }}
+                                        >
                                             <div className="summary-row-left">
                                                 <div className="summary-dot" />
                                                 <div>
@@ -1413,7 +1430,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                                     <div className="summary-row-sub">{s.value}</div>
                                                 </div>
                                             </div>
-                                            <div className="summary-chevron">›</div>
+                                            <div className="summary-chevron" style={{ opacity: isSectionInteractive(s.id) ? 1 : 0.35 }}>›</div>
                                         </div>
                                     ))}
                                 </div>

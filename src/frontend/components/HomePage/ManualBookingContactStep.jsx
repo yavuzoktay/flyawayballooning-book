@@ -21,7 +21,13 @@ const labelStyle = {
     color: "#4b5c75"
 };
 
-const ManualBookingContactStep = ({ details, onChange, isMobile = false }) => {
+const ManualBookingContactStep = ({
+    details,
+    onChange,
+    isMobile = false,
+    title = "Hotel / Staff Details",
+    description = "Complete these required details before continuing with the booking flow."
+}) => {
     const accommodationName = details?.accommodationName || "";
     const email = details?.email || "";
     const staffName = details?.staffName || "";
@@ -59,11 +65,13 @@ const ManualBookingContactStep = ({ details, onChange, isMobile = false }) => {
             >
                 <div>
                     <h3 style={{ margin: 0, fontSize: isMobile ? "20px" : "22px", color: "#16345c" }}>
-                        Hotel / Staff Details
+                        {title}
                     </h3>
-                    <p style={{ margin: "6px 0 0", color: "#5f6f86", fontSize: "14px", lineHeight: 1.5 }}>
-                        Complete these required details before continuing with the booking flow.
-                    </p>
+                    {description ? (
+                        <p style={{ margin: "6px 0 0", color: "#5f6f86", fontSize: "14px", lineHeight: 1.5 }}>
+                            {description}
+                        </p>
+                    ) : null}
                 </div>
                 <div
                     style={{

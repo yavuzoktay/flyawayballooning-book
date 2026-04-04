@@ -145,6 +145,8 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
         hideAdditionalInfo: true,
         hiddenVoucherTitles: ['Proposal Flight'],
         hiddenSectionIds: ['location', 'experience', 'voucher-type'],
+        contactTitle: 'Hotel Details',
+        contactDescription: null,
         tokenParam: 't',
         contactDefaults: {
             accommodationName: 'The Newt',
@@ -5559,83 +5561,85 @@ const Index = () => {
                                     ? (isDedicatedManualBookingFlow ? `${manualBookingRouteProfile?.label || 'Manual booking'} link invalid` : 'Manual booking link invalid')
                                     : (manualBookingRouteProfile?.showGuide ? 'Hot Air Balloon Booking Guide' : (manualBookingRouteProfile?.label || 'Manual booking mode'))}
                             </strong>
-                            <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
-                                {hasInvalidManualBookingLink
-                                    ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
-                                    : manualBookingRouteProfile?.showGuide
-                                    ? (
-                                        <details style={{ marginTop: '4px' }}>
-                                            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
-                                                View booking guide details
-                                            </summary>
-                                            <div style={{ marginTop: '10px' }}>
-                                                {HOTEL_MANUAL_BOOKING_GUIDE.map((section, index) => (
-                                                    <div
-                                                        key={section.title}
-                                                        style={{ marginTop: index === 0 ? '0' : '12px' }}
-                                                    >
-                                                        <strong style={{ display: 'block', marginBottom: '4px' }}>
-                                                            {section.title}
-                                                        </strong>
-                                                        <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
-                                                            {section.items.map((item) => {
-                                                                if (typeof item === 'string') {
-                                                                    return (
-                                                                        <li
-                                                                            key={`${section.title}-${item}`}
-                                                                            style={{ marginBottom: '4px' }}
-                                                                        >
-                                                                            {item}
-                                                                        </li>
-                                                                    );
-                                                                }
-
+                            {hasInvalidManualBookingLink ? (
+                                <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
+                                    This link is missing its admin authorisation token. Reopen the flow from the admin system.
+                                </div>
+                            ) : manualBookingRouteProfile?.showGuide ? (
+                                <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
+                                    <details style={{ marginTop: '4px' }}>
+                                        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                                            View booking guide details
+                                        </summary>
+                                        <div style={{ marginTop: '10px' }}>
+                                            {HOTEL_MANUAL_BOOKING_GUIDE.map((section, index) => (
+                                                <div
+                                                    key={section.title}
+                                                    style={{ marginTop: index === 0 ? '0' : '12px' }}
+                                                >
+                                                    <strong style={{ display: 'block', marginBottom: '4px' }}>
+                                                        {section.title}
+                                                    </strong>
+                                                    <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+                                                        {section.items.map((item) => {
+                                                            if (typeof item === 'string') {
                                                                 return (
                                                                     <li
-                                                                        key={`${section.title}-${item.title}`}
-                                                                        style={{ marginBottom: '6px' }}
+                                                                        key={`${section.title}-${item}`}
+                                                                        style={{ marginBottom: '4px' }}
                                                                     >
-                                                                        <strong style={{ display: 'block', marginBottom: '2px' }}>
-                                                                            {item.title}
-                                                                        </strong>
-                                                                        <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
-                                                                            {item.items.map((subItem) => (
-                                                                                <li key={`${section.title}-${item.title}-${subItem}`} style={{ marginBottom: '3px' }}>
-                                                                                    {subItem}
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
+                                                                        {item}
                                                                     </li>
                                                                 );
-                                                            })}
-                                                        </ul>
-                                                    </div>
-                                                ))}
-                                                <div style={{ marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                                    <a
-                                                        href={FAQ_LINK}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
-                                                    >
-                                                        FAQ
-                                                    </a>
-                                                    <a
-                                                        href={WHATSAPP_LINK}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
-                                                    >
-                                                        WhatsApp us
-                                                    </a>
+                                                            }
+
+                                                            return (
+                                                                <li
+                                                                    key={`${section.title}-${item.title}`}
+                                                                    style={{ marginBottom: '6px' }}
+                                                                >
+                                                                    <strong style={{ display: 'block', marginBottom: '2px' }}>
+                                                                        {item.title}
+                                                                    </strong>
+                                                                    <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+                                                                        {item.items.map((subItem) => (
+                                                                            <li key={`${section.title}-${item.title}-${subItem}`} style={{ marginBottom: '3px' }}>
+                                                                                {subItem}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
                                                 </div>
+                                            ))}
+                                            <div style={{ marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                <a
+                                                    href={FAQ_LINK}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
+                                                >
+                                                    FAQ
+                                                </a>
+                                                <a
+                                                    href={WHATSAPP_LINK}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ color: '#1d4ed8', fontWeight: 600, textDecoration: 'underline' }}
+                                                >
+                                                    WhatsApp us
+                                                </a>
                                             </div>
-                                        </details>
-                                    )
-                                    : manualBookingRouteProfile?.label === 'The Newt Balloon Booking'
-                                    ? 'This flow is pre-configured for Somerset private charter bookings for The Newt with weather refundable cover and two passengers already selected.'
-                                    : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
-                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            ) : manualBookingRouteProfile?.label === 'The Newt Balloon Booking' ? null : (
+                                <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
+                                    This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.
+                                </div>
+                            )}
                         </div>
                     )}
                     {/* Progress Bar - desktop: sticky at top, mobile: fixed above summary bar */}
@@ -5677,6 +5681,8 @@ const Index = () => {
                                             details={manualBookingContact}
                                             onChange={setManualBookingContact}
                                             isMobile={isMobile}
+                                            title={manualBookingRouteProfile?.contactTitle}
+                                            description={manualBookingRouteProfile?.contactDescription}
                                         />
                                     )}
                                     <h3 style={{ 
