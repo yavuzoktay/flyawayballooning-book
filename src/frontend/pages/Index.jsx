@@ -31,6 +31,7 @@ import { MAIN_SITE_URL, clearBookingClientStorage, navigateToMainSite } from '..
 const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMPTY_ARRAY = [];
 const FAQ_LINK = 'https://flyawayballooning.com/pages/faq';
 const WHATSAPP_LINK = 'https://api.whatsapp.com/message/CQZBMWVAP2LWM1';
 const HOTEL_MANUAL_BOOKING_GUIDE = [
@@ -118,6 +119,50 @@ const HOTEL_MANUAL_BOOKING_GUIDE = [
         ]
     },
 ];
+
+const MANUAL_BOOKING_ROUTE_PROFILES = {
+    '/hotel-manual-booking': {
+        label: 'Hotel Manual Booking',
+        showGuide: true,
+        showBanner: true,
+        hideAddOns: true,
+        hideAdditionalInfo: true,
+        hiddenVoucherTitles: ['Proposal Flight', 'Flexible Weekday', 'Weekday Morning'],
+        hiddenSectionIds: [],
+        tokenParam: 'manualBookingToken',
+        contactDefaults: {
+            accommodationName: '',
+            email: '',
+            staffName: ''
+        },
+        bookingDefaults: null
+    },
+    '/thenewt': {
+        label: 'The Newt Balloon Booking',
+        showGuide: false,
+        showBanner: true,
+        hideAddOns: true,
+        hideAdditionalInfo: true,
+        hiddenVoucherTitles: ['Proposal Flight'],
+        hiddenSectionIds: ['location', 'experience', 'voucher-type'],
+        tokenParam: 't',
+        contactDefaults: {
+            accommodationName: 'The Newt',
+            email: 'reservations@thenewtinsomerset.com',
+            staffName: ''
+        },
+        bookingDefaults: {
+            location: 'Somerset',
+            experience: 'Private Charter',
+            voucherTitle: 'Private Charter',
+            passengers: 2,
+            weatherRefundable: true,
+            passengerEmail: 'reservations@thenewtinsomerset.com',
+            passengerCountryCode: '+44',
+            passengerPhone: '1963577777'
+        }
+    }
+};
 
 const Index = () => {
     const [activeAccordion, setActiveAccordion] = useState(null); // Başlangıçta hiçbir accordion seçili değil
@@ -306,22 +351,75 @@ const Index = () => {
     const location = useLocation();
     const manualBookingParams = new URLSearchParams(location.search || '');
     const normalizedPath = (location.pathname || '/').replace(/\/+$/, '') || '/';
-    const isHotelManualBookingRoute = normalizedPath === '/hotel-manual-booking';
-    const isDedicatedManualBookingFlow = isHotelManualBookingRoute;
+    const manualBookingRouteProfile = MANUAL_BOOKING_ROUTE_PROFILES[normalizedPath] || null;
+    const dedicatedBookingDefaults = manualBookingRouteProfile?.bookingDefaults || null;
+    const hiddenDedicatedSectionIds = manualBookingRouteProfile?.hiddenSectionIds || EMPTY_ARRAY;
+    const isDedicatedManualBookingFlow = !!manualBookingRouteProfile;
     const manualBookingRequested = ['1', 'true', 'yes'].includes((manualBookingParams.get('manualBooking') || '').toLowerCase());
-    const manualBookingToken = manualBookingParams.get('manualBookingToken') || '';
+    const manualBookingToken = manualBookingParams.get('manualBookingToken') || manualBookingParams.get('t') || '';
     const requiresManualBookingToken = manualBookingRequested || isDedicatedManualBookingFlow;
     const isManualBookingFlow = requiresManualBookingToken && !!manualBookingToken;
     const hasInvalidManualBookingLink = requiresManualBookingToken && !manualBookingToken;
-    const shouldShowManualBookingBanner = manualBookingRequested || isDedicatedManualBookingFlow;
-    const hiddenVoucherTitlesForDedicatedFlow = ['Proposal Flight', 'Flexible Weekday', 'Weekday Morning'];
-    const shouldHideAddOns = isDedicatedManualBookingFlow;
-    const shouldHideAdditionalInfoSection = isDedicatedManualBookingFlow;
-    const [manualBookingContact, setManualBookingContact] = useState({
-        accommodationName: '',
-        email: '',
-        staffName: ''
-    });
+    const shouldShowManualBookingBanner = manualBookingRequested || !!manualBookingRouteProfile?.showBanner;
+    const hiddenVoucherTitlesForDedicatedFlow = manualBookingRouteProfile?.hiddenVoucherTitles || [];
+    const shouldHideAddOns = !!manualBookingRouteProfile?.hideAddOns;
+    const shouldHideAdditionalInfoSection = !!manualBookingRouteProfile?.hideAdditionalInfo;
+    const isDedicatedSelectionHidden = hiddenDedicatedSectionIds.length > 0;
+    const shouldHideLocationStep = hiddenDedicatedSectionIds.includes('location');
+    const shouldHideExperienceStep = hiddenDedicatedSectionIds.includes('experience');
+    const shouldHideVoucherTypeStep = hiddenDedicatedSectionIds.includes('voucher-type');
+
+    const buildDefaultManualBookingContact = useCallback(() => ({
+        accommodationName: manualBookingRouteProfile?.contactDefaults?.accommodationName || '',
+        email: manualBookingRouteProfile?.contactDefaults?.email || '',
+        staffName: manualBookingRouteProfile?.contactDefaults?.staffName || ''
+    }), [manualBookingRouteProfile]);
+
+    const buildDefaultPassengerData = useCallback((passengerCountOverride = null) => {
+        const passengerCount = passengerCountOverride
+            ?? dedicatedBookingDefaults?.passengers
+            ?? 1;
+        const normalizedPassengerCount = Math.max(parseInt(passengerCount, 10) || 1, 1);
+
+        return Array.from({ length: normalizedPassengerCount }, (_, index) => ({
+            firstName: '',
+            lastName: '',
+            weight: '',
+            phone: index === 0 ? (dedicatedBookingDefaults?.passengerPhone || '') : '',
+            countryCode: dedicatedBookingDefaults?.passengerCountryCode || '+44',
+            email: index === 0 ? (dedicatedBookingDefaults?.passengerEmail || '') : '',
+            weatherRefund: !!dedicatedBookingDefaults?.weatherRefundable
+        }));
+    }, [dedicatedBookingDefaults]);
+
+    const buildDefaultFlightType = useCallback(() => {
+        if (!dedicatedBookingDefaults?.experience) {
+            return { type: '', passengerCount: '', price: '' };
+        }
+
+        return {
+            type: dedicatedBookingDefaults.experience,
+            passengerCount: String(dedicatedBookingDefaults.passengers || 2),
+            price: ''
+        };
+    }, [dedicatedBookingDefaults]);
+
+    const buildDefaultSelectedVoucherType = useCallback(() => {
+        if (!dedicatedBookingDefaults?.voucherTitle) {
+            return null;
+        }
+
+        return {
+            title: dedicatedBookingDefaults.voucherTitle,
+            quantity: dedicatedBookingDefaults.passengers || 2,
+            passengers: dedicatedBookingDefaults.passengers || 2,
+            weatherRefundable: !!dedicatedBookingDefaults.weatherRefundable,
+            price: 0,
+            totalPrice: 0
+        };
+    }, [dedicatedBookingDefaults]);
+
+    const [manualBookingContact, setManualBookingContact] = useState(() => buildDefaultManualBookingContact());
     const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
     const shopifyVoucherForcedRef = useRef(false);
     const shopifyPrefillInProgress = useRef(false);
@@ -357,6 +455,131 @@ const Index = () => {
 
         return normalizedInfo;
     }, [isDedicatedManualBookingFlow, manualBookingContact]);
+
+    useEffect(() => {
+        if (!isDedicatedManualBookingFlow) {
+            return;
+        }
+
+        const defaultContact = buildDefaultManualBookingContact();
+        setManualBookingContact((prev) => {
+            const current = prev && typeof prev === 'object' ? prev : {};
+            const next = {
+                accommodationName: current.accommodationName || defaultContact.accommodationName,
+                email: current.email || defaultContact.email,
+                staffName: current.staffName || defaultContact.staffName
+            };
+
+            if (
+                next.accommodationName === current.accommodationName &&
+                next.email === current.email &&
+                next.staffName === current.staffName
+            ) {
+                return prev;
+            }
+
+            return next;
+        });
+    }, [buildDefaultManualBookingContact, isDedicatedManualBookingFlow]);
+
+    useEffect(() => {
+        if (!dedicatedBookingDefaults) {
+            return;
+        }
+
+        if (activitySelect !== null && activitySelect !== 'Book Flight') {
+            return;
+        }
+
+        const nextFlightType = buildDefaultFlightType();
+        const nextVoucherType = buildDefaultSelectedVoucherType();
+        const nextPassengerData = buildDefaultPassengerData(dedicatedBookingDefaults.passengers);
+
+        setChooseLocation((prev) => prev === dedicatedBookingDefaults.location ? prev : dedicatedBookingDefaults.location);
+        setChooseFlightType((prev) => {
+            if (
+                prev?.type === nextFlightType.type &&
+                prev?.passengerCount === nextFlightType.passengerCount
+            ) {
+                return prev;
+            }
+
+            return nextFlightType;
+        });
+        setSelectedVoucherType((prev) => {
+            if (
+                prev?.title === nextVoucherType?.title &&
+                String(prev?.quantity || '') === String(nextVoucherType?.quantity || '') &&
+                prev?.weatherRefundable === nextVoucherType?.weatherRefundable
+            ) {
+                return prev;
+            }
+
+            return nextVoucherType;
+        });
+        setPrivateCharterWeatherRefund(!!dedicatedBookingDefaults.weatherRefundable);
+        setPassengerData((prev) => {
+            const hasEnteredPassengerData = Array.isArray(prev) && prev.some((passenger) =>
+                passenger && (
+                    passenger.firstName ||
+                    passenger.lastName ||
+                    passenger.weight ||
+                    passenger.phone ||
+                    passenger.email
+                )
+            );
+
+            if (!hasEnteredPassengerData) {
+                return nextPassengerData;
+            }
+
+            return prev.map((passenger, index) => {
+                if (index !== 0) {
+                    return {
+                        ...passenger,
+                        countryCode: passenger?.countryCode || nextPassengerData[index]?.countryCode || '+44',
+                        weatherRefund: dedicatedBookingDefaults.weatherRefundable ? true : !!passenger?.weatherRefund
+                    };
+                }
+
+                return {
+                    ...passenger,
+                    countryCode: passenger?.countryCode || nextPassengerData[0]?.countryCode || '+44',
+                    email: passenger?.email || nextPassengerData[0]?.email || '',
+                    phone: passenger?.phone || nextPassengerData[0]?.phone || '',
+                    weatherRefund: dedicatedBookingDefaults.weatherRefundable ? true : !!passenger?.weatherRefund
+                };
+            });
+        });
+
+        let cancelled = false;
+
+        axios.post(`${API_BASE_URL}/api/getActivityId`, {
+            location: dedicatedBookingDefaults.location
+        }).then((response) => {
+            if (cancelled || !response.data?.success) {
+                return;
+            }
+
+            const activity = response.data.activity;
+            setActivityId(activity?.id || '');
+            setSelectedActivity(activity ? [activity] : []);
+        }).catch((error) => {
+            if (!cancelled) {
+                console.error('Error preloading dedicated manual booking activity:', error);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        activitySelect,
+        buildDefaultFlightType,
+        buildDefaultPassengerData,
+        buildDefaultSelectedVoucherType,
+        dedicatedBookingDefaults
+    ]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -496,19 +719,27 @@ const Index = () => {
         return titles[id] || id;
     };
 
+    const filterHiddenSections = useCallback((sections) => {
+        if (!hiddenDedicatedSectionIds.length) {
+            return sections;
+        }
+
+        return sections.filter((sectionId) => !hiddenDedicatedSectionIds.includes(sectionId));
+    }, [hiddenDedicatedSectionIds]);
+
     const withOptionalAdditionalInfoStep = (sections) => shouldHideAdditionalInfoSection ? sections : [...sections, 'additional-info'];
     const withOptionalAddOnStep = (sections) => shouldHideAddOns ? sections : [...sections, 'add-on'];
     const withOptionalHotelFlowSteps = (sections) => withOptionalAddOnStep(withOptionalAdditionalInfoStep(sections));
 
     // Define progress sections based on activity type
     const progressSections = activitySelect === 'Book Flight' 
-        ? withOptionalHotelFlowSteps(['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info'])
+        ? filterHiddenSections(withOptionalHotelFlowSteps(['activity', 'location', 'experience', 'voucher-type', 'live-availability', 'passenger-info']))
         : activitySelect === 'Flight Voucher' // Changed from 'Buy Flight Voucher' to 'Flight Voucher'
-        ? withOptionalHotelFlowSteps(['activity', 'experience', 'voucher-type', 'passenger-info'])
+        ? filterHiddenSections(withOptionalHotelFlowSteps(['activity', 'experience', 'voucher-type', 'passenger-info']))
         : activitySelect === 'Buy Gift'
-        ? withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details'])
+        ? filterHiddenSections(withOptionalAddOnStep(['activity', 'experience', 'voucher-type', 'passenger-info', 'recipient-details']))
         : activitySelect === 'Redeem Voucher'
-        ? withOptionalHotelFlowSteps(['activity', 'location', 'live-availability', 'passenger-info']) // Experience removed from progress bar for Redeem Voucher
+        ? filterHiddenSections(withOptionalHotelFlowSteps(['activity', 'location', 'live-availability', 'passenger-info'])) // Experience removed from progress bar for Redeem Voucher
         : [];
 
     // Start/maintain 5-minute countdown when a date and time are selected
@@ -602,13 +833,13 @@ const Index = () => {
             
             // Reset all state to initial values
             setActivitySelect(null);
-            setChooseLocation(null);
-            setChooseFlightType({ type: "", passengerCount: "", price: "" });
+            setChooseLocation(dedicatedBookingDefaults?.location || null);
+            setChooseFlightType(buildDefaultFlightType());
             setAddPassenger([1, 2]);
             setChooseAddOn([]);
-            setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+            setPassengerData(buildDefaultPassengerData());
             setWeatherRefund(false);
-            setPrivateCharterWeatherRefund(false);
+            setPrivateCharterWeatherRefund(!!dedicatedBookingDefaults?.weatherRefundable);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: "", email: "", phone: "", date: "" });
             setAdditionalInfo({ notes: "" });
@@ -622,7 +853,7 @@ const Index = () => {
             setSelectedTime(null);
             setAvailabilities([]);
             setHasLiveAvailabilityResponse(false);
-            setSelectedVoucherType(null);
+            setSelectedVoucherType(buildDefaultSelectedVoucherType());
             setActiveAccordion(null);
             setShowWarning(false);
             setIsFreshStart(false);
@@ -632,7 +863,7 @@ const Index = () => {
             
             console.log('✅ All selections have been reset - returning to initial state');
         }
-    }, [countdownSeconds, holdActive, sessionId]);
+    }, [buildDefaultFlightType, buildDefaultPassengerData, buildDefaultSelectedVoucherType, countdownSeconds, dedicatedBookingDefaults?.location, dedicatedBookingDefaults?.weatherRefundable, holdActive, sessionId]);
 
     // Debug selectedVoucherType changes
     useEffect(() => {
@@ -1756,7 +1987,7 @@ const Index = () => {
             sequence.push('voucher-type');
             sequence.push('live-availability');
             sequence.push('passenger-info');
-            return withOptionalHotelFlowSteps(sequence);
+            return filterHiddenSections(withOptionalHotelFlowSteps(sequence));
         }
         
         if (activityType === 'Redeem Voucher') {
@@ -1765,7 +1996,7 @@ const Index = () => {
             sequence.push('experience');
             sequence.push('live-availability');
             sequence.push('passenger-info');
-            return withOptionalHotelFlowSteps(sequence);
+            return filterHiddenSections(withOptionalHotelFlowSteps(sequence));
         }
         
         if (activityType === 'Flight Voucher') {
@@ -1773,7 +2004,7 @@ const Index = () => {
             sequence.push('experience');
             sequence.push('voucher-type');
             sequence.push('passenger-info');
-            return withOptionalHotelFlowSteps(sequence);
+            return filterHiddenSections(withOptionalHotelFlowSteps(sequence));
         }
         
         if (activityType === 'Buy Gift') {
@@ -1782,7 +2013,7 @@ const Index = () => {
             sequence.push('voucher-type');
             sequence.push('passenger-info');
             sequence.push('recipient-details');
-            return withOptionalAddOnStep(sequence);
+            return filterHiddenSections(withOptionalAddOnStep(sequence));
         }
         
         return baseSequence;
@@ -2667,13 +2898,13 @@ const Index = () => {
     const resetBooking = () => {
         setActiveAccordion("activity");
         setActivitySelect(null);
-        setChooseLocation(null);
-        setChooseFlightType({ type: "", passengerCount: "", price: "" });
+        setChooseLocation(dedicatedBookingDefaults?.location || null);
+        setChooseFlightType(buildDefaultFlightType());
         setAddPassenger([1, 2]);
         setChooseAddOn([]);
-        setPassengerData([{ firstName: '', lastName: '', weight: '', weatherRefund: false }]);
+        setPassengerData(buildDefaultPassengerData());
         setWeatherRefund(false);
-        setPrivateCharterWeatherRefund(false);
+        setPrivateCharterWeatherRefund(!!dedicatedBookingDefaults?.weatherRefundable);
         setPreference({ location: {}, time: {}, day: {} });
         setVoucherCode("");
         setShowWarning(false);
@@ -2682,16 +2913,12 @@ const Index = () => {
         setSelectedDate(null);
         setActivityId(null);
         setSelectedActivity([]);
-        setSelectedVoucherType(null);
+        setSelectedVoucherType(buildDefaultSelectedVoucherType());
         setAvailableSeats([]);
         setVoucherCode("");
         setVoucherStatus(null);
         setVoucherData(null);
-        setManualBookingContact({
-            accommodationName: '',
-            email: '',
-            staffName: ''
-        });
+        setManualBookingContact(buildDefaultManualBookingContact());
     };
 
     const releaseActiveHold = async () => {
@@ -3902,13 +4129,13 @@ const Index = () => {
             setCompletedSections(new Set(['activity']));
             
             // Tüm state'leri sıfırla
-            setChooseLocation(null);
-            setChooseFlightType({ type: '', passengerCount: '', price: '' });
+            setChooseLocation(dedicatedBookingDefaults?.location || null);
+            setChooseFlightType(buildDefaultFlightType());
             setAddPassenger([1, 2]);
             setChooseAddOn([]);
-            setPassengerData([{ firstName: '', lastName: '', weight: '', phone: '', email: '', weatherRefund: false }]);
+            setPassengerData(buildDefaultPassengerData());
             setWeatherRefund(false);
-            setPrivateCharterWeatherRefund(false);
+            setPrivateCharterWeatherRefund(!!dedicatedBookingDefaults?.weatherRefundable);
             setPreference({ location: {}, time: {}, day: {} });
             setRecipientDetails({ name: '', email: '', phone: '', date: '' });
             setAdditionalInfo({ notes: '' });
@@ -3919,7 +4146,7 @@ const Index = () => {
             setAvailableSeats([]);
             setVoucherCode('');
             setVoucherStatus(null);
-            setSelectedVoucherType(null);
+            setSelectedVoucherType(buildDefaultSelectedVoucherType());
             
             // Accordion'ı da sıfırla - yeni uçuş türü için sıfırdan başla
             setActiveAccordion(null);
@@ -3941,7 +4168,7 @@ const Index = () => {
             setCompletedSections(new Set());
         }
         }
-    }, [activitySelect, location.search]);
+    }, [activitySelect, buildDefaultFlightType, buildDefaultPassengerData, buildDefaultSelectedVoucherType, dedicatedBookingDefaults?.location, dedicatedBookingDefaults?.weatherRefundable, location.search]);
 
     // Yeni: activitySelect değiştiğinde accordion'ı sıfırla ve otomatik olarak sıralamayı baştan başlat
     React.useEffect(() => {
@@ -5329,13 +5556,13 @@ const Index = () => {
                         }}>
                             <strong style={{ display: 'block', marginBottom: '4px' }}>
                                 {hasInvalidManualBookingLink
-                                    ? (isDedicatedManualBookingFlow ? 'Hotel manual booking link invalid' : 'Manual booking link invalid')
-                                    : (isDedicatedManualBookingFlow ? 'Hot Air Balloon Booking Guide' : 'Manual booking mode')}
+                                    ? (isDedicatedManualBookingFlow ? `${manualBookingRouteProfile?.label || 'Manual booking'} link invalid` : 'Manual booking link invalid')
+                                    : (manualBookingRouteProfile?.showGuide ? 'Hot Air Balloon Booking Guide' : (manualBookingRouteProfile?.label || 'Manual booking mode'))}
                             </strong>
                             <div style={{ fontSize: '14px', lineHeight: 1.5 }}>
                                 {hasInvalidManualBookingLink
                                     ? 'This link is missing its admin authorisation token. Reopen the flow from the admin system.'
-                                    : isDedicatedManualBookingFlow
+                                    : manualBookingRouteProfile?.showGuide
                                     ? (
                                         <details style={{ marginTop: '4px' }}>
                                             <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
@@ -5405,6 +5632,8 @@ const Index = () => {
                                             </div>
                                         </details>
                                     )
+                                    : manualBookingRouteProfile?.label === 'The Newt Balloon Booking'
+                                    ? 'This flow is pre-configured for Somerset private charter bookings for The Newt with weather refundable cover and two passengers already selected.'
                                     : 'This booking will be created without Stripe payment. The reservation or voucher will be saved as unpaid so payment can be added later from admin.'}
                             </div>
                         </div>
@@ -5576,72 +5805,80 @@ const Index = () => {
                                 }}>
                                     {activitySelect === "Book Flight" ? (
                                         <>
-                                            <LocationSection 
-                                                isGiftVoucher={isGiftVoucher} 
-                                                isFlightVoucher={isFlightVoucher} 
-                                                isRedeemVoucher={isRedeemVoucher}
-                                                chooseLocation={chooseLocation} 
-                                                setChooseLocation={setChooseLocation} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                setActivityId={setActivityId} 
-                                                setSelectedActivity={setSelectedActivity}
-                                                setAvailabilities={setAvailabilities}
-                                                selectedVoucherType={selectedVoucherType}
-                                                chooseFlightType={chooseFlightType}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('location').isEnabled}
-                                            />
-                                            <ExperienceSection 
-                                                isRedeemVoucher={isRedeemVoucher} 
-                                                setChooseFlightType={setChooseFlightType} 
-                                                addPassenger={addPassenger} 
-                                                setAddPassenger={setAddPassenger} 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                setAvailableSeats={setAvailableSeats}
-                                                voucherCode={voucherCode}
-                                                chooseLocation={chooseLocation}
-                                                isFlightVoucher={isFlightVoucher}
-                                                isBookFlight={isBookFlight}
-                                                isGiftVoucher={isGiftVoucher}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                isDisabled={!getAccordionState('experience').isEnabled}
-                                            />
-                                            <VoucherType 
-                                                activeAccordion={activeAccordion} 
-                                                setActiveAccordion={handleSetActiveAccordionWithValidation} 
-                                                selectedVoucherType={selectedVoucherType} 
-                                                setSelectedVoucherType={setSelectedVoucherType}
-                                                activitySelect={activitySelect}
-                                                chooseFlightType={chooseFlightType}
-                                                chooseLocation={chooseLocation}
-                                                selectedActivity={selectedActivity}
-                                                availableCapacity={getAvailableCapacityForSelection()}
-                                                selectedDate={selectedDate}
-                                                selectedTime={selectedTime}
-                                                onSectionCompletion={handleSectionCompletion}
-                                                passengerData={passengerData}
-                                                setPassengerData={setPassengerData}
-                                                privateCharterWeatherRefund={privateCharterWeatherRefund}
-                                                onTermsLoadingChange={(loading) => {
-                                                    setVoucherTermsLoading(loading);
-                                                    if (!loading) {
-                                                        voucherTermsLoadedRef.current = true;
-                                                        console.log('[ShopifyDebug] Terms and Conditions loaded');
-                                                    }
-                                                }}
-                                                onAccordionLoadingChange={(states) => {
-                                                    setAccordionLoadingStates(states);
-                                                }}
-                                                setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
-                                                isDisabled={!getAccordionState('voucher-type').isEnabled}
-                                                seasonSaver={seasonSaver}
-                                                setSeasonSaver={setSeasonSaver}
-                                                hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
-                                                forceWeatherRefundable={isDedicatedManualBookingFlow}
-                                                disableTermsPopup={isDedicatedManualBookingFlow}
-                                            />
+                                            {!shouldHideLocationStep && (
+                                                <LocationSection 
+                                                    isGiftVoucher={isGiftVoucher} 
+                                                    isFlightVoucher={isFlightVoucher} 
+                                                    isRedeemVoucher={isRedeemVoucher}
+                                                    chooseLocation={chooseLocation} 
+                                                    setChooseLocation={setChooseLocation} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                    setActivityId={setActivityId} 
+                                                    setSelectedActivity={setSelectedActivity}
+                                                    setAvailabilities={setAvailabilities}
+                                                    selectedVoucherType={selectedVoucherType}
+                                                    chooseFlightType={chooseFlightType}
+                                                    onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('location').isEnabled}
+                                                />
+                                            )}
+                                            {!shouldHideExperienceStep && (
+                                                <ExperienceSection 
+                                                    isRedeemVoucher={isRedeemVoucher} 
+                                                    setChooseFlightType={setChooseFlightType} 
+                                                    addPassenger={addPassenger} 
+                                                    setAddPassenger={setAddPassenger} 
+                                                    activeAccordion={activeAccordion} 
+                                                    setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                    setAvailableSeats={setAvailableSeats}
+                                                    voucherCode={voucherCode}
+                                                    chooseLocation={chooseLocation}
+                                                    isFlightVoucher={isFlightVoucher}
+                                                    isBookFlight={isBookFlight}
+                                                    isGiftVoucher={isGiftVoucher}
+                                                    onSectionCompletion={handleSectionCompletion}
+                                                    isDisabled={!getAccordionState('experience').isEnabled}
+                                                />
+                                            )}
+                                            {(!shouldHideVoucherTypeStep || isDedicatedSelectionHidden) && (
+                                                <div style={shouldHideVoucherTypeStep ? { display: 'none' } : undefined} aria-hidden={shouldHideVoucherTypeStep ? 'true' : undefined}>
+                                                    <VoucherType 
+                                                        activeAccordion={activeAccordion} 
+                                                        setActiveAccordion={handleSetActiveAccordionWithValidation} 
+                                                        selectedVoucherType={selectedVoucherType} 
+                                                        setSelectedVoucherType={setSelectedVoucherType}
+                                                        activitySelect={activitySelect}
+                                                        chooseFlightType={chooseFlightType}
+                                                        chooseLocation={chooseLocation}
+                                                        selectedActivity={selectedActivity}
+                                                        availableCapacity={getAvailableCapacityForSelection()}
+                                                        selectedDate={selectedDate}
+                                                        selectedTime={selectedTime}
+                                                        onSectionCompletion={handleSectionCompletion}
+                                                        passengerData={passengerData}
+                                                        setPassengerData={setPassengerData}
+                                                        privateCharterWeatherRefund={privateCharterWeatherRefund}
+                                                        onTermsLoadingChange={(loading) => {
+                                                            setVoucherTermsLoading(loading);
+                                                            if (!loading) {
+                                                                voucherTermsLoadedRef.current = true;
+                                                                console.log('[ShopifyDebug] Terms and Conditions loaded');
+                                                            }
+                                                        }}
+                                                        onAccordionLoadingChange={(states) => {
+                                                            setAccordionLoadingStates(states);
+                                                        }}
+                                                        setPrivateCharterWeatherRefund={setPrivateCharterWeatherRefund}
+                                                        isDisabled={shouldHideVoucherTypeStep ? true : !getAccordionState('voucher-type').isEnabled}
+                                                        seasonSaver={seasonSaver}
+                                                        setSeasonSaver={setSeasonSaver}
+                                                        hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
+                                                        forceWeatherRefundable={isDedicatedManualBookingFlow}
+                                                        disableTermsPopup={isDedicatedManualBookingFlow}
+                                                    />
+                                                </div>
+                                            )}
                                             <LiveAvailabilitySection
                                                 isGiftVoucher={isGiftVoucher}
                                                 isFlightVoucher={isFlightVoucher}
@@ -6171,6 +6408,7 @@ const Index = () => {
                                 seasonSaver={seasonSaver}
                                 hideAddOnsSection={shouldHideAddOns}
                                 hideAdditionalInfoSection={shouldHideAdditionalInfoSection}
+                                hiddenSectionIds={hiddenDedicatedSectionIds}
                             />
                         </div>
                     </div>

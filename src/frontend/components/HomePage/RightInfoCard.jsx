@@ -10,7 +10,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 
-const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook, seasonSaver, hideAddOnsSection = false, hideAdditionalInfoSection = false }) => {
+const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, chooseAddOn, passengerData, additionalInfo, recipientDetails, selectedDate, selectedTime, activeAccordion, setActiveAccordion, isFlightVoucher, isRedeemVoucher, isGiftVoucher, voucherCode, resetBooking, preference, validateBuyGiftFields, selectedVoucherType, voucherStatus, voucherData, privateCharterWeatherRefund, activityId, onBook, seasonSaver, hideAddOnsSection = false, hideAdditionalInfoSection = false, hiddenSectionIds = [] }) => {
     
     // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
     console.log('🔥 RightInfoCard component rendered!', { 
@@ -1106,6 +1106,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
     const isBookFlight = activitySelect === "Book Flight";
     const shouldShowAddOnSummary = !hideAddOnsSection;
     const shouldShowAdditionalInfoSummary = !hideAdditionalInfoSection;
+    const isSectionVisible = (sectionId) => !hiddenSectionIds.includes(sectionId);
 
     // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
     const sectionSpacing = { marginBottom: '24px' };
@@ -1159,7 +1160,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
             { id: 'passenger-info', title: 'Purchaser Information', value: (Array.isArray(passengerData) && passengerData.some(p => p.firstName)) ? 'Provided' : '', completed: isBuyGiftPassengerComplete },
             { id: 'recipient-details', title: 'Recipient Details', value: recipientDetails?.name ? 'Provided' : '', completed: !!recipientDetails?.name }
         ] : [])
-    ];
+    ].filter((section) => isSectionVisible(section.id));
 
     return (
         <>
@@ -1194,9 +1195,9 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                         </div>
                         {activitySelect === 'Book Flight' && (
                             <>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : ""}</p></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : ""}</p></div></div></div>
-                                <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : ""}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + ((chooseFlightType?.type === 'Private Charter' ? (selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? 0) : voucherTypePrice).toFixed(2)) : ""}</p></div></div></div></div>
+                                {isSectionVisible('location') && <div className="book_data_active" onClick={() => setActiveAccordion("location")}> <div className={`row-1 ${chooseLocation ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Location</h3><p>{chooseLocation ? chooseLocation : ""}</p></div></div></div>}
+                                {isSectionVisible('experience') && <div className="book_data_active" onClick={() => setActiveAccordion("experience")}> <div className={`row-1 ${chooseFlightType.passengerCount ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont"><h3>Experience</h3><p>{chooseFlightType.passengerCount ? chooseFlightType?.type : ""}</p></div></div></div>}
+                                {isSectionVisible('voucher-type') && <div className="book_data_active" onClick={() => setActiveAccordion("voucher-type")}> <div className={`row-1 ${selectedVoucherType ? 'active-card-val' : ''}`}> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Voucher Type</h3><p>{selectedVoucherType ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? 's' : ''})` : ""}</p></div><div className="active-book-right"><p>{selectedVoucherType ? "£" + ((chooseFlightType?.type === 'Private Charter' ? (selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? 0) : voucherTypePrice).toFixed(2)) : ""}</p></div></div></div></div>}
                                 {/* Private Charter Weather Refundable Display */}
                                 {chooseFlightType?.type === "Private Charter" && privateCharterWeatherRefund && (
                                     <div className="book_data_active"> <div className="row-1 active-card-val"> <span className="active-book-card"></span><div className="active-book-cont final-active-book-cont"><div className="active-book-left"><h3>Weather Refundable</h3><p>One-time charge for entire booking</p></div><div className="active-book-right"><p>£{(selectedVoucherType?.price * 0.1).toFixed(2)}</p></div></div></div></div>
