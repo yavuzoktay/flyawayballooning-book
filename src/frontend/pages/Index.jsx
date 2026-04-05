@@ -32,8 +32,28 @@ const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_ARRAY = [];
+const MANUAL_BOOKING_ACCESS_STORAGE_PREFIX = 'fab-manual-booking-access';
 const FAQ_LINK = 'https://flyawayballooning.com/pages/faq';
 const WHATSAPP_LINK = 'https://api.whatsapp.com/message/CQZBMWVAP2LWM1';
+
+const buildManualBookingAccessStorageKey = (pathname = '/', token = '') => {
+    const normalizedPath = String(pathname || '/').replace(/\/+$/, '') || '/';
+    const tokenKey = String(token || '').slice(-24) || 'no-token';
+    return `${MANUAL_BOOKING_ACCESS_STORAGE_PREFIX}:${normalizedPath}:${tokenKey}`;
+};
+
+const getTokenExpiryTimestamp = (token = '') => {
+    try {
+        const [encodedPayload] = String(token || '').split('.');
+        if (!encodedPayload) return 0;
+        const normalized = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+        const decoded = JSON.parse(window.atob(padded));
+        return Number(decoded?.exp) || 0;
+    } catch (error) {
+        return 0;
+    }
+};
 const HOTEL_MANUAL_BOOKING_GUIDE = [
     {
         title: 'Experiences Available',
@@ -365,6 +385,7 @@ const Index = () => {
     const requiresManualBookingToken = manualBookingRequested || isDedicatedManualBookingFlow;
     const isManualBookingFlow = requiresManualBookingToken && !!manualBookingToken;
     const hasInvalidManualBookingLink = requiresManualBookingToken && !manualBookingToken;
+    const manualBookingAccessStorageKey = buildManualBookingAccessStorageKey(normalizedPath, manualBookingToken);
     const shouldShowManualBookingBanner = manualBookingRequested || !!manualBookingRouteProfile?.showBanner;
     const shouldUseCompactVoucherCards = !!manualBookingRouteProfile?.compactVoucherCards;
     const shouldAutoAdvanceVoucherSelection = !!manualBookingRouteProfile?.autoAdvanceVoucherSelection;
@@ -381,6 +402,29 @@ const Index = () => {
         email: manualBookingRouteProfile?.contactDefaults?.email || '',
         staffName: manualBookingRouteProfile?.contactDefaults?.staffName || ''
     }), [manualBookingRouteProfile]);
+
+    const [manualBookingAccessToken, setManualBookingAccessToken] = useState(() => {
+        if (typeof window === 'undefined' || !manualBookingToken) {
+            return '';
+        }
+
+        try {
+            const storedToken = window.localStorage.getItem(buildManualBookingAccessStorageKey(normalizedPath, manualBookingToken)) || '';
+            if (!storedToken) return '';
+
+            const expiresAt = getTokenExpiryTimestamp(storedToken);
+            if (expiresAt && expiresAt > Date.now()) {
+                return storedToken;
+            }
+
+            window.localStorage.removeItem(buildManualBookingAccessStorageKey(normalizedPath, manualBookingToken));
+            return '';
+        } catch (error) {
+            return '';
+        }
+    });
+    const [manualBookingAuthError, setManualBookingAuthError] = useState('');
+    const manualBookingAccessTokenRef = useRef(manualBookingAccessToken);
 
     const buildDefaultPassengerData = useCallback((passengerCountOverride = null) => {
         const passengerCount = passengerCountOverride
@@ -488,6 +532,80 @@ const Index = () => {
             return next;
         });
     }, [buildDefaultManualBookingContact, isDedicatedManualBookingFlow]);
+
+    useEffect(() => {
+        manualBookingAccessTokenRef.current = manualBookingAccessToken;
+    }, [manualBookingAccessToken]);
+
+    const authorizeManualBookingAccess = useCallback(async ({ silent = false } = {}) => {
+        if (!manualBookingToken) {
+            return '';
+        }
+
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/authorize-manual-booking`, {
+                manualBookingToken
+            });
+            const accessToken = response.data?.accessToken || '';
+
+            if (!response.data?.success || !accessToken) {
+                throw new Error(response.data?.message || 'Manual booking authorisation could not be refreshed.');
+            }
+
+            setManualBookingAccessToken(accessToken);
+            setManualBookingAuthError('');
+
+            if (typeof window !== 'undefined') {
+                try {
+                    window.localStorage.setItem(manualBookingAccessStorageKey, accessToken);
+                } catch (storageError) {
+                    console.warn('Could not persist manual booking access token:', storageError);
+                }
+            }
+
+            return accessToken;
+        } catch (error) {
+            const message = error?.response?.data?.message || error?.message || 'Manual booking authorisation could not be refreshed.';
+
+            if (!silent || !manualBookingAccessTokenRef.current) {
+                setManualBookingAuthError(message);
+            }
+
+            if (!manualBookingAccessTokenRef.current) {
+                setManualBookingAccessToken('');
+            }
+
+            return '';
+        }
+    }, [manualBookingAccessStorageKey, manualBookingToken]);
+
+    useEffect(() => {
+        if (!manualBookingToken) {
+            setManualBookingAccessToken('');
+            setManualBookingAuthError('');
+            return;
+        }
+
+        if (typeof window !== 'undefined') {
+            try {
+                const storedAccessToken = window.localStorage.getItem(manualBookingAccessStorageKey) || '';
+                const storedAccessTokenExpiry = getTokenExpiryTimestamp(storedAccessToken);
+                const hasUsableStoredAccessToken = !!storedAccessToken && (!storedAccessTokenExpiry || storedAccessTokenExpiry > Date.now());
+
+                if (storedAccessToken && !hasUsableStoredAccessToken) {
+                    window.localStorage.removeItem(manualBookingAccessStorageKey);
+                }
+
+                if (hasUsableStoredAccessToken && storedAccessToken !== manualBookingAccessTokenRef.current) {
+                    setManualBookingAccessToken(storedAccessToken);
+                }
+            } catch (storageError) {
+                console.warn('Could not read manual booking access token from storage:', storageError);
+            }
+        }
+
+        authorizeManualBookingAccess({ silent: true });
+    }, [authorizeManualBookingAccess, manualBookingAccessStorageKey, manualBookingToken]);
 
     useEffect(() => {
         if (!dedicatedBookingDefaults) {
@@ -2948,6 +3066,11 @@ const Index = () => {
             throw new Error('Manual booking link is invalid or missing.');
         }
 
+        const resolvedAccessToken = manualBookingAccessTokenRef.current || await authorizeManualBookingAccess();
+        if (!resolvedAccessToken && manualBookingAuthError) {
+            throw new Error(manualBookingAuthError);
+        }
+
         try {
             const manualSessionRes = await axios.post(`${API_BASE_URL}/api/create-manual-session`, {
                 totalPrice,
@@ -2955,7 +3078,8 @@ const Index = () => {
                 voucherData,
                 type,
                 userSessionData,
-                manualBookingToken
+                manualBookingToken,
+                manualBookingAccessToken: resolvedAccessToken || undefined
             });
 
             if (!manualSessionRes.data?.success || !manualSessionRes.data?.sessionId) {
@@ -2993,6 +3117,11 @@ const Index = () => {
 
         if (hasInvalidManualBookingLink) {
             alert('This manual booking link is incomplete. Please reopen the booking flow from the admin system.');
+            return;
+        }
+
+        if (requiresManualBookingToken && !manualBookingAccessTokenRef.current && manualBookingAuthError) {
+            alert(manualBookingAuthError);
             return;
         }
 
