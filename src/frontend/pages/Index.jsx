@@ -141,6 +141,8 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
         label: 'The Newt Balloon Booking',
         showGuide: false,
         showBanner: true,
+        compactVoucherCards: true,
+        autoAdvanceVoucherSelection: true,
         hideAddOns: true,
         hideAdditionalInfo: true,
         hiddenVoucherTitles: ['Proposal Flight'],
@@ -364,6 +366,8 @@ const Index = () => {
     const isManualBookingFlow = requiresManualBookingToken && !!manualBookingToken;
     const hasInvalidManualBookingLink = requiresManualBookingToken && !manualBookingToken;
     const shouldShowManualBookingBanner = manualBookingRequested || !!manualBookingRouteProfile?.showBanner;
+    const shouldUseCompactVoucherCards = !!manualBookingRouteProfile?.compactVoucherCards;
+    const shouldAutoAdvanceVoucherSelection = !!manualBookingRouteProfile?.autoAdvanceVoucherSelection;
     const hiddenVoucherTitlesForDedicatedFlow = manualBookingRouteProfile?.hiddenVoucherTitles || [];
     const shouldHideAddOns = !!manualBookingRouteProfile?.hideAddOns;
     const shouldHideAdditionalInfoSection = !!manualBookingRouteProfile?.hideAdditionalInfo;
@@ -5883,6 +5887,8 @@ const Index = () => {
                                                         hiddenVoucherTitles={isDedicatedManualBookingFlow ? hiddenVoucherTitlesForDedicatedFlow : []}
                                                         privateCharterPassengerOptions={dedicatedBookingDefaults?.privateCharterPassengerOptions}
                                                         forceWeatherRefundable={!!dedicatedBookingDefaults?.weatherRefundable}
+                                                        compactVoucherCardMode={shouldUseCompactVoucherCards}
+                                                        autoAdvanceToSectionId={shouldAutoAdvanceVoucherSelection ? 'live-availability' : null}
                                                         disableTermsPopup={isDedicatedManualBookingFlow}
                                                     />
                                                 </div>

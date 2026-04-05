@@ -321,6 +321,8 @@ const VoucherType = ({
     hiddenVoucherTitles = [],
     forceWeatherRefundable = false,
     privateCharterPassengerOptions = null,
+    compactVoucherCardMode = false,
+    autoAdvanceToSectionId = null,
     disableTermsPopup = false
 }) => {
     const API_BASE_URL = config.API_BASE_URL;
@@ -397,6 +399,15 @@ const VoucherType = ({
 
         return normalizedPrivateCharterPassengerOptions;
     }, [chooseFlightType?.type, normalizedPrivateCharterPassengerOptions]);
+
+    const scrollToSectionById = useCallback((sectionId) => {
+        if (typeof window === 'undefined' || !sectionId) return;
+        const element = document.getElementById(sectionId);
+        if (!element) return;
+        const offset = window.innerWidth <= 768 ? 80 : 10;
+        const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, []);
 
     // Sync local shared toggle from passengerData
     useEffect(() => {
@@ -1706,6 +1717,9 @@ const VoucherType = ({
         const isBuyVoucherFlow = activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift';
         const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
         const cardMinHeight = (() => {
+            if (compactVoucherCardMode) {
+                return isMobile ? 420 : 460;
+            }
             if (isBuyVoucherFlow) {
                 if (isMobile) {
                     // Mobile: align Shared Flight cards (Any Day / Flexible Weekday) to same height
@@ -1814,157 +1828,158 @@ const VoucherType = ({
                     position: 'relative'
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                    {/* Duration and Passenger Capacity - below title */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 24, marginBottom: 8, color: '#666', fontSize: isMobile ? 13 : 12, flexWrap: 'wrap' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <AccessTimeIcon sx={{ fontSize: 18, color: '#888' }} />
-                            <span>3-4 Hours</span>
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <GroupsIcon sx={{ fontSize: 18, color: '#888' }} />
-                            <span>Max {voucher.maxPassengers || 8} Passengers</span>
-                        </span>
-                    </div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
-                    <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.validity}</div>
-                    {(() => {
-                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                        const isShared = chooseFlightType?.type === 'Shared Flight';
-                        const isPrivate = chooseFlightType?.type === 'Private Charter';
-                        const sharedEnabled = isShared && isAnyDay && !!localSharedWeatherRefund;
-                        const privateEnabled = isPrivate && !!privateWeatherRefundByVoucher?.[voucher.title];
-                        const isRefundable = sharedEnabled || privateEnabled;
-                        const refundabilityText = isRefundable ? 'Refundable' : (voucher.refundability || 'Non-Refundable');
-                        const emoji = isRefundable ? '🟢' : '🔴';
-                        return (
-                            <div style={{ fontSize: isMobile ? 12 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: isMobile ? '4px 8px' : '6px 16px' }}>
-                                {!isRefundable ? (
-                                    <>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
-                                            <span>Re-Bookable</span>
-                                        </span>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🔴</span>
-                                            <span>Non-Refundable</span>
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
-                                            <span>Re-Bookable</span>
-                                        </span>
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                                            <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
-                                            <span>Refundable</span>
-                                        </span>
-                                    </>
-                                )}
+                    {!compactVoucherCardMode && (
+                        <>
+                            {/* Duration and Passenger Capacity - below title */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 24, marginBottom: 8, color: '#666', fontSize: isMobile ? 13 : 12, flexWrap: 'wrap' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                    <AccessTimeIcon sx={{ fontSize: 18, color: '#888' }} />
+                                    <span>3-4 Hours</span>
+                                </span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                    <GroupsIcon sx={{ fontSize: 18, color: '#888' }} />
+                                    <span>Max {voucher.maxPassengers || 8} Passengers</span>
+                                </span>
                             </div>
-                        );
-                    })()}
-                    <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
-                        {(() => {
-                            console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
-                            
-                            if (!voucher.inclusions || voucher.inclusions.length === 0) {
-                                return (
-                                    <div style={{ fontStyle: 'italic', color: '#999' }}>
-                                        Features will be loaded from the admin panel...
-                                    </div>
-                                );
-                            }
-                            
-                            return voucher.inclusions.map((inclusion, i) => {
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, lineHeight: '1.3', fontStyle: 'italic' }}>{voucher.description}</div>
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.availability}</div>
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.flightTime}</div>
+                            <div style={{ fontSize: isMobile ? 14 : 13, color: '#666', marginBottom: 6, fontWeight: 600 }}>{voucher.validity}</div>
+                            {(() => {
                                 const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                                const displayText = String(inclusion || '').replace(/^[•\s]+/, '');
+                                const isShared = chooseFlightType?.type === 'Shared Flight';
+                                const isPrivate = chooseFlightType?.type === 'Private Charter';
+                                const sharedEnabled = isShared && isAnyDay && !!localSharedWeatherRefund;
+                                const privateEnabled = isPrivate && !!privateWeatherRefundByVoucher?.[voucher.title];
+                                const isRefundable = sharedEnabled || privateEnabled;
                                 return (
-                                    <div key={i} style={{ marginBottom: 3 }}>
-                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                                            <span style={{ color: '#90EE90', flexShrink: 0, fontSize: '1.2em', lineHeight: 1.3 }}>•</span>
-                                            <span style={{ flex: 1 }}>{displayText}</span>
-                                        </div>
-                                        {inclusion === 'Flight Certificate' && !isAnyDay && (
-                                            <div style={{ marginTop: 6, marginLeft: 18, fontSize: isMobile ? 14 : 12, color: '#666', lineHeight: '1.2' }}>
-                                                ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
-                                            </div>
+                                    <div style={{ fontSize: isMobile ? 12 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: isMobile ? '4px 8px' : '6px 16px' }}>
+                                        {!isRefundable ? (
+                                            <>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                                    <span>Re-Bookable</span>
+                                                </span>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <span style={{ flexShrink: 0, lineHeight: 1 }}>🔴</span>
+                                                    <span>Non-Refundable</span>
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                                    <span>Re-Bookable</span>
+                                                </span>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                                                    <span style={{ flexShrink: 0, lineHeight: 1 }}>🟢</span>
+                                                    <span>Refundable</span>
+                                                </span>
+                                            </>
                                         )}
                                     </div>
                                 );
-                            });
-                        })()}
-                    </div>
-                    {/* Dynamic cancellation policy message for Any Day Flight and Private Charter */}
-                    {(() => {
-                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
-                        const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
-                        const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
-                        const isPrivateVoucher = isPrivateCharter && voucher.title;
-                        
-                        // Any Day Flight message
-                        if (isSharedFlight && isAnyDay && activitySelect === 'Book Flight') {
-                            const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
-                            const anyDayMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
-                            
-                            return (
-                                <div style={{
-                                    fontSize: isMobile ? 14 : 13,
-                                    color: '#666',
-                                    marginBottom: 12,
-                                    lineHeight: '1.2',
-                
-                                }}>
-                                    {localSharedWeatherRefund ? anyDayMsg2 : anyDayMsg1}
-                                </div>
-                            );
-                        }
-                        
-                        // Private Charter message
-                        if (isPrivateVoucher && activitySelect === 'Book Flight') {
-                            const privateMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
-                            const privateMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
-                            
-                            return (
-                                <div style={{
-                                    fontSize: isMobile ? 14 : 13,
-                                    color: '#666',
-                                    marginBottom: 12,
-                                    lineHeight: '1.2',
-                                    background: '#f8fafc',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: 8,
-                                    padding: '8px 10px'
-                                }}>
-                                    {privateWeatherRefundByVoucher?.[voucher.title] ? privateMsg2 : privateMsg1}
-                                </div>
-                            );
-                        }
-                        
-                        return null;
-                    })()}
-                    {/* Cancellation policy for Flexible Weekday and Weekday Morning - only for Book Flight Date */}
-                    {(() => {
-                        const isFlexibleWeekday = voucher.title === 'Flexible Weekday';
-                        const isWeekdayMorning = voucher.title === 'Weekday Morning';
-                        const isBookFlight = activitySelect === 'Book Flight';
-                        
-                        if ((isFlexibleWeekday || isWeekdayMorning) && isBookFlight) {
-                            return (
-                                <div style={{
-                                    fontSize: isMobile ? 14 : 13,
-                                    color: '#666',
-                                    marginBottom: 12,
-                                    lineHeight: '1.2'
-                                }}>
-                                    ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
-                                </div>
-                            );
-                        }
-                        return null;
-                    })()}
+                            })()}
+                            <div style={{ paddingLeft: 0, margin: 0, marginBottom: 10, color: '#666', fontSize: isMobile ? 14 : 13, lineHeight: '1.3' }}>
+                                {(() => {
+                                    console.log(`VoucherType: Rendering features for ${voucher.title}:`, voucher.inclusions);
+
+                                    if (!voucher.inclusions || voucher.inclusions.length === 0) {
+                                        return (
+                                            <div style={{ fontStyle: 'italic', color: '#999' }}>
+                                                Features will be loaded from the admin panel...
+                                            </div>
+                                        );
+                                    }
+
+                                    return voucher.inclusions.map((inclusion, i) => {
+                                        const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                                        const displayText = String(inclusion || '').replace(/^[•\s]+/, '');
+                                        return (
+                                            <div key={i} style={{ marginBottom: 3 }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                                                    <span style={{ color: '#90EE90', flexShrink: 0, fontSize: '1.2em', lineHeight: 1.3 }}>•</span>
+                                                    <span style={{ flex: 1 }}>{displayText}</span>
+                                                </div>
+                                                {inclusion === 'Flight Certificate' && !isAnyDay && (
+                                                    <div style={{ marginTop: 6, marginLeft: 18, fontSize: isMobile ? 14 : 12, color: '#666', lineHeight: '1.2' }}>
+                                                        ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+                            {/* Dynamic cancellation policy message for Any Day Flight and Private Charter */}
+                            {(() => {
+                                const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
+                                const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
+                                const isPrivateCharter = chooseFlightType?.type === 'Private Charter';
+                                const isPrivateVoucher = isPrivateCharter && voucher.title;
+
+                                // Any Day Flight message
+                                if (isSharedFlight && isAnyDay && activitySelect === 'Book Flight') {
+                                    const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
+                                    const anyDayMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
+
+                                    return (
+                                        <div style={{
+                                            fontSize: isMobile ? 14 : 13,
+                                            color: '#666',
+                                            marginBottom: 12,
+                                            lineHeight: '1.2'
+                                        }}>
+                                            {localSharedWeatherRefund ? anyDayMsg2 : anyDayMsg1}
+                                        </div>
+                                    );
+                                }
+
+                                // Private Charter message
+                                if (isPrivateVoucher && activitySelect === 'Book Flight') {
+                                    const privateMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
+                                    const privateMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
+
+                                    return (
+                                        <div style={{
+                                            fontSize: isMobile ? 14 : 13,
+                                            color: '#666',
+                                            marginBottom: 12,
+                                            lineHeight: '1.2',
+                                            background: '#f8fafc',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: 8,
+                                            padding: '8px 10px'
+                                        }}>
+                                            {privateWeatherRefundByVoucher?.[voucher.title] ? privateMsg2 : privateMsg1}
+                                        </div>
+                                    );
+                                }
+
+                                return null;
+                            })()}
+                            {/* Cancellation policy for Flexible Weekday and Weekday Morning - only for Book Flight Date */}
+                            {(() => {
+                                const isFlexibleWeekday = voucher.title === 'Flexible Weekday';
+                                const isWeekdayMorning = voucher.title === 'Weekday Morning';
+                                const isBookFlight = activitySelect === 'Book Flight';
+
+                                if ((isFlexibleWeekday || isWeekdayMorning) && isBookFlight) {
+                                    return (
+                                        <div style={{
+                                            fontSize: isMobile ? 14 : 13,
+                                            color: '#666',
+                                            marginBottom: 12,
+                                            lineHeight: '1.2'
+                                        }}>
+                                            ✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </>
+                    )}
                     
                     {/* Weather refundable toggle moved below price, above Select */}
                     <div style={{ 
@@ -2720,6 +2735,14 @@ const VoucherType = ({
             }, 3000);
             if (onTermsLoadingChange) {
                 onTermsLoadingChange(false);
+            }
+            if (autoAdvanceToSectionId && onSectionCompletion) {
+                setTimeout(() => {
+                    onSectionCompletion('voucher-type');
+                }, 50);
+                setTimeout(() => {
+                    scrollToSectionById(autoAdvanceToSectionId);
+                }, 420);
             }
             return;
         }
