@@ -156,22 +156,28 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
             setShowNotification(false);
         }, 3000);
         
-        // Wait for activity data to load
-        await getActivityId(locName);
-        
-        // Trigger section completion after state update
-        setTimeout(() => {
-            if (onSectionCompletion) {
-                console.log('📍 LocationSection: Calling onSectionCompletion for location');
-                onSectionCompletion('location');
-            }
-        }, 300); // Longer delay to ensure state is fully updated
+        // Kick off activity data fetch in parallel — don't block auto-scroll on the network roundtrip.
+        // Previously we awaited getActivityId() before calling onSectionCompletion, which caused the
+        // location selection to feel noticeably slower than other sections (2 sequential network calls).
+        const activityFetchPromise = getActivityId(locName);
+
+        // Trigger section completion immediately so the auto-scroll to the next section
+        // happens as fast as it does for other sections.
+        if (onSectionCompletion) {
+            console.log('📍 LocationSection: Calling onSectionCompletion for location');
+            onSectionCompletion('location');
+        }
+
+        // Still make sure we surface any fetch errors for debugging.
+        activityFetchPromise.catch((err) => {
+            console.warn('LocationSection: getActivityId failed in background', err);
+        });
         
         // For Redeem Voucher: Auto-open Live Availability section and scroll to it
         if (isRedeemVoucher) {
-            // Wait for location state to update, activity data to load, and section completion to be processed
-            // Use a longer delay to ensure all state updates are complete
-            setTimeout(() => {
+            // Wait for the activity fetch to resolve (or fail) before opening Live Availability,
+            // but without the previous fixed 800ms delay which made the interaction feel sluggish.
+            activityFetchPromise.finally(() => {
                 // For Redeem Voucher, we want to open Live Availability directly after location selection
                 // Even if validation says it's disabled, we force it open for better UX
                 if (setActiveAccordion) {
@@ -225,8 +231,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                             console.warn('📅 LocationSection: Could not find Live Availability element to scroll');
                         }
                     }
-                }, 1200); // Wait for accordion to fully open and render
-            }, 800); // Wait for location state, activity data, and section completion processing
+                }, 300); // Wait briefly for accordion to open and render
+            });
         }
     };
 
