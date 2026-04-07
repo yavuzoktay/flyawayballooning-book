@@ -471,13 +471,13 @@ const VoucherType = ({
         try {
             const currentTitle = selectedVoucherType?.title || selectedVoucher?.title;
             if (!currentTitle) return;
-            const currentLocal = !!privateWeatherRefundByVoucher[currentTitle];
+            const currentLocal = forceWeatherRefundable || !!privateWeatherRefundByVoucher[currentTitle];
             if (setPrivateCharterWeatherRefund) {
                 setPrivateCharterWeatherRefund(currentLocal);
             }
         } catch {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedVoucherType, selectedVoucher, privateWeatherRefundByVoucher]);
+    }, [forceWeatherRefundable, selectedVoucherType, selectedVoucher, privateWeatherRefundByVoucher]);
 
     // Re-build selected voucher pricing when Season Saver toggle changes
     useEffect(() => {
@@ -1850,7 +1850,7 @@ const VoucherType = ({
                                 const isShared = chooseFlightType?.type === 'Shared Flight';
                                 const isPrivate = chooseFlightType?.type === 'Private Charter';
                                 const sharedEnabled = isShared && isAnyDay && !!localSharedWeatherRefund;
-                                const privateEnabled = isPrivate && !!privateWeatherRefundByVoucher?.[voucher.title];
+                                const privateEnabled = isPrivate && (forceWeatherRefundable || !!privateWeatherRefundByVoucher?.[voucher.title]);
                                 const isRefundable = sharedEnabled || privateEnabled;
                                 return (
                                     <div style={{ fontSize: isMobile ? 12 : 13, color: '#666', marginBottom: 10, fontWeight: 600, display: 'flex', alignItems: 'center', flexWrap: 'nowrap', gap: isMobile ? '4px 8px' : '6px 16px' }}>
@@ -1939,6 +1939,7 @@ const VoucherType = ({
                                 if (isPrivateVoucher && activitySelect === 'Book Flight') {
                                     const privateMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
                                     const privateMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
+                                    const isPrivateRefundable = forceWeatherRefundable || !!privateWeatherRefundByVoucher?.[voucher.title];
 
                                     return (
                                         <div style={{
@@ -1951,7 +1952,7 @@ const VoucherType = ({
                                             borderRadius: 8,
                                             padding: '8px 10px'
                                         }}>
-                                            {privateWeatherRefundByVoucher?.[voucher.title] ? privateMsg2 : privateMsg1}
+                                            {isPrivateRefundable ? privateMsg2 : privateMsg1}
                                         </div>
                                     );
                                 }
@@ -2246,7 +2247,7 @@ const VoucherType = ({
                                     );
                                 })()}
                                 {showWeatherRefundablePrivate && (() => {
-                                    const enabled = !!privateWeatherRefundByVoucher[voucher.title];
+                                    const enabled = forceWeatherRefundable || !!privateWeatherRefundByVoucher[voucher.title];
                                     return (
                                         <>
                                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>

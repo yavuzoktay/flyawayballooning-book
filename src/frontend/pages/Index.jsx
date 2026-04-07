@@ -145,6 +145,8 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
         label: 'Hotel Manual Booking',
         showGuide: true,
         showBanner: true,
+        compactVoucherCards: true,
+        autoAdvanceVoucherSelection: true,
         hideAddOns: true,
         hideAdditionalInfo: true,
         hiddenVoucherTitles: ['Proposal Flight', 'Flexible Weekday', 'Weekday Morning'],
@@ -155,7 +157,9 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
             email: '',
             staffName: ''
         },
-        bookingDefaults: null
+        bookingDefaults: {
+            weatherRefundable: true
+        }
     },
     '/thenewt': {
         label: 'The Newt Balloon Booking',
