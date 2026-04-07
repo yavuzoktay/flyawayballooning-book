@@ -371,6 +371,8 @@ const VoucherType = ({
         () => new Set((hiddenVoucherTitles || []).map((title) => normalizeVoucherPriceTitle(title))),
         [hiddenVoucherTitles]
     );
+    const resolvedCompactVoucherCardMode = compactVoucherCardMode || (disableTermsPopup && forceWeatherRefundable);
+    const resolvedAutoAdvanceToSectionId = autoAdvanceToSectionId || (disableTermsPopup ? 'live-availability' : null);
 
     const isVoucherTitleHidden = (title) => hiddenVoucherTitleSet.has(normalizeVoucherPriceTitle(title));
     const normalizedPrivateCharterPassengerOptions = useMemo(() => {
@@ -1717,7 +1719,7 @@ const VoucherType = ({
         const isBuyVoucherFlow = activitySelect === 'Flight Voucher' || activitySelect === 'Buy Gift';
         const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
         const cardMinHeight = (() => {
-            if (compactVoucherCardMode) {
+            if (resolvedCompactVoucherCardMode) {
                 return isMobile ? 420 : 460;
             }
             if (isBuyVoucherFlow) {
@@ -1828,7 +1830,7 @@ const VoucherType = ({
                     position: 'relative'
                 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 300, margin: 0, marginBottom: 6, color: '#4a4a4a' }}>{voucher.title}</h3>
-                    {!compactVoucherCardMode && (
+                    {!resolvedCompactVoucherCardMode && (
                         <>
                             {/* Duration and Passenger Capacity - below title */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 24, marginBottom: 8, color: '#666', fontSize: isMobile ? 13 : 12, flexWrap: 'wrap' }}>
@@ -1849,7 +1851,7 @@ const VoucherType = ({
                                 const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
                                 const isShared = chooseFlightType?.type === 'Shared Flight';
                                 const isPrivate = chooseFlightType?.type === 'Private Charter';
-                                const sharedEnabled = isShared && isAnyDay && !!localSharedWeatherRefund;
+                                const sharedEnabled = isShared && isAnyDay && (forceWeatherRefundable || !!localSharedWeatherRefund);
                                 const privateEnabled = isPrivate && (forceWeatherRefundable || !!privateWeatherRefundByVoucher?.[voucher.title]);
                                 const isRefundable = sharedEnabled || privateEnabled;
                                 return (
@@ -1922,6 +1924,7 @@ const VoucherType = ({
                                 if (isSharedFlight && isAnyDay && activitySelect === 'Book Flight') {
                                     const anyDayMsg1 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Fly within 6 attempts, or we'll extend your voucher free of charge.";
                                     const anyDayMsg2 = "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
+                                    const isSharedRefundable = forceWeatherRefundable || !!localSharedWeatherRefund;
 
                                     return (
                                         <div style={{
@@ -1930,7 +1933,7 @@ const VoucherType = ({
                                             marginBottom: 12,
                                             lineHeight: '1.2'
                                         }}>
-                                            {localSharedWeatherRefund ? anyDayMsg2 : anyDayMsg1}
+                                            {isSharedRefundable ? anyDayMsg2 : anyDayMsg1}
                                         </div>
                                     );
                                 }
@@ -2089,7 +2092,7 @@ const VoucherType = ({
                         {(() => {
                             const isAnyDay = typeof voucher.title === 'string' && voucher.title.toLowerCase().includes('any day');
                             const isSharedFlight = chooseFlightType?.type === 'Shared Flight';
-                            const weatherRefundEnabled = isSharedFlight && isAnyDay && localSharedWeatherRefund;
+                            const weatherRefundEnabled = isSharedFlight && isAnyDay && (forceWeatherRefundable || localSharedWeatherRefund);
                             const passengerCount = parseInt(quantities[voucher.title] || 2, 10);
                             const strikePriceStyle = {
                                 textDecoration: 'line-through',
@@ -2189,7 +2192,7 @@ const VoucherType = ({
                                 position: 'relative'
                             }}>
                                 {showWeatherRefundableShared && (() => {
-                                    const enabled = localSharedWeatherRefund;
+                                    const enabled = forceWeatherRefundable || localSharedWeatherRefund;
                                     return (
                                         <>
                                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:enabled ? 6 : 0,overflow:'visible'}}>
@@ -2737,12 +2740,12 @@ const VoucherType = ({
             if (onTermsLoadingChange) {
                 onTermsLoadingChange(false);
             }
-            if (autoAdvanceToSectionId && onSectionCompletion) {
+            if (resolvedAutoAdvanceToSectionId && onSectionCompletion) {
                 setTimeout(() => {
                     onSectionCompletion('voucher-type');
                 }, 50);
                 setTimeout(() => {
-                    scrollToSectionById(autoAdvanceToSectionId);
+                    scrollToSectionById(resolvedAutoAdvanceToSectionId);
                 }, 420);
             }
             return;
