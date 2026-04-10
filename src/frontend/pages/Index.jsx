@@ -5110,6 +5110,19 @@ const Index = () => {
     }, [isMobile]);
 
     const [paymentProcessed, setPaymentProcessed] = React.useState(false);
+
+    const firePurchaseTrackingFromConversionData = useCallback((conversionData) => {
+        if (!conversionData || !conversionData.transaction_id) {
+            return false;
+        }
+
+        trackPurchaseCompleted({
+            ...conversionData,
+            currency: conversionData.currency || 'GBP'
+        });
+
+        return true;
+    }, []);
     
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -5137,6 +5150,10 @@ const Index = () => {
                         // Give webhooks a little more time on slower paths
                         await new Promise(r => setTimeout(r, 2000));
                         const statusResp = await axios.get(`${API_BASE_URL}/api/session-status`, { params: { session_id } });
+                        const initialConversionData = statusResp.data?.conversion_data;
+                        if (statusResp.data?.processed && initialConversionData) {
+                            firePurchaseTrackingFromConversionData(initialConversionData);
+                        }
                         if (statusResp.data?.processed) {
                             console.log('Session already processed on server, fetching final booking summary via idempotent fallback.');
                         }
@@ -5335,7 +5352,7 @@ const Index = () => {
                                 email: String(response.data.customer_email).trim().toLowerCase(),
                                 ...(response.data.customer_phone ? { phone_number: String(response.data.customer_phone).trim().replace(/\s+/g, '') } : {})
                             } : undefined);
-                            trackPurchaseCompleted({
+                            firePurchaseTrackingFromConversionData({
                                 transaction_id: session_id,
                                 value: response.data.paid_amount || 0,
                                 currency: 'GBP',
@@ -5344,6 +5361,8 @@ const Index = () => {
                                 product_type: productType,
                                 user_data: userData
                             });
+                        } else if (initialConversionData) {
+                            firePurchaseTrackingFromConversionData(initialConversionData);
                         } else {
                         console.warn('[EmailDebug] Backend did not return success; email may not have been triggered', {
                             type,
@@ -5366,6 +5385,9 @@ const Index = () => {
                                         activitySelect,
                                         chooseFlightType: chooseFlightType?.type
                                     });
+                                    if (s.data?.conversion_data) {
+                                        firePurchaseTrackingFromConversionData(s.data.conversion_data);
+                                    }
                                     console.log('Session processed after fallback error; suppressing error.');
                                     localStorage.setItem(`fab_payment_processed_${session_id}`, '1');
                                     return;
@@ -5399,7 +5421,7 @@ const Index = () => {
             // URL'den payment parametresini temizle
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-    }, [location, paymentProcessed]);
+    }, [firePurchaseTrackingFromConversionData, location, paymentProcessed]);
 
     // Customer Portal View
     if (isCustomerPortal) {
