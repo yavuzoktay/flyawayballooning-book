@@ -108,7 +108,6 @@ button:hover,
   background: var(--fab-bright-green-dark) !important;
 }
 
-.accordion,
 .book_selevt_btn button,
 .book_select_btn a,
 .booking_btn,
@@ -542,7 +541,7 @@ label {
 }
 
 .accordion {
-  background-color: var(--fab-bright-green);
+  background-color: var(--fab-blue) !important;
   color: #ffffff;
   cursor: pointer;
   padding: 20px;
@@ -560,13 +559,21 @@ label {
   font-weight: 400;
 }
 
+.accordion:hover {
+  background-color: var(--fab-blue-dark) !important;
+}
+
 .accordion-section {
 }
 
 .active {
-  background-color: #fff;
-  color: black;
+  background-color: #fff !important;
+  color: black !important;
   font-weight: 500;
+}
+
+.accordion.active:hover {
+  background-color: #fff !important;
 }
 
 .panel {
