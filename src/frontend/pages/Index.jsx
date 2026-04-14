@@ -8658,7 +8658,7 @@ const Index = () => {
           bottom: isMobile ? "210px" : "auto",
           left: isReviewsOpen
             ? isMobile
-              ? "calc(92vw + env(safe-area-inset-left, 0px))"
+              ? "calc(84vw + env(safe-area-inset-left, 0px))"
               : "320px"
             : isMobile
               ? "calc(4px + env(safe-area-inset-left, 0px))"
@@ -8696,11 +8696,13 @@ const Index = () => {
         ref={reviewsPanelRef}
         style={{
           position: "fixed",
-          top: 0,
-          left: isReviewsOpen ? 0 : isMobile ? "-92vw" : "-340px",
-          width: isMobile ? "92vw" : "340px",
-          maxWidth: isMobile ? "92vw" : "92vw",
-          height: "100vh",
+          top: isMobile ? "auto" : 0,
+          bottom: isMobile ? "272px" : "auto",
+          left: isReviewsOpen ? 0 : isMobile ? "-84vw" : "-340px",
+          width: isMobile ? "84vw" : "340px",
+          maxWidth: isMobile ? "84vw" : "92vw",
+          height: isMobile ? "auto" : "100vh",
+          maxHeight: isMobile ? "240px" : "100vh",
           background: "#f3f3f9",
           borderRight: "1px solid #dbe3ef",
           boxShadow: "6px 0 20px rgba(0,0,0,0.12)",
