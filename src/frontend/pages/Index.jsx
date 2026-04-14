@@ -306,6 +306,7 @@ const Index = () => {
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [isFrequentQuestionsOpen, setIsFrequentQuestionsOpen] = useState(false);
   const [activeFrequentQuestion, setActiveFrequentQuestion] = useState(null);
+  const [sideFaqItems, setSideFaqItems] = useState(SIDE_FAQ_ITEMS);
 
   // Ref to always have the latest activeAccordion value (avoids stale closures in timers)
   const activeAccordionRef = React.useRef(null);
@@ -617,6 +618,29 @@ const Index = () => {
     buildDefaultManualBookingContact(),
   );
   const [shopifyStartAtVoucher, setShopifyStartAtVoucher] = useState(false);
+
+  useEffect(() => {
+    const fetchBookingFaqItems = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/booking-faq-items`);
+        if (response?.data?.success && Array.isArray(response.data.data)) {
+          const normalized = response.data.data
+            .filter((item) => item && item.question && item.answer)
+            .map((item) => ({
+              id: `faq-${item.id}`,
+              title: item.question,
+              content: item.answer,
+            }));
+          if (normalized.length > 0) {
+            setSideFaqItems(normalized);
+          }
+        }
+      } catch (error) {
+        // Keep local fallback FAQ list when API is unavailable.
+      }
+    };
+    fetchBookingFaqItems();
+  }, []);
   const shopifyVoucherForcedRef = useRef(false);
   const shopifyPrefillInProgress = useRef(false);
   const activityDeepLinkHandledRef = useRef(false);
@@ -8750,7 +8774,7 @@ const Index = () => {
             Full FAQ
           </a>
         </div>
-        {SIDE_FAQ_ITEMS.map((item) => (
+        {sideFaqItems.map((item) => (
           <Accordion
             key={item.id}
             id={item.id}
