@@ -480,7 +480,11 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             })}
             <style>{`
                 /* Ensure info hover appears above cards on all breakpoints */
-                .choose-activity-tab-box { overflow: visible !important; }
+                .choose-activity-tab-box {
+                    overflow: visible !important;
+                    padding: 4px !important; /* prevent edge clipping on first column cards */
+                    box-sizing: border-box !important;
+                }
                 .choose-activity-tab-box .choose-activity-card { overflow: visible !important; position: relative; }
                 .choose-activity-card-label,
                 .choose-activity-card .card-front,
@@ -488,6 +492,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     overflow: visible !important;
                     position: relative;
                     z-index: 2;
+                }
+                .choose-activity-card-label:hover,
+                .choose-activity-card-label.active_book_data_label {
+                    transform: none !important; /* avoid left-border clipping caused by scale */
                 }
                 @media (max-width: 768px) {
                     .choose-activity-tab-box { 
