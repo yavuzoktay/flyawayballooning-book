@@ -6898,7 +6898,7 @@ const Index = () => {
                   zIndex: 900,
                   padding: "8px 0",
                   marginBottom: "4px",
-                  backgroundColor: "#f5f7fb",
+                  backgroundColor: "transparent",
                   width: "100%",
                   maxWidth: "100%",
                   boxSizing: "border-box",
@@ -7954,7 +7954,7 @@ const Index = () => {
               right: 0,
               zIndex: 1000,
               padding: "8px 12px",
-              backgroundColor: "#f5f7fb",
+              backgroundColor: "transparent",
               width: "100%",
               boxSizing: "border-box",
               borderTop: "1px solid #e5e7eb",
@@ -8804,7 +8804,13 @@ const Index = () => {
           zIndex: 1199,
           transition: "right 0.28s ease",
           overflowY: "auto",
-          padding: isMobile ? "20px 14px" : "24px 16px",
+          /* Mobile: keep last FAQ items above fixed summary bar */
+          padding: isMobile
+            ? "20px 14px calc(170px + env(safe-area-inset-bottom, 0px))"
+            : "24px 16px",
+          scrollPaddingBottom: isMobile
+            ? "calc(170px + env(safe-area-inset-bottom, 0px))"
+            : "24px",
         }}
       >
         <div
