@@ -2218,18 +2218,15 @@ const RightInfoCard = ({
                 )}
               </>
             )}
-            <div className="bottom_main">
+            <div
+              className="bottom_main"
+              style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+            >
               <h3 className="summary-total-line">
                 Total:
                 <span className="total-price-animated">{`£${animatedTotal.toFixed(2)}`}</span>
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-end",
-                }}
-              >
+              <div className="summary-payment-block">
                 {activitySelect === "Redeem Voucher" && voucherData && (
                   <p
                     style={{
