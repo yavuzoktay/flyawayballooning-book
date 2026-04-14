@@ -1,385 +1,415 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "../Common/Accordion";
-import Image1 from '../../../assets/images/category1.jpeg';
-import Image2 from '../../../assets/images/category2.jpeg';
-import Image3 from '../../../assets/images/category3.jpg';
-import Image4 from '../../../assets/images/category1.jpeg';
+import Image1 from "../../../assets/images/category1.jpeg";
+import Image2 from "../../../assets/images/category2.jpeg";
+import Image3 from "../../../assets/images/category3.jpg";
+import Image4 from "../../../assets/images/category1.jpeg";
 import axios from "axios";
-import config from '../../../config';
-import { trackLocationSelected } from '../../../utils/googleAdsTracking';
+import config from "../../../config";
+import { trackLocationSelected } from "../../../utils/googleAdsTracking";
 
 const imageMap = {
-    "Bath": Image1,
-    "Devon": Image2,
-    "Somerset": Image3,
-    "Bristol": Image4,
+  Bath: Image1,
+  Devon: Image2,
+  Somerset: Image3,
+  Bristol: Image4,
 };
 
 const API_BASE_URL = config.API_BASE_URL;
+const SECTION_SCROLL_DELAY_MS = 120;
+const NOTIFICATION_HIDE_DELAY_MS = 3000;
 
-const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, chooseLocation, setChooseLocation, activeAccordion, setActiveAccordion, setActivityId, setSelectedActivity, setAvailabilities, selectedVoucherType, chooseFlightType, onSectionCompletion, isDisabled = false }) => {
-    const [locations, setLocations] = useState([]);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    
-    // Notification state for location selection
-    const [showNotification, setShowNotification] = useState(false);
-    const [notificationMessage, setNotificationMessage] = useState("");
+const LocationSection = ({
+  isGiftVoucher,
+  isFlightVoucher,
+  isRedeemVoucher,
+  chooseLocation,
+  setChooseLocation,
+  activeAccordion,
+  setActiveAccordion,
+  setActivityId,
+  setSelectedActivity,
+  setAvailabilities,
+  selectedVoucherType,
+  chooseFlightType,
+  onSectionCompletion,
+  isDisabled = false,
+}) => {
+  const [locations, setLocations] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    // Handle window resize for responsive design
-    useEffect(() => {
-        const handleResize = () => {
-            const mobile = window.innerWidth <= 768;
-            console.log('LocationSection resize:', window.innerWidth, 'isMobile:', mobile);
-            setIsMobile(mobile);
-        };
+  // Notification state for location selection
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
 
-        // Set initial state
-        handleResize();
-        
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        axios.get(`${API_BASE_URL}/api/activeLocations`)
-            .then(res => {
-                if (res.data.success) {
-                    console.log('API Response:', res.data.data);
-                    const mappedLocations = res.data.data.map(l => ({
-                        name: l.location,
-                        image: l.image ? `${API_BASE_URL}${l.image}` : imageMap[l.location]
-                    }));
-                    console.log('Mapped locations:', mappedLocations);
-                    setLocations(mappedLocations);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching locations:', error);
-            });
-    }, []);
-
-    const isPrivateVoucherSelection = () => {
-        const flightType = (chooseFlightType?.type || '').toLowerCase();
-        const voucherTitle = (selectedVoucherType?.title || '').toLowerCase();
-
-        return (
-            flightType.includes('private') ||
-            flightType.includes('proposal') ||
-            voucherTitle.includes('private') ||
-            voucherTitle.includes('proposal')
-        );
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
     };
 
-    const shouldDisableLocation = (locName) => {
-        if (locName !== 'Bristol') return false;
-        if (!isRedeemVoucher) return false;
-        return !isPrivateVoucherSelection();
-    };
+    // Set initial state
+    handleResize();
 
-    // Get Activity Id   
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    async function getActivityId(location) {
-        try {
-            // First get the activity details
-            const activityResponse = await axios.post(`${API_BASE_URL}/api/getActivityId`, {
-                location: location
-            });
-
-            if (activityResponse.status === 200 && activityResponse.data.success) {
-                const activity = activityResponse.data.activity;
-                setActivityId(activity?.id || '');
-                setSelectedActivity(activity ? [activity] : []);
-                
-                // Then get filtered availabilities using the new endpoint
-                const params = new URLSearchParams({
-                    location: location,
-                    activityId: activity?.id
-                });
-                
-                // Add voucher type filter if selected
-                if (selectedVoucherType?.title) {
-                    params.append('voucherTypes', selectedVoucherType.title);
-                }
-                
-                // Add flight type filter if selected
-                if (chooseFlightType?.type && chooseFlightType.type !== 'Shared Flight') {
-                    params.append('flightType', chooseFlightType.type);
-                }
-                
-                const availabilitiesResponse = await axios.get(`${API_BASE_URL}/api/availabilities/filter?${params.toString()}`);
-                if (availabilitiesResponse.status === 200 && availabilitiesResponse.data.success) {
-                    const avails = availabilitiesResponse.data.data || [];
-                    console.log('LocationSection received availabilities:', avails);
-                    setAvailabilities(avails);
-                } else {
-                    setAvailabilities([]);
-                }
-            } else {
-                setActivityId('');
-                setSelectedActivity([]);
-                setAvailabilities([]);
-            }
-        } catch (error) {
-            console.error("Error fetching activity ID:", error);
-            setActivityId('');
-            setSelectedActivity([]);
-            setAvailabilities([]);
+  useEffect(() => {
+    axios
+      .get(`${API_BASE_URL}/api/activeLocations`)
+      .then((res) => {
+        if (res.data.success) {
+          const mappedLocations = res.data.data.map((l) => ({
+            name: l.location,
+            image: l.image ? `${API_BASE_URL}${l.image}` : imageMap[l.location],
+          }));
+          setLocations(mappedLocations);
         }
-    }
+      })
+      .catch((error) => {
+        console.error("Error fetching locations:", error);
+      });
+  }, []);
 
-    const handleLocationSelect = (locName) => {
-        if (shouldDisableLocation(locName)) {
-            setNotificationMessage("Bristol is available only for private vouchers.");
-            setShowNotification(true);
-            setTimeout(() => {
-                setShowNotification(false);
-            }, 3000);
-            return;
-        }
-
-        confirmLocation(locName);
-    };
-
-    const confirmLocation = async (locName) => {
-        setChooseLocation(locName);
-        
-        if (['Bath', 'Somerset', 'Devon', 'Bristol'].includes(locName)) {
-            trackLocationSelected(locName);
-        }
-        
-        // Show notification for location selection
-        setNotificationMessage(`${locName} Selected`);
-        setShowNotification(true);
-        
-        // Auto-hide notification after 3 seconds
-        setTimeout(() => {
-            setShowNotification(false);
-        }, 3000);
-        
-        // Kick off activity data fetch in parallel — don't block auto-scroll on the network roundtrip.
-        // Previously we awaited getActivityId() before calling onSectionCompletion, which caused the
-        // location selection to feel noticeably slower than other sections (2 sequential network calls).
-        const activityFetchPromise = getActivityId(locName);
-
-        // Trigger section completion immediately so the auto-scroll to the next section
-        // happens as fast as it does for other sections.
-        if (onSectionCompletion) {
-            console.log('📍 LocationSection: Calling onSectionCompletion for location');
-            onSectionCompletion('location');
-        }
-
-        // Still make sure we surface any fetch errors for debugging.
-        activityFetchPromise.catch((err) => {
-            console.warn('LocationSection: getActivityId failed in background', err);
-        });
-        
-        // For Redeem Voucher: Auto-open Live Availability section and scroll to it
-        if (isRedeemVoucher) {
-            // Wait for the activity fetch to resolve (or fail) before opening Live Availability,
-            // but without the previous fixed 800ms delay which made the interaction feel sluggish.
-            activityFetchPromise.finally(() => {
-                // For Redeem Voucher, we want to open Live Availability directly after location selection
-                // Even if validation says it's disabled, we force it open for better UX
-                if (setActiveAccordion) {
-                    console.log('📅 LocationSection: Auto-opening Live Availability for Redeem Voucher (bypassing validation)');
-                    // Try to open with validation first
-                    setActiveAccordion('live-availability');
-                    
-                    // If validation blocks it, try again after a short delay
-                    // This gives time for state to update and accordion to become enabled
-                    setTimeout(() => {
-                        // Check if accordion is actually open
-                        const accordionElement = document.getElementById('live-availability');
-                        const isOpen = accordionElement?.querySelector('.panel[style*="block"]') || 
-                                      accordionElement?.querySelector('.panel:not([style*="none"])');
-                        
-                        if (!isOpen) {
-                            console.log('📅 LocationSection: Live Availability not open, retrying...');
-                            // Try one more time after state has fully updated
-                            setTimeout(() => {
-                                setActiveAccordion('live-availability');
-                            }, 300);
-                        }
-                    }, 200);
-                }
-                
-                // Scroll to Live Availability section after accordion opens and renders
-                setTimeout(() => {
-                    // Try multiple selectors to find the calendar accordion
-                    const calendarElement = document.getElementById('live-availability') || 
-                                          document.querySelector('[data-accordion-id="live-availability"]') ||
-                                          document.querySelector('.accordion-section[id="live-availability"]');
-                    
-                    if (calendarElement) {
-                        calendarElement.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'start',
-                            inline: 'nearest'
-                        });
-                        console.log('📅 LocationSection: Scrolled to Live Availability section');
-                    } else {
-                        // Fallback: try to find by accordion panel
-                        const accordionPanel = document.getElementById('live-availability-panel');
-                        if (accordionPanel) {
-                            accordionPanel.scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'start',
-                                inline: 'nearest'
-                            });
-                            console.log('📅 LocationSection: Scrolled to Live Availability panel (fallback)');
-                        } else {
-                            console.warn('📅 LocationSection: Could not find Live Availability element to scroll');
-                        }
-                    }
-                }, 300); // Wait briefly for accordion to open and render
-            });
-        }
-    };
+  const isPrivateVoucherSelection = () => {
+    const flightType = (chooseFlightType?.type || "").toLowerCase();
+    const voucherTitle = (selectedVoucherType?.title || "").toLowerCase();
 
     return (
-        <>
-            {/* Notification for location selection */}
-            {showNotification && (
-                <div style={{
-                    position: 'fixed',
-                    [isMobile ? 'top' : 'bottom']: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: 'rgb(3, 169, 244)',
-                    color: 'white',
-                    padding: isMobile ? '8px 16px' : '12px 24px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    zIndex: 9999,
-                    fontSize: isMobile ? '14px' : '16px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    animation: isMobile ? 'slideDown 0.3s ease-out' : 'slideUp 0.3s ease-out',
-                    maxWidth: '90vw',
-                    textAlign: 'center'
-                }}>
-                    <span style={{ fontSize: isMobile ? '16px' : '18px' }}>✓</span>
-                    {notificationMessage}
-                </div>
-            )}
-            
-            <Accordion title="Select Flight Location" id="location" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher ? 'disable-acc' : ''}`} isDisabled={isDisabled}>
-                <div className="tab_box scroll-box">
+      flightType.includes("private") ||
+      flightType.includes("proposal") ||
+      voucherTitle.includes("private") ||
+      voucherTitle.includes("proposal")
+    );
+  };
 
+  const shouldDisableLocation = (locName) => {
+    if (locName !== "Bristol") return false;
+    if (!isRedeemVoucher) return false;
+    return !isPrivateVoucherSelection();
+  };
 
-                    
-                    {isMobile ? (
-                        // Mobile: Single column layout
-                        locations.map((loc) => {
-                            const isDisabled = shouldDisableLocation(loc.name);
-                            return (
-                                <div 
-                                    className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
-                                    key={loc.name} 
-                                    onClick={() => handleLocationSelect(loc.name)}
-                                    style={{
-                                        opacity: isDisabled ? 0.5 : 1,
-                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                        filter: isDisabled ? 'grayscale(100%)' : 'none',
-                                        width: '100%',
-                                        marginBottom: '16px',
-                                        minHeight: '180px',
-                                        height: 'auto'
-                                    }}
-                                >
-                                    <img 
-                                        src={loc.image} 
-                                        alt={loc.name} 
-                                        width="100%" 
-                                        style={{ 
-                                            height: '120px', 
-                                            objectFit: 'cover',
-                                            transition: 'transform 0.3s ease',
-                                            cursor: 'pointer'
-                                        }} 
-                                        loading="lazy"
-                                        onError={(e) => {
-                                            // Hide image on error (blocked, 404, etc.) to prevent loading delays
-                                            e.target.style.display = 'none';
-                                        }}
-                                        onLoad={(e) => {
-                                            // Clear any timeout on successful load
-                                            if (e.target.dataset.timeoutId) {
-                                                clearTimeout(parseInt(e.target.dataset.timeoutId));
-                                                delete e.target.dataset.timeoutId;
-                                            }
-                                        }}
-                                        onLoadStart={(e) => {
-                                            // Set timeout to hide image if it takes too long (5 seconds)
-                                            const timeoutId = setTimeout(() => {
-                                                e.target.style.display = 'none';
-                                            }, 5000);
-                                            e.target.dataset.timeoutId = timeoutId.toString();
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            if (!isDisabled) {
-                                                e.target.style.transform = 'scale(1.05)';
-                                            }
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.target.style.transform = 'scale(1)';
-                                        }}
-                                    />
-                                    <h3>{loc.name}</h3>
-                                    <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`} style={{ 
-                                        position: 'absolute', 
-                                        top: '10px', 
-                                        right: '10px',
-                                        width: '20px',
-                                        height: '20px',
-                                        borderRadius: '50%',
-                                        border: chooseLocation == loc.name ? '2px solid #74da78' : '2px solid #ccc',
-                                        backgroundColor: chooseLocation == loc.name ? '#74da78' : 'transparent',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {chooseLocation == loc.name && (
-                                            <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
-                                        )}
-                                    </span>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        // Desktop: Two column layout
-                        Array.from({ length: Math.ceil(locations.length / 2) }).map((_, rowIdx) => (
-                            <div className="location-row" style={{ display: 'flex', width: '100%', gap: 24 }} key={rowIdx}>
-                                {locations.slice(rowIdx * 2, rowIdx * 2 + 2).map((loc, index) => {
-                                    const isDisabled = shouldDisableLocation(loc.name);
-                                    return (
-                                        <div 
-                                            className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`} 
-                                            key={loc.name} 
-                                            onClick={() => handleLocationSelect(loc.name)}
-                                            style={{
-                                                opacity: isDisabled ? 0.5 : 1,
-                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                                filter: isDisabled ? 'grayscale(100%)' : 'none',
-                                                position: 'relative'
-                                            }}
-                                        >
-                                            <img src={loc.image} alt={loc.name} width="100%" onError={(e) => { e.target.style.display = 'none'; }} />
-                                            <h3>{loc.name}</h3>
-                                            <span className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}></span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ))
-                    )}
-                </div>
-            </Accordion>
-            
-            {/* Mobile-specific CSS for better responsive design */}
-            <style>{`
+  // Get Activity Id
+
+  async function getActivityId(location) {
+    try {
+      // First get the activity details
+      const activityResponse = await axios.post(
+        `${API_BASE_URL}/api/getActivityId`,
+        {
+          location: location,
+        },
+      );
+
+      if (activityResponse.status === 200 && activityResponse.data.success) {
+        const activity = activityResponse.data.activity;
+        setActivityId(activity?.id || "");
+        setSelectedActivity(activity ? [activity] : []);
+
+        // Then get filtered availabilities using the new endpoint
+        const params = new URLSearchParams({
+          location: location,
+          activityId: activity?.id,
+        });
+
+        // Add voucher type filter if selected
+        if (selectedVoucherType?.title) {
+          params.append("voucherTypes", selectedVoucherType.title);
+        }
+
+        // Add flight type filter if selected
+        if (
+          chooseFlightType?.type &&
+          chooseFlightType.type !== "Shared Flight"
+        ) {
+          params.append("flightType", chooseFlightType.type);
+        }
+
+        const availabilitiesResponse = await axios.get(
+          `${API_BASE_URL}/api/availabilities/filter?${params.toString()}`,
+        );
+        if (
+          availabilitiesResponse.status === 200 &&
+          availabilitiesResponse.data.success
+        ) {
+          const avails = availabilitiesResponse.data.data || [];
+          setAvailabilities(avails);
+        } else {
+          setAvailabilities([]);
+        }
+      } else {
+        setActivityId("");
+        setSelectedActivity([]);
+        setAvailabilities([]);
+      }
+    } catch (error) {
+      console.error("Error fetching activity ID:", error);
+      setActivityId("");
+      setSelectedActivity([]);
+      setAvailabilities([]);
+    }
+  }
+
+  const handleLocationSelect = (locName) => {
+    if (shouldDisableLocation(locName)) {
+      setNotificationMessage("Bristol is available only for private vouchers.");
+      setShowNotification(true);
+      setTimeout(() => {
+        setShowNotification(false);
+      }, NOTIFICATION_HIDE_DELAY_MS);
+      return;
+    }
+
+    confirmLocation(locName);
+  };
+
+  const scrollToAccordionSection = (sectionId) => {
+    const targetElement =
+      document.getElementById(sectionId) ||
+      document.querySelector(`[data-accordion-id="${sectionId}"]`) ||
+      document.getElementById(`${sectionId}-panel`);
+
+    if (!targetElement) return;
+
+    targetElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+  };
+
+  const confirmLocation = async (locName) => {
+    setChooseLocation(locName);
+
+    if (["Bath", "Somerset", "Devon", "Bristol"].includes(locName)) {
+      trackLocationSelected(locName);
+    }
+
+    // Show notification for location selection
+    setNotificationMessage(`${locName} Selected`);
+    setShowNotification(true);
+
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      setShowNotification(false);
+    }, NOTIFICATION_HIDE_DELAY_MS);
+
+    // Kick off activity data fetch in parallel — don't block auto-scroll on the network roundtrip.
+    // Previously we awaited getActivityId() before calling onSectionCompletion, which caused the
+    // location selection to feel noticeably slower than other sections (2 sequential network calls).
+    const activityFetchPromise = getActivityId(locName);
+
+    // Trigger section completion immediately so the auto-scroll to the next section
+    // happens as fast as it does for other sections.
+    if (onSectionCompletion) {
+      onSectionCompletion("location");
+    }
+
+    // Still make sure we surface any fetch errors for debugging.
+    activityFetchPromise.catch((err) => {
+      console.warn("LocationSection: getActivityId failed in background", err);
+    });
+
+    // For Redeem Voucher: Auto-open Live Availability section and scroll to it
+    if (isRedeemVoucher) {
+      activityFetchPromise.finally(() => {
+        if (setActiveAccordion) {
+          setActiveAccordion("live-availability");
+          setTimeout(() => {
+            setActiveAccordion("live-availability");
+            scrollToAccordionSection("live-availability");
+          }, SECTION_SCROLL_DELAY_MS);
+        }
+      });
+    }
+  };
+
+  return (
+    <>
+      {/* Notification for location selection */}
+      {showNotification && (
+        <div
+          style={{
+            position: "fixed",
+            [isMobile ? "top" : "bottom"]: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgb(3, 169, 244)",
+            color: "white",
+            padding: isMobile ? "8px 16px" : "12px 24px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            zIndex: 9999,
+            fontSize: isMobile ? "14px" : "16px",
+            fontWeight: "500",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            animation: isMobile
+              ? "slideDown 0.3s ease-out"
+              : "slideUp 0.3s ease-out",
+            maxWidth: "90vw",
+            textAlign: "center",
+          }}
+        >
+          <span style={{ fontSize: isMobile ? "16px" : "18px" }}>✓</span>
+          {notificationMessage}
+        </div>
+      )}
+
+      <Accordion
+        title="Select Flight Location"
+        id="location"
+        activeAccordion={activeAccordion}
+        setActiveAccordion={setActiveAccordion}
+        className={`${isFlightVoucher ? "disable-acc" : ""}`}
+        isDisabled={isDisabled}
+      >
+        <div className="tab_box scroll-box">
+          {isMobile
+            ? // Mobile: Single column layout
+              locations.map((loc) => {
+                const isDisabled = shouldDisableLocation(loc.name);
+                return (
+                  <div
+                    className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`}
+                    key={loc.name}
+                    onClick={() => handleLocationSelect(loc.name)}
+                    style={{
+                      opacity: isDisabled ? 0.5 : 1,
+                      cursor: isDisabled ? "not-allowed" : "pointer",
+                      filter: isDisabled ? "grayscale(100%)" : "none",
+                      width: "100%",
+                      marginBottom: "16px",
+                      minHeight: "180px",
+                      height: "auto",
+                    }}
+                  >
+                    <img
+                      src={loc.image}
+                      alt={loc.name}
+                      width="100%"
+                      style={{
+                        height: "120px",
+                        objectFit: "cover",
+                        transition: "transform 0.3s ease",
+                        cursor: "pointer",
+                      }}
+                      loading="lazy"
+                      onError={(e) => {
+                        // Hide image on error (blocked, 404, etc.) to prevent loading delays
+                        e.target.style.display = "none";
+                      }}
+                      onLoad={(e) => {
+                        // Clear any timeout on successful load
+                        if (e.target.dataset.timeoutId) {
+                          clearTimeout(parseInt(e.target.dataset.timeoutId));
+                          delete e.target.dataset.timeoutId;
+                        }
+                      }}
+                      onLoadStart={(e) => {
+                        // Set timeout to hide image if it takes too long (5 seconds)
+                        const timeoutId = setTimeout(() => {
+                          e.target.style.display = "none";
+                        }, 5000);
+                        e.target.dataset.timeoutId = timeoutId.toString();
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isDisabled) {
+                          e.target.style.transform = "scale(1.05)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = "scale(1)";
+                      }}
+                    />
+                    <h3>{loc.name}</h3>
+                    <span
+                      className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        border:
+                          chooseLocation == loc.name
+                            ? "2px solid #74da78"
+                            : "2px solid #ccc",
+                        backgroundColor:
+                          chooseLocation == loc.name
+                            ? "#74da78"
+                            : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {chooseLocation == loc.name && (
+                        <span
+                          style={{
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })
+            : // Desktop: Two column layout
+              Array.from({ length: Math.ceil(locations.length / 2) }).map(
+                (_, rowIdx) => (
+                  <div
+                    className="location-row"
+                    style={{ display: "flex", width: "100%", gap: 24 }}
+                    key={rowIdx}
+                  >
+                    {locations
+                      .slice(rowIdx * 2, rowIdx * 2 + 2)
+                      .map((loc, index) => {
+                        const isDisabled = shouldDisableLocation(loc.name);
+                        return (
+                          <div
+                            className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`}
+                            key={loc.name}
+                            onClick={() => handleLocationSelect(loc.name)}
+                            style={{
+                              opacity: isDisabled ? 0.5 : 1,
+                              cursor: isDisabled ? "not-allowed" : "pointer",
+                              filter: isDisabled ? "grayscale(100%)" : "none",
+                              position: "relative",
+                            }}
+                          >
+                            <img
+                              src={loc.image}
+                              alt={loc.name}
+                              width="100%"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                              }}
+                            />
+                            <h3>{loc.name}</h3>
+                            <span
+                              className={`location-radio ${chooseLocation == loc.name ? "active-loc-radio" : ""}`}
+                            ></span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ),
+              )}
+        </div>
+      </Accordion>
+
+      {/* Mobile-specific CSS for better responsive design */}
+      <style>{`
                 @media (max-width: 768px) {
                     .tab_box.scroll-box {
                         padding: 0 8px;
@@ -529,8 +559,8 @@ const LocationSection = ({ isGiftVoucher, isFlightVoucher, isRedeemVoucher, choo
                     }
                 }
             `}</style>
-        </>
-    );
+    </>
+  );
 };
 
 export default LocationSection;

@@ -1,1386 +1,1736 @@
 import React, { useEffect, useState } from "react";
 import Accordion from "../Common/Accordion";
 import {
-    format,
-    startOfMonth,
-    endOfMonth,
-    startOfWeek,
-    endOfWeek,
-    addDays,
-    addMonths,
-    subMonths,
-    isBefore,
-    isSameMonth
-} from 'date-fns';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addMonths,
+  subMonths,
+  isBefore,
+  isSameMonth,
+} from "date-fns";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Modal from "../Common/Modal";
 import LocationSection from "./LocationSection";
 import ChooseActivityCard from "./ChooseActivityCard";
-import axios from 'axios';
-import config from '../../../config';
-import Tooltip from '@mui/material/Tooltip';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import CheckIcon from '@mui/icons-material/Check';
-import { trackDateSelected } from '../../../utils/googleAdsTracking';
+import axios from "axios";
+import config from "../../../config";
+import Tooltip from "@mui/material/Tooltip";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import CheckIcon from "@mui/icons-material/Check";
+import { trackDateSelected } from "../../../utils/googleAdsTracking";
 
 const API_BASE_URL = config.API_BASE_URL;
 
-const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate, setSelectedDate, activeAccordion, setActiveAccordion, selectedActivity, availableSeats, chooseLocation, selectedTime, setSelectedTime, availabilities, hasLiveAvailabilityResponse, activitySelect, chooseFlightType, selectedVoucherType, onSectionCompletion, onLoadingStateChange, onCurrentDateChange, isDisabled = false }) => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    
-    // Track if this is the first render (to skip initial notification)
-    const isFirstRenderRef = React.useRef(true);
-    
-    // Notify parent when currentDate changes (for incremental loading)
-    // Skip initial notification on mount to allow parent to use default 60-day range
-    useEffect(() => {
-        if (isFirstRenderRef.current) {
-            isFirstRenderRef.current = false;
-            // Don't notify parent on initial mount - this allows initial load without date range
-            return;
-        }
-        
-        if (onCurrentDateChange) {
-            onCurrentDateChange(currentDate);
-        }
-    }, [currentDate, onCurrentDateChange]);
-    const [bookedSeat, setBookedSeat] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(false);
-    
-    // Touch/swipe handling state for month navigation
-    const [touchStart, setTouchStart] = useState(null);
-    const [touchEnd, setTouchEnd] = useState(null);
-    const [monthSlideClass, setMonthSlideClass] = useState('');
-    
-    useEffect(() => {
-        if (chooseLocation) {
-            const now = new Date();
-            setCurrentDate(now);
-        }
-    }, [chooseLocation]);
+const LiveAvailabilitySection = ({
+  isGiftVoucher,
+  isFlightVoucher,
+  selectedDate,
+  setSelectedDate,
+  activeAccordion,
+  setActiveAccordion,
+  selectedActivity,
+  availableSeats,
+  chooseLocation,
+  selectedTime,
+  setSelectedTime,
+  availabilities,
+  hasLiveAvailabilityResponse,
+  activitySelect,
+  chooseFlightType,
+  selectedVoucherType,
+  onSectionCompletion,
+  onLoadingStateChange,
+  onCurrentDateChange,
+  isDisabled = false,
+}) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-    // Shared Flight için: Eğer mevsim dışı ay ise (Aralık, Ocak, Şubat) takvimi bir sonraki Mart ayına ayarla.
-    // Eğer tarih Mart-Kasım arası ise mevcut ayı göster.
-    useEffect(() => {
-        const isSharedFlight = (chooseFlightType?.type || '').toLowerCase().includes('shared');
-        if (!isSharedFlight) return;
-        if (activeAccordion !== 'live-availability') return; // Sadece Live Availability açıldığında uygula
+  // Track if this is the first render (to skip initial notification)
+  const isFirstRenderRef = React.useRef(true);
 
-        const now = new Date();
-        const currentMonth = now.getMonth(); // 0-index, Mart = 2
-
-        // Aralık ise: gelecek yıl Mart
-        // Ocak/Şubat ise: bu yıl Mart
-        // Mart-Kasım ise: mevcut ay
-        let targetDate = now;
-        if (currentMonth === 11) {
-            targetDate = new Date(now.getFullYear() + 1, 2, 1);
-        } else if (currentMonth <= 1) {
-            targetDate = new Date(now.getFullYear(), 2, 1);
-        }
-
-        if (
-            currentDate.getFullYear() !== targetDate.getFullYear() ||
-            currentDate.getMonth() !== targetDate.getMonth()
-        ) {
-            setCurrentDate(targetDate);
-        }
-    }, [chooseFlightType, chooseLocation, activeAccordion]);
-    
-    // Notification state for time selection
-    const [showNotification, setShowNotification] = useState(false);
-    const [notificationMessage, setNotificationMessage] = useState("");
-
-    const [requestModalOpen, setRequestModalOpen] = useState(false);
-    const [requestName, setRequestName] = useState("");
-    const [requestPhone, setRequestPhone] = useState("");
-    const [requestEmail, setRequestEmail] = useState("");
-    const [requestLocation, setRequestLocation] = useState("");
-    const [requestFlightType, setRequestFlightType] = useState("");
-    const [requestDate, setRequestDate] = useState("");
-    const [requestTime, setRequestTime] = useState("");
-    const [requestSuccess, setRequestSuccess] = useState("");
-    const [requestError, setRequestError] = useState("");
-    // Her input için ayrı error state
-    const [nameError, setNameError] = useState(false);
-    const [emailError, setEmailError] = useState(false);
-    const [dateError, setDateError] = useState(false);
-    const [timeError, setTimeError] = useState(false);
-    // Ek hata state'leri
-    const [nameFormatError, setNameFormatError] = useState(false);
-    const [phoneFormatError, setPhoneFormatError] = useState(false);
-    const [emailFormatError, setEmailFormatError] = useState(false);
-    
-    // New state for time selection popup
-    const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
-    const [selectedDateForTime, setSelectedDateForTime] = useState(null);
-    const [tempSelectedTime, setTempSelectedTime] = useState(null);
-    // Hover state for time buttons (desktop only)
-    const [hoveredTime, setHoveredTime] = useState(null);
-    
-    // Timeout functionality removed
-    
-    // Removed capacity warning modal approach; we'll indicate issues inline in time picker
-    
-    // Get selected passenger count from voucher type
-    const getSelectedPassengerCount = () => {
-        if (!selectedVoucherType?.quantity) {
-            return 2; // Default passenger count
-        }
-        return selectedVoucherType.quantity;
-    };
-
-    // Responsive calendar cell size for mobile
-    const [daySize, setDaySize] = useState(80);
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const computeSizes = () => {
-            const w = window.innerWidth;
-            setIsMobile(w <= 768);
-            // 7 columns must fit within container padding; pick safe sizes
-            if (w <= 360) setDaySize(32);
-            else if (w <= 420) setDaySize(36);
-            else if (w <= 480) setDaySize(40);
-            else if (w <= 576) setDaySize(44);
-            else if (w <= 768) setDaySize(48);
-            else setDaySize(80);
-        };
-        computeSizes();
-        window.addEventListener('resize', computeSizes);
-        return () => window.removeEventListener('resize', computeSizes);
-    }, []);
-
-    var final_pax_count = selectedActivity?.[0]?.seats;
-
-    const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 0, 0, 0, 0); // Current date at start of day in local timezone
-    // Change startDate and endDate to only cover the current month
-    const startDate = startOfMonth(currentDate);
-    const endDate = endOfMonth(currentDate);
-    
-    // Check if location and experience are selected
-    // For Book Flight: need flight type (voucher type filtering happens later in the filter function, so we allow filtering even without voucher type)
-    // For Redeem Voucher: only need location and activity
-    // For Shopify flow: if selectedActivity exists, allow showing availabilities even if chooseFlightType is temporarily reset
-    const isShopifyFlow = (() => {
-        try {
-            const params = new URLSearchParams(window.location.search || '');
-            return params.get('source') === 'shopify';
-        } catch {
-            return false;
-        }
-    })();
-    
-    // Detect Bing/Edge browser for more aggressive availability display
-    const isBingBrowser = (() => {
-        try {
-            return navigator.userAgent.includes('Edg') || navigator.userAgent.includes('Bing');
-        } catch {
-            return false;
-        }
-    })();
-    
-    // For Shopify flow, if we have location and selectedActivity, allow showing availabilities even if chooseFlightType is temporarily empty
-    // This handles the case where chooseFlightType gets reset but we still want to show availabilities
-    const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-    const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
-    
-    // For Shopify flow, also check if we have availabilities data - if we do, allow showing them even if chooseFlightType is temporarily empty
-    // This is important for Chrome and Bing browsers where state updates might happen in different order
-    const hasAvailabilitiesData = availabilities && availabilities.length > 0;
-    const shopifyFlowWithData = isShopifyFlow && hasLocationAndActivity && hasAvailabilitiesData;
-    
-    // For Bing browser, also allow showing availabilities if we have location, activity, and availabilities data
-    // This handles cases where Bing browser state updates happen in different order
-    const bingBrowserWithData = isBingBrowser && hasLocationAndActivity && hasAvailabilitiesData;
-
-    const isLocationAndExperienceSelected = !!(
-        hasLocationAndActivity && (
-            (activitySelect === 'Book Flight' && (hasFlightTypeOrShopify || shopifyFlowWithData || bingBrowserWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data OR if Bing browser with availabilities data
-        (activitySelect === 'Redeem Voucher') ||
-        (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
-        )
-    );
-    
-    // Detect Chrome browser for loading state management
-    const isChromeBrowser = (() => {
-        try {
-            return navigator.userAgent.includes('Chrome') && !navigator.userAgent.includes('Edg');
-        } catch {
-            return false;
-        }
-    })();
-    
-    // Detect mobile Chrome browser specifically (critical for fixing mobile Chrome bug)
-    const isMobileChrome = (() => {
-        try {
-            const ua = navigator.userAgent;
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-            const isChrome = ua.includes('Chrome') && !ua.includes('Edg');
-            return isMobile && isChrome;
-        } catch {
-            return false;
-        }
-    })();
-    
-    // For all browsers, especially in Shopify flow, show loading until availabilities are loaded
-    // This prevents section from closing or switching to another section while data is loading
-    useEffect(() => {
-        // Only show loading when Live Availability section is active
-        if (activeAccordion === 'live-availability') {
-            const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-            const shouldHaveAvailabilities = hasLocationAndActivity && (
-                (activitySelect === 'Book Flight' && (chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity))) ||
-                (activitySelect === 'Redeem Voucher') ||
-                (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
-            );
-            
-            
-            // CRITICAL: For Shopify flow, show loading while we are waiting for the first availability response.
-            // Once a response has been received (even if it's empty), stop forcing the loading spinner.
-            // This prevents private experiences with zero slots from getting stuck on "Loading availability...".
-            const isShopifyFlowWithLocation = isShopifyFlow && chooseLocation && chooseFlightType?.type;
-            const shouldShowLoadingForShopify = isShopifyFlowWithLocation && !hasLiveAvailabilityResponse;
-            const isAwaitingInitialAvailabilities = !hasLiveAvailabilityResponse;
-            
-            if (shouldHaveAvailabilities || shouldShowLoadingForShopify) {
-                // If we are still waiting for the first availabilities response, show loading
-                // Once the first response has arrived (even if it contains zero slots), hide loading
-                // so that the calendar / "no availability" state can render.
-                if (isAwaitingInitialAvailabilities && (!availabilities || availabilities.length === 0)) {
-                    // Set loading state immediately and notify parent
-                    setIsLoadingAvailabilities(true);
-                    // Notify parent component about loading state immediately (critical for Chrome/mobile)
-                    if (onLoadingStateChange) {
-                        onLoadingStateChange(true);
-                    }
-                    console.log('⏳ Live Availability: Showing loading, waiting for availabilities', {
-                        isShopifyFlow,
-                        isChromeBrowser,
-                        isMobileChrome,
-                        hasLocationAndActivity,
-                        chooseFlightType: chooseFlightType?.type,
-                        activeAccordion,
-                        availabilitiesCount: availabilities?.length || 0,
-                        shouldShowLoadingForShopify
-                    });
-                } else {
-                    // Availabilities loaded, hide loading after a delay to ensure render
-                    // For Chrome/mobile, use longer delay to ensure state updates are complete
-                    // For mobile Chrome, use even longer delay to ensure proper rendering
-                    const delay = isMobileChrome ? 1500 : (isChromeBrowser ? 1000 : 500);
-                    const timer = setTimeout(() => {
-                        setIsLoadingAvailabilities(false);
-                        // Notify parent component that loading is complete
-                        if (onLoadingStateChange) {
-                            onLoadingStateChange(false);
-                        }
-                        console.log('✅ Live Availability: Availabilities loaded, hiding loading', {
-                            availabilitiesCount: availabilities.length,
-                            isChromeBrowser,
-                            isMobileChrome,
-                            delay
-                        });
-                    }, delay);
-                    return () => clearTimeout(timer);
-                }
-            } else {
-                // Don't show loading if we don't expect availabilities yet
-                setIsLoadingAvailabilities(false);
-                if (onLoadingStateChange) {
-                    onLoadingStateChange(false);
-                }
-            }
-        } else {
-            // Section is not active, don't show loading
-            setIsLoadingAvailabilities(false);
-            if (onLoadingStateChange) {
-                onLoadingStateChange(false);
-            }
-        }
-    }, [activeAccordion, chooseLocation, selectedActivity, chooseFlightType, availabilities, hasLiveAvailabilityResponse, isShopifyFlow, shopifyFlowWithData, activitySelect, onLoadingStateChange, isChromeBrowser, isMobileChrome, isLoadingAvailabilities]);
-    
-    // Safety net: never keep "Loading availability..." spinner forever.
-    // In rare edge cases (backend returns unexpected shape, or debug states get stuck),
-    // hide the spinner after a timeout so the calendar can render.
-    useEffect(() => {
-        if (!isLoadingAvailabilities) return;
-        if (activeAccordion !== 'live-availability') return;
-        
-        const timeout = setTimeout(() => {
-            setIsLoadingAvailabilities(false);
-            if (onLoadingStateChange) {
-                onLoadingStateChange(false);
-            }
-        }, 10000); // 10s hard cap for spinner
-        
-        return () => clearTimeout(timeout);
-    }, [isLoadingAvailabilities, activeAccordion, onLoadingStateChange]);
-    
-
-    const handlePrevMonth = () => {
-        setMonthSlideClass('month-slide-right');
-        setCurrentDate(subMonths(currentDate, 1));
-        setTimeout(() => setMonthSlideClass(''), 260);
-    };
-
-    const handleNextMonth = () => {
-        setMonthSlideClass('month-slide-left');
-        setCurrentDate(addMonths(currentDate, 1));
-        setTimeout(() => setMonthSlideClass(''), 260);
-    };
-
-    // Minimum swipe distance (in px)
-    const minSwipeDistance = 50;
-
-    const onTouchStart = (e) => {
-        setTouchEnd(null); // Reset touchEnd
-        setTouchStart(e.targetTouches[0].clientX);
-    };
-
-    const onTouchMove = (e) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
-
-    const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
-        
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
-        
-        if (isLeftSwipe) {
-            // Swipe left -> next month
-            handleNextMonth();
-        } else if (isRightSwipe) {
-            // Swipe right -> previous month
-            handlePrevMonth();
-        }
-    };
-
-    const handleDateClick = (date) => {
-        // Only allow date selection if location and experience are selected
-        // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
-        if (!isLocationAndExperienceSelected && !shopifyFlowWithData && !bingBrowserWithData) {
-            setIsModalOpen(true);
-            return;
-        }
-        
-        // Check if voucher type is selected (required for capacity check)
-        if (!selectedVoucherType) {
-            console.log('No voucher type selected, allowing date selection');
-            // Continue with normal flow
-        }
-        
-        // Create date strings manually to avoid timezone issues
-        const dateYear = date.getFullYear();
-        const dateMonth = date.getMonth();
-        const dateDay = date.getDate();
-        const dateStartOfDay = new Date(dateYear, dateMonth, dateDay, 0, 0, 0, 0);
-        
-        const todayYear = today.getFullYear();
-        const todayMonth = today.getMonth();
-        const todayDay = today.getDate();
-        const todayStartOfDay = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
-        
-        if (dateStartOfDay >= todayStartOfDay) {
-            // Show time selection popup instead of directly setting the date
-            setSelectedDateForTime(date);
-            setTempSelectedTime(null); // Reset temporary time selection
-            setTimeSelectionModalOpen(true);
-        }
-    };
-
-    const handleTimeClick = (time) => {
-        // Only allow time selection if location and experience are selected
-        // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
-        if (!isLocationAndExperienceSelected && !shopifyFlowWithData && !bingBrowserWithData) {
-            setIsModalOpen(true);
-            return;
-        }
-        
-        setSelectedTime(time);
-        // Seçilen saat ile birlikte tarihi güncelle (tarih saat birleşik olsun)
-        if (selectedDate) {
-            const newDate = new Date(selectedDate);
-            const [h, m] = time.split(':');
-            newDate.setHours(Number(h));
-            newDate.setMinutes(Number(m));
-            newDate.setSeconds(0); // Saniyeyi sıfırla
-            setSelectedDate(newDate);
-        }
-    };
-
-    // Handle time selection from popup
-    const handleTimeSelection = (time) => {
-        // Capacity will be indicated inline; selection for insufficient slots is disabled in the UI
-        
-        setSelectedDate(selectedDateForTime);
-        setSelectedTime(time);
-        setTimeSelectionModalOpen(false);
-        setTempSelectedTime(null); // Reset temporary selection
-        
-        // Google Ads: GA_Date_Selected (Stage 5) - BOOK FLIGHT DATE FLOW ONLY
-        const dateStr = selectedDateForTime ? format(selectedDateForTime, 'yyyy-MM-dd') : '';
-        const experienceType = (chooseFlightType?.type || '').toLowerCase().includes('private') ? 'private' : 'shared';
-        if (dateStr && chooseLocation) {
-            trackDateSelected(dateStr, chooseLocation, experienceType);
-        }
-        
-        // Show notification for time selection
-        const formattedDate = format(selectedDateForTime, 'MMMM d, yyyy');
-        setNotificationMessage(`${formattedDate} at ${time} Selected`);
-        setShowNotification(true);
-        
-        // Auto-hide notification after 3 seconds
-        setTimeout(() => {
-            setShowNotification(false);
-        }, 3000);
-        
-        // Trigger section completion to close current section and open next one
-        if (onSectionCompletion) {
-            onSectionCompletion('live-availability');
-        }
-        
-        // Countdown timer removed - no automatic timeout
-    };
-    
-    // Countdown timer functions removed - no automatic timeout
-    
-    // Countdown timer cleanup removed - no automatic timeout
-    
-    // Countdown timer cleanup removed - no automatic timeout
-
-    // Check if form is valid for submission
-    const isFormValid = requestName.trim() && requestEmail.trim() && requestLocation && requestFlightType && requestDate && requestTime;
-
-    if (chooseLocation === '') {
-        setIsModalOpen(true);
+  // Notify parent when currentDate changes (for incremental loading)
+  // Skip initial notification on mount to allow parent to use default 60-day range
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      // Don't notify parent on initial mount - this allows initial load without date range
+      return;
     }
 
-    const normalizeVoucherName = (value = '') => {
-        if (typeof value !== 'string') return '';
-        return value.replace(/\([^)]*\)/g, '')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+    if (onCurrentDateChange) {
+      onCurrentDateChange(currentDate);
+    }
+  }, [currentDate, onCurrentDateChange]);
+  const [bookedSeat, setBookedSeat] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoadingAvailabilities, setIsLoadingAvailabilities] = useState(false);
+
+  // Touch/swipe handling state for month navigation
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [monthSlideClass, setMonthSlideClass] = useState("");
+
+  useEffect(() => {
+    if (chooseLocation) {
+      const now = new Date();
+      setCurrentDate(now);
+    }
+  }, [chooseLocation]);
+
+  // Shared Flight için: Eğer mevsim dışı ay ise (Aralık, Ocak, Şubat) takvimi bir sonraki Mart ayına ayarla.
+  // Eğer tarih Mart-Kasım arası ise mevcut ayı göster.
+  useEffect(() => {
+    const isSharedFlight = (chooseFlightType?.type || "")
+      .toLowerCase()
+      .includes("shared");
+    if (!isSharedFlight) return;
+    if (activeAccordion !== "live-availability") return; // Sadece Live Availability açıldığında uygula
+
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0-index, Mart = 2
+
+    // Aralık ise: gelecek yıl Mart
+    // Ocak/Şubat ise: bu yıl Mart
+    // Mart-Kasım ise: mevcut ay
+    let targetDate = now;
+    if (currentMonth === 11) {
+      targetDate = new Date(now.getFullYear() + 1, 2, 1);
+    } else if (currentMonth <= 1) {
+      targetDate = new Date(now.getFullYear(), 2, 1);
+    }
+
+    if (
+      currentDate.getFullYear() !== targetDate.getFullYear() ||
+      currentDate.getMonth() !== targetDate.getMonth()
+    ) {
+      setCurrentDate(targetDate);
+    }
+  }, [chooseFlightType, chooseLocation, activeAccordion]);
+
+  // Notification state for time selection
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [requestName, setRequestName] = useState("");
+  const [requestPhone, setRequestPhone] = useState("");
+  const [requestEmail, setRequestEmail] = useState("");
+  const [requestLocation, setRequestLocation] = useState("");
+  const [requestFlightType, setRequestFlightType] = useState("");
+  const [requestDate, setRequestDate] = useState("");
+  const [requestTime, setRequestTime] = useState("");
+  const [requestSuccess, setRequestSuccess] = useState("");
+  const [requestError, setRequestError] = useState("");
+  // Her input için ayrı error state
+  const [nameError, setNameError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [dateError, setDateError] = useState(false);
+  const [timeError, setTimeError] = useState(false);
+  // Ek hata state'leri
+  const [nameFormatError, setNameFormatError] = useState(false);
+  const [phoneFormatError, setPhoneFormatError] = useState(false);
+  const [emailFormatError, setEmailFormatError] = useState(false);
+
+  // New state for time selection popup
+  const [timeSelectionModalOpen, setTimeSelectionModalOpen] = useState(false);
+  const [selectedDateForTime, setSelectedDateForTime] = useState(null);
+  const [tempSelectedTime, setTempSelectedTime] = useState(null);
+  // Hover state for time buttons (desktop only)
+  const [hoveredTime, setHoveredTime] = useState(null);
+
+  // Timeout functionality removed
+
+  // Removed capacity warning modal approach; we'll indicate issues inline in time picker
+
+  // Get selected passenger count from voucher type
+  const getSelectedPassengerCount = () => {
+    if (!selectedVoucherType?.quantity) {
+      return 2; // Default passenger count
+    }
+    return selectedVoucherType.quantity;
+  };
+
+  // Responsive calendar cell size for mobile
+  const [daySize, setDaySize] = useState(80);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const computeSizes = () => {
+      const w = window.innerWidth;
+      setIsMobile(w <= 768);
+      // 7 columns must fit within container padding; pick safe sizes
+      if (w <= 360) setDaySize(32);
+      else if (w <= 420) setDaySize(36);
+      else if (w <= 480) setDaySize(40);
+      else if (w <= 576) setDaySize(44);
+      else if (w <= 768) setDaySize(48);
+      else setDaySize(80);
     };
+    computeSizes();
+    window.addEventListener("resize", computeSizes);
+    return () => window.removeEventListener("resize", computeSizes);
+  }, []);
 
-    const parseNumber = (value, fallback = 0) => {
-        const num = Number(value);
-        return Number.isFinite(num) ? num : fallback;
-    };
+  var final_pax_count = selectedActivity?.[0]?.seats;
 
-    const getSlotStatus = (slot) => (slot?.calculated_status || slot?.status || '').toLowerCase();
+  const today = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+    0,
+    0,
+    0,
+    0,
+  ); // Current date at start of day in local timezone
+  // Change startDate and endDate to only cover the current month
+  const startDate = startOfMonth(currentDate);
+  const endDate = endOfMonth(currentDate);
 
-    const isPrivateSelection = (chooseFlightType?.type || '').toLowerCase().includes('private');
-    const requiredSeats = Math.max(1, parseInt(chooseFlightType?.passengerCount, 10) || (isPrivateSelection ? 8 : 1));
+  // Check if location and experience are selected
+  // For Book Flight: need flight type (voucher type filtering happens later in the filter function, so we allow filtering even without voucher type)
+  // For Redeem Voucher: only need location and activity
+  // For Shopify flow: if selectedActivity exists, allow showing availabilities even if chooseFlightType is temporarily reset
+  const isShopifyFlow = (() => {
+    try {
+      const params = new URLSearchParams(window.location.search || "");
+      return params.get("source") === "shopify";
+    } catch {
+      return false;
+    }
+  })();
 
-    const getRemainingSeats = (slot) => {
-        if (!slot) return 0;
-        if (slot.calculated_available !== undefined && slot.calculated_available !== null) {
-            return Math.max(0, parseNumber(slot.calculated_available, 0));
+  // Detect Bing/Edge browser for more aggressive availability display
+  const isBingBrowser = (() => {
+    try {
+      return (
+        navigator.userAgent.includes("Edg") ||
+        navigator.userAgent.includes("Bing")
+      );
+    } catch {
+      return false;
+    }
+  })();
+
+  // For Shopify flow, if we have location and selectedActivity, allow showing availabilities even if chooseFlightType is temporarily empty
+  // This handles the case where chooseFlightType gets reset but we still want to show availabilities
+  const hasLocationAndActivity =
+    chooseLocation && selectedActivity && selectedActivity.length > 0;
+  const hasFlightTypeOrShopify =
+    chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
+
+  // For Shopify flow, also check if we have availabilities data - if we do, allow showing them even if chooseFlightType is temporarily empty
+  // This is important for Chrome and Bing browsers where state updates might happen in different order
+  const hasAvailabilitiesData = availabilities && availabilities.length > 0;
+  const shopifyFlowWithData =
+    isShopifyFlow && hasLocationAndActivity && hasAvailabilitiesData;
+
+  // For Bing browser, also allow showing availabilities if we have location, activity, and availabilities data
+  // This handles cases where Bing browser state updates happen in different order
+  const bingBrowserWithData =
+    isBingBrowser && hasLocationAndActivity && hasAvailabilitiesData;
+
+  const isLocationAndExperienceSelected = !!(
+    hasLocationAndActivity &&
+    ((activitySelect === "Book Flight" &&
+      (hasFlightTypeOrShopify || shopifyFlowWithData || bingBrowserWithData)) || // Allow filtering by flight type OR if Shopify flow with selectedActivity OR if Shopify flow with availabilities data OR if Bing browser with availabilities data
+      activitySelect === "Redeem Voucher" ||
+      (activitySelect !== "Book Flight" && activitySelect !== "Redeem Voucher"))
+  );
+
+  // Detect Chrome browser for loading state management
+  const isChromeBrowser = (() => {
+    try {
+      return (
+        navigator.userAgent.includes("Chrome") &&
+        !navigator.userAgent.includes("Edg")
+      );
+    } catch {
+      return false;
+    }
+  })();
+
+  // Detect mobile Chrome browser specifically (critical for fixing mobile Chrome bug)
+  const isMobileChrome = (() => {
+    try {
+      const ua = navigator.userAgent;
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          ua,
+        );
+      const isChrome = ua.includes("Chrome") && !ua.includes("Edg");
+      return isMobile && isChrome;
+    } catch {
+      return false;
+    }
+  })();
+
+  // For all browsers, especially in Shopify flow, show loading until availabilities are loaded
+  // This prevents section from closing or switching to another section while data is loading
+  useEffect(() => {
+    // Only show loading when Live Availability section is active
+    if (activeAccordion === "live-availability") {
+      const hasLocationAndActivity =
+        chooseLocation && selectedActivity && selectedActivity.length > 0;
+      const shouldHaveAvailabilities =
+        hasLocationAndActivity &&
+        ((activitySelect === "Book Flight" &&
+          (chooseFlightType?.type ||
+            (isShopifyFlow && hasLocationAndActivity))) ||
+          activitySelect === "Redeem Voucher" ||
+          (activitySelect !== "Book Flight" &&
+            activitySelect !== "Redeem Voucher"));
+
+      // CRITICAL: For Shopify flow, show loading while we are waiting for the first availability response.
+      // Once a response has been received (even if it's empty), stop forcing the loading spinner.
+      // This prevents private experiences with zero slots from getting stuck on "Loading availability...".
+      const isShopifyFlowWithLocation =
+        isShopifyFlow && chooseLocation && chooseFlightType?.type;
+      const shouldShowLoadingForShopify =
+        isShopifyFlowWithLocation && !hasLiveAvailabilityResponse;
+      const isAwaitingInitialAvailabilities = !hasLiveAvailabilityResponse;
+
+      if (shouldHaveAvailabilities || shouldShowLoadingForShopify) {
+        // If we are still waiting for the first availabilities response, show loading
+        // Once the first response has arrived (even if it contains zero slots), hide loading
+        // so that the calendar / "no availability" state can render.
+        if (
+          isAwaitingInitialAvailabilities &&
+          (!availabilities || availabilities.length === 0)
+        ) {
+          // Set loading state immediately and notify parent
+          setIsLoadingAvailabilities(true);
+          // Notify parent component about loading state immediately (critical for Chrome/mobile)
+          if (onLoadingStateChange) {
+            onLoadingStateChange(true);
+          }
+        } else {
+          // Availabilities loaded, hide loading after a delay to ensure render
+          // For Chrome/mobile, use longer delay to ensure state updates are complete
+          // For mobile Chrome, use even longer delay to ensure proper rendering
+          const delay = isMobileChrome ? 1500 : isChromeBrowser ? 1000 : 500;
+          const timer = setTimeout(() => {
+            setIsLoadingAvailabilities(false);
+            // Notify parent component that loading is complete
+            if (onLoadingStateChange) {
+              onLoadingStateChange(false);
+            }
+          }, delay);
+          return () => clearTimeout(timer);
         }
-        if (typeof slot.actualAvailable === 'number') {
-            return Math.max(0, slot.actualAvailable);
+      } else {
+        // Don't show loading if we don't expect availabilities yet
+        setIsLoadingAvailabilities(false);
+        if (onLoadingStateChange) {
+          onLoadingStateChange(false);
         }
-        if (typeof slot.available === 'number') {
-            return Math.max(0, slot.available);
-        }
-        if (typeof slot.shared_capacity === 'number' && typeof slot.shared_booked === 'number') {
-            return Math.max(0, slot.shared_capacity - slot.shared_booked);
-        }
-        if (typeof slot.shared_capacity === 'number') {
-            return Math.max(0, slot.shared_capacity);
-        }
+      }
+    } else {
+      // Section is not active, don't show loading
+      setIsLoadingAvailabilities(false);
+      if (onLoadingStateChange) {
+        onLoadingStateChange(false);
+      }
+    }
+  }, [
+    activeAccordion,
+    chooseLocation,
+    selectedActivity,
+    chooseFlightType,
+    availabilities,
+    hasLiveAvailabilityResponse,
+    isShopifyFlow,
+    shopifyFlowWithData,
+    activitySelect,
+    onLoadingStateChange,
+    isChromeBrowser,
+    isMobileChrome,
+    isLoadingAvailabilities,
+  ]);
+
+  // Safety net: never keep "Loading availability..." spinner forever.
+  // In rare edge cases (backend returns unexpected shape, or debug states get stuck),
+  // hide the spinner after a timeout so the calendar can render.
+  useEffect(() => {
+    if (!isLoadingAvailabilities) return;
+    if (activeAccordion !== "live-availability") return;
+
+    const timeout = setTimeout(() => {
+      setIsLoadingAvailabilities(false);
+      if (onLoadingStateChange) {
+        onLoadingStateChange(false);
+      }
+    }, 10000); // 10s hard cap for spinner
+
+    return () => clearTimeout(timeout);
+  }, [isLoadingAvailabilities, activeAccordion, onLoadingStateChange]);
+
+  const handlePrevMonth = () => {
+    setMonthSlideClass("month-slide-right");
+    setCurrentDate(subMonths(currentDate, 1));
+    setTimeout(() => setMonthSlideClass(""), 260);
+  };
+
+  const handleNextMonth = () => {
+    setMonthSlideClass("month-slide-left");
+    setCurrentDate(addMonths(currentDate, 1));
+    setTimeout(() => setMonthSlideClass(""), 260);
+  };
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null); // Reset touchEnd
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Swipe left -> next month
+      handleNextMonth();
+    } else if (isRightSwipe) {
+      // Swipe right -> previous month
+      handlePrevMonth();
+    }
+  };
+
+  const handleDateClick = (date) => {
+    // Only allow date selection if location and experience are selected
+    // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+    if (
+      !isLocationAndExperienceSelected &&
+      !shopifyFlowWithData &&
+      !bingBrowserWithData
+    ) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    // Check if voucher type is selected (required for capacity check)
+    if (!selectedVoucherType) {
+    }
+
+    // Create date strings manually to avoid timezone issues
+    const dateYear = date.getFullYear();
+    const dateMonth = date.getMonth();
+    const dateDay = date.getDate();
+    const dateStartOfDay = new Date(dateYear, dateMonth, dateDay, 0, 0, 0, 0);
+
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth();
+    const todayDay = today.getDate();
+    const todayStartOfDay = new Date(
+      todayYear,
+      todayMonth,
+      todayDay,
+      0,
+      0,
+      0,
+      0,
+    );
+
+    if (dateStartOfDay >= todayStartOfDay) {
+      // Show time selection popup instead of directly setting the date
+      setSelectedDateForTime(date);
+      setTempSelectedTime(null); // Reset temporary time selection
+      setTimeSelectionModalOpen(true);
+    }
+  };
+
+  const handleTimeClick = (time) => {
+    // Only allow time selection if location and experience are selected
+    // For Shopify flow and Bing browser, allow selection even if chooseFlightType is temporarily empty (if we have availabilities data)
+    if (
+      !isLocationAndExperienceSelected &&
+      !shopifyFlowWithData &&
+      !bingBrowserWithData
+    ) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    setSelectedTime(time);
+    // Seçilen saat ile birlikte tarihi güncelle (tarih saat birleşik olsun)
+    if (selectedDate) {
+      const newDate = new Date(selectedDate);
+      const [h, m] = time.split(":");
+      newDate.setHours(Number(h));
+      newDate.setMinutes(Number(m));
+      newDate.setSeconds(0); // Saniyeyi sıfırla
+      setSelectedDate(newDate);
+    }
+  };
+
+  // Handle time selection from popup
+  const handleTimeSelection = (time) => {
+    // Capacity will be indicated inline; selection for insufficient slots is disabled in the UI
+
+    setSelectedDate(selectedDateForTime);
+    setSelectedTime(time);
+    setTimeSelectionModalOpen(false);
+    setTempSelectedTime(null); // Reset temporary selection
+
+    // Google Ads: GA_Date_Selected (Stage 5) - BOOK FLIGHT DATE FLOW ONLY
+    const dateStr = selectedDateForTime
+      ? format(selectedDateForTime, "yyyy-MM-dd")
+      : "";
+    const experienceType = (chooseFlightType?.type || "")
+      .toLowerCase()
+      .includes("private")
+      ? "private"
+      : "shared";
+    if (dateStr && chooseLocation) {
+      trackDateSelected(dateStr, chooseLocation, experienceType);
+    }
+
+    // Show notification for time selection
+    const formattedDate = format(selectedDateForTime, "MMMM d, yyyy");
+    setNotificationMessage(`${formattedDate} at ${time} Selected`);
+    setShowNotification(true);
+
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 3000);
+
+    // Trigger section completion to close current section and open next one
+    if (onSectionCompletion) {
+      onSectionCompletion("live-availability");
+    }
+
+    // Countdown timer removed - no automatic timeout
+  };
+
+  // Countdown timer functions removed - no automatic timeout
+
+  // Countdown timer cleanup removed - no automatic timeout
+
+  // Countdown timer cleanup removed - no automatic timeout
+
+  // Check if form is valid for submission
+  const isFormValid =
+    requestName.trim() &&
+    requestEmail.trim() &&
+    requestLocation &&
+    requestFlightType &&
+    requestDate &&
+    requestTime;
+
+  if (chooseLocation === "") {
+    setIsModalOpen(true);
+  }
+
+  const normalizeVoucherName = (value = "") => {
+    if (typeof value !== "string") return "";
+    return value
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  };
+
+  const parseNumber = (value, fallback = 0) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+  };
+
+  const getSlotStatus = (slot) =>
+    (slot?.calculated_status || slot?.status || "").toLowerCase();
+
+  const isPrivateSelection = (chooseFlightType?.type || "")
+    .toLowerCase()
+    .includes("private");
+  const requiredSeats = Math.max(
+    1,
+    parseInt(chooseFlightType?.passengerCount, 10) ||
+      (isPrivateSelection ? 8 : 1),
+  );
+
+  const getRemainingSeats = (slot) => {
+    if (!slot) return 0;
+    if (
+      slot.calculated_available !== undefined &&
+      slot.calculated_available !== null
+    ) {
+      return Math.max(0, parseNumber(slot.calculated_available, 0));
+    }
+    if (typeof slot.actualAvailable === "number") {
+      return Math.max(0, slot.actualAvailable);
+    }
+    if (typeof slot.available === "number") {
+      return Math.max(0, slot.available);
+    }
+    if (
+      typeof slot.shared_capacity === "number" &&
+      typeof slot.shared_booked === "number"
+    ) {
+      return Math.max(0, slot.shared_capacity - slot.shared_booked);
+    }
+    if (typeof slot.shared_capacity === "number") {
+      return Math.max(0, slot.shared_capacity);
+    }
+    return 0;
+  };
+
+  // Balloon 210 is a global resource across locations for a given date+time.
+  // If any shared booking has consumed Balloon 210 at that date+time, large Private Charter (5–8 pax)
+  // must NOT be selectable in ANY location at that same date+time.
+  const normalizeSlotDate = (value) => {
+    if (!value) return "";
+    return String(value).split("T")[0].split(" ")[0].trim();
+  };
+  const normalizeSlotTime = (value) => {
+    if (!value) return "";
+    return String(value).trim();
+  };
+  const balloon210InUseByDateTime = React.useMemo(() => {
+    const map = new Map();
+    (availabilities || []).forEach((s) => {
+      const dateKey = normalizeSlotDate(s?.date);
+      const timeKey = normalizeSlotTime(s?.time);
+      if (!dateKey || !timeKey) return;
+      const key = `${dateKey}|${timeKey}`;
+      const balloon210LockedAny =
+        Number(s?.balloon210_locked || s?.shared_slots_used || 0) > 0;
+      const sharedBookedAny = Number(
+        s?.shared_booked || s?.shared_consumed_pax || 0,
+      );
+      if (balloon210LockedAny || sharedBookedAny > 0) {
+        map.set(key, true);
+      }
+    });
+    return map;
+  }, [availabilities]);
+
+  const getAvailableSeatsForSelection = (slot) => {
+    if (!slot) return 0;
+
+    const baseAvailable = getRemainingSeats(slot);
+    const balloon210Locked =
+      Number(slot.balloon210_locked || slot.shared_slots_used || 0) > 0;
+    const sharedBooked = Number(
+      slot.shared_booked || slot.shared_consumed_pax || 0,
+    );
+    const isSmallPrivateSelection =
+      isPrivateSelection && requiredSeats > 0 && requiredSeats <= 4;
+
+    // SHARED FLOW (uses Balloon 210)
+    if (!isPrivateSelection) {
+      // If Balloon 210 is assigned to a different location, no shared seats are available for this location
+      // Shared flights can share Balloon 210 within the same location, but not across different locations
+      if (balloon210Locked) {
         return 0;
+      }
+      return baseAvailable;
+    }
+
+    // PRIVATE FLOW
+    if (isSmallPrivateSelection) {
+      // 1–4 pax private charter uses Balloon 105 resource
+      const remaining105 =
+        typeof slot.private_charter_small_remaining === "number"
+          ? slot.private_charter_small_remaining
+          : Number(slot.private_charter_small_bookings || 0) > 0
+            ? 0
+            : 4;
+
+      if (remaining105 <= 0) {
+        return 0;
+      }
+
+      return remaining105 >= requiredSeats ? remaining105 : 0;
+    }
+
+    // Large private charter (5–8 pax) uses Balloon 210 exclusively
+    const slotDateKey = normalizeSlotDate(slot?.date);
+    const slotTimeKey = normalizeSlotTime(slot?.time);
+    const balloon210InUseGlobally =
+      slotDateKey && slotTimeKey
+        ? Boolean(
+            balloon210InUseByDateTime.get(`${slotDateKey}|${slotTimeKey}`),
+          )
+        : false;
+
+    // If Balloon 210 is already consumed by shared at this date+time (any location), block large private.
+    // Also block if this specific slot indicates Balloon 210 is locked or shared booked.
+    if (balloon210Locked || sharedBooked > 0 || balloon210InUseGlobally) {
+      return 0;
+    }
+
+    return baseAvailable >= requiredSeats ? baseAvailable : 0;
+  };
+
+  const getVoucherTypesForAvailability = (availability) => {
+    if (!availability) return [];
+    const fromArray = (value) =>
+      value
+        .map((item) => {
+          if (typeof item === "string") {
+            return item.trim();
+          }
+          return item;
+        })
+        .filter(Boolean);
+
+    // First check voucher_types_array (already parsed)
+    if (
+      Array.isArray(availability.voucher_types_array) &&
+      availability.voucher_types_array.length > 0
+    ) {
+      return fromArray(availability.voucher_types_array);
+    }
+
+    // Then check voucher_types as array
+    if (
+      Array.isArray(availability.voucher_types) &&
+      availability.voucher_types.length > 0
+    ) {
+      return fromArray(availability.voucher_types);
+    }
+
+    // Parse string voucher_types (handles both "Proposal Flight ,Private Charter" and "Private Charter,Proposal Flight")
+    const parseString = (str) => {
+      if (!str || typeof str !== "string") return [];
+      // Split by comma and trim each part, then filter out empty strings
+      return str
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
     };
 
-    // Balloon 210 is a global resource across locations for a given date+time.
-    // If any shared booking has consumed Balloon 210 at that date+time, large Private Charter (5–8 pax)
-    // must NOT be selectable in ANY location at that same date+time.
-    const normalizeSlotDate = (value) => {
-        if (!value) return '';
-        return String(value).split('T')[0].split(' ')[0].trim();
-    };
-    const normalizeSlotTime = (value) => {
-        if (!value) return '';
-        return String(value).trim();
-    };
-    const balloon210InUseByDateTime = React.useMemo(() => {
-        const map = new Map();
-        (availabilities || []).forEach(s => {
-            const dateKey = normalizeSlotDate(s?.date);
-            const timeKey = normalizeSlotTime(s?.time);
-            if (!dateKey || !timeKey) return;
-            const key = `${dateKey}|${timeKey}`;
-            const balloon210LockedAny = Number(s?.balloon210_locked || s?.shared_slots_used || 0) > 0;
-            const sharedBookedAny = Number(s?.shared_booked || s?.shared_consumed_pax || 0);
-            if (balloon210LockedAny || sharedBookedAny > 0) {
-                map.set(key, true);
-            }
-        });
-        return map;
-    }, [availabilities]);
+    if (
+      typeof availability.voucher_types === "string" &&
+      availability.voucher_types.trim() !== ""
+    ) {
+      return parseString(availability.voucher_types);
+    }
 
-    const getAvailableSeatsForSelection = (slot) => {
-        if (!slot) return 0;
+    if (
+      typeof availability.activity_voucher_types === "string" &&
+      availability.activity_voucher_types.trim() !== ""
+    ) {
+      return parseString(availability.activity_voucher_types);
+    }
 
-        const baseAvailable = getRemainingSeats(slot);
-        const balloon210Locked = Number(slot.balloon210_locked || slot.shared_slots_used || 0) > 0;
-        const sharedBooked = Number(slot.shared_booked || slot.shared_consumed_pax || 0);
-        const isSmallPrivateSelection = isPrivateSelection && requiredSeats > 0 && requiredSeats <= 4;
+    return [];
+  };
 
-        // SHARED FLOW (uses Balloon 210)
-        if (!isPrivateSelection) {
-            // If Balloon 210 is assigned to a different location, no shared seats are available for this location
-            // Shared flights can share Balloon 210 within the same location, but not across different locations
-            if (balloon210Locked) {
-                return 0;
-            }
-            return baseAvailable;
+  // Yeni: availabilities [{id, date, time, capacity, available, ...}] düz listede geliyor
+  // Calendar için: hangi günlerde en az 1 açık slot var?
+
+  // Filter availabilities - respect selected voucher type when provided
+  // Only filter if location and experience are selected
+  const voucherWildcardTerms = [
+    "any voucher",
+    "any vouchers",
+    "all voucher types",
+    "all vouchers",
+    "any",
+    "all",
+    "any voucher type",
+    "any voucher types",
+    "any voucher option",
+  ];
+  const matchesLocation = (availability) => {
+    if (!chooseLocation) return true;
+    if (!availability?.location) return true;
+    return availability.location === chooseLocation;
+  };
+  const matchesExperience = (availability) => {
+    if (!chooseFlightType?.type) return true;
+
+    if (
+      !Array.isArray(availability?.flight_types_array) ||
+      availability.flight_types_array.length === 0
+    ) {
+      // Fallback: check flight_types string if flight_types_array is empty
+      if (availability?.flight_types) {
+        const flightTypesStr = String(availability.flight_types).toLowerCase();
+        const selectedType = (chooseFlightType.type || "").toLowerCase().trim();
+        if (
+          selectedType.includes("shared") &&
+          flightTypesStr.includes("shared")
+        ) {
+          return true;
         }
-
-        // PRIVATE FLOW
-        if (isSmallPrivateSelection) {
-            // 1–4 pax private charter uses Balloon 105 resource
-            const remaining105 = (typeof slot.private_charter_small_remaining === 'number')
-                ? slot.private_charter_small_remaining
-                : (Number(slot.private_charter_small_bookings || 0) > 0 ? 0 : 4);
-
-            if (remaining105 <= 0) {
-                return 0;
-            }
-
-            return remaining105 >= requiredSeats ? remaining105 : 0;
+        if (
+          selectedType.includes("private") &&
+          flightTypesStr.includes("private")
+        ) {
+          return true;
         }
+      }
+      return true;
+    }
 
-        // Large private charter (5–8 pax) uses Balloon 210 exclusively
-        const slotDateKey = normalizeSlotDate(slot?.date);
-        const slotTimeKey = normalizeSlotTime(slot?.time);
-        const balloon210InUseGlobally = slotDateKey && slotTimeKey
-            ? Boolean(balloon210InUseByDateTime.get(`${slotDateKey}|${slotTimeKey}`))
-            : false;
+    const selectedType = (chooseFlightType.type || "").toLowerCase().trim();
+    if (!selectedType) return true;
 
-        // If Balloon 210 is already consumed by shared at this date+time (any location), block large private.
-        // Also block if this specific slot indicates Balloon 210 is locked or shared booked.
-        if (balloon210Locked || sharedBooked > 0 || balloon210InUseGlobally) {
-            return 0;
-        }
-
-        return baseAvailable >= requiredSeats ? baseAvailable : 0;
-    };
-
-    const getVoucherTypesForAvailability = (availability) => {
-        if (!availability) return [];
-        const fromArray = (value) => value.map(item => {
-            if (typeof item === 'string') {
-                return item.trim();
-            }
-            return item;
-        }).filter(Boolean);
-        
-        // First check voucher_types_array (already parsed)
-        if (Array.isArray(availability.voucher_types_array) && availability.voucher_types_array.length > 0) {
-            return fromArray(availability.voucher_types_array);
-        }
-        
-        // Then check voucher_types as array
-        if (Array.isArray(availability.voucher_types) && availability.voucher_types.length > 0) {
-            return fromArray(availability.voucher_types);
-        }
-        
-        // Parse string voucher_types (handles both "Proposal Flight ,Private Charter" and "Private Charter,Proposal Flight")
-        const parseString = (str) => {
-            if (!str || typeof str !== 'string') return [];
-            // Split by comma and trim each part, then filter out empty strings
-            return str.split(',').map(s => s.trim()).filter(Boolean);
-        };
-        
-        if (typeof availability.voucher_types === 'string' && availability.voucher_types.trim() !== '') {
-            return parseString(availability.voucher_types);
-        }
-        
-        if (typeof availability.activity_voucher_types === 'string' && availability.activity_voucher_types.trim() !== '') {
-            return parseString(availability.activity_voucher_types);
-        }
-        
-        return [];
+    const normalize = (value = "") => value.toLowerCase().trim();
+    const selectedKeywords = {
+      shared: selectedType.includes("shared"),
+      private: selectedType.includes("private"),
+      charter: selectedType.includes("charter"),
     };
 
-    // Yeni: availabilities [{id, date, time, capacity, available, ...}] düz listede geliyor
-    // Calendar için: hangi günlerde en az 1 açık slot var?
-    console.log('LiveAvailabilitySection received availabilities:', availabilities);
-    console.log('Current date range:', { startDate: format(startDate, 'yyyy-MM-dd'), endDate: format(endDate, 'yyyy-MM-dd'), currentDate: format(currentDate, 'yyyy-MM-dd') });
-    
-    // Filter availabilities - respect selected voucher type when provided
-    // Only filter if location and experience are selected
-    const voucherWildcardTerms = ['any voucher', 'any vouchers', 'all voucher types', 'all vouchers', 'any', 'all', 'any voucher type', 'any voucher types', 'any voucher option'];
-    const matchesLocation = (availability) => {
-        if (!chooseLocation) return true;
-        if (!availability?.location) return true;
-        return availability.location === chooseLocation;
-    };
-    const matchesExperience = (availability) => {
-        if (!chooseFlightType?.type) return true;
-        
-        if (!Array.isArray(availability?.flight_types_array) || availability.flight_types_array.length === 0) {
-            // Fallback: check flight_types string if flight_types_array is empty
-            if (availability?.flight_types) {
-                const flightTypesStr = String(availability.flight_types).toLowerCase();
-                const selectedType = (chooseFlightType.type || '').toLowerCase().trim();
-                if (selectedType.includes('shared') && flightTypesStr.includes('shared')) {
-                    return true;
-                }
-                if (selectedType.includes('private') && flightTypesStr.includes('private')) {
-                    return true;
-                }
-            }
-            return true;
-        }
-
-        const selectedType = (chooseFlightType.type || '').toLowerCase().trim();
-        if (!selectedType) return true;
-
-        const normalize = (value = '') => value.toLowerCase().trim();
-        const selectedKeywords = {
-            shared: selectedType.includes('shared'),
-            private: selectedType.includes('private'),
-            charter: selectedType.includes('charter'),
-        };
-
-        const matchResult = availability.flight_types_array.some(type => {
-            const normalizedType = normalize(type);
-            if (!normalizedType) return false;
-            if (normalizedType === selectedType) return true;
-            if (normalizedType.includes(selectedType) || selectedType.includes(normalizedType)) return true;
-
-            const typeKeywords = {
-                shared: normalizedType.includes('shared'),
-                private: normalizedType.includes('private'),
-                charter: normalizedType.includes('charter'),
-            };
-
-            // Consider it a match if both describe the same general experience (shared/private charter)
-            if (selectedKeywords.shared && typeKeywords.shared) return true;
-            if (selectedKeywords.private && typeKeywords.private) return true;
-            if (selectedKeywords.charter && typeKeywords.charter) return true;
-
-            return false;
-        });
-        
-        return matchResult;
-    };
-
-    // Helper function to check if a date is a weekday (Monday-Friday)
-    const isWeekday = (date) => {
-        const day = date.getDay();
-        return day >= 1 && day <= 5; // Monday = 1, Friday = 5
-    };
-
-    // Helper function to check if a time is morning (typically before 12:00 PM)
-    const isMorning = (time) => {
-        if (!time) return false;
-        // Parse time string (format: "HH:mm" or "HH:mm:ss")
-        const timeParts = time.split(':');
-        const hour = parseInt(timeParts[0], 10);
-        return hour < 12; // Morning is before 12:00 PM
-    };
-
-    // Filter availabilities based on voucher type for both Redeem Voucher and Book Flight
-    const filterByVoucherType = (availability) => {
-        // Apply voucher type filtering for both Redeem Voucher and Book Flight
-        // Only filter if voucher type is selected and it's one of the shared voucher types that require date/time filtering
-        if (!selectedVoucherType?.title) {
-            return true; // No filtering needed
-        }
-
-        // Only apply date/time filtering for shared voucher types (Weekday Morning, Flexible Weekday, Any Day Flight)
-        // Private voucher types (Private Charter, Proposal Flight) don't need date/time filtering
-        const voucherType = selectedVoucherType.title;
-        const sharedVoucherTypes = ['Weekday Morning', 'Weekday Morning Flight', 'Flexible Weekday', 'Flexible Weekday Flight', 'Any Day Flight', 'Anytime', 'Any Day'];
-        if (!sharedVoucherTypes.includes(voucherType)) {
-            return true; // No filtering needed for private voucher types
-        }
-        
-        // Parse availability date safely
-        let availabilityDate = null;
-        if (availability.date) {
-            try {
-                // Handle different date formats
-                if (typeof availability.date === 'string') {
-                    // If date includes time, extract just the date part
-                    const datePart = availability.date.split(' ')[0];
-                    availabilityDate = new Date(datePart + 'T00:00:00'); // Add time to avoid timezone issues
-                } else {
-                    availabilityDate = new Date(availability.date);
-                }
-                
-                // Check if date is valid
-                if (isNaN(availabilityDate.getTime())) {
-                    return true; // Invalid date, don't filter
-                }
-            } catch (e) {
-                console.warn('Error parsing availability date:', availability.date, e);
-                return true; // Error parsing, don't filter
-            }
-        }
-        
-        if (!availabilityDate) return true; // If no date, don't filter
-
-        // Weekday Morning voucher → Show weekday mornings only
-        if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
-            return isWeekday(availabilityDate) && isMorning(availability.time);
-        }
-        
-        // Flexible Weekday voucher → Show all weekdays (any time)
-        if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
-            return isWeekday(availabilityDate);
-        }
-        
-        // Anytime voucher (Any Day Flight) → Show all available schedules
-        if (voucherType === 'Any Day Flight' || voucherType === 'Anytime' || voucherType === 'Any Day') {
-            return true; // Show all dates
-        }
-
-        // Default: show all if voucher type doesn't match known types
+    const matchResult = availability.flight_types_array.some((type) => {
+      const normalizedType = normalize(type);
+      if (!normalizedType) return false;
+      if (normalizedType === selectedType) return true;
+      if (
+        normalizedType.includes(selectedType) ||
+        selectedType.includes(normalizedType)
+      )
         return true;
-    };
 
-    // For Shopify flow and Bing browser, allow filtering even if chooseFlightType is temporarily empty
-    // This ensures availabilities are shown in Chrome and Bing browsers where state updates might happen in different order
-    const shouldFilterAvailabilities = isLocationAndExperienceSelected || shopifyFlowWithData || bingBrowserWithData;
-    
-    const filteredAvailabilities = shouldFilterAvailabilities ? availabilities.filter(a => {
+      const typeKeywords = {
+        shared: normalizedType.includes("shared"),
+        private: normalizedType.includes("private"),
+        charter: normalizedType.includes("charter"),
+      };
+
+      // Consider it a match if both describe the same general experience (shared/private charter)
+      if (selectedKeywords.shared && typeKeywords.shared) return true;
+      if (selectedKeywords.private && typeKeywords.private) return true;
+      if (selectedKeywords.charter && typeKeywords.charter) return true;
+
+      return false;
+    });
+
+    return matchResult;
+  };
+
+  // Helper function to check if a date is a weekday (Monday-Friday)
+  const isWeekday = (date) => {
+    const day = date.getDay();
+    return day >= 1 && day <= 5; // Monday = 1, Friday = 5
+  };
+
+  // Helper function to check if a time is morning (typically before 12:00 PM)
+  const isMorning = (time) => {
+    if (!time) return false;
+    // Parse time string (format: "HH:mm" or "HH:mm:ss")
+    const timeParts = time.split(":");
+    const hour = parseInt(timeParts[0], 10);
+    return hour < 12; // Morning is before 12:00 PM
+  };
+
+  // Filter availabilities based on voucher type for both Redeem Voucher and Book Flight
+  const filterByVoucherType = (availability) => {
+    // Apply voucher type filtering for both Redeem Voucher and Book Flight
+    // Only filter if voucher type is selected and it's one of the shared voucher types that require date/time filtering
+    if (!selectedVoucherType?.title) {
+      return true; // No filtering needed
+    }
+
+    // Only apply date/time filtering for shared voucher types (Weekday Morning, Flexible Weekday, Any Day Flight)
+    // Private voucher types (Private Charter, Proposal Flight) don't need date/time filtering
+    const voucherType = selectedVoucherType.title;
+    const sharedVoucherTypes = [
+      "Weekday Morning",
+      "Weekday Morning Flight",
+      "Flexible Weekday",
+      "Flexible Weekday Flight",
+      "Any Day Flight",
+      "Anytime",
+      "Any Day",
+    ];
+    if (!sharedVoucherTypes.includes(voucherType)) {
+      return true; // No filtering needed for private voucher types
+    }
+
+    // Parse availability date safely
+    let availabilityDate = null;
+    if (availability.date) {
+      try {
+        // Handle different date formats
+        if (typeof availability.date === "string") {
+          // If date includes time, extract just the date part
+          const datePart = availability.date.split(" ")[0];
+          availabilityDate = new Date(datePart + "T00:00:00"); // Add time to avoid timezone issues
+        } else {
+          availabilityDate = new Date(availability.date);
+        }
+
+        // Check if date is valid
+        if (isNaN(availabilityDate.getTime())) {
+          return true; // Invalid date, don't filter
+        }
+      } catch (e) {
+        console.warn("Error parsing availability date:", availability.date, e);
+        return true; // Error parsing, don't filter
+      }
+    }
+
+    if (!availabilityDate) return true; // If no date, don't filter
+
+    // Weekday Morning voucher → Show weekday mornings only
+    if (
+      voucherType === "Weekday Morning" ||
+      voucherType === "Weekday Morning Flight"
+    ) {
+      return isWeekday(availabilityDate) && isMorning(availability.time);
+    }
+
+    // Flexible Weekday voucher → Show all weekdays (any time)
+    if (
+      voucherType === "Flexible Weekday" ||
+      voucherType === "Flexible Weekday Flight"
+    ) {
+      return isWeekday(availabilityDate);
+    }
+
+    // Anytime voucher (Any Day Flight) → Show all available schedules
+    if (
+      voucherType === "Any Day Flight" ||
+      voucherType === "Anytime" ||
+      voucherType === "Any Day"
+    ) {
+      return true; // Show all dates
+    }
+
+    // Default: show all if voucher type doesn't match known types
+    return true;
+  };
+
+  // For Shopify flow and Bing browser, allow filtering even if chooseFlightType is temporarily empty
+  // This ensures availabilities are shown in Chrome and Bing browsers where state updates might happen in different order
+  const shouldFilterAvailabilities =
+    isLocationAndExperienceSelected ||
+    shopifyFlowWithData ||
+    bingBrowserWithData;
+
+  const filteredAvailabilities = shouldFilterAvailabilities
+    ? availabilities.filter((a) => {
         const slotStatus = getSlotStatus(a);
         const availableForSelection = getAvailableSeatsForSelection(a);
-        const isOpen = slotStatus === 'open' || availableForSelection > 0;
-        const hasCapacity = availableForSelection > 0 || (a.capacity && a.capacity > 0);
+        const isOpen = slotStatus === "open" || availableForSelection > 0;
+        const hasCapacity =
+          availableForSelection > 0 || (a.capacity && a.capacity > 0);
         const matchesExp = matchesExperience(a);
         const matchesLoc = matchesLocation(a);
         const isAvailable = isOpen && hasCapacity && matchesLoc && matchesExp;
-        
+
         // If voucher type is selected, restrict to matching voucher types (backend includes 'voucher_types' on each availability)
         const availabilityVoucherTypes = getVoucherTypesForAvailability(a);
-        const normalizedAvailabilityTypes = availabilityVoucherTypes.map(normalizeVoucherName);
-        const normalizedSelectedVoucher = normalizeVoucherName(selectedVoucherType?.title || '');
-        const isWildcardVoucher = normalizedAvailabilityTypes.length === 0 ||
-            normalizedAvailabilityTypes.some(type => voucherWildcardTerms.includes(type));
-        
+        const normalizedAvailabilityTypes =
+          availabilityVoucherTypes.map(normalizeVoucherName);
+        const normalizedSelectedVoucher = normalizeVoucherName(
+          selectedVoucherType?.title || "",
+        );
+        const isWildcardVoucher =
+          normalizedAvailabilityTypes.length === 0 ||
+          normalizedAvailabilityTypes.some((type) =>
+            voucherWildcardTerms.includes(type),
+          );
+
         // Check for exact match first
         let matchesVoucher = false;
         if (!normalizedSelectedVoucher || isWildcardVoucher) {
-            matchesVoucher = true;
+          matchesVoucher = true;
         } else {
-            // First try exact match on normalized strings (this should work for "Proposal Flight" -> "proposal flight")
-            // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
-            matchesVoucher = normalizedAvailabilityTypes.some(type => {
-                const normalizedType = type.trim();
-                return normalizedType === normalizedSelectedVoucher || normalizedType === normalizedSelectedVoucher.trim();
-            });
-            
-            // Also try exact match on raw strings (case-insensitive, trimmed) as a fallback
-            // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
-            if (!matchesVoucher && selectedVoucherType?.title) {
-                const selectedTitleLower = selectedVoucherType.title.toLowerCase().trim();
-                matchesVoucher = availabilityVoucherTypes.some(type => {
-                    const typeStr = typeof type === 'string' ? type : String(type);
-                    const typeLower = typeStr.toLowerCase().trim();
-                    // Check for exact match (handles both "proposal flight" and "proposal flight " with trailing space)
-                    return typeLower === selectedTitleLower || 
-                           typeLower === selectedTitleLower + ' ' ||
-                           selectedTitleLower === typeLower + ' ';
-                });
-            }
-            
-            // If still no exact match, check for private flight voucher types (Proposal Flight and Private Charter)
-            // These can sometimes be stored differently but refer to the same availability
-            if (!matchesVoucher) {
-                // Check if selected voucher is "Proposal Flight" (normalized: "proposal flight")
-                // Handle both "Proposal Flight" and "Proposal Flight " (with trailing space)
-                const selectedTitle = selectedVoucherType?.title || '';
-                const selectedTitleLower = selectedTitle.toLowerCase().trim();
-                const isProposalFlight = (normalizedSelectedVoucher.includes('proposal') && !normalizedSelectedVoucher.includes('private charter')) ||
-                    (selectedTitleLower === 'proposal flight' || selectedTitleLower.includes('proposal flight'));
-                
-                // Check if selected voucher is "Private Charter" (normalized: "private charter")
-                const isPrivateCharter = normalizedSelectedVoucher.includes('private charter') || 
-                    (normalizedSelectedVoucher.includes('private') && !normalizedSelectedVoucher.includes('proposal') && !normalizedSelectedVoucher.includes('charter')) ||
-                    (selectedTitleLower === 'private charter' || selectedTitleLower.includes('private charter'));
-                
-                if (isProposalFlight) {
-                    // If selected is "Proposal Flight", check if availability has "Proposal Flight" in its voucher types
-                    // This handles cases where availability has "Proposal Flight" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
-                    // Check normalized strings first
-                    matchesVoucher = normalizedAvailabilityTypes.some(type => {
-                        // Check for exact "proposal flight" match or "proposal" without "private charter"
-                        // Note: type is already normalized (lowercase) from normalizeVoucherName
-                        // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
-                        const normalizedType = type.trim();
-                        return normalizedType === 'proposal flight' || 
-                               (normalizedType.includes('proposal') && !normalizedType.includes('private charter'));
-                    });
-                    
-                    // Also check raw strings for "Proposal Flight" (case-insensitive, trimmed)
-                    // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
-                    if (!matchesVoucher) {
-                        matchesVoucher = availabilityVoucherTypes.some(type => {
-                            const typeStr = typeof type === 'string' ? type : String(type);
-                            const typeLower = typeStr.toLowerCase().trim();
-                            // Check for exact match or partial match
-                            // Handle both "proposal flight" and "proposal flight " (with trailing space)
-                            return typeLower === 'proposal flight' || 
-                                   typeLower === 'proposal flight ' ||
-                                   (typeLower.includes('proposal flight') && !typeLower.includes('private charter')) ||
-                                   (typeLower.includes('proposal') && !typeLower.includes('private charter'));
-                        });
-                    }
-                } else if (isPrivateCharter) {
-                    // If selected is "Private Charter", check if availability has "Private Charter" in its voucher types
-                    // This handles cases where availability has "Private Charter" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
-                    matchesVoucher = normalizedAvailabilityTypes.some(type => {
-                        // Check for exact "private charter" match or "private charter" with or without "proposal"
-                        // Note: type is already normalized (lowercase) from normalizeVoucherName
-                        const normalizedType = type.trim();
-                        return normalizedType === 'private charter' || 
-                               normalizedType.includes('private charter');
-                    });
-                    
-                    // Also check raw strings for "Private Charter" (case-insensitive, trimmed)
-                    // This handles cases like "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
-                    if (!matchesVoucher) {
-                        matchesVoucher = availabilityVoucherTypes.some(type => {
-                            const typeStr = typeof type === 'string' ? type : String(type);
-                            const typeLower = typeStr.toLowerCase().trim();
-                            return typeLower === 'private charter' || 
-                                   typeLower === 'private charter ' ||
-                                   typeLower.includes('private charter');
-                        });
-                    }
-                }
-            }
-        }
-        
-        // Additional debug logging for Proposal Flight and Private Charter
-        if (normalizedSelectedVoucher && (normalizedSelectedVoucher.includes('proposal') || normalizedSelectedVoucher.includes('private'))) {
-            console.log(`[Voucher Match Debug] Availability ${a.id}: normalizedSelectedVoucher="${normalizedSelectedVoucher}", normalizedAvailabilityTypes=${JSON.stringify(normalizedAvailabilityTypes)}, matchesVoucher=${matchesVoucher}, exactMatch=${normalizedAvailabilityTypes.includes(normalizedSelectedVoucher)}, rawVoucherTypes=${JSON.stringify(availabilityVoucherTypes)}`);
-        }
-        
-        // Apply voucher type filtering for Redeem Voucher
-        const matchesVoucherTypeFilter = filterByVoucherType(a);
-        
-        console.log(`Availability ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucher=${matchesVoucher}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}, voucher_types=${JSON.stringify(availabilityVoucherTypes)}, normalizedAvailabilityTypes=${JSON.stringify(normalizedAvailabilityTypes)}, normalizedSelectedVoucher=${normalizedSelectedVoucher}`);
-        return isAvailable && matchesVoucher && matchesVoucherTypeFilter;
-    }) : [];
-    console.log('Filtered availabilities (all times):', filteredAvailabilities);
-    
-    // Alternative filtering: if the above is too restrictive, try this
-    // For Shopify flow, allow filtering even if chooseFlightType is temporarily empty
-    const alternativeFiltered = shouldFilterAvailabilities ? availabilities.filter(a => {
-        const hasDate = a.date && a.date.length > 0;
-        const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
-        const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
-        
-        // Apply voucher type filtering for Redeem Voucher
-        const matchesVoucherTypeFilter = filterByVoucherType(a);
-        
-        console.log(`Alternative filter ${a.id}: date=${a.date}, time=${a.time}, status=${a.status}, available=${a.available}, capacity=${a.capacity}, isAvailable=${isAvailable}, matchesVoucherTypeFilter=${matchesVoucherTypeFilter}`);
-        return isAvailable && matchesVoucherTypeFilter;
-    }) : [];
-    console.log('Alternative filtered availabilities:', alternativeFiltered);
-    
-    // Use the more permissive filtering if the strict one returns nothing
-    const mergeAvailabilityLists = () => {
-        if (filteredAvailabilities.length === 0) {
-            return alternativeFiltered;
-        }
-        const slotKey = (slot) => slot?.id ?? `${slot?.date || 'n/a'}|${slot?.time || '00:00'}|${slot?.location || ''}|${slot?.activity_id || ''}`;
-        const strictKeys = new Set(filteredAvailabilities.map(slotKey));
-        const merged = [...filteredAvailabilities];
-        alternativeFiltered.forEach(slot => {
-            const key = slotKey(slot);
-            if (!strictKeys.has(key)) {
-                merged.push(slot);
-            }
-        });
-        return merged;
-    };
-
-    let finalFilteredAvailabilities = mergeAvailabilityLists();
-    
-    // For Chrome browser, if finalFilteredAvailabilities is empty but we have availabilities data
-    // and location/experience are selected, manually filter availabilities
-    // This handles cases where state updates happen in different order in Chrome
-    // Note: isChromeBrowser is already declared above for loading state management
-    if (isChromeBrowser && finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0) {
-        const hasLocationAndActivity = chooseLocation && selectedActivity && selectedActivity.length > 0;
-        const hasFlightTypeOrShopify = chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
-        const chromeShouldFilter = hasLocationAndActivity && (
-            (activitySelect === 'Book Flight' && hasFlightTypeOrShopify) ||
-            (activitySelect === 'Redeem Voucher') ||
-            (activitySelect !== 'Book Flight' && activitySelect !== 'Redeem Voucher')
-        );
-        
-        if (chromeShouldFilter) {
-            console.log('⚠️ Chrome - finalFilteredAvailabilities is empty, manually filtering availabilities');
-            finalFilteredAvailabilities = availabilities.filter(a => {
-                const hasDate = a.date && a.date.length > 0;
-                const hasCapacity = getAvailableSeatsForSelection(a) > 0 || (a.capacity && a.capacity > 0);
-                const isAvailable = hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
-                const matchesVoucherTypeFilter = filterByVoucherType(a);
-                return isAvailable && matchesVoucherTypeFilter;
-            });
-            console.log('Chrome - Manually filtered availabilities:', finalFilteredAvailabilities.length);
-        }
-    }
-    
-    console.log('Final filtered availabilities:', finalFilteredAvailabilities);
-    
-    const availableDates = Array.from(new Set(finalFilteredAvailabilities.map(a => a.date)));
-    console.log('Available dates from server:', availableDates);
-    
-    const getTimesForDate = (date) => {
-        // Use local date string to avoid timezone issues
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        
-        console.log(`Looking for date: ${dateStr}`);
-        let matchingAvailabilities = finalFilteredAvailabilities.filter(a => {
-            console.log(`Comparing ${a.date} with ${dateStr}, status: ${a.status}, available: ${a.available}`);
-            return a.date === dateStr;
-        });
-        
-        // For Chrome browser, if matchingAvailabilities is empty but availabilities has data,
-        // manually filter availabilities for this date
-        if (isChromeBrowser && matchingAvailabilities.length === 0 && availabilities && availabilities.length > 0 && shouldFilterAvailabilities) {
-            console.log('⚠️ Chrome - getTimesForDate: matchingAvailabilities is empty, manually filtering');
-            matchingAvailabilities = availabilities.filter(a => {
-                const matchesLoc = matchesLocation(a);
-                const matchesExp = matchesExperience(a);
-                const matchesVoucherTypeFilter = filterByVoucherType(a);
-                return a.date === dateStr && matchesLoc && matchesExp && matchesVoucherTypeFilter;
-            });
-            console.log(`Chrome - Manually filtered times for ${dateStr}:`, matchingAvailabilities.length);
-        }
-        
-        // Apply additional voucher type filtering for Weekday Morning (must be morning times)
-        // Apply for both Redeem Voucher and Book Flight
-        if ((activitySelect === 'Redeem Voucher' || activitySelect === 'Book Flight') && selectedVoucherType?.title) {
-            const voucherType = selectedVoucherType.title;
-            if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
-                // Filter to only show morning times (before 12:00 PM)
-                matchingAvailabilities = matchingAvailabilities.filter(a => isMorning(a.time));
-                console.log(`After morning filter: ${matchingAvailabilities.length} availabilities for ${dateStr}`);
-            }
-        }
-        
-        console.log(`Found ${matchingAvailabilities.length} availabilities for ${dateStr}`);
-        return matchingAvailabilities;
-    };
-
-    // Günlük toplam available hesapla
-    const getSpacesForDate = (date) => {
-        // Use local date string to avoid timezone issues
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        
-        console.log(`getSpacesForDate called for: ${dateStr}`);
-        console.log(`Input date object:`, date);
-        console.log(`Manual date string:`, dateStr);
-        console.log(`Today object:`, today);
-        console.log(`Today manual:`, `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
-        console.log(`All availabilities:`, availabilities);
-        console.log(`Sample availability dates:`, availabilities.slice(0, 3).map(a => ({ id: a.id, date: a.date, originalDate: a.date })));
-        console.log(`finalFilteredAvailabilities length:`, finalFilteredAvailabilities.length);
-        console.log(`shouldFilterAvailabilities:`, shouldFilterAvailabilities);
-        console.log(`isLocationAndExperienceSelected:`, isLocationAndExperienceSelected);
-        
-        // For Chrome browser, if finalFilteredAvailabilities is empty but availabilities has data,
-        // use availabilities directly with location/experience filtering
-        // This handles cases where state updates happen in different order in Chrome
-        let slotsToUse = finalFilteredAvailabilities;
-        if (finalFilteredAvailabilities.length === 0 && availabilities && availabilities.length > 0 && shouldFilterAvailabilities) {
-            console.log('⚠️ Chrome - finalFilteredAvailabilities is empty, using availabilities with manual filtering');
-            // Manually filter availabilities for this date (include voucher type filter for shared vs private)
-            slotsToUse = availabilities.filter(a => {
-                const matchesLoc = matchesLocation(a);
-                const matchesExp = matchesExperience(a);
-                const matchesVoucherTypeFilter = filterByVoucherType(a);
-                return a.date === dateStr && matchesLoc && matchesExp && matchesVoucherTypeFilter;
-            });
-            console.log(`Chrome - Manually filtered slots for ${dateStr}:`, slotsToUse.length);
-        }
-        
-        // Check ALL availabilities for this date (including capacity = 0) - use filtered list
-        const allSlotsForDate = slotsToUse.filter(a => a.date === dateStr);
-        console.log(`All slots for ${dateStr}:`, allSlotsForDate);
-        console.log(`Slot statuses for ${dateStr}:`, allSlotsForDate.map(slot => ({ 
-            id: slot.id, 
-            status: slot.status, 
-            available: slot.available, 
-            capacity: slot.capacity,
-            date: slot.date,
-            time: slot.time
-        })));
-        console.log(`Raw availabilities for ${dateStr}:`, slotsToUse.filter(a => a.date === dateStr));
-        
-        // Get open/available slots (capacity > 0) for totals
-        const availableSlots = slotsToUse.filter(a => a.date === dateStr);
-        const total = availableSlots.reduce((sum, s) => sum + getAvailableSeatsForSelection(s), 0);
-        const sharedTotal = availableSlots.reduce((sum, s) => sum + getRemainingSeats(s), 0);
-        
-        const hasOpenSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'open' || getRemainingSeats(slot) > 0);
-        const hasClosedSlots = allSlotsForDate.some(slot => getSlotStatus(slot) === 'closed');
-        const allSlotsClosed = allSlotsForDate.length > 0 && allSlotsForDate.every(slot => getSlotStatus(slot) === 'closed' && getRemainingSeats(slot) <= 0);
-        const selectionHasAvailability = availableSlots.some(slot => getAvailableSeatsForSelection(slot) > 0);
-        const sharedSoldOut = (allSlotsForDate.length > 0 && sharedTotal === 0 && !hasOpenSlots) || allSlotsClosed;
-        const selectionSoldOut = availableSlots.length === 0 || !selectionHasAvailability;
-        const privateAvailable = isPrivateSelection ? selectionHasAvailability : !sharedSoldOut;
-        
-        console.log(`Date ${dateStr}: allSlots=${allSlotsForDate.length}, availableSlots=${availableSlots.length}, total=${total}, sharedTotal=${sharedTotal}, selectionHasAvailability=${selectionHasAvailability}, soldOutSelection=${selectionSoldOut}, soldOutShared=${sharedSoldOut}`);
-        // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
-        return {
-            total,
-            sharedTotal,
-            sharedSoldOut,
-            privateAvailable,
-            soldOut: selectionSoldOut,
-            slots: allSlotsForDate
-        };
-    };
-
-        const renderDays = () => {
-        const days = [];
-        
-        // Use startOfWeek to get the correct offset for the first row (Monday as first day)
-        // Create dates using local components to avoid timezone issues
-        const startDateYear = startDate.getFullYear();
-        const startDateMonth = startDate.getMonth();
-        const startDateDay = startDate.getDate();
-        const startDateLocal = new Date(startDateYear, startDateMonth, startDateDay, 0, 0, 0, 0);
-        
-        const weekStart = startOfWeek(startDateLocal, { weekStartsOn: 1 });
-        // Ensure weekStart is also in local timezone
-        const weekStartYear = weekStart.getFullYear();
-        const weekStartMonth = weekStart.getMonth();
-        const weekStartDay = weekStart.getDate();
-        let dayPointer = new Date(weekStartYear, weekStartMonth, weekStartDay, 0, 0, 0, 0);
-        
-        // Calculate the end of the week that contains the end of the month
-        const endDateYear = endDate.getFullYear();
-        const endDateMonth = endDate.getMonth();
-        const endDateDay = endDate.getDate();
-        const endDateLocal = new Date(endDateYear, endDateMonth, endDateDay, 0, 0, 0, 0);
-        const weekEnd = endOfWeek(endDateLocal, { weekStartsOn: 1 });
-        
-        // Fill days from week start to week end to ensure correct grid alignment
-        while (dayPointer <= weekEnd) {
-            // Create date copy using local components to avoid timezone shifts
-            const dayPointerYear = dayPointer.getFullYear();
-            const dayPointerMonth = dayPointer.getMonth();
-            const dayPointerDay = dayPointer.getDate();
-            const dateCopy = new Date(dayPointerYear, dayPointerMonth, dayPointerDay, 0, 0, 0, 0);
-            
-            const isBeforeMonth = dateCopy < startDateLocal;
-            const isAfterMonth = dateCopy > endDateLocal;
-            
-            if (isBeforeMonth || isAfterMonth) {
-                // Before or after the month - render empty placeholder to maintain grid alignment
-                // Keep element in DOM with minimal size to maintain grid structure
-                days.push(
-                    <div
-                        key={`empty-${dateCopy.getTime()}`}
-                        className="day empty-day"
-                        style={{
-                            visibility: 'hidden',
-                            opacity: 0,
-                            pointerEvents: 'none',
-                            minHeight: daySize,
-                            minWidth: daySize,
-                            height: daySize,
-                            width: daySize,
-                            padding: 0,
-                            margin: isMobile ? '1px' : 2,
-                            border: 'none',
-                            background: 'transparent'
-                        }}
-                        aria-hidden="true"
-                    />
-                );
-                // Increment dayPointer using addDays (timezone-safe)
-                dayPointer = addDays(dayPointer, 1);
-                continue;
-            } else {
-                // Within the month
-                // dateCopy is already created using local components above
-                const dateCopyStartOfDay = dateCopy;
-                
-                const todayYear = today.getFullYear();
-                const todayMonth = today.getMonth();
-                const todayDay = today.getDate();
-                const todayStartOfDay = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
-                
-                const isPastDate = dateCopyStartOfDay < todayStartOfDay;
-                const isSelected = selectedDate && selectedDate.toDateString() === dateCopy.toDateString();
-                
-                // Apply voucher type filtering for both Redeem Voucher and Book Flight - check if this date should be shown
-                let shouldShowDate = true;
-                if ((activitySelect === 'Redeem Voucher' || activitySelect === 'Book Flight') && selectedVoucherType?.title) {
-                    const voucherType = selectedVoucherType.title;
-                    // Weekday Morning voucher → Show weekday mornings only
-                    if (voucherType === 'Weekday Morning' || voucherType === 'Weekday Morning Flight') {
-                        // Must be weekday AND have morning slots available
-                        const isWeekdayDate = isWeekday(dateCopy);
-                        if (isWeekdayDate) {
-                            // Check if there are any morning slots for this date
-                            const year = dateCopy.getFullYear();
-                            const month = String(dateCopy.getMonth() + 1).padStart(2, '0');
-                            const day = String(dateCopy.getDate()).padStart(2, '0');
-                            const dateStr = `${year}-${month}-${day}`;
-                            const slotsForDate = finalFilteredAvailabilities.filter(a => a.date === dateStr);
-                            const hasMorningSlots = slotsForDate.some(slot => isMorning(slot.time));
-                            shouldShowDate = hasMorningSlots;
-                        } else {
-                            shouldShowDate = false;
-                        }
-                    }
-                    // Flexible Weekday voucher → Show all weekdays (any time)
-                    else if (voucherType === 'Flexible Weekday' || voucherType === 'Flexible Weekday Flight') {
-                        shouldShowDate = isWeekday(dateCopy);
-                    }
-                    // Anytime voucher (Any Day Flight) → Show all available schedules
-                    // No filtering needed, shouldShowDate remains true
-                }
-                
-                const { total, sharedSoldOut, privateAvailable, soldOut: soldOutFromCalc, slots } = getSpacesForDate(dateCopy);
-                // soldOutFromCalc already represents "sold out for this specific selection"
-                const soldOut = soldOutFromCalc;
-                const isAvailable = shouldShowDate && !soldOut && (isPrivateSelection ? privateAvailable : total > 0);
-                const pulse = false; // disable pulsing highlight
-                
-                // If shouldShowDate is false (due to voucher type filtering), show date as disabled/grey
-                // This applies to weekend dates for "Weekday Morning" or "Flexible Weekday" vouchers
-                if (!shouldShowDate && (activitySelect === 'Redeem Voucher' || activitySelect === 'Book Flight') && selectedVoucherType?.title) {
-                    // Override isAvailable and isInteractive to make date disabled
-                    const isAvailable = false;
-                    const isInteractive = false;
-                    const soldOut = false; // Not sold out, just not available for this voucher type
-                    
-                    days.push(
-                        <div
-                            key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`}
-                            className={`day disabled`}
-                            style={{
-                                cursor: 'not-allowed',
-                                background: '#bbb',
-                                color: '#fff',
-                                borderRadius: isMobile ? 4 : 8,
-                                margin: isMobile ? '1px' : 2,
-                                padding: isMobile ? '0' : 2,
-                                minHeight: daySize,
-                                minWidth: daySize,
-                                maxWidth: daySize,
-                                width: daySize,
-                                height: daySize,
-                                boxSizing: 'border-box',
-                                position: 'relative',
-                                border: 'none',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                            aria-disabled="true"
-                        >
-                            <div style={{ 
-                                fontSize: isMobile ? 12 : 18, 
-                                fontWeight: 600,
-                                lineHeight: 1,
-                                color: '#fff'
-                            }}>
-                                {format(dateCopy, 'd')}
-                            </div>
-                        </div>
-                    );
-                    // Increment dayPointer using addDays (timezone-safe)
-                    dayPointer = addDays(dayPointer, 1);
-                    continue;
-                }
-                
-                // Determine if date should be interactive
-                // For Shopify flow and Bing browser, allow interaction even if chooseFlightType is temporarily empty (if we have availabilities data)
-                const isInteractive = !isPastDate && isAvailable && (isLocationAndExperienceSelected || shopifyFlowWithData || bingBrowserWithData) && !soldOut;
-                
-                days.push(
-                    <div
-                        key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, '0')}-${String(dateCopy.getDate()).padStart(2, '0')}`}
-                        className={`day ${isPastDate || (!isAvailable && !soldOut) ? 'disabled' : ''} ${!isPastDate && isAvailable && !soldOut ? 'available-day' : ''} ${isSelected ? 'selected' : ''} ${soldOut ? 'sold-out' : ''} ${pulse && !isPastDate ? 'pulse' : ''}`}
-                        onClick={() => isInteractive && handleDateClick(dateCopy)}
-                        style={{
-                            // Past days should always appear dimmed
-                            opacity: isPastDate ? 0.5 : (soldOut ? 1 : (isAvailable ? (isLocationAndExperienceSelected ? 1 : 0.3) : 0.5)),
-                            cursor: isInteractive ? 'pointer' : 'not-allowed',
-                            background: isSelected ? '#56C1FF' : isPastDate ? '#ddd' : soldOut ? '#888' : isAvailable ? '#00eb5b' : '',
-                            color: isPastDate ? '#999' : soldOut ? '#fff' : isAvailable ? '#fff' : '#888',
-                            borderRadius: isMobile ? 4 : 8,
-                            margin: isMobile ? '1px' : 2,
-                            padding: isMobile ? '0' : 2,
-                            minHeight: daySize,
-                            minWidth: daySize,
-                            maxWidth: daySize,
-                            width: daySize,
-                            height: daySize,
-                            boxSizing: 'border-box',
-                            position: 'relative',
-                            border: isSelected ? '2px solid #56C1FF' : 'none',
-                            boxShadow: isSelected ? '0 0 0 2px #56C1FF' : 'none',
-                            // Disable pulsing shadow
-                            animation: 'none',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <div style={{ 
-                            fontSize: isMobile ? 12 : 18, 
-                            fontWeight: 600,
-                            lineHeight: 1
-                        }}>
-                            {format(dateCopy, 'd')}
-                        </div>
-                        {isAvailable && !isPastDate && !isMobile && (
-                            <div style={{ 
-                                fontSize: 11, 
-                                marginTop: 4, 
-                                fontWeight: 500,
-                                lineHeight: 1,
-                                textAlign: 'center'
-                            }}>
-                                {(chooseFlightType?.type || '').toLowerCase().includes('private') ? 'Available' : `${total} Space${total > 1 ? 's' : ''}`}
-                            </div>
-                        )}
-                        {soldOut && !isPastDate && !isMobile && (
-                            <div
-                                className="day-status sold-out-status"
-                                style={{
-                                    fontSize: 11,
-                                    marginTop: 4,
-                                    color: '#fff',
-                                    fontWeight: 600,
-                                    lineHeight: 1,
-                                    textAlign: 'center',
-                                    width: '100%',
-                                    maxWidth: '100%',
-                                    minHeight: '14px'
-                                }}
-                            />
-                        )}
-                        {/* Remove "Not Available" text to clean up layout */}
-                        {/* {!isAvailable && !isPastDate && !soldOut && (
-                            <div style={{ fontSize: 12, marginTop: 2, color: '#666' }}>
-                                Not Available
-                            </div>
-                        )} */}
-                        {/* Remove instruction text from calendar boxes to fix layout */}
-                        {/* {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
-                            <div style={{ fontSize: 10, marginTop: 2, color: '#666', textAlign: 'center' }}>
-                                {activitySelect === 'Redeem Voucher' ? 'Select Location & Experience' : 'Select Location, Experience & Voucher Type'}
-                            </div>
-                        )} */}
-                    </div>
-                );
-            }
-            // Increment dayPointer using addDays (timezone-safe)
-            dayPointer = addDays(dayPointer, 1);
-        }
-        
-        return days;
-    };
-
-    const handleRequestSubmit = async () => {
-        setRequestSuccess("");
-        setRequestError("");
-        try {
-            const res = await axios.post(
-                process.env.REACT_APP_API_URL + "/api/date-request",
-                {
-                    name: requestName,
-                    phone: requestPhone,
-                    email: requestEmail,
-                    location: requestLocation,
-                    flight_type: requestFlightType,
-                    requested_date: requestDate,
-                    preferred_time: requestTime
-                }
+          // First try exact match on normalized strings (this should work for "Proposal Flight" -> "proposal flight")
+          // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
+          matchesVoucher = normalizedAvailabilityTypes.some((type) => {
+            const normalizedType = type.trim();
+            return (
+              normalizedType === normalizedSelectedVoucher ||
+              normalizedType === normalizedSelectedVoucher.trim()
             );
-            if (res.data.success) {
-                setRequestSuccess("We will be in touch shortly");
-                setTimeout(() => {
-                    setRequestModalOpen(false);
-                    setRequestName(""); setRequestPhone(""); setRequestEmail(""); setRequestLocation(""); setRequestFlightType(""); setRequestDate(""); setRequestTime("");
-                    setRequestSuccess("");
-                }, 5000);
-            } else {
-                setRequestError("Failed to submit request. Please try again.");
+          });
+
+          // Also try exact match on raw strings (case-insensitive, trimmed) as a fallback
+          // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
+          if (!matchesVoucher && selectedVoucherType?.title) {
+            const selectedTitleLower = selectedVoucherType.title
+              .toLowerCase()
+              .trim();
+            matchesVoucher = availabilityVoucherTypes.some((type) => {
+              const typeStr = typeof type === "string" ? type : String(type);
+              const typeLower = typeStr.toLowerCase().trim();
+              // Check for exact match (handles both "proposal flight" and "proposal flight " with trailing space)
+              return (
+                typeLower === selectedTitleLower ||
+                typeLower === selectedTitleLower + " " ||
+                selectedTitleLower === typeLower + " "
+              );
+            });
+          }
+
+          // If still no exact match, check for private flight voucher types (Proposal Flight and Private Charter)
+          // These can sometimes be stored differently but refer to the same availability
+          if (!matchesVoucher) {
+            // Check if selected voucher is "Proposal Flight" (normalized: "proposal flight")
+            // Handle both "Proposal Flight" and "Proposal Flight " (with trailing space)
+            const selectedTitle = selectedVoucherType?.title || "";
+            const selectedTitleLower = selectedTitle.toLowerCase().trim();
+            const isProposalFlight =
+              (normalizedSelectedVoucher.includes("proposal") &&
+                !normalizedSelectedVoucher.includes("private charter")) ||
+              selectedTitleLower === "proposal flight" ||
+              selectedTitleLower.includes("proposal flight");
+
+            // Check if selected voucher is "Private Charter" (normalized: "private charter")
+            const isPrivateCharter =
+              normalizedSelectedVoucher.includes("private charter") ||
+              (normalizedSelectedVoucher.includes("private") &&
+                !normalizedSelectedVoucher.includes("proposal") &&
+                !normalizedSelectedVoucher.includes("charter")) ||
+              selectedTitleLower === "private charter" ||
+              selectedTitleLower.includes("private charter");
+
+            if (isProposalFlight) {
+              // If selected is "Proposal Flight", check if availability has "Proposal Flight" in its voucher types
+              // This handles cases where availability has "Proposal Flight" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+              // Check normalized strings first
+              matchesVoucher = normalizedAvailabilityTypes.some((type) => {
+                // Check for exact "proposal flight" match or "proposal" without "private charter"
+                // Note: type is already normalized (lowercase) from normalizeVoucherName
+                // Handle both "proposal flight" and "proposal flight " (with trailing space after normalization)
+                const normalizedType = type.trim();
+                return (
+                  normalizedType === "proposal flight" ||
+                  (normalizedType.includes("proposal") &&
+                    !normalizedType.includes("private charter"))
+                );
+              });
+
+              // Also check raw strings for "Proposal Flight" (case-insensitive, trimmed)
+              // This handles cases like "Proposal Flight ,Private Charter" or "Private Charter,Proposal Flight"
+              if (!matchesVoucher) {
+                matchesVoucher = availabilityVoucherTypes.some((type) => {
+                  const typeStr =
+                    typeof type === "string" ? type : String(type);
+                  const typeLower = typeStr.toLowerCase().trim();
+                  // Check for exact match or partial match
+                  // Handle both "proposal flight" and "proposal flight " (with trailing space)
+                  return (
+                    typeLower === "proposal flight" ||
+                    typeLower === "proposal flight " ||
+                    (typeLower.includes("proposal flight") &&
+                      !typeLower.includes("private charter")) ||
+                    (typeLower.includes("proposal") &&
+                      !typeLower.includes("private charter"))
+                  );
+                });
+              }
+            } else if (isPrivateCharter) {
+              // If selected is "Private Charter", check if availability has "Private Charter" in its voucher types
+              // This handles cases where availability has "Private Charter" or "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+              matchesVoucher = normalizedAvailabilityTypes.some((type) => {
+                // Check for exact "private charter" match or "private charter" with or without "proposal"
+                // Note: type is already normalized (lowercase) from normalizeVoucherName
+                const normalizedType = type.trim();
+                return (
+                  normalizedType === "private charter" ||
+                  normalizedType.includes("private charter")
+                );
+              });
+
+              // Also check raw strings for "Private Charter" (case-insensitive, trimmed)
+              // This handles cases like "Private Charter,Proposal Flight" or "Proposal Flight ,Private Charter"
+              if (!matchesVoucher) {
+                matchesVoucher = availabilityVoucherTypes.some((type) => {
+                  const typeStr =
+                    typeof type === "string" ? type : String(type);
+                  const typeLower = typeStr.toLowerCase().trim();
+                  return (
+                    typeLower === "private charter" ||
+                    typeLower === "private charter " ||
+                    typeLower.includes("private charter")
+                  );
+                });
+              }
             }
-        } catch (err) {
-            setRequestError("Failed to submit request. Please try again.");
-        }
-    };
-
-    const openRequestDateModal = () => {
-        if (!chooseLocation || !chooseFlightType?.type) {
-            setIsModalOpen(true);
-            return;
+          }
         }
 
-        setRequestLocation(chooseLocation || "");
-        setRequestFlightType(chooseFlightType?.type || "");
-        setRequestSuccess("");
-        setRequestError("");
-        setRequestModalOpen(true);
+        // Additional debug logging for Proposal Flight and Private Charter
+        if (
+          normalizedSelectedVoucher &&
+          (normalizedSelectedVoucher.includes("proposal") ||
+            normalizedSelectedVoucher.includes("private"))
+        ) {
+        }
+
+        // Apply voucher type filtering for Redeem Voucher
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+
+        return isAvailable && matchesVoucher && matchesVoucherTypeFilter;
+      })
+    : [];
+
+  // Alternative filtering: if the above is too restrictive, try this
+  // For Shopify flow, allow filtering even if chooseFlightType is temporarily empty
+  const alternativeFiltered = shouldFilterAvailabilities
+    ? availabilities.filter((a) => {
+        const hasDate = a.date && a.date.length > 0;
+        const hasCapacity =
+          getAvailableSeatsForSelection(a) > 0 ||
+          (a.capacity && a.capacity > 0);
+        const isAvailable =
+          hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
+
+        // Apply voucher type filtering for Redeem Voucher
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+
+        return isAvailable && matchesVoucherTypeFilter;
+      })
+    : [];
+
+  // Use the more permissive filtering if the strict one returns nothing
+  const mergeAvailabilityLists = () => {
+    if (filteredAvailabilities.length === 0) {
+      return alternativeFiltered;
+    }
+    const slotKey = (slot) =>
+      slot?.id ??
+      `${slot?.date || "n/a"}|${slot?.time || "00:00"}|${slot?.location || ""}|${slot?.activity_id || ""}`;
+    const strictKeys = new Set(filteredAvailabilities.map(slotKey));
+    const merged = [...filteredAvailabilities];
+    alternativeFiltered.forEach((slot) => {
+      const key = slotKey(slot);
+      if (!strictKeys.has(key)) {
+        merged.push(slot);
+      }
+    });
+    return merged;
+  };
+
+  let finalFilteredAvailabilities = mergeAvailabilityLists();
+
+  // For Chrome browser, if finalFilteredAvailabilities is empty but we have availabilities data
+  // and location/experience are selected, manually filter availabilities
+  // This handles cases where state updates happen in different order in Chrome
+  // Note: isChromeBrowser is already declared above for loading state management
+  if (
+    isChromeBrowser &&
+    finalFilteredAvailabilities.length === 0 &&
+    availabilities &&
+    availabilities.length > 0
+  ) {
+    const hasLocationAndActivity =
+      chooseLocation && selectedActivity && selectedActivity.length > 0;
+    const hasFlightTypeOrShopify =
+      chooseFlightType?.type || (isShopifyFlow && hasLocationAndActivity);
+    const chromeShouldFilter =
+      hasLocationAndActivity &&
+      ((activitySelect === "Book Flight" && hasFlightTypeOrShopify) ||
+        activitySelect === "Redeem Voucher" ||
+        (activitySelect !== "Book Flight" &&
+          activitySelect !== "Redeem Voucher"));
+
+    if (chromeShouldFilter) {
+      finalFilteredAvailabilities = availabilities.filter((a) => {
+        const hasDate = a.date && a.date.length > 0;
+        const hasCapacity =
+          getAvailableSeatsForSelection(a) > 0 ||
+          (a.capacity && a.capacity > 0);
+        const isAvailable =
+          hasDate && hasCapacity && matchesLocation(a) && matchesExperience(a);
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+        return isAvailable && matchesVoucherTypeFilter;
+      });
+    }
+  }
+
+  const availableDates = Array.from(
+    new Set(finalFilteredAvailabilities.map((a) => a.date)),
+  );
+
+  const getTimesForDate = (date) => {
+    // Use local date string to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
+    let matchingAvailabilities = finalFilteredAvailabilities.filter((a) => {
+      return a.date === dateStr;
+    });
+
+    // For Chrome browser, if matchingAvailabilities is empty but availabilities has data,
+    // manually filter availabilities for this date
+    if (
+      isChromeBrowser &&
+      matchingAvailabilities.length === 0 &&
+      availabilities &&
+      availabilities.length > 0 &&
+      shouldFilterAvailabilities
+    ) {
+      matchingAvailabilities = availabilities.filter((a) => {
+        const matchesLoc = matchesLocation(a);
+        const matchesExp = matchesExperience(a);
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+        return (
+          a.date === dateStr &&
+          matchesLoc &&
+          matchesExp &&
+          matchesVoucherTypeFilter
+        );
+      });
+    }
+
+    // Apply additional voucher type filtering for Weekday Morning (must be morning times)
+    // Apply for both Redeem Voucher and Book Flight
+    if (
+      (activitySelect === "Redeem Voucher" ||
+        activitySelect === "Book Flight") &&
+      selectedVoucherType?.title
+    ) {
+      const voucherType = selectedVoucherType.title;
+      if (
+        voucherType === "Weekday Morning" ||
+        voucherType === "Weekday Morning Flight"
+      ) {
+        // Filter to only show morning times (before 12:00 PM)
+        matchingAvailabilities = matchingAvailabilities.filter((a) =>
+          isMorning(a.time),
+        );
+      }
+    }
+
+    return matchingAvailabilities;
+  };
+
+  // Günlük toplam available hesapla
+  const getSpacesForDate = (date) => {
+    // Use local date string to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
+
+    // For Chrome browser, if finalFilteredAvailabilities is empty but availabilities has data,
+    // use availabilities directly with location/experience filtering
+    // This handles cases where state updates happen in different order in Chrome
+    let slotsToUse = finalFilteredAvailabilities;
+    if (
+      finalFilteredAvailabilities.length === 0 &&
+      availabilities &&
+      availabilities.length > 0 &&
+      shouldFilterAvailabilities
+    ) {
+      // Manually filter availabilities for this date (include voucher type filter for shared vs private)
+      slotsToUse = availabilities.filter((a) => {
+        const matchesLoc = matchesLocation(a);
+        const matchesExp = matchesExperience(a);
+        const matchesVoucherTypeFilter = filterByVoucherType(a);
+        return (
+          a.date === dateStr &&
+          matchesLoc &&
+          matchesExp &&
+          matchesVoucherTypeFilter
+        );
+      });
+    }
+
+    // Check ALL availabilities for this date (including capacity = 0) - use filtered list
+    const allSlotsForDate = slotsToUse.filter((a) => a.date === dateStr);
+
+    // Get open/available slots (capacity > 0) for totals
+    const availableSlots = slotsToUse.filter((a) => a.date === dateStr);
+    const total = availableSlots.reduce(
+      (sum, s) => sum + getAvailableSeatsForSelection(s),
+      0,
+    );
+    const sharedTotal = availableSlots.reduce(
+      (sum, s) => sum + getRemainingSeats(s),
+      0,
+    );
+
+    const hasOpenSlots = allSlotsForDate.some(
+      (slot) => getSlotStatus(slot) === "open" || getRemainingSeats(slot) > 0,
+    );
+    const hasClosedSlots = allSlotsForDate.some(
+      (slot) => getSlotStatus(slot) === "closed",
+    );
+    const allSlotsClosed =
+      allSlotsForDate.length > 0 &&
+      allSlotsForDate.every(
+        (slot) =>
+          getSlotStatus(slot) === "closed" && getRemainingSeats(slot) <= 0,
+      );
+    const selectionHasAvailability = availableSlots.some(
+      (slot) => getAvailableSeatsForSelection(slot) > 0,
+    );
+    const sharedSoldOut =
+      (allSlotsForDate.length > 0 && sharedTotal === 0 && !hasOpenSlots) ||
+      allSlotsClosed;
+    const selectionSoldOut =
+      availableSlots.length === 0 || !selectionHasAvailability;
+    const privateAvailable = isPrivateSelection
+      ? selectionHasAvailability
+      : !sharedSoldOut;
+
+    // IMPORTANT: return ALL slots for the popup (including 0 available) so users can see Sold Out times
+    return {
+      total,
+      sharedTotal,
+      sharedSoldOut,
+      privateAvailable,
+      soldOut: selectionSoldOut,
+      slots: allSlotsForDate,
     };
+  };
 
+  const renderDays = () => {
+    const days = [];
 
+    // Use startOfWeek to get the correct offset for the first row (Monday as first day)
+    // Create dates using local components to avoid timezone issues
+    const startDateYear = startDate.getFullYear();
+    const startDateMonth = startDate.getMonth();
+    const startDateDay = startDate.getDate();
+    const startDateLocal = new Date(
+      startDateYear,
+      startDateMonth,
+      startDateDay,
+      0,
+      0,
+      0,
+      0,
+    );
 
-    return (
-        <>
-            {/* Notification for time selection */}
-            {showNotification && (
-                <div style={{
-                    position: 'fixed',
-                    [isMobile ? 'top' : 'bottom']: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: '#03A9F4',
-                    color: 'white',
-                    padding: isMobile ? '8px 16px' : '12px 24px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    zIndex: 9999,
-                    fontSize: isMobile ? '14px' : '16px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    animation: isMobile ? 'slideDown 0.3s ease-out' : 'slideUp 0.3s ease-out',
-                    maxWidth: '90vw',
-                    textAlign: 'center'
-                }}>
-                    <span style={{ fontSize: isMobile ? '16px' : '18px' }}>✓</span>
-                    {notificationMessage}
-                </div>
+    const weekStart = startOfWeek(startDateLocal, { weekStartsOn: 1 });
+    // Ensure weekStart is also in local timezone
+    const weekStartYear = weekStart.getFullYear();
+    const weekStartMonth = weekStart.getMonth();
+    const weekStartDay = weekStart.getDate();
+    let dayPointer = new Date(
+      weekStartYear,
+      weekStartMonth,
+      weekStartDay,
+      0,
+      0,
+      0,
+      0,
+    );
+
+    // Calculate the end of the week that contains the end of the month
+    const endDateYear = endDate.getFullYear();
+    const endDateMonth = endDate.getMonth();
+    const endDateDay = endDate.getDate();
+    const endDateLocal = new Date(
+      endDateYear,
+      endDateMonth,
+      endDateDay,
+      0,
+      0,
+      0,
+      0,
+    );
+    const weekEnd = endOfWeek(endDateLocal, { weekStartsOn: 1 });
+
+    // Fill days from week start to week end to ensure correct grid alignment
+    while (dayPointer <= weekEnd) {
+      // Create date copy using local components to avoid timezone shifts
+      const dayPointerYear = dayPointer.getFullYear();
+      const dayPointerMonth = dayPointer.getMonth();
+      const dayPointerDay = dayPointer.getDate();
+      const dateCopy = new Date(
+        dayPointerYear,
+        dayPointerMonth,
+        dayPointerDay,
+        0,
+        0,
+        0,
+        0,
+      );
+
+      const isBeforeMonth = dateCopy < startDateLocal;
+      const isAfterMonth = dateCopy > endDateLocal;
+
+      if (isBeforeMonth || isAfterMonth) {
+        // Before or after the month - render empty placeholder to maintain grid alignment
+        // Keep element in DOM with minimal size to maintain grid structure
+        days.push(
+          <div
+            key={`empty-${dateCopy.getTime()}`}
+            className="day empty-day"
+            style={{
+              visibility: "hidden",
+              opacity: 0,
+              pointerEvents: "none",
+              minHeight: daySize,
+              minWidth: daySize,
+              height: daySize,
+              width: daySize,
+              padding: 0,
+              margin: isMobile ? "1px" : 2,
+              border: "none",
+              background: "transparent",
+            }}
+            aria-hidden="true"
+          />,
+        );
+        // Increment dayPointer using addDays (timezone-safe)
+        dayPointer = addDays(dayPointer, 1);
+        continue;
+      } else {
+        // Within the month
+        // dateCopy is already created using local components above
+        const dateCopyStartOfDay = dateCopy;
+
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
+        const todayStartOfDay = new Date(
+          todayYear,
+          todayMonth,
+          todayDay,
+          0,
+          0,
+          0,
+          0,
+        );
+
+        const isPastDate = dateCopyStartOfDay < todayStartOfDay;
+        const isSelected =
+          selectedDate &&
+          selectedDate.toDateString() === dateCopy.toDateString();
+
+        // Apply voucher type filtering for both Redeem Voucher and Book Flight - check if this date should be shown
+        let shouldShowDate = true;
+        if (
+          (activitySelect === "Redeem Voucher" ||
+            activitySelect === "Book Flight") &&
+          selectedVoucherType?.title
+        ) {
+          const voucherType = selectedVoucherType.title;
+          // Weekday Morning voucher → Show weekday mornings only
+          if (
+            voucherType === "Weekday Morning" ||
+            voucherType === "Weekday Morning Flight"
+          ) {
+            // Must be weekday AND have morning slots available
+            const isWeekdayDate = isWeekday(dateCopy);
+            if (isWeekdayDate) {
+              // Check if there are any morning slots for this date
+              const year = dateCopy.getFullYear();
+              const month = String(dateCopy.getMonth() + 1).padStart(2, "0");
+              const day = String(dateCopy.getDate()).padStart(2, "0");
+              const dateStr = `${year}-${month}-${day}`;
+              const slotsForDate = finalFilteredAvailabilities.filter(
+                (a) => a.date === dateStr,
+              );
+              const hasMorningSlots = slotsForDate.some((slot) =>
+                isMorning(slot.time),
+              );
+              shouldShowDate = hasMorningSlots;
+            } else {
+              shouldShowDate = false;
+            }
+          }
+          // Flexible Weekday voucher → Show all weekdays (any time)
+          else if (
+            voucherType === "Flexible Weekday" ||
+            voucherType === "Flexible Weekday Flight"
+          ) {
+            shouldShowDate = isWeekday(dateCopy);
+          }
+          // Anytime voucher (Any Day Flight) → Show all available schedules
+          // No filtering needed, shouldShowDate remains true
+        }
+
+        const {
+          total,
+          sharedSoldOut,
+          privateAvailable,
+          soldOut: soldOutFromCalc,
+          slots,
+        } = getSpacesForDate(dateCopy);
+        // soldOutFromCalc already represents "sold out for this specific selection"
+        const soldOut = soldOutFromCalc;
+        const isAvailable =
+          shouldShowDate &&
+          !soldOut &&
+          (isPrivateSelection ? privateAvailable : total > 0);
+        const pulse = false; // disable pulsing highlight
+
+        // If shouldShowDate is false (due to voucher type filtering), show date as disabled/grey
+        // This applies to weekend dates for "Weekday Morning" or "Flexible Weekday" vouchers
+        if (
+          !shouldShowDate &&
+          (activitySelect === "Redeem Voucher" ||
+            activitySelect === "Book Flight") &&
+          selectedVoucherType?.title
+        ) {
+          // Override isAvailable and isInteractive to make date disabled
+          const isAvailable = false;
+          const isInteractive = false;
+          const soldOut = false; // Not sold out, just not available for this voucher type
+
+          days.push(
+            <div
+              key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, "0")}-${String(dateCopy.getDate()).padStart(2, "0")}`}
+              className={`day disabled`}
+              style={{
+                cursor: "not-allowed",
+                background: "#bbb",
+                color: "#fff",
+                borderRadius: isMobile ? 4 : 8,
+                margin: isMobile ? "1px" : 2,
+                padding: isMobile ? "0" : 2,
+                minHeight: daySize,
+                minWidth: daySize,
+                maxWidth: daySize,
+                width: daySize,
+                height: daySize,
+                boxSizing: "border-box",
+                position: "relative",
+                border: "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              aria-disabled="true"
+            >
+              <div
+                style={{
+                  fontSize: isMobile ? 12 : 18,
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  color: "#fff",
+                }}
+              >
+                {format(dateCopy, "d")}
+              </div>
+            </div>,
+          );
+          // Increment dayPointer using addDays (timezone-safe)
+          dayPointer = addDays(dayPointer, 1);
+          continue;
+        }
+
+        // Determine if date should be interactive
+        // For Shopify flow and Bing browser, allow interaction even if chooseFlightType is temporarily empty (if we have availabilities data)
+        const isInteractive =
+          !isPastDate &&
+          isAvailable &&
+          (isLocationAndExperienceSelected ||
+            shopifyFlowWithData ||
+            bingBrowserWithData) &&
+          !soldOut;
+
+        days.push(
+          <div
+            key={`${dateCopy.getFullYear()}-${String(dateCopy.getMonth() + 1).padStart(2, "0")}-${String(dateCopy.getDate()).padStart(2, "0")}`}
+            className={`day ${isPastDate || (!isAvailable && !soldOut) ? "disabled" : ""} ${!isPastDate && isAvailable && !soldOut ? "available-day" : ""} ${isSelected ? "selected" : ""} ${soldOut ? "sold-out" : ""} ${pulse && !isPastDate ? "pulse" : ""}`}
+            onClick={() => isInteractive && handleDateClick(dateCopy)}
+            style={{
+              // Past days should always appear dimmed
+              opacity: isPastDate
+                ? 0.5
+                : soldOut
+                  ? 1
+                  : isAvailable
+                    ? isLocationAndExperienceSelected
+                      ? 1
+                      : 0.3
+                    : 0.5,
+              cursor: isInteractive ? "pointer" : "not-allowed",
+              background: isSelected
+                ? "#56C1FF"
+                : isPastDate
+                  ? "#ddd"
+                  : soldOut
+                    ? "#888"
+                    : isAvailable
+                      ? "#00eb5b"
+                      : "",
+              color: isPastDate
+                ? "#999"
+                : soldOut
+                  ? "#fff"
+                  : isAvailable
+                    ? "#fff"
+                    : "#888",
+              borderRadius: isMobile ? 4 : 8,
+              margin: isMobile ? "1px" : 2,
+              padding: isMobile ? "0" : 2,
+              minHeight: daySize,
+              minWidth: daySize,
+              maxWidth: daySize,
+              width: daySize,
+              height: daySize,
+              boxSizing: "border-box",
+              position: "relative",
+              border: isSelected ? "2px solid #56C1FF" : "none",
+              boxShadow: isSelected ? "0 0 0 2px #56C1FF" : "none",
+              // Disable pulsing shadow
+              animation: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: isMobile ? 12 : 18,
+                fontWeight: 600,
+                lineHeight: 1,
+              }}
+            >
+              {format(dateCopy, "d")}
+            </div>
+            {isAvailable && !isPastDate && !isMobile && (
+              <div
+                style={{
+                  fontSize: 11,
+                  marginTop: 4,
+                  fontWeight: 500,
+                  lineHeight: 1,
+                  textAlign: "center",
+                }}
+              >
+                {(chooseFlightType?.type || "")
+                  .toLowerCase()
+                  .includes("private")
+                  ? "Available"
+                  : `${total} Space${total > 1 ? "s" : ""}`}
+              </div>
             )}
-            
-            <style>
-                {`
+            {soldOut && !isPastDate && !isMobile && (
+              <div
+                className="day-status sold-out-status"
+                style={{
+                  fontSize: 11,
+                  marginTop: 4,
+                  color: "#fff",
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  textAlign: "center",
+                  width: "100%",
+                  maxWidth: "100%",
+                  minHeight: "14px",
+                }}
+              />
+            )}
+            {/* Remove "Not Available" text to clean up layout */}
+            {/* {!isAvailable && !isPastDate && !soldOut && (
+                 <div style={{ fontSize: 12, marginTop: 2, color: '#666' }}>
+                     Not Available
+                 </div>
+              )} */}
+            {/* Remove instruction text from calendar boxes to fix layout */}
+            {/* {!isLocationAndExperienceSelected && isAvailable && !isPastDate && (
+                 <div style={{ fontSize: 10, marginTop: 2, color: '#666', textAlign: 'center' }}>
+                     {activitySelect === 'Redeem Voucher' ? 'Select Location & Experience' : 'Select Location, Experience & Voucher Type'}
+                 </div>
+              )} */}
+          </div>,
+        );
+      }
+      // Increment dayPointer using addDays (timezone-safe)
+      dayPointer = addDays(dayPointer, 1);
+    }
+
+    return days;
+  };
+
+  const handleRequestSubmit = async () => {
+    setRequestSuccess("");
+    setRequestError("");
+    try {
+      const res = await axios.post(
+        process.env.REACT_APP_API_URL + "/api/date-request",
+        {
+          name: requestName,
+          phone: requestPhone,
+          email: requestEmail,
+          location: requestLocation,
+          flight_type: requestFlightType,
+          requested_date: requestDate,
+          preferred_time: requestTime,
+        },
+      );
+      if (res.data.success) {
+        setRequestSuccess("We will be in touch shortly");
+        setTimeout(() => {
+          setRequestModalOpen(false);
+          setRequestName("");
+          setRequestPhone("");
+          setRequestEmail("");
+          setRequestLocation("");
+          setRequestFlightType("");
+          setRequestDate("");
+          setRequestTime("");
+          setRequestSuccess("");
+        }, 5000);
+      } else {
+        setRequestError("Failed to submit request. Please try again.");
+      }
+    } catch (err) {
+      setRequestError("Failed to submit request. Please try again.");
+    }
+  };
+
+  const openRequestDateModal = () => {
+    if (!chooseLocation || !chooseFlightType?.type) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    setRequestLocation(chooseLocation || "");
+    setRequestFlightType(chooseFlightType?.type || "");
+    setRequestSuccess("");
+    setRequestError("");
+    setRequestModalOpen(true);
+  };
+
+  return (
+    <>
+      {/* Notification for time selection */}
+      {showNotification && (
+        <div
+          style={{
+            position: "fixed",
+            [isMobile ? "top" : "bottom"]: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#03A9F4",
+            color: "white",
+            padding: isMobile ? "8px 16px" : "12px 24px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            zIndex: 9999,
+            fontSize: isMobile ? "14px" : "16px",
+            fontWeight: "500",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            animation: isMobile
+              ? "slideDown 0.3s ease-out"
+              : "slideUp 0.3s ease-out",
+            maxWidth: "90vw",
+            textAlign: "center",
+          }}
+        >
+          <span style={{ fontSize: isMobile ? "16px" : "18px" }}>✓</span>
+          {notificationMessage}
+        </div>
+      )}
+
+      <style>
+        {`
                     @media (max-width: 768px) {
                         .calendar .days-grid {
                             column-gap: 0px !important;
@@ -1461,730 +1811,1239 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         100% { transform: rotate(360deg); }
                     }
                 `}
-            </style>
-            <Accordion title="Live Availability" id="live-availability" activeAccordion={activeAccordion} setActiveAccordion={setActiveAccordion} className={`${isFlightVoucher || isGiftVoucher ? 'disable-acc' : ""}`} isDisabled={isDisabled}>
-                <div 
-                    className="calendar"
-                    onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
-                    style={{
-                        touchAction: 'pan-y' // Enable swipe gesture throughout calendar
-                    }}
-                >
-                    <div className="header" style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        position: 'relative', 
-                        width: '100%',
-                        minHeight: isMobile ? '40px' : '50px'
-                    }}>
-                        {/* Fixed position arrows - left */}
-                        <div 
-                            className='calender-prev calender-arrow' 
-                            onClick={handlePrevMonth}
-                            style={{
-                                position: 'absolute',
-                                left: isMobile ? '8px' : '20px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                zIndex: 20
-                            }}
-                        >
-                            <ArrowBackIosIcon />
-                        </div>
-                        
-                        {/* Month title */}
-                        <h2 style={{ 
-                            margin: 0, 
-                            fontWeight: 500, 
-                            color: '#222', 
-                            fontSize: isMobile ? 18 : 24, 
-                            letterSpacing: 1,
-                            textAlign: 'center'
-                        }}>
-                            {format(currentDate, 'MMMM yyyy')}
-                        </h2>
-                        
-                        {/* Fixed position arrows - right */}
-                        <div 
-                            className='calender-next calender-arrow' 
-                            onClick={handleNextMonth}
-                            style={{
-                                position: 'absolute',
-                                right: isMobile ? '8px' : '20px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                zIndex: 20
-                            }}
-                        >
-                            <ArrowForwardIosIcon />
-                        </div>
-                    </div>
-                    
-                    {/* Real-time availability badge - below month title */}
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginTop: isMobile ? '8px' : '12px'
-                    }}>
-                        <div className="realtime-badge-wrap">
-                            <div className="realtime-badge" style={{
-                                fontSize: isMobile ? 12 : 14,
-                                padding: isMobile ? '4px 8px' : '8px 12px',
-                                background: '#00eb5b'
-                            }}>
-                                <CheckIcon style={{ fontSize: isMobile ? 14 : 20, marginRight: 4 }} />
-                                <span className="realtime-badge-text">Real-time availability</span>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Centered currently viewing info under the heading */}
-                    <div style={{ 
-                        margin: isMobile ? '12px 0 0 0' : '18px 0 0 0', 
-                        fontSize: isMobile ? 14 : 16, 
-                        color: '#222', 
-                        borderRadius: 8, 
-                        padding: isMobile ? '8px' : '12px', 
-                        textAlign: 'center', 
-                        fontWeight: 500, 
-                        maxWidth: 600, 
-                        marginLeft: 'auto', 
-                        marginRight: 'auto' 
-                    }}>
-                        {isLocationAndExperienceSelected ? (
-                            <>
-                                <div style={{ fontSize: isMobile ? 14 : 16 }}>
-                                    Currently viewing: <b>{chooseLocation}</b>, <b>{chooseFlightType.type}</b>
-                                </div>
-                                {selectedDate && selectedTime && (
-                                    <div style={{ 
-                                        marginTop: isMobile ? 6 : 8, 
-                                        padding: isMobile ? '6px 12px' : '8px 16px', 
-                                        background: '#e8f5e8', 
-                                        borderRadius: 6, 
-                                        border: '1px solid #28a745',
-                                        fontSize: isMobile ? 12 : 14
-                                    }}>
-                                        ✅ <b>Selected:</b> {format(selectedDate, 'EEEE, MMMM d, yyyy')} at <b>{selectedTime}</b>
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <div style={{ 
-                                color: '#666',
-                                fontSize: isMobile ? 14 : 16,
-                                lineHeight: isMobile ? 1.3 : 1.4
-                            }}>
-                                {activitySelect === 'Redeem Voucher' ? 
-                                    'Please select a Flight Location and Experience to view available dates and times' :
-                                    'Please select a Flight Location, Experience, and Voucher Type to view available dates and times'
-                                }
-                            </div>
-                        )}
-                    </div>
-                    {/* Takvim alanı: */}
-                    {isLoadingAvailabilities ? (
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            justifyContent: 'flex-start',
-                            padding: isMobile ? '40px 20px' : '60px 20px',
-                            minHeight: '200px',
-                            gap: 10
-                        }}>
-                            <div className="availability-skeleton-bar shimmer" />
-                            <div className="availability-skeleton-grid">
-                                {[...Array(21)].map((_, idx) => (
-                                    <div key={`skeleton-${idx}`} className="availability-skeleton-day shimmer" />
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div 
-                            className={`days-grid ${monthSlideClass}`} 
-                            style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(7, 1fr)', 
-                                gap: isMobile ? '0px' : '4px', 
-                                marginBottom: 0, 
-                                width: '100%', 
-                                maxWidth: '100%', 
-                                margin: '0 auto', 
-                                padding: isMobile ? '0 2px' : '0 6px', 
-                                boxSizing: 'border-box'
-                            }}>
-                            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-                                <div key={d} className="weekday-label" style={{ 
-                                    textAlign: 'center', 
-                                    fontWeight: 600, 
-                                    color: '#888', 
-                                    fontSize: isMobile ? 10 : 15, 
-                                    marginBottom: isMobile ? 1 : 8,
-                                    padding: isMobile ? '0' : '4px',
-                                    // Mobilde tarih kutularıyla aynı boyutta olması için
-                                    ...(isMobile ? {
-                                        width: daySize,
-                                        height: 'auto',
-                                        minWidth: daySize,
-                                        maxWidth: daySize,
-                                        boxSizing: 'border-box',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    } : {})
-                                }}>
-                                    {d}
-                                </div>
-                            ))}
-                            {renderDays()}
-                        </div>
-                    )}
-                    {/* Reschedule text below calendar */}
-                    <div style={{ 
-                        textAlign: 'center', 
-                        marginTop: isMobile ? 16 : 20, 
-                        marginBottom: 2 
-                    }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 8, 
-                            justifyContent: 'center', 
-                            color: '#666', 
-                            textAlign: 'center' 
-                    }}>
-                        <span style={{ 
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                                justifyContent: 'center',
-                                width: 18,
-                                height: 18,
-                                borderRadius: '50%',
-                                backgroundColor: '#10b981',
-                                color: '#fff',
-                                fontSize: 12,
-                                fontWeight: 800,
-                                lineHeight: 1
-                            }}>✓</span>
-                            <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
-                                Reschedule for free up to 120 hours before.
-                        </span>
-                        </div>
-                    </div>
+      </style>
+      <Accordion
+        title="Live Availability"
+        id="live-availability"
+        activeAccordion={activeAccordion}
+        setActiveAccordion={setActiveAccordion}
+        className={`${isFlightVoucher || isGiftVoucher ? "disable-acc" : ""}`}
+        isDisabled={isDisabled}
+      >
+        <div
+          className="calendar"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          style={{
+            touchAction: "pan-y", // Enable swipe gesture throughout calendar
+          }}
+        >
+          <div
+            className="header"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              width: "100%",
+              minHeight: isMobile ? "40px" : "50px",
+            }}
+          >
+            {/* Fixed position arrows - left */}
+            <div
+              className="calender-prev calender-arrow"
+              onClick={handlePrevMonth}
+              style={{
+                position: "absolute",
+                left: isMobile ? "8px" : "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 20,
+              }}
+            >
+              <ArrowBackIosIcon />
+            </div>
 
-                    {/* Request Date button */}
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        marginTop: isMobile ? 20 : 24, 
-                        marginBottom: isMobile ? 16 : 20 
-                    }}>
-                        <button
-                            type="button"
-                            onClick={openRequestDateModal}
-                            style={{
-                                padding: isMobile ? '10px 18px' : '12px 24px',
-                                border: 'none',
-                                borderRadius: 8,
-                                background: 'rgb(0, 235, 91)',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                fontSize: isMobile ? 14 : 15,
-                                fontWeight: 600,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                transition: 'background 0.2s, transform 0.1s'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = 'rgb(0, 200, 78)';
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = 'rgb(0, 235, 91)';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                        >
-                            Request Date
-                        </button>
-                    </div>
+            {/* Month title */}
+            <h2
+              style={{
+                margin: 0,
+                fontWeight: 500,
+                color: "#222",
+                fontSize: isMobile ? 18 : 24,
+                letterSpacing: 1,
+                textAlign: "center",
+              }}
+            >
+              {format(currentDate, "MMMM yyyy")}
+            </h2>
+
+            {/* Fixed position arrows - right */}
+            <div
+              className="calender-next calender-arrow"
+              onClick={handleNextMonth}
+              style={{
+                position: "absolute",
+                right: isMobile ? "8px" : "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 20,
+              }}
+            >
+              <ArrowForwardIosIcon />
+            </div>
+          </div>
+
+          {/* Real-time availability badge - below month title */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: isMobile ? "8px" : "12px",
+            }}
+          >
+            <div className="realtime-badge-wrap">
+              <div
+                className="realtime-badge"
+                style={{
+                  fontSize: isMobile ? 12 : 14,
+                  padding: isMobile ? "4px 8px" : "8px 12px",
+                  background: "#00eb5b",
+                }}
+              >
+                <CheckIcon
+                  style={{ fontSize: isMobile ? 14 : 20, marginRight: 4 }}
+                />
+                <span className="realtime-badge-text">
+                  Real-time availability
+                </span>
+              </div>
+            </div>
+          </div>
+          {/* Centered currently viewing info under the heading */}
+          <div
+            style={{
+              margin: isMobile ? "12px 0 0 0" : "18px 0 0 0",
+              fontSize: isMobile ? 14 : 16,
+              color: "#222",
+              borderRadius: 8,
+              padding: isMobile ? "8px" : "12px",
+              textAlign: "center",
+              fontWeight: 500,
+              maxWidth: 600,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {isLocationAndExperienceSelected ? (
+              <>
+                <div style={{ fontSize: isMobile ? 14 : 16 }}>
+                  Currently viewing: <b>{chooseLocation}</b>,{" "}
+                  <b>{chooseFlightType.type}</b>
                 </div>
-            </Accordion>
-            {
-                activeAccordion ?
-                    <Modal
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        title="Select Location & Experience"
-                        bulletPoints={["Please select a flight location and experience first to view available dates and times."]}
-                    />
-                    :
-                    ""
-            }
-            <Modal
-                isOpen={requestModalOpen}
-                onClose={() => setRequestModalOpen(false)}
-                title="Request Date"
-                showCloseButton={true}
-                mobileScrollable={true}
-                extraContent={
-                    <form className="request-date-form" style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 16, minWidth: 340, width: '100%', maxWidth: 480, alignItems: 'center', marginLeft: 'auto', marginRight: 'auto', touchAction: isMobile ? 'manipulation' : 'auto' }} onSubmit={e => {
-                        e.preventDefault();
-                        let hasError = false;
-                        setNameError(false); setEmailError(false); setDateError(false); setTimeError(false);
-                        setNameFormatError(false); setPhoneFormatError(false); setEmailFormatError(false);
-                        if (!requestName.trim()) { setNameError(true); hasError = true; }
-                        if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) { setNameFormatError(true); hasError = true; }
-                        if (!requestEmail.trim()) { setEmailError(true); hasError = true; }
-                        if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) { setEmailFormatError(true); hasError = true; }
-                        if (!requestLocation || !requestFlightType) {
-                            setRequestModalOpen(false);
-                            setIsModalOpen(true);
-                            return;
+                {selectedDate && selectedTime && (
+                  <div
+                    style={{
+                      marginTop: isMobile ? 6 : 8,
+                      padding: isMobile ? "6px 12px" : "8px 16px",
+                      background: "#e8f5e8",
+                      borderRadius: 6,
+                      border: "1px solid #28a745",
+                      fontSize: isMobile ? 12 : 14,
+                    }}
+                  >
+                    ✅ <b>Selected:</b>{" "}
+                    {format(selectedDate, "EEEE, MMMM d, yyyy")} at{" "}
+                    <b>{selectedTime}</b>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div
+                style={{
+                  color: "#666",
+                  fontSize: isMobile ? 14 : 16,
+                  lineHeight: isMobile ? 1.3 : 1.4,
+                }}
+              >
+                {activitySelect === "Redeem Voucher"
+                  ? "Please select a Flight Location and Experience to view available dates and times"
+                  : "Please select a Flight Location, Experience, and Voucher Type to view available dates and times"}
+              </div>
+            )}
+          </div>
+          {/* Takvim alanı: */}
+          {isLoadingAvailabilities ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                justifyContent: "flex-start",
+                padding: isMobile ? "40px 20px" : "60px 20px",
+                minHeight: "200px",
+                gap: 10,
+              }}
+            >
+              <div className="availability-skeleton-bar shimmer" />
+              <div className="availability-skeleton-grid">
+                {[...Array(21)].map((_, idx) => (
+                  <div
+                    key={`skeleton-${idx}`}
+                    className="availability-skeleton-day shimmer"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`days-grid ${monthSlideClass}`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                gap: isMobile ? "0px" : "4px",
+                marginBottom: 0,
+                width: "100%",
+                maxWidth: "100%",
+                margin: "0 auto",
+                padding: isMobile ? "0 2px" : "0 6px",
+                boxSizing: "border-box",
+              }}
+            >
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                <div
+                  key={d}
+                  className="weekday-label"
+                  style={{
+                    textAlign: "center",
+                    fontWeight: 600,
+                    color: "#888",
+                    fontSize: isMobile ? 10 : 15,
+                    marginBottom: isMobile ? 1 : 8,
+                    padding: isMobile ? "0" : "4px",
+                    // Mobilde tarih kutularıyla aynı boyutta olması için
+                    ...(isMobile
+                      ? {
+                          width: daySize,
+                          height: "auto",
+                          minWidth: daySize,
+                          maxWidth: daySize,
+                          boxSizing: "border-box",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }
-                        if (!requestDate) { setDateError(true); hasError = true; }
-                        if (!requestTime) { setTimeError(true); hasError = true; }
-                        if (requestPhone && /[^0-9]/.test(requestPhone)) { setPhoneFormatError(true); hasError = true; }
-                        if (hasError) { return; }
-                        handleRequestSubmit();
-                    }}>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Name</label>
-                            <input type="text" value={requestName} onChange={e => {
-                                const val = e.target.value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '');
-                                setRequestName(val);
-                                setNameError(false);
-                                setNameFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: nameError || nameFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, fontSize: isMobile ? 16 : 14 }} required />
-                            {nameError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
-                            {nameFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only letters allowed</div>}
-                        </div>
-                        <div style={{ marginBottom: 8, width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Phone</label>
-                            <input type="text" value={requestPhone} onChange={e => {
-                                const val = e.target.value.replace(/[^0-9]/g, '');
-                                setRequestPhone(val);
-                                setPhoneFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: phoneFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, fontSize: isMobile ? 16 : 14 }} />
-                            {phoneFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Only numbers allowed</div>}
-                        </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Email</label>
-                            <input type="email" value={requestEmail} onChange={e => {
-                                setRequestEmail(e.target.value);
-                                setEmailError(false);
-                                setEmailFormatError(false);
-                            }} style={{ padding: 8, borderRadius: 4, border: emailError || emailFormatError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', height: 44, fontSize: isMobile ? 16 : 14 }} required />
-                            {emailError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
-                            {emailFormatError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>Invalid email format</div>}
-                        </div>
-                        <div className="request-date-pref-date" style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', alignSelf: isMobile ? 'stretch' : undefined }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Date</label>
-                            <div style={{ position: 'relative' }}>
-                                <input type="date" value={requestDate} onChange={e => { setRequestDate(e.target.value); setDateError(false); }} className="request-date-input-date" style={{ padding: isMobile ? 0 : 8, borderRadius: 4, border: dateError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: 0, display: 'block', boxSizing: 'border-box', height: 44, minHeight: 44, lineHeight: isMobile ? 44 : 'normal', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14, textAlign: 'left' }} required />
-                            </div>
-                            {dateError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
-                        </div>
-                        <div style={{ marginBottom: 8, position: 'relative', width: '100%', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#666', marginBottom: 4 }}>Preferred Time</label>
-                            <select value={requestTime} onChange={e => { setRequestTime(e.target.value); setTimeError(false); }} style={{ padding: 8, borderRadius: 4, border: timeError ? '2px solid red' : '1px solid #ccc', width: '100%', margin: '0 auto', display: 'block', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', height: 44, lineHeight: 'normal', color: requestTime ? '#333' : '#666', backgroundColor: '#fff', fontSize: isMobile ? 16 : 14 }} required>
-                                <option value="">Select Preferred Time</option>
-                                <option value="Morning">Morning</option>
-                                <option value="Evening">Evening</option>
-                            </select>
-                            {timeError && <div style={{ color: 'red', fontSize: 12, marginTop: 2, marginLeft: 2 }}>This field is required</div>}
-                        </div>
-                        {requestSuccess && <div style={{ color: 'green', textAlign: 'center' }}>{requestSuccess}</div>}
-                        {requestError && <div style={{ color: 'red', textAlign: 'center' }}>{requestError}</div>}
-                    </form>
-                }
-                actionButtons={
-                    <>
-                        <button
-                            type="submit"
-                            disabled={!isFormValid}
-                            onClick={() => {
-                                if (isFormValid) handleRequestSubmit();
-                            }}
-                            style={{
-                                padding: '10px 20px',
-                                border: 'none',
-                                borderRadius: '6px',
-                                background: isFormValid ? 'rgb(0, 235, 91)' : '#ccc',
-                                color: '#fff',
-                                cursor: isFormValid ? 'pointer' : 'not-allowed',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                minWidth: '80px'
-                            }}
-                        >
-                            Submit
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setRequestModalOpen(false)}
-                            style={{
-                                padding: '10px 20px',
-                                border: '1px solid #ccc',
-                                borderRadius: '6px',
-                                background: '#fff',
-                                color: '#333',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                minWidth: '80px'
-                            }}
-                        >
-                            Choose Another Date
-                        </button>
-                    </>
-                }
-            />
-            
-            {/* Time Selection Popup Modal */}
-            <Modal
-                isOpen={timeSelectionModalOpen}
-                onClose={() => setTimeSelectionModalOpen(false)}
-                title={`Select Time for ${selectedDateForTime ? format(selectedDateForTime, 'MMMM d, yyyy') : ''}`}
-                extraContent={
-                    <div style={{ 
-                        minWidth: isMobile ? '100%' : 400, 
-                        width: '100%',
-                        maxWidth: '100%',
-                        boxSizing: 'border-box',
-                        padding: isMobile ? '0' : '0'
-                    }}>
-                        {selectedDateForTime && (
-                            <div style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                gap: isMobile ? 4 : 12,
-                                width: '100%',
-                                boxSizing: 'border-box'
-                            }}>
-                                <div style={{ 
-                                    textAlign: 'center', 
-                                    marginBottom: isMobile ? 8 : 16, 
-                                    color: '#666',
-                                    fontSize: isMobile ? 12 : 16,
-                                    lineHeight: 1.3,
-                                    padding: isMobile ? '0 4px' : '0'
-                                }}>
-                                    {/* Removed subtitle requesting preferred time per user request */}
-                                </div>
-                                {/* Removed top-level 'Call to Book' banner; handled per-slot now */}
-                                {(() => {
-                                    const { slots } = getSpacesForDate(selectedDateForTime);
-                                    if (slots.length === 0) {
-                                        return (
-                                            <div style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                                                No available times for this date
-                                            </div>
-                                        );
-                                    }
-                                    const selectedPassengers = getSelectedPassengerCount();
-                                    return slots.map(slot => {
-                                        // 8 hour rule check
-                                        let slotDateTime = new Date(selectedDateForTime);
-                                        if (slot.time) {
-                                            const [h, m, s] = slot.time.split(':');
-                                            slotDateTime.setHours(Number(h));
-                                            slotDateTime.setMinutes(Number(m || 0));
-                                            slotDateTime.setSeconds(Number(s || 0));
-                                        }
-                                        const now = new Date();
-                                        const diffMs = slotDateTime - now;
-                                        const diffHours = diffMs / (1000 * 60 * 60);
-                                        // Use the same availability logic as calendar totals:
-                                        // this accounts for shared/private resource constraints (Balloon 210 / 105) and global locks.
-                                        const availableForSelection = getAvailableSeatsForSelection(slot);
-                                        const isAvailable = availableForSelection > 0;
+                      : {}),
+                  }}
+                >
+                  {d}
+                </div>
+              ))}
+              {renderDays()}
+            </div>
+          )}
+          {/* Reschedule text below calendar */}
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: isMobile ? 16 : 20,
+              marginBottom: 2,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                justifyContent: "center",
+                color: "#666",
+                textAlign: "center",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 18,
+                  height: 18,
+                  borderRadius: "50%",
+                  backgroundColor: "#10b981",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                }}
+              >
+                ✓
+              </span>
+              <span
+                style={{ fontSize: 12, lineHeight: "1.3", fontStyle: "italic" }}
+              >
+                Reschedule for free up to 120 hours before.
+              </span>
+            </div>
+          </div>
 
-                                        // For shared bookings, don't allow selecting a slot that can't fit all passengers.
-                                        // For private bookings, getAvailableSeatsForSelection already returns 0 when the slot can't fit.
-                                        const isPrivateCharter = (chooseFlightType?.type || '').toLowerCase().includes('private');
-                                        const insufficientForPassengers = selectedVoucherType && selectedPassengers > availableForSelection && !isPrivateCharter;
-                                        const within8h = diffHours < 8 && diffHours > 0;
-                                        const enoughSeats = availableForSelection >= selectedPassengers;
-                                        const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
-                                        // Selectable only if there are seats and rules met
-                                        const isSelectable = isAvailable && diffHours >= 8 && !insufficientForPassengers;
-                                        // Format time to 12-hour with AM/PM for display
-                                        const formattedTime = (() => {
-                                            try {
-                                                const [hh, mm] = slot.time.split(':');
-                                                const d = new Date();
-                                                d.setHours(Number(hh) || 0, Number(mm) || 0, 0, 0);
-                                                return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                                            } catch (e) {
-                                                return slot.time?.split(':').slice(0, 2).join(':');
-                                            }
-                                        })();
-                                        const isPrivateCharterExperience = (chooseFlightType?.type || '').toLowerCase().includes('private charter');
-                                        
-                                        // Availability label rules:
-                                        // - Private Charter: just "Available" / "Not Available"
-                                        // - Other experiences: "<n> Spaces" / "Sold Out" (mevcut davranış)
-                                        const availabilityLabel = (() => {
-                                            if (isPrivateCharterExperience) {
-                                                return availableForSelection > 0 ? 'Available' : 'Not Available';
-                                            }
-                                            return availableForSelection > 0
-                                                ? `${availableForSelection} Space${availableForSelection === 1 ? '' : 's'}`
-                                                : 'Sold Out';
-                                        })();
-                                        const shouldShowAvailabilityLabel = !!availabilityLabel;
+          {/* Request Date button */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: isMobile ? 20 : 24,
+              marginBottom: isMobile ? 16 : 20,
+            }}
+          >
+            <button
+              type="button"
+              onClick={openRequestDateModal}
+              style={{
+                padding: isMobile ? "10px 18px" : "12px 24px",
+                border: "none",
+                borderRadius: 8,
+                background: "rgb(0, 235, 91)",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: isMobile ? 14 : 15,
+                fontWeight: 600,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                transition: "background 0.2s, transform 0.1s",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgb(0, 200, 78)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "rgb(0, 235, 91)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              Request Date
+            </button>
+          </div>
+        </div>
+      </Accordion>
+      {activeAccordion ? (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Select Location & Experience"
+          bulletPoints={[
+            "Please select a flight location and experience first to view available dates and times.",
+          ]}
+        />
+      ) : (
+        ""
+      )}
+      <Modal
+        isOpen={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+        title="Request Date"
+        showCloseButton={true}
+        mobileScrollable={true}
+        extraContent={
+          <form
+            className="request-date-form"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 0,
+              marginTop: 16,
+              minWidth: 340,
+              width: "100%",
+              maxWidth: 480,
+              alignItems: "center",
+              marginLeft: "auto",
+              marginRight: "auto",
+              touchAction: isMobile ? "manipulation" : "auto",
+            }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              let hasError = false;
+              setNameError(false);
+              setEmailError(false);
+              setDateError(false);
+              setTimeError(false);
+              setNameFormatError(false);
+              setPhoneFormatError(false);
+              setEmailFormatError(false);
+              if (!requestName.trim()) {
+                setNameError(true);
+                hasError = true;
+              }
+              if (!/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/.test(requestName.trim())) {
+                setNameFormatError(true);
+                hasError = true;
+              }
+              if (!requestEmail.trim()) {
+                setEmailError(true);
+                hasError = true;
+              }
+              if (requestEmail && !/^\S+@\S+\.\S+$/.test(requestEmail)) {
+                setEmailFormatError(true);
+                hasError = true;
+              }
+              if (!requestLocation || !requestFlightType) {
+                setRequestModalOpen(false);
+                setIsModalOpen(true);
+                return;
+              }
+              if (!requestDate) {
+                setDateError(true);
+                hasError = true;
+              }
+              if (!requestTime) {
+                setTimeError(true);
+                hasError = true;
+              }
+              if (requestPhone && /[^0-9]/.test(requestPhone)) {
+                setPhoneFormatError(true);
+                hasError = true;
+              }
+              if (hasError) {
+                return;
+              }
+              handleRequestSubmit();
+            }}
+          >
+            <div
+              style={{
+                marginBottom: 8,
+                position: "relative",
+                width: "100%",
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#666",
+                  marginBottom: 4,
+                }}
+              >
+                Name
+              </label>
+              <input
+                type="text"
+                value={requestName}
+                onChange={(e) => {
+                  const val = e.target.value.replace(
+                    /[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g,
+                    "",
+                  );
+                  setRequestName(val);
+                  setNameError(false);
+                  setNameFormatError(false);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 4,
+                  border:
+                    nameError || nameFormatError
+                      ? "2px solid red"
+                      : "1px solid #ccc",
+                  width: "100%",
+                  margin: "0 auto",
+                  display: "block",
+                  boxSizing: "border-box",
+                  height: 44,
+                  fontSize: isMobile ? 16 : 14,
+                }}
+                required
+              />
+              {nameError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  This field is required
+                </div>
+              )}
+              {nameFormatError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  Only letters allowed
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                marginBottom: 8,
+                width: "100%",
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#666",
+                  marginBottom: 4,
+                }}
+              >
+                Phone
+              </label>
+              <input
+                type="text"
+                value={requestPhone}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setRequestPhone(val);
+                  setPhoneFormatError(false);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 4,
+                  border: phoneFormatError ? "2px solid red" : "1px solid #ccc",
+                  width: "100%",
+                  margin: "0 auto",
+                  display: "block",
+                  boxSizing: "border-box",
+                  height: 44,
+                  fontSize: isMobile ? 16 : 14,
+                }}
+              />
+              {phoneFormatError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  Only numbers allowed
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                marginBottom: 8,
+                position: "relative",
+                width: "100%",
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#666",
+                  marginBottom: 4,
+                }}
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                value={requestEmail}
+                onChange={(e) => {
+                  setRequestEmail(e.target.value);
+                  setEmailError(false);
+                  setEmailFormatError(false);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 4,
+                  border:
+                    emailError || emailFormatError
+                      ? "2px solid red"
+                      : "1px solid #ccc",
+                  width: "100%",
+                  margin: "0 auto",
+                  display: "block",
+                  boxSizing: "border-box",
+                  height: 44,
+                  fontSize: isMobile ? 16 : 14,
+                }}
+                required
+              />
+              {emailError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  This field is required
+                </div>
+              )}
+              {emailFormatError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  Invalid email format
+                </div>
+              )}
+            </div>
+            <div
+              className="request-date-pref-date"
+              style={{
+                marginBottom: 8,
+                position: "relative",
+                width: "100%",
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+                alignSelf: isMobile ? "stretch" : undefined,
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#666",
+                  marginBottom: 4,
+                }}
+              >
+                Preferred Date
+              </label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="date"
+                  value={requestDate}
+                  onChange={(e) => {
+                    setRequestDate(e.target.value);
+                    setDateError(false);
+                  }}
+                  className="request-date-input-date"
+                  style={{
+                    padding: isMobile ? 0 : 8,
+                    borderRadius: 4,
+                    border: dateError ? "2px solid red" : "1px solid #ccc",
+                    width: "100%",
+                    margin: 0,
+                    display: "block",
+                    boxSizing: "border-box",
+                    height: 44,
+                    minHeight: 44,
+                    lineHeight: isMobile ? 44 : "normal",
+                    backgroundColor: "#fff",
+                    fontSize: isMobile ? 16 : 14,
+                    textAlign: "left",
+                  }}
+                  required
+                />
+              </div>
+              {dateError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  This field is required
+                </div>
+              )}
+            </div>
+            <div
+              style={{
+                marginBottom: 8,
+                position: "relative",
+                width: "100%",
+                maxWidth: 420,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#666",
+                  marginBottom: 4,
+                }}
+              >
+                Preferred Time
+              </label>
+              <select
+                value={requestTime}
+                onChange={(e) => {
+                  setRequestTime(e.target.value);
+                  setTimeError(false);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 4,
+                  border: timeError ? "2px solid red" : "1px solid #ccc",
+                  width: "100%",
+                  margin: "0 auto",
+                  display: "block",
+                  boxSizing: "border-box",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  height: 44,
+                  lineHeight: "normal",
+                  color: requestTime ? "#333" : "#666",
+                  backgroundColor: "#fff",
+                  fontSize: isMobile ? 16 : 14,
+                }}
+                required
+              >
+                <option value="">Select Preferred Time</option>
+                <option value="Morning">Morning</option>
+                <option value="Evening">Evening</option>
+              </select>
+              {timeError && (
+                <div
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: 2,
+                    marginLeft: 2,
+                  }}
+                >
+                  This field is required
+                </div>
+              )}
+            </div>
+            {requestSuccess && (
+              <div style={{ color: "green", textAlign: "center" }}>
+                {requestSuccess}
+              </div>
+            )}
+            {requestError && (
+              <div style={{ color: "red", textAlign: "center" }}>
+                {requestError}
+              </div>
+            )}
+          </form>
+        }
+        actionButtons={
+          <>
+            <button
+              type="submit"
+              disabled={!isFormValid}
+              onClick={() => {
+                if (isFormValid) handleRequestSubmit();
+              }}
+              style={{
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "6px",
+                background: isFormValid ? "rgb(0, 235, 91)" : "#ccc",
+                color: "#fff",
+                cursor: isFormValid ? "pointer" : "not-allowed",
+                fontSize: "14px",
+                fontWeight: "500",
+                minWidth: "80px",
+              }}
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              onClick={() => setRequestModalOpen(false)}
+              style={{
+                padding: "10px 20px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                background: "#fff",
+                color: "#333",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+                minWidth: "80px",
+              }}
+            >
+              Choose Another Date
+            </button>
+          </>
+        }
+      />
 
-                                        return (
-                                            <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
-                                                <button
-                                                    style={{
-                                                        background: isSelectable ? '#00eb5b' : '#ccc',
-                                                        color: '#fff',
-                                                        border: tempSelectedTime === slot.time ? (isMobile ? '1px solid #56C1FF' : '2px solid #56C1FF') : (isMobile ? '1px solid transparent' : '2px solid transparent'),
-                                                        borderRadius: isMobile ? 6 : 12,
-                                                        padding: isMobile ? '8px 12px' : '16px 20px',
-                                                        fontWeight: 600,
-                                                        fontSize: isMobile ? 14 : 18,
-                                                        cursor: isSelectable ? 'pointer' : 'not-allowed',
-                                                        opacity: isSelectable ? 1 : 0.6,
-                                                        width: isMobile ? 'calc(100% - 4px)' : '70%',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: isMobile ? 'center' : 'space-between',
-                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                                                        transform: (() => {
-                                                            if (tempSelectedTime === slot.time) return isMobile ? 'scale(1)' : 'scale(1.02)';
-                                                            if (!isMobile && hoveredTime === slot.time && isSelectable) return 'translateY(-2px) scale(1.03)';
-                                                            return 'scale(1)';
-                                                        })(),
-                                                        boxShadow: (!isMobile && hoveredTime === slot.time && isSelectable) ? '0 8px 18px rgba(0,0,0,0.15), 0 0 0 3px rgba(86,193,255,0.35)' : (tempSelectedTime === slot.time ? '0 0 0 2px #56C1FF' : 'none'),
-                                                        position: 'relative',
-                                                        boxSizing: 'border-box',
-                                                        marginBottom: isMobile ? 6 : 0,
-                                                        marginLeft: isMobile ? '2px' : '0',
-                                                        marginRight: isMobile ? '2px' : '0',
-                                                        minHeight: isMobile ? '40px' : 'auto'
-                                                    }}
-                                                    onClick={() => isSelectable && setTempSelectedTime(slot.time)}
-                                                    onMouseEnter={() => { if (!isMobile) setHoveredTime(slot.time); }}
-                                                    onMouseLeave={() => { if (!isMobile) setHoveredTime(null); }}
-                                                    disabled={!isSelectable}
-                                                >
-                                                {isMobile ? (
-                                                    // Mobile layout - horizontal single line
-                                                    <div style={{ 
-                                                        display: 'flex', 
-                                                        flexDirection: 'row', 
-                                                        alignItems: 'center', 
-                                                        justifyContent: 'space-between',
-                                                        width: '100%',
-                                                        gap: 8
-                                                    }}>
-                                                        <span style={{ 
-                                                            fontWeight: 700, 
-                                                            fontSize: '16px',
-                                                            fontFamily: 'Gilroy Sans Serif, sans-serif',
-                                                            lineHeight: 1
-                                                        }}>
-                                                            {formattedTime}
-                                                        </span>
-                                                        {shouldShowAvailabilityLabel && (
-                                                            <span style={{ 
-                                                                fontWeight: 700, 
-                                                                fontSize: '16px',
-                                                                fontFamily: 'Gilroy Sans Serif, sans-serif',
-                                                                lineHeight: 1,
-                                                                opacity: 0.9
-                                                            }}>
-                                                                {availabilityLabel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    // Desktop layout - horizontal
-                                                    <>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <span style={{ fontWeight: 700, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>{formattedTime}</span>
-                                                    </div>
-                                                    <div style={{ textAlign: 'right' }}>
-                                                        {shouldShowAvailabilityLabel && (
-                                                            <div style={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Gilroy Sans Serif, sans-serif' }}>
-                                                                {availabilityLabel}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    </>
-                                                )}
-                                                {/* Center label based on remaining spaces or passenger-capacity mismatch */}
-                                                {(!isAvailable) ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 16,
-                                                        letterSpacing: isMobile ? 0.2 : 0.5,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase'
-                                                    }}>
-                                                        Sold Out
-                                                    </div>
-                                                ) : insufficientForPassengers ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 16,
-                                                        letterSpacing: isMobile ? 0.2 : 0.5,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase'
-                                                    }}>
-                                                        Not Available
-                                                    </div>
-                                                ) : showCallToBookForSlot ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 800,
-                                                        fontSize: isMobile ? 16 : 16,
-                                                        letterSpacing: isMobile ? 0.2 : 0.5,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase'
-                                                    }}>
-                                                        Call to Book
-                                                    </div>
-                                                ) : availableForSelection <= 2 && !isPrivateCharter ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 700,
-                                                        fontSize: '16px',
-                                                        fontFamily: 'Gilroy Sans Serif, sans-serif',
-                                                        letterSpacing: isMobile ? 0.2 : 0.5,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase'
-                                                    }}>
-                                                        High Demand
-                                                    </div>
-                                                ) : (availableForSelection === 3 || availableForSelection === 4) && !isPrivateCharter ? (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                        pointerEvents: 'none',
-                                                        fontWeight: 700,
-                                                        fontSize: '16px',
-                                                        fontFamily: 'Gilroy Sans Serif, sans-serif',
-                                                        letterSpacing: isMobile ? 0.2 : 0.4,
-                                                        color: '#ffffff',
-                                                        textTransform: 'uppercase',
-                                                        whiteSpace: 'nowrap'
-                                                    }}>
-                                                        Nearly Full
-                                                    </div>
-                                                ) : null}
-                                                </button>
-                                            </div>
-                                        );
-                                    });
-                                })()}
-                                
-                                {/* Confirm and Cancel Buttons */}
-                                <div style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'center',
-                                    gap: 10, 
-                                    marginTop: 16,
-                                    width: '100%',
-                                    boxSizing: 'border-box'
-                                }}>
-                                    <button
-                                        style={{
-                                            border: '1px solid #d1d5db',
-                                            background: '#fff',
-                                            color: '#374151',
-                                            padding: '8px 14px',
-                                            borderRadius: 8,
-                                            cursor: 'pointer',
-                                            fontSize: isMobile ? 14 : 14,
-                                            fontWeight: 500,
-                                            transition: 'all 0.2s ease',
-                                            boxSizing: 'border-box',
-                                            minHeight: isMobile ? '36px' : 'auto'
-                                        }}
-                                        onClick={() => {
-                                            setTimeSelectionModalOpen(false);
-                                            setTempSelectedTime(null);
-                                        }}
-                                    >
-                                        Choose Another Date
-                                    </button>
-                                    <button
-                                        style={{
-                                            background: '#00eb5b',
-                                            color: '#fff',
-                                            padding: '8px 14px',
-                                            borderRadius: 8,
-                                            cursor: 'pointer',
-                                            border: 'none',
-                                            fontSize: isMobile ? 14 : 14,
-                                            fontWeight: 500,
-                                            opacity: tempSelectedTime ? 1 : 0.5,
-                                            transition: 'all 0.2s ease',
-                                            boxSizing: 'border-box',
-                                            minHeight: isMobile ? '36px' : 'auto'
-                                        }}
-                                        onClick={() => {
-                                            if (tempSelectedTime) {
-                                                handleTimeSelection(tempSelectedTime);
-                                            }
-                                        }}
-                                        disabled={!tempSelectedTime}
-                                    >
-                                        Confirm
-                                    </button>
-                                </div>
-                                
-                                {/* Informational Text - centered with tick on all devices */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 16, color: '#666', textAlign: 'center' }}>
-                                        <span style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            width: 18,
-                                            height: 18,
-                                            borderRadius: '50%',
-                                            backgroundColor: '#10b981',
-                                            color: '#fff',
-                                            fontSize: 12,
-                                            fontWeight: 800,
-                                            lineHeight: 1
-                                        }}>✓</span>
-                                        <span style={{ fontSize: 12, lineHeight: '1.3', fontStyle: 'italic' }}>
-                                            Times are set according to sunrise and sunset.
-                                        </span>
-                                    </div>
+      {/* Time Selection Popup Modal */}
+      <Modal
+        isOpen={timeSelectionModalOpen}
+        onClose={() => setTimeSelectionModalOpen(false)}
+        title={`Select Time for ${selectedDateForTime ? format(selectedDateForTime, "MMMM d, yyyy") : ""}`}
+        extraContent={
+          <div
+            style={{
+              minWidth: isMobile ? "100%" : 400,
+              width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              padding: isMobile ? "0" : "0",
+            }}
+          >
+            {selectedDateForTime && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: isMobile ? 4 : 12,
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginBottom: isMobile ? 8 : 16,
+                    color: "#666",
+                    fontSize: isMobile ? 12 : 16,
+                    lineHeight: 1.3,
+                    padding: isMobile ? "0 4px" : "0",
+                  }}
+                >
+                  {/* Removed subtitle requesting preferred time per user request */}
+                </div>
+                {/* Removed top-level 'Call to Book' banner; handled per-slot now */}
+                {(() => {
+                  const { slots } = getSpacesForDate(selectedDateForTime);
+                  if (slots.length === 0) {
+                    return (
+                      <div
+                        style={{
+                          textAlign: "center",
+                          color: "#888",
+                          padding: "20px",
+                        }}
+                      >
+                        No available times for this date
+                      </div>
+                    );
+                  }
+                  const selectedPassengers = getSelectedPassengerCount();
+                  return slots.map((slot) => {
+                    // 8 hour rule check
+                    let slotDateTime = new Date(selectedDateForTime);
+                    if (slot.time) {
+                      const [h, m, s] = slot.time.split(":");
+                      slotDateTime.setHours(Number(h));
+                      slotDateTime.setMinutes(Number(m || 0));
+                      slotDateTime.setSeconds(Number(s || 0));
+                    }
+                    const now = new Date();
+                    const diffMs = slotDateTime - now;
+                    const diffHours = diffMs / (1000 * 60 * 60);
+                    // Use the same availability logic as calendar totals:
+                    // this accounts for shared/private resource constraints (Balloon 210 / 105) and global locks.
+                    const availableForSelection =
+                      getAvailableSeatsForSelection(slot);
+                    const isAvailable = availableForSelection > 0;
+
+                    // For shared bookings, don't allow selecting a slot that can't fit all passengers.
+                    // For private bookings, getAvailableSeatsForSelection already returns 0 when the slot can't fit.
+                    const isPrivateCharter = (chooseFlightType?.type || "")
+                      .toLowerCase()
+                      .includes("private");
+                    const insufficientForPassengers =
+                      selectedVoucherType &&
+                      selectedPassengers > availableForSelection &&
+                      !isPrivateCharter;
+                    const within8h = diffHours < 8 && diffHours > 0;
+                    const enoughSeats =
+                      availableForSelection >= selectedPassengers;
+                    const showCallToBookForSlot = within8h && enoughSeats; // override labels when true
+                    // Selectable only if there are seats and rules met
+                    const isSelectable =
+                      isAvailable &&
+                      diffHours >= 8 &&
+                      !insufficientForPassengers;
+                    // Format time to 12-hour with AM/PM for display
+                    const formattedTime = (() => {
+                      try {
+                        const [hh, mm] = slot.time.split(":");
+                        const d = new Date();
+                        d.setHours(Number(hh) || 0, Number(mm) || 0, 0, 0);
+                        return d.toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        });
+                      } catch (e) {
+                        return slot.time?.split(":").slice(0, 2).join(":");
+                      }
+                    })();
+                    const isPrivateCharterExperience = (
+                      chooseFlightType?.type || ""
+                    )
+                      .toLowerCase()
+                      .includes("private charter");
+
+                    // Availability label rules:
+                    // - Private Charter: just "Available" / "Not Available"
+                    // - Other experiences: "<n> Spaces" / "Sold Out" (mevcut davranış)
+                    const availabilityLabel = (() => {
+                      if (isPrivateCharterExperience) {
+                        return availableForSelection > 0
+                          ? "Available"
+                          : "Not Available";
+                      }
+                      return availableForSelection > 0
+                        ? `${availableForSelection} Space${availableForSelection === 1 ? "" : "s"}`
+                        : "Sold Out";
+                    })();
+                    const shouldShowAvailabilityLabel = !!availabilityLabel;
+
+                    return (
+                      <div
+                        key={slot.id}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: isMobile ? 6 : 12,
+                        }}
+                      >
+                        <button
+                          style={{
+                            background: isSelectable ? "#00eb5b" : "#ccc",
+                            color: "#fff",
+                            border:
+                              tempSelectedTime === slot.time
+                                ? isMobile
+                                  ? "1px solid #56C1FF"
+                                  : "2px solid #56C1FF"
+                                : isMobile
+                                  ? "1px solid transparent"
+                                  : "2px solid transparent",
+                            borderRadius: isMobile ? 6 : 12,
+                            padding: isMobile ? "8px 12px" : "16px 20px",
+                            fontWeight: 600,
+                            fontSize: isMobile ? 14 : 18,
+                            cursor: isSelectable ? "pointer" : "not-allowed",
+                            opacity: isSelectable ? 1 : 0.6,
+                            width: isMobile ? "calc(100% - 4px)" : "70%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: isMobile
+                              ? "center"
+                              : "space-between",
+                            transition:
+                              "transform 0.2s ease, box-shadow 0.2s ease",
+                            transform: (() => {
+                              if (tempSelectedTime === slot.time)
+                                return isMobile ? "scale(1)" : "scale(1.02)";
+                              if (
+                                !isMobile &&
+                                hoveredTime === slot.time &&
+                                isSelectable
+                              )
+                                return "translateY(-2px) scale(1.03)";
+                              return "scale(1)";
+                            })(),
+                            boxShadow:
+                              !isMobile &&
+                              hoveredTime === slot.time &&
+                              isSelectable
+                                ? "0 8px 18px rgba(0,0,0,0.15), 0 0 0 3px rgba(86,193,255,0.35)"
+                                : tempSelectedTime === slot.time
+                                  ? "0 0 0 2px #56C1FF"
+                                  : "none",
+                            position: "relative",
+                            boxSizing: "border-box",
+                            marginBottom: isMobile ? 6 : 0,
+                            marginLeft: isMobile ? "2px" : "0",
+                            marginRight: isMobile ? "2px" : "0",
+                            minHeight: isMobile ? "40px" : "auto",
+                          }}
+                          onClick={() =>
+                            isSelectable && setTempSelectedTime(slot.time)
+                          }
+                          onMouseEnter={() => {
+                            if (!isMobile) setHoveredTime(slot.time);
+                          }}
+                          onMouseLeave={() => {
+                            if (!isMobile) setHoveredTime(null);
+                          }}
+                          disabled={!isSelectable}
+                        >
+                          {isMobile ? (
+                            // Mobile layout - horizontal single line
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                width: "100%",
+                                gap: 8,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  fontSize: "16px",
+                                  fontFamily: "Gilroy Sans Serif, sans-serif",
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {formattedTime}
+                              </span>
+                              {shouldShowAvailabilityLabel && (
+                                <span
+                                  style={{
+                                    fontWeight: 700,
+                                    fontSize: "16px",
+                                    fontFamily: "Gilroy Sans Serif, sans-serif",
+                                    lineHeight: 1,
+                                    opacity: 0.9,
+                                  }}
+                                >
+                                  {availabilityLabel}
+                                </span>
+                              )}
                             </div>
-                        )}
-                    </div>
-                }
-            />
-            
-            <style>{`
+                          ) : (
+                            // Desktop layout - horizontal
+                            <>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 12,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontWeight: 700,
+                                    fontSize: "16px",
+                                    fontFamily: "Gilroy Sans Serif, sans-serif",
+                                  }}
+                                >
+                                  {formattedTime}
+                                </span>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                {shouldShowAvailabilityLabel && (
+                                  <div
+                                    style={{
+                                      fontWeight: 600,
+                                      fontSize: "16px",
+                                      fontFamily:
+                                        "Gilroy Sans Serif, sans-serif",
+                                    }}
+                                  >
+                                    {availabilityLabel}
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                          {/* Center label based on remaining spaces or passenger-capacity mismatch */}
+                          {!isAvailable ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                pointerEvents: "none",
+                                fontWeight: 800,
+                                fontSize: isMobile ? 16 : 16,
+                                letterSpacing: isMobile ? 0.2 : 0.5,
+                                color: "#ffffff",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Sold Out
+                            </div>
+                          ) : insufficientForPassengers ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                pointerEvents: "none",
+                                fontWeight: 800,
+                                fontSize: isMobile ? 16 : 16,
+                                letterSpacing: isMobile ? 0.2 : 0.5,
+                                color: "#ffffff",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Not Available
+                            </div>
+                          ) : showCallToBookForSlot ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                pointerEvents: "none",
+                                fontWeight: 800,
+                                fontSize: isMobile ? 16 : 16,
+                                letterSpacing: isMobile ? 0.2 : 0.5,
+                                color: "#ffffff",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Call to Book
+                            </div>
+                          ) : availableForSelection <= 2 &&
+                            !isPrivateCharter ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                pointerEvents: "none",
+                                fontWeight: 700,
+                                fontSize: "16px",
+                                fontFamily: "Gilroy Sans Serif, sans-serif",
+                                letterSpacing: isMobile ? 0.2 : 0.5,
+                                color: "#ffffff",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              High Demand
+                            </div>
+                          ) : (availableForSelection === 3 ||
+                              availableForSelection === 4) &&
+                            !isPrivateCharter ? (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                pointerEvents: "none",
+                                fontWeight: 700,
+                                fontSize: "16px",
+                                fontFamily: "Gilroy Sans Serif, sans-serif",
+                                letterSpacing: isMobile ? 0.2 : 0.4,
+                                color: "#ffffff",
+                                textTransform: "uppercase",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Nearly Full
+                            </div>
+                          ) : null}
+                        </button>
+                      </div>
+                    );
+                  });
+                })()}
+
+                {/* Confirm and Cancel Buttons */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 10,
+                    marginTop: 16,
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <button
+                    style={{
+                      border: "1px solid #d1d5db",
+                      background: "#fff",
+                      color: "#374151",
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontSize: isMobile ? 14 : 14,
+                      fontWeight: 500,
+                      transition: "all 0.2s ease",
+                      boxSizing: "border-box",
+                      minHeight: isMobile ? "36px" : "auto",
+                    }}
+                    onClick={() => {
+                      setTimeSelectionModalOpen(false);
+                      setTempSelectedTime(null);
+                    }}
+                  >
+                    Choose Another Date
+                  </button>
+                  <button
+                    style={{
+                      background: "#00eb5b",
+                      color: "#fff",
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      border: "none",
+                      fontSize: isMobile ? 14 : 14,
+                      fontWeight: 500,
+                      opacity: tempSelectedTime ? 1 : 0.5,
+                      transition: "all 0.2s ease",
+                      boxSizing: "border-box",
+                      minHeight: isMobile ? "36px" : "auto",
+                    }}
+                    onClick={() => {
+                      if (tempSelectedTime) {
+                        handleTimeSelection(tempSelectedTime);
+                      }
+                    }}
+                    disabled={!tempSelectedTime}
+                  >
+                    Confirm
+                  </button>
+                </div>
+
+                {/* Informational Text - centered with tick on all devices */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    justifyContent: "center",
+                    marginTop: 16,
+                    color: "#666",
+                    textAlign: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      backgroundColor: "#10b981",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✓
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      lineHeight: "1.3",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Times are set according to sunrise and sunset.
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        }
+      />
+
+      <style>{`
                 .days-grid { 
                     display: grid; 
                     grid-template-columns: repeat(7, 1fr); 
@@ -2298,7 +3157,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                     }
                 }
             `}</style>
-            <style>{`
+      <style>{`
 .realtime-badge-wrap {
   position: static;
   transform: none;
@@ -2325,12 +3184,12 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
   font-weight: 600;
 }
             `}</style>
-            
-            {/* Removed standalone capacity warning modal */}
-            
-            {/* Timeout Modal removed - no automatic timeout */}
-        </>
-    );
+
+      {/* Removed standalone capacity warning modal */}
+
+      {/* Timeout Modal removed - no automatic timeout */}
+    </>
+  );
 };
 
 export default LiveAvailabilitySection;

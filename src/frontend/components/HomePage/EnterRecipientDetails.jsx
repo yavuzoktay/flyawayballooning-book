@@ -1,378 +1,454 @@
 // EnterRecipientDetails.js
-import React, { useState, forwardRef, useImperativeHandle, useEffect } from "react";
+import React, {
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+} from "react";
 import Accordion from "../Common/Accordion";
 import { BsInfoCircle } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { Tooltip as ReactTooltip } from "react-tooltip";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { trackCheckoutStarted } from '../../../utils/googleAdsTracking';
+import { trackCheckoutStarted } from "../../../utils/googleAdsTracking";
 
-const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFlightVoucher, isGiftVoucher, recipientDetails, setRecipientDetails, activeAccordion, setActiveAccordion, onSectionCompletion, isDisabled = false }, ref) => {
+const EnterRecipientDetails = forwardRef(
+  (
+    {
+      isBookFlight,
+      isRedeemVoucher,
+      isFlightVoucher,
+      isGiftVoucher,
+      recipientDetails,
+      setRecipientDetails,
+      activeAccordion,
+      setActiveAccordion,
+      onSectionCompletion,
+      isDisabled = false,
+    },
+    ref,
+  ) => {
     const [emailError, setEmailError] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     // Detect mobile viewport; only affects rendering of the gift date input
     useEffect(() => {
-        const media = window.matchMedia('(max-width: 768px)');
-        const setFlag = () => setIsMobile(media.matches);
-        setFlag();
+      const media = window.matchMedia("(max-width: 768px)");
+      const setFlag = () => setIsMobile(media.matches);
+      setFlag();
+      try {
+        media.addEventListener("change", setFlag);
+      } catch (_) {
+        // Safari fallback
+        media.addListener(setFlag);
+      }
+      return () => {
         try {
-            media.addEventListener('change', setFlag);
+          media.removeEventListener("change", setFlag);
         } catch (_) {
-            // Safari fallback
-            media.addListener(setFlag);
+          media.removeListener(setFlag);
         }
-        return () => {
-            try {
-                media.removeEventListener('change', setFlag);
-            } catch (_) {
-                media.removeListener(setFlag);
-            }
-        };
+      };
     }, []);
 
     // Convert date string to Date object for DatePicker
     const getDateValue = () => {
-        if (!recipientDetails.date) return null;
-        const date = new Date(recipientDetails.date);
-        return isNaN(date.getTime()) ? null : date;
+      if (!recipientDetails.date) return null;
+      const date = new Date(recipientDetails.date);
+      return isNaN(date.getTime()) ? null : date;
     };
 
     // Handle date change from DatePicker
     const handleDateChange = (date) => {
-        if (date) {
-            // Format date as YYYY-MM-DD for consistency
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-            setRecipientDetails({ ...recipientDetails, date: formattedDate });
-            
-            // Clear validation error
-            if (validationErrors.date) {
-                setValidationErrors(prev => ({ ...prev, date: false }));
-            }
-        } else {
-            setRecipientDetails({ ...recipientDetails, date: '' });
+      if (date) {
+        // Format date as YYYY-MM-DD for consistency
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const formattedDate = `${year}-${month}-${day}`;
+        setRecipientDetails({ ...recipientDetails, date: formattedDate });
+
+        // Clear validation error
+        if (validationErrors.date) {
+          setValidationErrors((prev) => ({ ...prev, date: false }));
         }
+      } else {
+        setRecipientDetails({ ...recipientDetails, date: "" });
+      }
     };
     const [validationErrors, setValidationErrors] = useState({});
 
     const handleChange = (e) => {
-        // Google Ads: GA_Checkout_Started (Stage 6) - purchaser info for gift flow
-        trackCheckoutStarted('purchaser');
-        
-        let value = e.target.value;
-        
-        // Handle input validation and filtering
-        if (e.target.name === 'name') {
-            // Only allow letters and spaces for name
-            value = value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, '');
-        } else if (e.target.name === 'phone') {
-            // Only allow numbers for phone
-            value = value.replace(/[^0-9]/g, '');
-        }
-        
-        setRecipientDetails({ ...recipientDetails, [e.target.name]: value });
-        
-        // Clear validation error when user starts typing
-        if (validationErrors[e.target.name]) {
-            setValidationErrors(prev => ({ ...prev, [e.target.name]: false }));
-        }
-        
-        if (e.target.name === 'email') {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            setEmailError(value && !emailRegex.test(value));
-        }
+      // Google Ads: GA_Checkout_Started (Stage 6) - purchaser info for gift flow
+      trackCheckoutStarted("purchaser");
+
+      let value = e.target.value;
+
+      // Handle input validation and filtering
+      if (e.target.name === "name") {
+        // Only allow letters and spaces for name
+        value = value.replace(/[^a-zA-ZğüşöçıİĞÜŞÖÇ\s]/g, "");
+      } else if (e.target.name === "phone") {
+        // Only allow numbers for phone
+        value = value.replace(/[^0-9]/g, "");
+      }
+
+      setRecipientDetails({ ...recipientDetails, [e.target.name]: value });
+
+      // Clear validation error when user starts typing
+      if (validationErrors[e.target.name]) {
+        setValidationErrors((prev) => ({ ...prev, [e.target.name]: false }));
+      }
+
+      if (e.target.name === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        setEmailError(value && !emailRegex.test(value));
+      }
     };
 
     const handleCheckboxChange = () => {
-        setRecipientDetails((prevDetails) => ({
-            ...prevDetails,
-            isNoRecipient: !prevDetails.isNoRecipient,
-        }));
+      setRecipientDetails((prevDetails) => ({
+        ...prevDetails,
+        isNoRecipient: !prevDetails.isNoRecipient,
+      }));
     };
 
     // Required validation function for Buy Gift
     const validateFields = () => {
-        if (!isGiftVoucher) return true;
-        
-        const errors = {};
-        
-        // Name her zaman zorunlu
-        if (!recipientDetails.name || !recipientDetails.name.trim()) {
-            errors.name = true;
-            console.log('❌ Recipient name validation failed:', recipientDetails.name);
+      if (!isGiftVoucher) return true;
+
+      const errors = {};
+
+      // Name her zaman zorunlu
+      if (!recipientDetails.name || !recipientDetails.name.trim()) {
+        errors.name = true;
+      }
+
+      // Email: Buy Gift için OPSİYONEL, ama DOLDURULURSA format kontrolü yap
+      if (recipientDetails.email && recipientDetails.email.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(recipientDetails.email.trim())) {
+          errors.email = true;
         }
-        
-        // Email: Buy Gift için OPSİYONEL, ama DOLDURULURSA format kontrolü yap
-        if (recipientDetails.email && recipientDetails.email.trim()) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(recipientDetails.email.trim())) {
-                errors.email = true;
-                console.log('❌ Recipient email validation failed (format):', recipientDetails.email);
-            }
+      }
+
+      // Phone: Buy Gift için OPSİYONEL, ama DOLDURULURSA sadece boşluk kontrolü yap
+      if (recipientDetails.phone && !recipientDetails.phone.trim()) {
+        errors.phone = true;
+      }
+
+      // Date her zaman zorunlu
+      if (!recipientDetails.date || !recipientDetails.date.trim()) {
+        errors.date = true;
+      } else {
+        // Additional date format validation
+        const dateValue = new Date(recipientDetails.date);
+        if (isNaN(dateValue.getTime())) {
+          errors.date = true;
         }
-        
-        // Phone: Buy Gift için OPSİYONEL, ama DOLDURULURSA sadece boşluk kontrolü yap
-        if (recipientDetails.phone && !recipientDetails.phone.trim()) {
-            errors.phone = true;
-            console.log('❌ Recipient phone validation failed (whitespace-only):', recipientDetails.phone);
-        }
-        
-        // Date her zaman zorunlu
-        if (!recipientDetails.date || !recipientDetails.date.trim()) {
-            errors.date = true;
-            console.log('❌ Recipient date validation failed:', recipientDetails.date);
-        } else {
-            // Additional date format validation
-            const dateValue = new Date(recipientDetails.date);
-            if (isNaN(dateValue.getTime())) {
-                errors.date = true;
-                console.log('❌ Recipient date validation failed (invalid date):', recipientDetails.date);
-            }
-        }
-        
-        console.log('🎁 Recipient Details required validation result:', {
-            recipientDetails,
-            errors,
-            isValid: Object.keys(errors).length === 0,
-            message: 'Name and Gift Date are required; email/phone optional for Buy Gift'
-        });
-        
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
+      }
+
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
     };
 
     // Expose validation function to parent
     useImperativeHandle(ref, () => ({
-        validate: validateFields
+      validate: validateFields,
     }));
 
     // Warn on close if Buy Gift and required fields are empty
     const onBeforeClose = () => {
-        if (!isGiftVoucher) return true;
-        const valid = validateFields();
-        if (!valid) {
-            alert('Recipient Details are required for Buy Gift. Please fill in Recipient Name and Gift Date.');
-            return false; // prevent closing
-        }
-        return true;
+      if (!isGiftVoucher) return true;
+      const valid = validateFields();
+      if (!valid) {
+        alert(
+          "Recipient Details are required for Buy Gift. Please fill in Recipient Name and Gift Date.",
+        );
+        return false; // prevent closing
+      }
+      return true;
     };
 
     return (
-        <Accordion 
-            title="Recipient Details"  
-            id="recipient-details" 
-            activeAccordion={activeAccordion} 
-            setActiveAccordion={setActiveAccordion} 
-            className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? 'disable-acc' : ''}`}
-            isDisabled={isDisabled} 
-            disabled={isBookFlight}
-            onBeforeClose={onBeforeClose}
-        >
-            <div className="Recipient">
-                <div className="form-presnger" style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '12px',
-                    width: '100%',
-                    maxWidth: '100%',
-                    margin: '0',
-                    padding: '0 8px'
-                }}>
-                    {/* Recipient Name */}
-                    <div style={{ width: '100%', minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                            <label style={{ 
-                                fontSize: '13px',
-                                fontWeight: '500',
-                                color: '#374151',
-                                margin: 0
-                            }}>Recipient Name{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
-                            <BsInfoCircle 
-                                data-tooltip-id="recipient-name-tooltip"
-                                style={{ color: '#3b82f6', cursor: 'pointer', width: 14, height: 14, flexShrink: 0 }} 
-                            />
-                            <ReactTooltip
-                                id="recipient-name-tooltip"
-                                place="top"
-                                content="Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser."
-                                style={{
-                                    maxWidth: '280px',
-                                    fontSize: '13px',
-                                    textAlign: 'center',
-                                    backgroundColor: '#1f2937',
-                                    color: '#ffffff',
-                                    borderRadius: '8px',
-                                    padding: '8px 12px',
-                                    zIndex: 9999
-                                }}
-                            />
-                        </div>
-                        <input
-                            type="text"
-                            name="name"
-                            required={isGiftVoucher}
-                            value={recipientDetails.name}
-                            onChange={handleChange}
-                            placeholder="Recipient Name"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: 'px',
-                                fontSize: '16px',
-                                minHeight: '35px',
-                                boxSizing: 'border-box',
-                                ...(validationErrors.name ? { border: '1.5px solid red' } : {})
-                            }}
-                        />
-                        {validationErrors.name && <span style={{ color: 'red', fontSize: 12 }}>Recipient name is required</span>}
-                    </div>
+      <Accordion
+        title="Recipient Details"
+        id="recipient-details"
+        activeAccordion={activeAccordion}
+        setActiveAccordion={setActiveAccordion}
+        className={`${isFlightVoucher || isRedeemVoucher || isBookFlight ? "disable-acc" : ""}`}
+        isDisabled={isDisabled}
+        disabled={isBookFlight}
+        onBeforeClose={onBeforeClose}
+      >
+        <div className="Recipient">
+          <div
+            className="form-presnger"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              width: "100%",
+              maxWidth: "100%",
+              margin: "0",
+              padding: "0 8px",
+            }}
+          >
+            {/* Recipient Name */}
+            <div style={{ width: "100%", minWidth: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  marginBottom: "4px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "500",
+                    color: "#374151",
+                    margin: 0,
+                  }}
+                >
+                  Recipient Name
+                  {isGiftVoucher && <span style={{ color: "red" }}>*</span>}
+                </label>
+                <BsInfoCircle
+                  data-tooltip-id="recipient-name-tooltip"
+                  style={{
+                    color: "#3b82f6",
+                    cursor: "pointer",
+                    width: 14,
+                    height: 14,
+                    flexShrink: 0,
+                  }}
+                />
 
-                    {/* Recipient Email */}
-                    <div style={{ width: '100%', minWidth: 0 }}>
-                        <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
-                            display: 'block',
-                        }}>Recipient Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            // optional for Buy Gift
-                            value={recipientDetails.email}
-                            onChange={handleChange}
-                            placeholder="Recipient Email"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px',
-                                fontSize: '16px',
-                                minHeight: '35px',
-                                boxSizing: 'border-box',
-                                ...((emailError || validationErrors.email) ? { border: '1.5px solid red' } : {})
-                            }}
-                        />
-                        {emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid email format</span>}
-                        {validationErrors.email && !emailError && <span style={{ color: 'red', fontSize: 12 }}>Invalid or empty email</span>}
-                    </div>
+                <ReactTooltip
+                  id="recipient-name-tooltip"
+                  place="top"
+                  content="Share the recipient's details so we can get in touch with them to arrange their flight. Rest assured, we won't contact them until after the gifted date has passed. Vouchers will be sent to the purchaser."
+                  style={{
+                    maxWidth: "280px",
+                    fontSize: "13px",
+                    textAlign: "center",
+                    backgroundColor: "#1f2937",
+                    color: "#ffffff",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    zIndex: 9999,
+                  }}
+                />
+              </div>
+              <input
+                type="text"
+                name="name"
+                required={isGiftVoucher}
+                value={recipientDetails.name}
+                onChange={handleChange}
+                placeholder="Recipient Name"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "px",
+                  fontSize: "16px",
+                  minHeight: "35px",
+                  boxSizing: "border-box",
+                  ...(validationErrors.name
+                    ? { border: "1.5px solid red" }
+                    : {}),
+                }}
+              />
 
-                    {/* Recipient Phone Number */}
-                    <div style={{ width: '100%', minWidth: 0 }}>
-                        <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
-                            display: 'block',
-                        }}>Recipient Phone Number</label>
-                        <input
-                            type="tel"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            name="phone"
-                            // optional for Buy Gift
-                            value={recipientDetails.phone}
-                            onChange={handleChange}
-                            placeholder="Recipient Phone Number"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px',
-                                fontSize: '16px',
-                                minHeight: '35px',
-                                boxSizing: 'border-box',
-                                ...(validationErrors.phone ? { border: '1.5px solid red' } : {})
-                            }}
-                        />
-                        {validationErrors.phone && <span style={{ color: 'red', fontSize: 12 }}>Recipient phone number is required</span>}
-                    </div>
+              {validationErrors.name && (
+                <span style={{ color: "red", fontSize: 12 }}>
+                  Recipient name is required
+                </span>
+              )}
+            </div>
 
-                    {/* Date Voucher to be Gifted */}
-                    <div style={{ width: '100%', minWidth: 0 }}>
-                        <label style={{ 
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#374151',
-                            marginBottom: '4px',
-                            display: 'block',
-                        }}>Date Voucher to be Gifted{isGiftVoucher && <span style={{ color: 'red' }}>*</span>}</label>
-                        {isMobile ? (
-                            // Mobile: Use native date input for better mobile experience
-                            <div style={{ position: 'relative', width: '100%' }}>
-                                <input
-                                    type="date"
-                                    name="date"
-                                    value={recipientDetails.date || ''}
-                                    onChange={handleChange}
-                                    min={new Date().toISOString().split('T')[0]}
-                                    required={isGiftVoucher}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        border: validationErrors.date ? '1.5px solid red' : '1px solid #e5e7eb',
-                                        borderRadius: '6px',
-                                        fontSize: '16px',
-                                        minHeight: '44px',
-                                        boxSizing: 'border-box',
-                                        backgroundColor: '#fff',
-                                        WebkitAppearance: 'none',
-                                        appearance: 'none',
-                                        color: recipientDetails.date ? '#374151' : 'transparent',
-                                    }}
-                                    className="recipient-date-input-mobile"
-                                />
-                                {!recipientDetails.date && (
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            left: '16px',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            pointerEvents: 'none',
-                                            color: '#9ca3af',
-                                            fontSize: '16px',
-                                            userSelect: 'none',
-                                        }}
-                                        className="recipient-date-placeholder"
-                                    >
-                                        Select a date
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            // Desktop: Use DatePicker for better UX
-                            <div style={{ position: 'relative' }}>
-                                <DatePicker
-                                    selected={getDateValue()}
-                                    onChange={handleDateChange}
-                                    dateFormat="dd/MM/yyyy"
-                                    placeholderText="Select a date"
-                                    minDate={new Date()}
-                                    required={isGiftVoucher}
-                                    wrapperClassName="date-picker-wrapper"
-                                    className={`recipient-date-input ${validationErrors.date ? 'error' : ''}`}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                        border: validationErrors.date ? '1.5px solid red' : '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    fontSize: '16px',
-                                    minHeight: '35px',
-                                    boxSizing: 'border-box',
-                                        cursor: 'pointer',
-                                        backgroundColor: '#fff',
-                                    }}
-                                    calendarClassName="recipient-date-calendar"
-                                    popperPlacement="bottom"
-                                    popperClassName="recipient-date-popper"
-                                />
-                            <style>{`
+            {/* Recipient Email */}
+            <div style={{ width: "100%", minWidth: 0 }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "4px",
+                  display: "block",
+                }}
+              >
+                Recipient Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                // optional for Buy Gift
+                value={recipientDetails.email}
+                onChange={handleChange}
+                placeholder="Recipient Email"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "6px",
+                  fontSize: "16px",
+                  minHeight: "35px",
+                  boxSizing: "border-box",
+                  ...(emailError || validationErrors.email
+                    ? { border: "1.5px solid red" }
+                    : {}),
+                }}
+              />
+
+              {emailError && (
+                <span style={{ color: "red", fontSize: 12 }}>
+                  Invalid email format
+                </span>
+              )}
+              {validationErrors.email && !emailError && (
+                <span style={{ color: "red", fontSize: 12 }}>
+                  Invalid or empty email
+                </span>
+              )}
+            </div>
+
+            {/* Recipient Phone Number */}
+            <div style={{ width: "100%", minWidth: 0 }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "4px",
+                  display: "block",
+                }}
+              >
+                Recipient Phone Number
+              </label>
+              <input
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                name="phone"
+                // optional for Buy Gift
+                value={recipientDetails.phone}
+                onChange={handleChange}
+                placeholder="Recipient Phone Number"
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "6px",
+                  fontSize: "16px",
+                  minHeight: "35px",
+                  boxSizing: "border-box",
+                  ...(validationErrors.phone
+                    ? { border: "1.5px solid red" }
+                    : {}),
+                }}
+              />
+
+              {validationErrors.phone && (
+                <span style={{ color: "red", fontSize: 12 }}>
+                  Recipient phone number is required
+                </span>
+              )}
+            </div>
+
+            {/* Date Voucher to be Gifted */}
+            <div style={{ width: "100%", minWidth: 0 }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "4px",
+                  display: "block",
+                }}
+              >
+                Date Voucher to be Gifted
+                {isGiftVoucher && <span style={{ color: "red" }}>*</span>}
+              </label>
+              {isMobile ? (
+                // Mobile: Use native date input for better mobile experience
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    type="date"
+                    name="date"
+                    value={recipientDetails.date || ""}
+                    onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
+                    required={isGiftVoucher}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      border: validationErrors.date
+                        ? "1.5px solid red"
+                        : "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                      minHeight: "44px",
+                      boxSizing: "border-box",
+                      backgroundColor: "#fff",
+                      WebkitAppearance: "none",
+                      appearance: "none",
+                      color: recipientDetails.date ? "#374151" : "transparent",
+                    }}
+                    className="recipient-date-input-mobile"
+                  />
+
+                  {!recipientDetails.date && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "16px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        pointerEvents: "none",
+                        color: "#9ca3af",
+                        fontSize: "16px",
+                        userSelect: "none",
+                      }}
+                      className="recipient-date-placeholder"
+                    >
+                      Select a date
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Desktop: Use DatePicker for better UX
+                <div style={{ position: "relative" }}>
+                  <DatePicker
+                    selected={getDateValue()}
+                    onChange={handleDateChange}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Select a date"
+                    minDate={new Date()}
+                    required={isGiftVoucher}
+                    wrapperClassName="date-picker-wrapper"
+                    className={`recipient-date-input ${validationErrors.date ? "error" : ""}`}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      border: validationErrors.date
+                        ? "1.5px solid red"
+                        : "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                      minHeight: "35px",
+                      boxSizing: "border-box",
+                      cursor: "pointer",
+                      backgroundColor: "#fff",
+                    }}
+                    calendarClassName="recipient-date-calendar"
+                    popperPlacement="bottom"
+                    popperClassName="recipient-date-popper"
+                  />
+
+                  <style>{`
                                 .date-picker-wrapper {
                                     width: 100%;
                                 }
@@ -436,9 +512,9 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                     z-index: 9999 !important;
                                 }
                             `}</style>
-                            </div>
-                        )}
-                        <style>{`
+                </div>
+              )}
+              <style>{`
                             /* Mobile native date input styling */
                             .recipient-date-input-mobile {
                                 width: 100% !important;
@@ -486,13 +562,24 @@ const EnterRecipientDetails = forwardRef(({ isBookFlight, isRedeemVoucher, isFli
                                 }
                             }
                         `}</style>
-                        {validationErrors.date && <span style={{ color: 'red', fontSize: 12, marginTop: '4px', display: 'block' }}>Gift date is required</span>}
-                    </div>
-                </div>
+              {validationErrors.date && (
+                <span
+                  style={{
+                    color: "red",
+                    fontSize: 12,
+                    marginTop: "4px",
+                    display: "block",
+                  }}
+                >
+                  Gift date is required
+                </span>
+              )}
             </div>
-        </Accordion>
+          </div>
+        </div>
+      </Accordion>
     );
-});
+  },
+);
 
 export default EnterRecipientDetails;
-
