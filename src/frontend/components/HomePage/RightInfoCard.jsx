@@ -12,12 +12,12 @@ import {
   Button,
 } from "@mui/material";
 import {
-  FaCcVisa,
-  FaCcMastercard,
-  FaCcAmex,
-  FaApplePay,
-  FaGooglePay,
-} from "react-icons/fa";
+  SiVisa,
+  SiMastercard,
+  SiAmericanexpress,
+  SiApplepay,
+  SiGooglepay,
+} from "react-icons/si";
 
 import config from "../../../config";
 import { getGoogleAdsIdsForCheckout } from "../../../utils/googleAdsTracking";
@@ -2219,7 +2219,10 @@ const RightInfoCard = ({
               </>
             )}
             <div className="bottom_main">
-              <h3>Total:</h3>
+              <h3 className="summary-total-line">
+                Total:
+                <span className="total-price-animated">{`£${animatedTotal.toFixed(2)}`}</span>
+              </h3>
               <div
                 style={{
                   display: "flex",
@@ -2245,21 +2248,15 @@ const RightInfoCard = ({
                     ).toFixed(2)}
                   </p>
                 )}
-                <p
-                  className="total-price-animated"
-                  style={{ fontWeight: 500, fontSize: "1.2rem", margin: 0 }}
-                >
-                  {`£${animatedTotal.toFixed(2)}`}
-                </p>
                 <div
                   className="summary-payment-icons"
                   aria-label="Supported payment methods"
                 >
-                  <FaCcVisa className="payment-icon payment-icon--visa" />
-                  <FaCcMastercard className="payment-icon payment-icon--mastercard" />
-                  <FaCcAmex className="payment-icon payment-icon--amex" />
-                  <FaApplePay className="payment-icon payment-icon--applepay" />
-                  <FaGooglePay className="payment-icon payment-icon--googlepay" />
+                  <SiVisa className="payment-icon payment-icon--visa" />
+                  <SiMastercard className="payment-icon payment-icon--mastercard" />
+                  <SiAmericanexpress className="payment-icon payment-icon--amex" />
+                  <SiApplepay className="payment-icon payment-icon--applepay" />
+                  <SiGooglepay className="payment-icon payment-icon--googlepay" />
                 </div>
                 <span className="summary-secure-payment">Secure Payment</span>
               </div>
