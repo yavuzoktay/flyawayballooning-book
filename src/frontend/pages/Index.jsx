@@ -8821,6 +8821,7 @@ const Index = () => {
           <Accordion
             key={item.id}
             id={item.id}
+            className="side-faq-accordion"
             title={item.title}
             activeAccordion={activeFrequentQuestion}
             setActiveAccordion={setActiveFrequentQuestion}

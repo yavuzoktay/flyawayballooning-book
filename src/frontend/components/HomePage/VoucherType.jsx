@@ -2488,7 +2488,7 @@ const VoucherType = ({
                       minWidth: isMobile ? 0 : 0,
                       height: isMobile ? 42 : 40,
                       textAlign: "center",
-                      fontSize: isMobile ? 54 : 50,
+                      fontSize: isMobile ? 44 : 40,
                       fontWeight: 500,
                       color: "#4a4a4a",
                       lineHeight: 1,
