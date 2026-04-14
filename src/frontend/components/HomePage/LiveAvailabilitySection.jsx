@@ -2934,14 +2934,17 @@ const LiveAvailabilitySection = ({
                     marginTop: 16,
                     width: "100%",
                     boxSizing: "border-box",
+                    flexWrap: "wrap",
                   }}
                 >
                   <button
                     className="booking-shared-action-button"
                     style={{
-                      flex: 1,
+                      flex: "0 1 auto",
                       boxSizing: "border-box",
                       minHeight: isMobile ? "44px" : "46px",
+                      minWidth: isMobile ? "132px" : "168px",
+                      padding: isMobile ? "10px 14px" : "10px 18px",
                     }}
                     onClick={() => {
                       setTimeSelectionModalOpen(false);
@@ -2953,9 +2956,11 @@ const LiveAvailabilitySection = ({
                   <button
                     className="booking-shared-action-button"
                     style={{
-                      flex: 1,
+                      flex: "0 1 auto",
                       boxSizing: "border-box",
                       minHeight: isMobile ? "44px" : "46px",
+                      minWidth: isMobile ? "132px" : "168px",
+                      padding: isMobile ? "10px 14px" : "10px 18px",
                     }}
                     onClick={() => {
                       if (tempSelectedTime) {
