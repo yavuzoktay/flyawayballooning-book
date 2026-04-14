@@ -7,6 +7,10 @@ import Image4 from "../../../assets/images/category1.jpeg";
 import axios from "axios";
 import config from "../../../config";
 import { trackLocationSelected } from "../../../utils/googleAdsTracking";
+import {
+  getPriorityImageProps,
+  preloadImageUrls,
+} from "../../../utils/preloadImages";
 
 const imageMap = {
   Bath: Image1,
@@ -72,6 +76,15 @@ const LocationSection = ({
         console.error("Error fetching locations:", error);
       });
   }, []);
+
+  useEffect(() => {
+    if (!locations.length) return;
+
+    preloadImageUrls(
+      locations.map((location) => location.image),
+      { limit: locations.length },
+    );
+  }, [locations]);
 
   const isPrivateVoucherSelection = () => {
     const flightType = (chooseFlightType?.type || "").toLowerCase();
@@ -270,7 +283,7 @@ const LocationSection = ({
         <div className="tab_box scroll-box">
           {isMobile
             ? // Mobile: Single column layout
-              locations.map((loc) => {
+              locations.map((loc, index) => {
                 const isDisabled = shouldDisableLocation(loc.name);
                 return (
                   <div
@@ -291,30 +304,16 @@ const LocationSection = ({
                       src={loc.image}
                       alt={loc.name}
                       width="100%"
+                      {...getPriorityImageProps(index, 4)}
                       style={{
                         height: "120px",
                         objectFit: "cover",
                         transition: "transform 0.3s ease",
                         cursor: "pointer",
                       }}
-                      loading="lazy"
                       onError={(e) => {
                         // Hide image on error (blocked, 404, etc.) to prevent loading delays
                         e.target.style.display = "none";
-                      }}
-                      onLoad={(e) => {
-                        // Clear any timeout on successful load
-                        if (e.target.dataset.timeoutId) {
-                          clearTimeout(parseInt(e.target.dataset.timeoutId));
-                          delete e.target.dataset.timeoutId;
-                        }
-                      }}
-                      onLoadStart={(e) => {
-                        // Set timeout to hide image if it takes too long (5 seconds)
-                        const timeoutId = setTimeout(() => {
-                          e.target.style.display = "none";
-                        }, 5000);
-                        e.target.dataset.timeoutId = timeoutId.toString();
                       }}
                       onMouseEnter={(e) => {
                         if (!isDisabled) {
@@ -375,6 +374,7 @@ const LocationSection = ({
                       .slice(rowIdx * 2, rowIdx * 2 + 2)
                       .map((loc, index) => {
                         const isDisabled = shouldDisableLocation(loc.name);
+                        const imageIndex = rowIdx * 2 + index;
                         return (
                           <div
                             className={`loc_data location_data ${chooseLocation == loc.name ? "active-loc" : ""} ${isDisabled ? "disabled-location" : ""}`}
@@ -391,6 +391,7 @@ const LocationSection = ({
                               src={loc.image}
                               alt={loc.name}
                               width="100%"
+                              {...getPriorityImageProps(imageIndex, 4)}
                               onError={(e) => {
                                 e.target.style.display = "none";
                               }}

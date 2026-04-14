@@ -7,6 +7,10 @@ import sharedFlightImg from "../../../assets/images/shared-flight.jpg";
 import privateCharterImg from "../../../assets/images/private-charter.jpg";
 import config from "../../../config";
 import { trackExperienceSelected } from "../../../utils/googleAdsTracking";
+import {
+  getPriorityImageProps,
+  preloadImageUrls,
+} from "../../../utils/preloadImages";
 
 const weatherRefundableHoverTexts = {
   sharedFlight:
@@ -530,6 +534,15 @@ const ExperienceSection = ({
   // Use finalExperiences instead of the old logic
   const filteredExperiences = finalExperiences || [];
 
+  useEffect(() => {
+    if (!filteredExperiences.length) return;
+
+    preloadImageUrls(
+      filteredExperiences.map((experience) => experience.img),
+      { limit: Math.min(filteredExperiences.length, 4) },
+    );
+  }, [filteredExperiences]);
+
   // Debug: Log experiences data
 
   const handlePassengerChange = (index, value) => {
@@ -929,32 +942,16 @@ const ExperienceSection = ({
                         <img
                           src={experience.img}
                           alt={experience.title}
+                          {...getPriorityImageProps(index, 3)}
                           // Reduce image height to make the card shorter on mobile
                           style={{
                             width: "100%",
                             height: 120,
                             objectFit: "cover",
                           }}
-                          loading="lazy"
                           onError={(e) => {
                             // Hide image on error (blocked, 404, etc.) to prevent loading delays
                             e.target.style.display = "none";
-                          }}
-                          onLoad={(e) => {
-                            // Clear any timeout on successful load
-                            if (e.target.dataset.timeoutId) {
-                              clearTimeout(
-                                parseInt(e.target.dataset.timeoutId),
-                              );
-                              delete e.target.dataset.timeoutId;
-                            }
-                          }}
-                          onLoadStart={(e) => {
-                            // Set timeout to hide image if it takes too long (5 seconds)
-                            const timeoutId = setTimeout(() => {
-                              e.target.style.display = "none";
-                            }, 5000);
-                            e.target.dataset.timeoutId = timeoutId.toString();
                           }}
                         />
                       ) : (
@@ -1174,6 +1171,7 @@ const ExperienceSection = ({
                     <img
                       src={experience.img}
                       alt={experience.title}
+                      {...getPriorityImageProps(index, 2)}
                       style={{ width: "100%", height: 160, objectFit: "cover" }}
                       onError={(e) => {
                         e.target.style.display = "none";

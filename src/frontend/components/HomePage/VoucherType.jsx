@@ -20,6 +20,10 @@ import { BsInfoCircle } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { useLocation } from "react-router-dom";
 import { trackProductSelected } from "../../../utils/googleAdsTracking";
+import {
+  getPriorityImageProps,
+  preloadImageUrls,
+} from "../../../utils/preloadImages";
 
 // Add CSS animations for slide effects
 const slideAnimations = `
@@ -1485,6 +1489,15 @@ const VoucherType = ({
     hiddenVoucherTitleSet,
   ]);
 
+  useEffect(() => {
+    if (!voucherTypes.length) return;
+
+    preloadImageUrls(
+      voucherTypes.map((voucher) => voucher.image),
+      { limit: Math.min(voucherTypes.length, isMobile ? 6 : 4) },
+    );
+  }, [voucherTypes, isMobile]);
+
   // Expose voucher types to Google Merchant Center / Shopping via structured data
   // This generates a Product list for the current experience (Shared / Private Charter)
   // so Google can crawl `https://flyawayballooning-book.com/` and discover all
@@ -1838,6 +1851,7 @@ const VoucherType = ({
   // Render voucher cards inline so mobile scroll state changes do not remount the image tree.
   const renderVoucherCard = ({
     voucher,
+    index = 0,
     onSelect,
     quantities,
     isSelected,
@@ -1978,26 +1992,11 @@ const VoucherType = ({
           <img
             src={voucher.image}
             alt={voucher.title}
-            loading={isMobile ? "eager" : "lazy"}
-            decoding="async"
+            {...getPriorityImageProps(index, isMobile ? 3 : 2)}
             draggable={false}
             onError={(e) => {
               // Hide image on error (blocked, 404, etc.) to prevent loading delays
               e.target.style.display = "none";
-            }}
-            onLoad={(e) => {
-              // Clear any timeout on successful load
-              if (e.target.dataset.timeoutId) {
-                clearTimeout(parseInt(e.target.dataset.timeoutId));
-                delete e.target.dataset.timeoutId;
-              }
-            }}
-            onLoadStart={(e) => {
-              // Set timeout to hide image if it takes too long (5 seconds)
-              const timeoutId = setTimeout(() => {
-                e.target.style.display = "none";
-              }, 5000);
-              e.target.dataset.timeoutId = timeoutId.toString();
             }}
             style={{
               width: "100%",
@@ -4070,6 +4069,7 @@ const VoucherType = ({
                           >
                             {renderVoucherCard({
                               voucher,
+                              index,
                               isSelected:
                                 selectedVoucherType?.id === voucher.id,
                               onSelect: handleSelectVoucher,
@@ -4259,6 +4259,7 @@ const VoucherType = ({
                         >
                           {renderVoucherCard({
                             voucher,
+                            index,
                             onSelect: handleSelectVoucher,
                             quantities,
                             isSelected: selectedVoucher?.id === voucher.id,
@@ -4449,6 +4450,7 @@ const VoucherType = ({
                         >
                           {renderVoucherCard({
                             voucher,
+                            index,
                             onSelect: handleSelectVoucher,
                             quantities,
                             isSelected: selectedVoucher?.id === voucher.id,
