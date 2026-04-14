@@ -459,28 +459,28 @@
 @media (max-width: 768px) {
   /* Ensure Redeem Voucher card maintains consistent height in both states */
   .activity-panel .book_data:nth-child(3) {
-    height: 120px !important; /* Match front card height on mobile */
-    min-height: 120px !important;
-    max-height: 120px !important;
+    height: auto !important;
+    min-height: 132px !important;
+    max-height: none !important;
   }
 
   /* Keep fixed height for flip container and flipper on mobile */
   .activity-panel .book_data:nth-child(3) .card-flip-container,
   .activity-panel .book_data:nth-child(3) .card-flipper {
-    height: 120px !important;
-    min-height: 120px !important;
-    max-height: 120px !important;
+    height: auto !important;
+    min-height: 132px !important;
+    max-height: none !important;
   }
 
   /* Remove 3D positioning so elements take normal flow space */
-  .card-front,
-  .card-back {
+  .activity-panel .book_data:nth-child(3) .card-front,
+  .activity-panel .book_data:nth-child(3) .card-back {
     position: relative !important;
-    height: 120px !important; /* Fixed height to match front */
-    min-height: 120px !important;
-    max-height: 120px !important;
+    height: auto !important;
+    min-height: 132px !important;
+    max-height: none !important;
     transform: none !important;
-    overflow: hidden !important; /* Ensure border stays within card bounds */
+    overflow: visible !important;
     border-radius: 20px !important; /* Match parent card border-radius */
   }
 
@@ -512,11 +512,11 @@
 
   /* Ensure voucher card container matches the fixed height */
   .activity-panel .book_data:nth-child(3) .card-back .voucher-card-container {
-    height: 120px !important;
-    min-height: 120px !important;
-    max-height: 120px !important;
-    padding: 8px !important;
-    overflow: hidden !important;
+    height: auto !important;
+    min-height: 132px !important;
+    max-height: none !important;
+    padding: 10px !important;
+    overflow: visible !important;
     border-radius: 20px !important; /* Match card-back border-radius */
     box-sizing: border-box !important; /* Include border in height calculation */
     margin: 0 !important;
@@ -525,15 +525,15 @@
 
   /* Prevent any child elements from expanding the card */
   .activity-panel .book_data:nth-child(3) .card-back * {
-    max-height: 100% !important;
     box-sizing: border-box !important;
   }
 
   /* Ensure input and button don't cause expansion */
   .activity-panel .book_data:nth-child(3) .voucher-card-container input,
   .activity-panel .book_data:nth-child(3) .voucher-card-container button {
-    max-height: 28px !important;
-    flex-shrink: 1 !important;
+    max-height: none !important;
+    min-height: 32px !important;
+    flex-shrink: 0 !important;
   }
 
   /* Prevent status messages from expanding card */
@@ -541,9 +541,9 @@
     .book_data:nth-child(3)
     .voucher-card-container
     > div:last-child {
-    max-height: 40px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    max-height: none !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
   }
 }
 

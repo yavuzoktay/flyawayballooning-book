@@ -30,7 +30,8 @@ import ProgressBar from "../components/Common/ProgressBar";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
-import { FaGoogle, FaTripadvisor, FaStar } from "react-icons/fa";
+import { FaTripadvisor, FaStar } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { useLocation, useParams } from "react-router-dom";
 import CustomerPortalHeader from "../components/CustomerPortal/CustomerPortalHeader";
 
@@ -8736,8 +8737,8 @@ const Index = () => {
             className="reviews-proof-link"
           >
             <div className="reviews-proof-brand">
-              <FaGoogle className="reviews-brand-icon reviews-brand-icon--google" />
-              <span>5</span>
+              <FcGoogle className="reviews-brand-icon reviews-brand-icon--google" />
+              <span className="reviews-brand-score">5</span>
             </div>
             <div className="reviews-proof-stars">
               {[...Array(5)].map((_, index) => (
@@ -8753,7 +8754,7 @@ const Index = () => {
           >
             <div className="reviews-proof-brand">
               <FaTripadvisor className="reviews-brand-icon reviews-brand-icon--tripadvisor" />
-              <span>5</span>
+              <span className="reviews-brand-score">5</span>
             </div>
             <div className="reviews-proof-stars">
               {[...Array(5)].map((_, index) => (

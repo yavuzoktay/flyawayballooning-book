@@ -78,11 +78,11 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
     <div className="voucher-card-container" style={{ 
       width: '100%', 
       maxWidth: '100%',
-      height: isMobile ? '120px' : '220px',
-      minHeight: isMobile ? '120px' : '220px',
-      maxHeight: isMobile ? '120px' : '220px',
-      overflow: isMobile ? 'hidden' : 'auto',
-      overflowY: isMobile ? 'hidden' : 'auto',
+      height: isMobile ? 'auto' : '220px',
+      minHeight: isMobile ? '132px' : '220px',
+      maxHeight: isMobile ? 'none' : '220px',
+      overflow: isMobile ? 'visible' : 'auto',
+      overflowY: isMobile ? 'visible' : 'auto',
       overflowX: 'hidden',
       boxSizing: 'border-box',
       display: 'flex',
@@ -103,8 +103,8 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
         width: '100%',
         lineHeight: '1.1',
         flexShrink: 0,
-        maxHeight: isMobile ? '14px' : 'auto',
-        overflow: 'hidden'
+        maxHeight: 'none',
+        overflow: 'visible'
       }}>
         Enter Voucher Code
       </div>
@@ -119,14 +119,15 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           width: '85%', 
           margin: isMobile ? '2px auto 4px auto' : '8px auto 12px auto', 
           display: 'block',
-          padding: isMobile ? '3px 6px' : '8px 12px',
-          fontSize: isMobile ? '11px' : '14px',
+          padding: isMobile ? '6px 8px' : '8px 12px',
+          fontSize: isMobile ? '12px' : '14px',
           border: '1px solid #ccc',
           borderRadius: '4px',
           boxSizing: 'border-box',
           flexShrink: 0,
-          maxHeight: isMobile ? '24px' : 'auto',
-          height: isMobile ? '24px' : 'auto'
+          maxHeight: 'none',
+          height: 'auto',
+          minHeight: isMobile ? '32px' : 'auto'
         }}
         onClick={e => e.stopPropagation()}
         onFocus={e => e.stopPropagation()}
@@ -139,16 +140,18 @@ const RedeemVoucherCard = ({ onSubmit, voucherStatus, voucherData, onValidate })
           color: "white", 
           border: "none",
           borderRadius: "4px",
-          padding: isMobile ? '3px 10px' : "8px 16px",
-          fontSize: isMobile ? "11px" : "14px",
+          padding: isMobile ? '8px 16px' : "8px 16px",
+          fontSize: isMobile ? "12px" : "14px",
           fontWeight: "500",
           cursor: "pointer",
-          lineHeight: "1.2",
+          lineHeight: "1.1",
           marginBottom: isMobile ? "2px" : "8px",
           minWidth: "60px",
           flexShrink: 0,
-          maxHeight: isMobile ? '24px' : 'auto',
-          height: isMobile ? '24px' : 'auto'
+          maxHeight: 'none',
+          height: 'auto',
+          minHeight: isMobile ? '34px' : 'auto',
+          boxSizing: 'border-box'
         }}
       >
         Redeem

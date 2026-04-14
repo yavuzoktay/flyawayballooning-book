@@ -3708,7 +3708,7 @@ const VoucherType = ({
                 style={{
                   margin: 0,
                   fontSize: 20,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   color: "#111827",
                   textAlign: "center",
                 }}

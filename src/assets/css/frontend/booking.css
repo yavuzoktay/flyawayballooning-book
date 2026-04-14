@@ -362,22 +362,31 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 .reviews-proof-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #111827;
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .reviews-brand-icon {
-  font-size: 30px;
+  font-size: 31px;
+  flex-shrink: 0;
 }
 
 .reviews-brand-icon--google {
-  color: #4285f4;
+  font-size: 33px;
 }
 
 .reviews-brand-icon--tripadvisor {
   color: #34e0a1;
+  font-size: 30px;
+}
+
+.reviews-brand-score {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .reviews-proof-stars {
