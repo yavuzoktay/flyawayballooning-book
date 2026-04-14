@@ -8647,7 +8647,7 @@ const Index = () => {
           className="reviews-proof-link"
         >
           <div className="reviews-proof-brand">
-            <FaGoogle />
+            <FaGoogle className="reviews-brand-icon reviews-brand-icon--google" />
             <span>5</span>
           </div>
           <div className="reviews-proof-stars">
@@ -8663,7 +8663,7 @@ const Index = () => {
           className="reviews-proof-link"
         >
           <div className="reviews-proof-brand">
-            <FaTripadvisor />
+            <FaTripadvisor className="reviews-brand-icon reviews-brand-icon--tripadvisor" />
             <span>5</span>
           </div>
           <div className="reviews-proof-stars">

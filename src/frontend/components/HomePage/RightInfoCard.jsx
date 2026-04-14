@@ -2219,7 +2219,7 @@ const RightInfoCard = ({
               </>
             )}
             <div className="bottom_main">
-              <h3>Total</h3>
+              <h3>Total:</h3>
               <div
                 style={{
                   display: "flex",
@@ -2249,21 +2249,17 @@ const RightInfoCard = ({
                   className="total-price-animated"
                   style={{ fontWeight: 500, fontSize: "1.2rem", margin: 0 }}
                 >
-                  {activitySelect === "Redeem Voucher"
-                    ? `£${animatedTotal.toFixed(2)}`
-                    : totalPrice > 0
-                      ? `£${animatedTotal.toFixed(2)}`
-                      : ""}
+                  {`£${animatedTotal.toFixed(2)}`}
                 </p>
                 <div
                   className="summary-payment-icons"
                   aria-label="Supported payment methods"
                 >
-                  <FaCcVisa />
-                  <FaCcMastercard />
-                  <FaCcAmex />
-                  <FaApplePay />
-                  <FaGooglePay />
+                  <FaCcVisa className="payment-icon payment-icon--visa" />
+                  <FaCcMastercard className="payment-icon payment-icon--mastercard" />
+                  <FaCcAmex className="payment-icon payment-icon--amex" />
+                  <FaApplePay className="payment-icon payment-icon--applepay" />
+                  <FaGooglePay className="payment-icon payment-icon--googlepay" />
                 </div>
                 <span className="summary-secure-payment">Secure Payment</span>
               </div>

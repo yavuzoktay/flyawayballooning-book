@@ -176,8 +176,31 @@ button:hover,
   justify-content: flex-end;
   gap: 6px;
   margin-top: 6px;
-  color: #1f2937;
   font-size: 18px;
+}
+
+.payment-icon {
+  font-size: 20px;
+}
+
+.payment-icon--visa {
+  color: #1a1f71;
+}
+
+.payment-icon--mastercard {
+  color: #eb001b;
+}
+
+.payment-icon--amex {
+  color: #2e77bb;
+}
+
+.payment-icon--applepay {
+  color: #111111;
+}
+
+.payment-icon--googlepay {
+  color: #4285f4;
 }
 
 .summary-secure-payment {
@@ -207,6 +230,18 @@ button:hover,
   color: #111827;
   font-size: 26px;
   font-weight: 700;
+}
+
+.reviews-brand-icon {
+  font-size: 30px;
+}
+
+.reviews-brand-icon--google {
+  color: #4285f4;
+}
+
+.reviews-brand-icon--tripadvisor {
+  color: #34e0a1;
 }
 
 .reviews-proof-stars {
