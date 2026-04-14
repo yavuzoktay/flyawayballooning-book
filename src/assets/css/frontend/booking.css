@@ -1113,7 +1113,7 @@ textarea {
 
 .voucher-stepper-button {
   background: transparent !important;
-  border: 3px solid var(--fab-bright-green) !important;
+  border: 1.5px solid var(--fab-bright-green) !important;
   border-radius: 999px !important;
   color: var(--fab-bright-green) !important;
   box-shadow: none !important;

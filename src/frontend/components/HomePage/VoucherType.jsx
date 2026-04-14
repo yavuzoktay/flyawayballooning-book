@@ -746,6 +746,17 @@ const VoucherType = ({
     return rectWidth + gap;
   };
 
+  const getMobileScrollLeftForIndex = (container, index) => {
+    if (!container) return 0;
+    const itemWidth = getMobileItemWidth(container);
+    const maxScrollLeft = Math.max(
+      container.scrollWidth - container.clientWidth,
+      0,
+    );
+    if (!itemWidth) return 0;
+    return Math.min(Math.max(index, 0) * itemWidth, maxScrollLeft);
+  };
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
     onResize();
@@ -762,25 +773,28 @@ const VoucherType = ({
         voucherContainerRef.current ||
         document.querySelector(".voucher-cards-container");
       if (!container || container.children.length === 0) return;
-      const children = Array.from(container.children);
-      const itemCount = children.length;
+      const itemCount = container.children.length;
       if (itemCount === 0) return;
-      const rect = container.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      let best = 0;
-      let bestDist = Infinity;
-      for (let i = 0; i < children.length; i++) {
-        const cr = children[i].getBoundingClientRect();
-        const dist = Math.abs(cr.left + cr.width / 2 - centerX);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = i;
-        }
-      }
-      const clamped = Math.max(0, Math.min(best, itemCount - 1));
-      setCurrentItemIndex(clamped);
-      setCanScrollVouchersLeft(clamped > 0);
-      setCanScrollVouchersRight(clamped < itemCount - 1);
+      const itemWidth = getMobileItemWidth(container);
+      const maxScrollLeft = Math.max(
+        container.scrollWidth - container.clientWidth,
+        0,
+      );
+      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
+      const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
+      const nextIndex =
+        maxScrollLeft > 0 &&
+        maxScrollLeft - container.scrollLeft <= edgeThreshold
+          ? itemCount - 1
+          : Math.round(rawIndex);
+      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
+      setCurrentItemIndex((prev) => (prev === clamped ? prev : clamped));
+      setCanScrollVouchersLeft((prev) =>
+        prev === (clamped > 0) ? prev : clamped > 0,
+      );
+      setCanScrollVouchersRight((prev) =>
+        prev === (clamped < itemCount - 1) ? prev : clamped < itemCount - 1,
+      );
     };
 
     let frameId = null;
@@ -1919,13 +1933,15 @@ const VoucherType = ({
     return (
       <div
         className="voucher-type-card"
-        style={{
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-          // Mobile: card wider (calc(100% - 12px) for slightly larger cards); desktop fixed width
-          width: isMobile ? "calc(100% - 0px)" : "320px",
-          minWidth: isMobile ? "calc(100% - 0px)" : "320px",
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: isMobile
+              ? "0 2px 10px rgba(0,0,0,0.06)"
+              : "0 2px 12px rgba(0,0,0,0.07)",
+            // Mobile: card wider (calc(100% - 12px) for slightly larger cards); desktop fixed width
+            width: isMobile ? "calc(100% - 0px)" : "320px",
+            minWidth: isMobile ? "calc(100% - 0px)" : "320px",
           maxWidth: isMobile ? "calc(100% - 0px)" : "320px",
           // Unified min height per flow/device to align Shared Flight cards (Any Day / Flexible Weekday) on mobile
           minHeight: cardMinHeight,
@@ -1933,20 +1949,22 @@ const VoucherType = ({
           padding: 0,
           display: "flex",
           flexDirection: "column",
-          height: "100%",
-          overflow: isMobile ? "hidden" : "visible",
-          animation: shouldAnimate
-            ? slideDirection === "right"
-              ? "slideInRight 0.3s ease-in-out"
-              : slideDirection === "left"
+            height: "100%",
+            overflow: isMobile ? "hidden" : "visible",
+            animation: shouldAnimate && !isMobile
+              ? slideDirection === "right"
+                ? "slideInRight 0.3s ease-in-out"
+                : slideDirection === "left"
                 ? "slideInLeft 0.3s ease-in-out"
                 : "none"
             : "none",
-          border: isSelected ? "2px solid #03a9f4" : "none",
-          scrollSnapAlign: isMobile ? "start" : "none",
-          position: "relative",
-        }}
-      >
+            border: isSelected ? "2px solid #03a9f4" : "none",
+            scrollSnapAlign: isMobile ? "start" : "none",
+            scrollSnapStop: isMobile ? "always" : "normal",
+            position: "relative",
+            transform: isMobile ? "translateZ(0)" : undefined,
+          }}
+        >
         <div
           style={{
             position: "relative",
@@ -3044,17 +3062,13 @@ const VoucherType = ({
     const container = voucherContainerRef.current;
     if (!container) return;
 
-    const firstChild = container.children[0];
-    const gap = 12;
-    const itemWidth = firstChild
-      ? firstChild.getBoundingClientRect().width + gap
-      : container.clientWidth;
-    const newLeft = Math.max(0, container.scrollLeft - itemWidth);
+    const targetIndex = Math.max(0, currentItemIndex - 1);
+    const newLeft = getMobileScrollLeftForIndex(container, targetIndex);
     container.scrollTo({ left: newLeft, behavior: "smooth" });
     // Optimistically update index/arrows so back button appears immediately
     const itemCount = container.children.length;
-    setCurrentItemIndex((prev) => Math.max(0, prev - 1));
-    const tempIndex = Math.max(0, currentItemIndex - 1);
+    setCurrentItemIndex(targetIndex);
+    const tempIndex = targetIndex;
     setCanScrollVouchersLeft(tempIndex > 0);
     setCanScrollVouchersRight(tempIndex < itemCount - 1);
   };
@@ -3065,17 +3079,13 @@ const VoucherType = ({
     const container = voucherContainerRef.current;
     if (!container) return;
 
-    const firstChild = container.children[0];
-    const gap = 12;
-    const itemWidth = firstChild
-      ? firstChild.getBoundingClientRect().width + gap
-      : container.clientWidth;
-    const newLeft = container.scrollLeft + itemWidth;
+    const itemCount = container.children.length;
+    const targetIndex = Math.min(currentItemIndex + 1, itemCount - 1);
+    const newLeft = getMobileScrollLeftForIndex(container, targetIndex);
     container.scrollTo({ left: newLeft, behavior: "smooth" });
     // Optimistically update index/arrows so back button appears immediately
-    const itemCount = container.children.length;
-    setCurrentItemIndex((prev) => Math.min(prev + 1, itemCount - 1));
-    const tempIndex = Math.min(currentItemIndex + 1, itemCount - 1);
+    setCurrentItemIndex(targetIndex);
+    const tempIndex = targetIndex;
     setCanScrollVouchersLeft(tempIndex > 0);
     setCanScrollVouchersRight(tempIndex < itemCount - 1);
   };
@@ -4031,14 +4041,17 @@ const VoucherType = ({
                             activeVouchers.length > 1 ? "24px" : "10px",
                           paddingLeft: isMobile ? 16 : 0,
                           paddingRight: isMobile ? 16 : 0,
-                          scrollBehavior: "smooth",
-                          scrollSnapType: "x mandatory",
+                          scrollBehavior: "auto",
+                          scrollSnapType: "x proximity",
                           scrollPadding: isMobile ? "0 16px" : "0 8px",
                           WebkitOverflowScrolling: "touch",
+                          touchAction: "pan-x pinch-zoom",
                           overscrollBehaviorX: "contain",
                           overscrollBehaviorY: "auto",
                           position: "relative",
                           boxSizing: "border-box",
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
                         }}
                       >
                         {activeVouchers.map((voucher, index) => (
@@ -4094,14 +4107,8 @@ const VoucherType = ({
                               onClick={() => {
                                 const container = voucherContainerRef.current;
                                 if (!container) return;
-                                const firstChild = container.children[0];
-                                const gap = 16;
-                                const itemWidth = firstChild
-                                  ? firstChild.getBoundingClientRect().width +
-                                    gap
-                                  : container.clientWidth;
                                 container.scrollTo({
-                                  left: i * itemWidth,
+                                  left: getMobileScrollLeftForIndex(container, i),
                                   behavior: "smooth",
                                 });
                                 setCurrentItemIndex(i);
@@ -4414,13 +4421,16 @@ const VoucherType = ({
                               : "0",
                         paddingLeft: isMobile ? 8 : 0,
                         paddingRight: isMobile ? 8 : 0,
-                        scrollBehavior: "smooth",
-                        scrollSnapType: isMobile ? "x mandatory" : "none",
+                        scrollBehavior: "auto",
+                        scrollSnapType: isMobile ? "x proximity" : "none",
                         scrollPadding: isMobile ? "0 8px" : "0",
                         WebkitOverflowScrolling: isMobile ? "touch" : undefined,
+                        touchAction: isMobile ? "pan-x pinch-zoom" : undefined,
                         overscrollBehaviorX: isMobile ? "contain" : "auto",
                         overscrollBehaviorY: "auto",
                         boxSizing: "border-box",
+                        scrollbarWidth: isMobile ? "none" : undefined,
+                        msOverflowStyle: isMobile ? "none" : undefined,
                       }}
                     >
                       {vouchersToShow.map((voucher, index) => (
@@ -4475,13 +4485,8 @@ const VoucherType = ({
                             onClick={() => {
                               const container = voucherContainerRef.current;
                               if (!container) return;
-                              const firstChild = container.children[0];
-                              const gap = 12;
-                              const itemWidth = firstChild
-                                ? firstChild.getBoundingClientRect().width + gap
-                                : container.clientWidth;
                               container.scrollTo({
-                                left: i * itemWidth,
+                                left: getMobileScrollLeftForIndex(container, i),
                                 behavior: "smooth",
                               });
                               setCurrentItemIndex(i);
