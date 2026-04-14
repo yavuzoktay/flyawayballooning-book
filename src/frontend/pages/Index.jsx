@@ -303,12 +303,9 @@ const Index = () => {
   const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
   const [voucherData, setVoucherData] = useState(null); // Store validated voucher data
   const [selectedTime, setSelectedTime] = useState(null);
-  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [isFrequentQuestionsOpen, setIsFrequentQuestionsOpen] = useState(false);
   const [activeFrequentQuestion, setActiveFrequentQuestion] = useState(null);
   const [sideFaqItems, setSideFaqItems] = useState(SIDE_FAQ_ITEMS);
-  const reviewsToggleRef = useRef(null);
-  const reviewsPanelRef = useRef(null);
   const faqToggleRef = useRef(null);
   const faqPanelRef = useRef(null);
 
@@ -651,14 +648,6 @@ const Index = () => {
       const target = event.target;
       if (!target) return;
 
-      if (isReviewsOpen) {
-        const clickedInsideReviewsPanel = reviewsPanelRef.current?.contains(target);
-        const clickedReviewsToggle = reviewsToggleRef.current?.contains(target);
-        if (!clickedInsideReviewsPanel && !clickedReviewsToggle) {
-          setIsReviewsOpen(false);
-        }
-      }
-
       if (isFrequentQuestionsOpen) {
         const clickedInsideFaqPanel = faqPanelRef.current?.contains(target);
         const clickedFaqToggle = faqToggleRef.current?.contains(target);
@@ -668,7 +657,7 @@ const Index = () => {
       }
     };
 
-    if (isReviewsOpen || isFrequentQuestionsOpen) {
+    if (isFrequentQuestionsOpen) {
       document.addEventListener("mousedown", handleOutsidePanelClick);
       document.addEventListener("touchstart", handleOutsidePanelClick, {
         passive: true,
@@ -679,7 +668,7 @@ const Index = () => {
       document.removeEventListener("mousedown", handleOutsidePanelClick);
       document.removeEventListener("touchstart", handleOutsidePanelClick);
     };
-  }, [isReviewsOpen, isFrequentQuestionsOpen]);
+  }, [isFrequentQuestionsOpen]);
   const shopifyVoucherForcedRef = useRef(false);
   const shopifyPrefillInProgress = useRef(false);
   const activityDeepLinkHandledRef = useRef(false);
@@ -8651,105 +8640,6 @@ const Index = () => {
       </Dialog>
 
       <div
-        ref={reviewsToggleRef}
-        style={{
-          position: "fixed",
-          top: isMobile ? "auto" : "38%",
-          bottom: isMobile ? "210px" : "auto",
-          left: isReviewsOpen
-            ? isMobile
-              ? "calc(84vw + env(safe-area-inset-left, 0px))"
-              : "320px"
-            : isMobile
-              ? "calc(4px + env(safe-area-inset-left, 0px))"
-              : 0,
-          transform: isMobile ? "none" : "translateY(-50%)",
-          zIndex: 1200,
-          transition: "left 0.28s ease",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setIsReviewsOpen((prev) => !prev)}
-          style={{
-            writingMode: "vertical-rl",
-            transform: "rotate(180deg)",
-            background: "#00eb5b",
-            color: "#fff",
-            border: "none",
-            borderRadius: isMobile ? "0 10px 10px 0" : "0 12px 12px 0",
-            padding: isMobile ? "10px 8px" : "14px 10px",
-            fontFamily: "Gilroy, sans-serif",
-            fontWeight: 600,
-            fontSize: isMobile ? "12px" : "14px",
-            letterSpacing: isMobile ? "0.1px" : "0.3px",
-            cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
-          }}
-          aria-label="Toggle reviews panel"
-        >
-          Reviews
-        </button>
-      </div>
-
-      <div
-        ref={reviewsPanelRef}
-        style={{
-          position: "fixed",
-          top: isMobile ? "auto" : 0,
-          bottom: isMobile ? "272px" : "auto",
-          left: isReviewsOpen ? 0 : isMobile ? "-84vw" : "-340px",
-          width: isMobile ? "84vw" : "340px",
-          maxWidth: isMobile ? "84vw" : "92vw",
-          height: isMobile ? "auto" : "100vh",
-          maxHeight: isMobile ? "240px" : "100vh",
-          background: "#f3f3f9",
-          borderRight: "1px solid #dbe3ef",
-          boxShadow: "6px 0 20px rgba(0,0,0,0.12)",
-          zIndex: 1199,
-          transition: "left 0.28s ease",
-          overflowY: "auto",
-          padding: isMobile ? "20px 14px" : "24px 16px",
-        }}
-      >
-        <div style={{ marginBottom: 14 }}>
-          <h3 style={{ margin: 0 }}>Reviews</h3>
-        </div>
-        <a
-          href={GOOGLE_REVIEW_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="reviews-proof-link"
-        >
-          <div className="reviews-proof-brand">
-            <FaGoogle className="reviews-brand-icon reviews-brand-icon--google" />
-            <span>5</span>
-          </div>
-          <div className="reviews-proof-stars">
-            {[...Array(5)].map((_, index) => (
-              <FaStar key={`google-${index}`} />
-            ))}
-          </div>
-        </a>
-        <a
-          href={TRIPADVISOR_REVIEW_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="reviews-proof-link"
-        >
-          <div className="reviews-proof-brand">
-            <FaTripadvisor className="reviews-brand-icon reviews-brand-icon--tripadvisor" />
-            <span>5</span>
-          </div>
-          <div className="reviews-proof-stars">
-            {[...Array(5)].map((_, index) => (
-              <FaStar key={`trip-${index}`} />
-            ))}
-          </div>
-        </a>
-      </div>
-
-      <div
         ref={faqToggleRef}
         style={{
           position: "fixed",
@@ -8785,9 +8675,9 @@ const Index = () => {
             cursor: "pointer",
             boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
           }}
-          aria-label="Toggle frequent questions panel"
+          aria-label="Toggle frequent questions and reviews panel"
         >
-          {isMobile ? "FAQs" : "Frequent Questions"}
+          {isMobile ? "FAQ & Reviews" : "Frequent Questions & Reviews"}
         </button>
       </div>
 
@@ -8823,7 +8713,7 @@ const Index = () => {
             alignItems: "center",
           }}
         >
-          <h3 style={{ margin: 0 }}>Frequent Questions</h3>
+          <h3 style={{ margin: 0 }}>Frequent Questions & Reviews</h3>
           <a
             href={FAQ_LINK}
             target="_blank"
@@ -8836,6 +8726,51 @@ const Index = () => {
           >
             Full FAQ
           </a>
+        </div>
+        <div style={{ marginBottom: 18 }}>
+          <h4 style={{ margin: "0 0 12px 0" }}>Reviews</h4>
+          <a
+            href={GOOGLE_REVIEW_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="reviews-proof-link"
+          >
+            <div className="reviews-proof-brand">
+              <FaGoogle className="reviews-brand-icon reviews-brand-icon--google" />
+              <span>5</span>
+            </div>
+            <div className="reviews-proof-stars">
+              {[...Array(5)].map((_, index) => (
+                <FaStar key={`google-${index}`} />
+              ))}
+            </div>
+          </a>
+          <a
+            href={TRIPADVISOR_REVIEW_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="reviews-proof-link"
+          >
+            <div className="reviews-proof-brand">
+              <FaTripadvisor className="reviews-brand-icon reviews-brand-icon--tripadvisor" />
+              <span>5</span>
+            </div>
+            <div className="reviews-proof-stars">
+              {[...Array(5)].map((_, index) => (
+                <FaStar key={`trip-${index}`} />
+              ))}
+            </div>
+          </a>
+        </div>
+        <div
+          style={{
+            marginBottom: 14,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h4 style={{ margin: 0 }}>Frequent Questions</h4>
         </div>
         {sideFaqItems.map((item) => (
           <Accordion
