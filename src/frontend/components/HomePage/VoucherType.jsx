@@ -797,16 +797,12 @@ const VoucherType = ({
       document.querySelector(".voucher-cards-container");
     if (container) {
       container.addEventListener("scroll", requestSync, { passive: true });
-      container.addEventListener("touchmove", requestSync, { passive: true });
-      container.addEventListener("touchend", requestSync, { passive: true });
       window.addEventListener("resize", requestSync);
       return () => {
         if (frameId !== null) {
           cancelAnimationFrame(frameId);
         }
         container.removeEventListener("scroll", requestSync);
-        container.removeEventListener("touchmove", requestSync);
-        container.removeEventListener("touchend", requestSync);
         window.removeEventListener("resize", requestSync);
       };
     }

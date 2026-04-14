@@ -162,45 +162,18 @@ const ExperienceSection = ({
     };
 
     const handleScroll = () => {
-      computeAndSet();
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       animationFrameId = requestAnimationFrame(computeAndSet);
-    };
-
-    const handleScrollEnd = () => {
-      setTimeout(computeAndSet, 100);
-    };
-
-    const handleTouchStart = () => computeAndSet();
-    const handleTouchMove = () => handleScroll();
-    const handleTouchEnd = () => {
-      setTimeout(computeAndSet, 50);
-      setTimeout(computeAndSet, 150);
-      setTimeout(computeAndSet, 300);
     };
 
     // initial
     computeAndSet();
     container.addEventListener("scroll", handleScroll, { passive: true });
-    container.addEventListener("scrollend", handleScrollEnd, { passive: true });
-    container.addEventListener("touchstart", handleTouchStart, {
-      passive: true,
-    });
-    container.addEventListener("touchmove", handleTouchMove, { passive: true });
-    container.addEventListener("touchend", handleTouchEnd, { passive: true });
-    container.addEventListener("pointerdown", handleTouchStart, {
-      passive: true,
-    });
-    container.addEventListener("pointerup", handleTouchEnd, { passive: true });
+    window.addEventListener("resize", handleScroll);
 
     return () => {
       container.removeEventListener("scroll", handleScroll);
-      container.removeEventListener("scrollend", handleScrollEnd);
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
-      container.removeEventListener("touchend", handleTouchEnd);
-      container.removeEventListener("pointerdown", handleTouchStart);
-      container.removeEventListener("pointerup", handleTouchEnd);
+      window.removeEventListener("resize", handleScroll);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, [isMobile, experiences.length]);
@@ -1410,14 +1383,10 @@ const ExperienceSection = ({
               }}
             >
               <button
+                className="booking-shared-action-button"
                 onClick={() => setShowTermsModal(false)}
                 style={{
-                  background: "#6b7280",
-                  color: "#fff",
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  border: "none",
+                  minWidth: 120,
                 }}
               >
                 Close

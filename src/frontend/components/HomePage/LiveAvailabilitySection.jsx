@@ -2706,7 +2706,6 @@ const LiveAvailabilitySection = ({
                                   : "2px solid transparent",
                             borderRadius: isMobile ? 6 : 12,
                             padding: isMobile ? "8px 12px" : "16px 20px",
-                            fontWeight: 600,
                             fontSize: isMobile ? 14 : 18,
                             cursor: isSelectable ? "pointer" : "not-allowed",
                             opacity: isSelectable ? 1 : 0.6,

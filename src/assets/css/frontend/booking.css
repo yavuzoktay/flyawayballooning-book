@@ -921,7 +921,8 @@ textarea {
 }
 
 .voucher-type-select-button,
-.booking-shared-action-button {
+.booking-shared-action-button,
+.availability-slot-button {
   font-family: "Gilroy", sans-serif !important;
   font-size: 15px !important;
   font-weight: 500 !important;

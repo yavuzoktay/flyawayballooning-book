@@ -8590,9 +8590,10 @@ const Index = () => {
       <div
         style={{
           position: "fixed",
-          top: isMobile ? "50%" : "38%",
-          left: isReviewsOpen ? "320px" : 0,
-          transform: "translateY(-50%)",
+          top: isMobile ? "auto" : "38%",
+          bottom: isMobile ? "210px" : "auto",
+          left: isReviewsOpen ? (isMobile ? "88vw" : "320px") : 0,
+          transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "left 0.28s ease",
         }}
@@ -8606,11 +8607,12 @@ const Index = () => {
             background: "#00eb5b",
             color: "#fff",
             border: "none",
-            borderRadius: "0 12px 12px 0",
-            padding: "14px 10px",
+            borderRadius: isMobile ? "0 10px 10px 0" : "0 12px 12px 0",
+            padding: isMobile ? "10px 8px" : "14px 10px",
             fontFamily: "Gilroy, sans-serif",
             fontWeight: 600,
-            letterSpacing: "0.3px",
+            fontSize: isMobile ? "12px" : "14px",
+            letterSpacing: isMobile ? "0.1px" : "0.3px",
             cursor: "pointer",
             boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
           }}
@@ -8677,9 +8679,10 @@ const Index = () => {
       <div
         style={{
           position: "fixed",
-          top: isMobile ? "52%" : "44%",
-          right: isFrequentQuestionsOpen ? "320px" : 0,
-          transform: "translateY(-50%)",
+          top: isMobile ? "auto" : "44%",
+          bottom: isMobile ? "210px" : "auto",
+          right: isFrequentQuestionsOpen ? (isMobile ? "88vw" : "320px") : 0,
+          transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "right 0.28s ease",
         }}
@@ -8693,17 +8696,18 @@ const Index = () => {
             background: "#00eb5b",
             color: "#fff",
             border: "none",
-            borderRadius: "12px 0 0 12px",
-            padding: "14px 10px",
+            borderRadius: isMobile ? "10px 0 0 10px" : "12px 0 0 12px",
+            padding: isMobile ? "10px 8px" : "14px 10px",
             fontFamily: "Gilroy, sans-serif",
             fontWeight: 600,
-            letterSpacing: "0.3px",
+            fontSize: isMobile ? "12px" : "14px",
+            letterSpacing: isMobile ? "0.1px" : "0.3px",
             cursor: "pointer",
             boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
           }}
           aria-label="Toggle frequent questions panel"
         >
-          Frequent Questions
+          {isMobile ? "FAQs" : "Frequent Questions"}
         </button>
       </div>
 
