@@ -245,11 +245,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             {/* Local 'Selected' toast removed - global Selected+Next toast handles this */}
             
             <div className="tab_box choose-activity-tab-box" style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: isMobile ? '6px' : '12px', 
-            width: '100%', 
-            justifyContent: isMobile ? 'flex-start' : 'space-between' 
+            display: 'grid',
+            gridTemplateColumns: visibleActivityCards.length === 1 ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+            gap: isMobile ? '8px' : '12px',
+            width: '100%'
         }}>
             {/* Debug: Show total count */}
 
@@ -260,10 +259,10 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     height: activityCardHeight, 
                     minHeight: activityCardHeight, 
                     maxHeight: activityCardHeight,
-                    flex: isMobile ? '1 1 calc(50% - 3px)' : '1 1 calc(50% - 12px)',
                     margin: '0',
-                    width: isMobile ? 'calc(50% - 3px)' : 'calc(50% - 12px)',
-                    boxSizing: 'border-box' 
+                    width: '100%',
+                    minWidth: 0,
+                    boxSizing: 'border-box'
                 }}>
                     {item.label === "Redeem Voucher" ? (
                         <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: activityCardHeight, width: '100%', position: 'relative' }}>
