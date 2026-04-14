@@ -89,7 +89,7 @@ html {
   }
 }
 
-button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button):not(.availability-slot-button),
+button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button):not(.availability-slot-button):not(.react-datepicker__navigation),
 .booking_btn,
 .book_select_btn a,
 .summary-primary,
@@ -105,7 +105,7 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
   border: none !important;
 }
 
-button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button):not(.availability-slot-button):hover,
+button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button):not(.availability-slot-button):not(.react-datepicker__navigation):hover,
 .booking_btn:hover,
 .book_select_btn a:hover,
 .summary-primary:hover,
