@@ -43,7 +43,6 @@ button:hover,
 }
 
 .active-card-val .active-book-card,
-.active-card-val .active-book-card:before,
 .active-card-val .active-book-card:after,
 .row-1 input[type="checkbox"]:checked,
 .final-prefer-check input:checked,
@@ -1068,20 +1067,6 @@ label {
     background-color: #00eb5b;
     border-color: #00eb5b;
     /* Checked state ka color */
-}
-
-.active-card-val .active-book-card:before {
-    content: '✓';
-    position: absolute;
-    top: 58%;
-    left: 77%;
-    transform: translate(-50%, -50%);
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: bold;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
 }
 
 .final-active-book-cont {
