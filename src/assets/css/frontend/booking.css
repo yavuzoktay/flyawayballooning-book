@@ -1106,7 +1106,7 @@ textarea {
 
 .voucher-stepper-button {
   border-radius: 999px !important;
-  box-shadow: 0 8px 18px rgba(0, 235, 91, 0.28) !important;
+  box-shadow: none !important;
 }
 
 .voucher-type-card .voucher-type-card-tag {

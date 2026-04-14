@@ -2468,15 +2468,15 @@ const VoucherType = ({
                       height: isMobile ? 46 : 44,
                       minWidth: isMobile ? 46 : 44,
                       minHeight: isMobile ? 46 : 44,
-                      border: "none",
-                      background: "rgb(0, 235, 91)",
+                      border: "3px solid rgb(0, 235, 91)",
+                      background: "transparent",
                       borderRadius: "50%",
                       cursor: "pointer",
-                      fontSize: isMobile ? 28 : 26,
+                      fontSize: isMobile ? 26 : 24,
                       fontWeight: 500,
-                      color: "#ffffff",
+                      color: "rgb(0, 235, 91)",
                       lineHeight: 1,
-                      boxShadow: "0 8px 18px rgba(0, 235, 91, 0.28)",
+                      boxShadow: "none",
                     }}
                   >
                     −
@@ -2519,15 +2519,15 @@ const VoucherType = ({
                       height: isMobile ? 46 : 44,
                       minWidth: isMobile ? 46 : 44,
                       minHeight: isMobile ? 46 : 44,
-                      border: "none",
-                      background: "rgb(0, 235, 91)",
+                      border: "3px solid rgb(0, 235, 91)",
+                      background: "transparent",
                       borderRadius: "50%",
                       cursor: "pointer",
-                      fontSize: isMobile ? 28 : 26,
+                      fontSize: isMobile ? 26 : 24,
                       fontWeight: 500,
-                      color: "#ffffff",
+                      color: "rgb(0, 235, 91)",
                       lineHeight: 1,
-                      boxShadow: "0 8px 18px rgba(0, 235, 91, 0.28)",
+                      boxShadow: "none",
                     }}
                   >
                     +
