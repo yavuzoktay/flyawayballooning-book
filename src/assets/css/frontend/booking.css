@@ -1036,7 +1036,6 @@ textarea {
 .booking-shared-action-button,
 .voucher-stepper-button,
 .redeem-button {
-  background: var(--fab-bright-green) !important;
   border-color: var(--fab-bright-green) !important;
   color: #ffffff !important;
 }
