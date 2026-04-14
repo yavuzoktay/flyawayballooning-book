@@ -5874,7 +5874,7 @@ const Index = () => {
                                 {/* What would you like to do? Accordion */}
                                 <div style={{ 
                                     marginBottom: isMobile ? '15px' : '30px',
-                                    padding: isMobile ? '0 8px' : '0'
+                                    padding: isMobile ? '0 8px' : '0 6px'
                                 }}>
                                     {isDedicatedManualBookingFlow && (
                                         <ManualBookingContactStep

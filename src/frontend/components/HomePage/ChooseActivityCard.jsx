@@ -262,7 +262,8 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     margin: '0',
                     width: '100%',
                     minWidth: 0,
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    padding: isMobile ? '1px' : '3px'
                 }}>
                     {item.label === "Redeem Voucher" ? (
                         <div className={`card-flip-container ${isFlipped ? 'flipped' : ''}`} style={{ height: activityCardHeight, width: '100%', position: 'relative' }}>
@@ -482,7 +483,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                 /* Ensure info hover appears above cards on all breakpoints */
                 .choose-activity-tab-box {
                     overflow: visible !important;
-                    padding: 4px !important; /* prevent edge clipping on first column cards */
+                    padding: 6px !important; /* keep first-column cards away from section edge */
                     box-sizing: border-box !important;
                 }
                 .choose-activity-tab-box .choose-activity-card { overflow: visible !important; position: relative; }
@@ -493,9 +494,33 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     position: relative;
                     z-index: 2;
                 }
+                .choose-activity-card-label {
+                    border: none !important;
+                    border-radius: 20px !important;
+                    background: #ffffff !important;
+                    transform: none !important;
+                    box-shadow:
+                        0 2px 10px rgba(15, 23, 42, 0.08),
+                        inset 0 0 0 1px rgba(148, 163, 184, 0.38) !important;
+                    background-clip: padding-box !important;
+                }
                 .choose-activity-card-label:hover,
                 .choose-activity-card-label.active_book_data_label {
+                    border: none !important;
                     transform: none !important; /* avoid left-border clipping caused by scale */
+                    box-shadow:
+                        0 8px 22px rgba(3, 169, 244, 0.12),
+                        inset 0 0 0 2px #03a9f4 !important;
+                }
+                .choose-activity-card .card-front .choose-activity-card-label,
+                .choose-activity-card .card-back .voucher-card-container {
+                    border-radius: 20px !important;
+                }
+                .choose-activity-card .card-front,
+                .choose-activity-card .card-back,
+                .choose-activity-card .card-flip-container,
+                .choose-activity-card .card-flipper {
+                    border-radius: 20px !important;
                 }
                 @media (max-width: 768px) {
                     .choose-activity-tab-box { 
