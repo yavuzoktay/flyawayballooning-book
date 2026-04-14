@@ -247,7 +247,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
             <div className="tab_box choose-activity-tab-box" style={{ 
             display: 'flex', 
             flexWrap: 'wrap', 
-            gap: isMobile ? '8px' : '10px', 
+            gap: isMobile ? '6px' : '12px', 
             width: '100%', 
             justifyContent: isMobile ? 'flex-start' : 'space-between' 
         }}>
@@ -260,9 +260,9 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                     height: activityCardHeight, 
                     minHeight: activityCardHeight, 
                     maxHeight: activityCardHeight,
-                    flex: isMobile ? '1 1 100%' : '1 1 calc(50% - 20px)', 
-                    margin: isMobile ? '0 0 8px 0' : '0', 
-                    width: isMobile ? '100%' : 'calc(50% - 20px)', 
+                    flex: isMobile ? '1 1 calc(50% - 3px)' : '1 1 calc(50% - 12px)',
+                    margin: '0',
+                    width: isMobile ? 'calc(50% - 3px)' : 'calc(50% - 12px)',
                     boxSizing: 'border-box' 
                 }}>
                     {item.label === "Redeem Voucher" ? (
@@ -319,7 +319,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                                 )}
                                             </div>
                                         </div>
-                                        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                        <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0, lineHeight: 1.2 }}>
                                             {item.displayLabel || item.label}
                                         </h3>
                                         {item.subText && <p>{item.subText}</p>}
@@ -399,7 +399,7 @@ const ChooseActivityCard = ({ activitySelect, setActivitySelect, onVoucherSubmit
                                     )}
                                 </div>
                             </div>
-                            <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: 0, lineHeight: 1.2 }}>
                                 {item.displayLabel || item.label}
                                 {(() => {
                                     const tooltipPlace = (item.label === 'Book Flight' || item.label === 'Buy Gift' || item.label === 'Flight Voucher') ? 'left' : 'top';

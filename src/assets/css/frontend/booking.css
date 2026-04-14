@@ -615,6 +615,11 @@ label {
     animation: popInCheck 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.active-card-val .active-book-card::before {
+    content: none !important;
+    display: none !important;
+}
+
 .row-1.active-card-val {
     border: 1px solid rgba(0, 235, 91, 0.45);
     background: #ffffff;

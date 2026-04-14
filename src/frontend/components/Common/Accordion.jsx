@@ -81,8 +81,9 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
                 className={`panel ${isActivitySection ? "activity-panel" : ""}`}
                 style={{ 
                     display: 'block',
-                    overflow: isPassengerInfoSection ? "hidden" : "visible", // Passenger Info: contain overflow, others: visible
+                    overflow: isOpen ? (isPassengerInfoSection ? "hidden" : "visible") : "hidden",
                     maxHeight: panelMaxHeight,
+                    padding: isOpen ? "10px 5px 20px 5px" : "0 5px",
                     opacity: isOpen ? 1 : 0,
                     transform: isOpen ? 'translateY(0)' : 'translateY(-6px)',
                     transition: "max-height 0.35s ease, opacity 0.2s ease, transform 0.25s ease",
