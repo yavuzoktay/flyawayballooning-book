@@ -291,14 +291,16 @@ const ChooseActivityCard = ({
         {/* Debug: Show total count */}
 
         {visibleActivityCards.map((item, index) => {
+          const isRedeemCard = item.label === "Redeem Voucher";
+          const isRedeemMobileOpen = isRedeemCard && isMobile && isFlipped;
           return (
             <div
-              className="book_data choose-activity-card"
+              className={`book_data choose-activity-card${isRedeemCard ? " choose-activity-card--redeem" : ""}${isRedeemMobileOpen ? " choose-activity-card--redeem-open" : ""}`}
               key={item.value}
               style={{
-                height: activityCardHeight,
-                minHeight: activityCardHeight,
-                maxHeight: activityCardHeight,
+                height: isRedeemMobileOpen ? "auto" : activityCardHeight,
+                minHeight: isRedeemMobileOpen ? "132px" : activityCardHeight,
+                maxHeight: isRedeemMobileOpen ? "none" : activityCardHeight,
                 margin: "0",
                 width: "100%",
                 minWidth: 0,
@@ -306,11 +308,11 @@ const ChooseActivityCard = ({
                 padding: isMobile ? "1px" : "3px",
               }}
             >
-              {item.label === "Redeem Voucher" ? (
+              {isRedeemCard ? (
                 <div
                   className={`card-flip-container ${isFlipped ? "flipped" : ""}`}
                   style={{
-                    height: activityCardHeight,
+                    height: isRedeemMobileOpen ? "auto" : activityCardHeight,
                     width: "100%",
                     position: "relative",
                   }}
@@ -318,7 +320,7 @@ const ChooseActivityCard = ({
                   <div
                     className="card-flipper"
                     style={{
-                      height: activityCardHeight,
+                      height: isRedeemMobileOpen ? "auto" : activityCardHeight,
                       width: "100%",
                       position: "relative",
                     }}
@@ -512,15 +514,15 @@ const ChooseActivityCard = ({
                         }
                       }}
                       style={{
-                        height: activityCardHeight,
+                        height: isRedeemMobileOpen ? "auto" : activityCardHeight,
                         width: "100%",
                         padding: "0",
                         boxSizing: "border-box",
-                        position: "absolute",
+                        position: isRedeemMobileOpen ? "relative" : "absolute",
                         top: 0,
                         left: 0,
                         borderRadius: "20px",
-                        overflow: "hidden",
+                        overflow: isRedeemMobileOpen ? "visible" : "hidden",
                       }}
                     >
                       <RedeemVoucherCard
@@ -792,6 +794,30 @@ const ChooseActivityCard = ({
                         line-height: 1.25 !important;
                         margin: 0 !important;
                     }
+                    .choose-activity-tab-box .choose-activity-card.choose-activity-card--redeem.choose-activity-card--redeem-open {
+                        height: auto !important;
+                        min-height: 132px !important;
+                        max-height: none !important;
+                    }
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-flip-container,
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-flipper,
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-back,
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .voucher-card-container {
+                        height: auto !important;
+                        min-height: 132px !important;
+                        max-height: none !important;
+                    }
+                    .choose-activity-card--redeem .card-back {
+                        display: none !important;
+                    }
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-back {
+                        display: block !important;
+                        position: relative !important;
+                        overflow: visible !important;
+                    }
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-front {
+                        display: none !important;
+                    }
                 }
                 /* Android mobile: match iOS card heights */
                 @media (max-width: 768px) {
@@ -818,6 +844,11 @@ const ChooseActivityCard = ({
                     .choose-activity-card-label h3 {
                         font-size: 16px !important;
                     }
+                    .choose-activity-tab-box .choose-activity-card.choose-activity-card--redeem.choose-activity-card--redeem-open {
+                        height: auto !important;
+                        min-height: 132px !important;
+                        max-height: none !important;
+                    }
                 }
                 @media (max-width: 480px) {
                     .choose-activity-tab-box { 
@@ -836,6 +867,11 @@ const ChooseActivityCard = ({
                         border-radius: 16px !important;
                         padding: 14px 12px !important;
                     }
+                    .choose-activity-tab-box .choose-activity-card.choose-activity-card--redeem.choose-activity-card--redeem-open {
+                        height: auto !important;
+                        min-height: 132px !important;
+                        max-height: none !important;
+                    }
                 }
                 
                 /* Force all items to be visible on mobile */
@@ -850,6 +886,14 @@ const ChooseActivityCard = ({
                         height: ${mobileActivityCardHeight} !important;
                         min-height: ${mobileActivityCardHeight} !important;
                         max-height: ${mobileActivityCardHeight} !important;
+                    }
+                    .choose-activity-tab-box .choose-activity-card.choose-activity-card--redeem.choose-activity-card--redeem-open {
+                        display: block !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        height: auto !important;
+                        min-height: 132px !important;
+                        max-height: none !important;
                     }
                 }
                 
