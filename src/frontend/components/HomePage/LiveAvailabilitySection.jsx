@@ -2550,7 +2550,7 @@ const LiveAvailabilitySection = ({
                 minWidth: "80px",
               }}
             >
-              Choose Another Date
+              Change Date
             </button>
           </>
         }
@@ -2949,7 +2949,7 @@ const LiveAvailabilitySection = ({
                       setTempSelectedTime(null);
                     }}
                   >
-                    Choose Another Date
+                    Change Date
                   </button>
                   <button
                     className="booking-shared-action-button"
