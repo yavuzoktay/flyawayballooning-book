@@ -1974,7 +1974,7 @@ const VoucherType = ({
             : "none",
             border: isSelected ? "2px solid #03a9f4" : "none",
             scrollSnapAlign: isMobile ? "start" : "none",
-            scrollSnapStop: isMobile ? "always" : "normal",
+            scrollSnapStop: "normal",
             position: "relative",
             transform: isMobile ? "translateZ(0)" : undefined,
           }}
@@ -4236,10 +4236,11 @@ const VoucherType = ({
                         width: "100%",
                         overflowX: isMobile ? "auto" : "visible",
                         paddingBottom: isMobile ? "10px" : "0",
-                        scrollBehavior: "smooth",
-                        scrollSnapType: isMobile ? "x mandatory" : "none",
+                        scrollBehavior: "auto",
+                        scrollSnapType: isMobile ? "x proximity" : "none",
                         scrollPadding: isMobile ? "0 6px" : "0",
                         WebkitOverflowScrolling: isMobile ? "touch" : undefined,
+                        touchAction: isMobile ? "auto" : undefined,
                         overscrollBehaviorX: isMobile ? "contain" : "auto",
                         overscrollBehaviorY: "auto",
                       }}

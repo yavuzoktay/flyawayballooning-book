@@ -174,14 +174,15 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
   }
 
-  .summary-desktop-card {
+  .book_active.summary-desktop-card {
     position: sticky;
     top: 96px;
-    height: min(744px, calc(100vh - 132px));
-    max-height: calc(100vh - 132px);
+    height: min(724px, calc(100vh - 148px));
+    max-height: calc(100vh - 148px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    padding: 26px 24px;
   }
 
   .summary-desktop-inner {
@@ -196,9 +197,17 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 8px;
-    margin-right: -6px;
+    padding-right: 6px;
+    margin-right: -4px;
     scrollbar-gutter: stable;
+  }
+
+  .summary-desktop-scroll .book_data_active .row-1 {
+    margin-bottom: 16px;
+  }
+
+  .summary-desktop-scroll .book_data_active:last-child .row-1 {
+    margin-bottom: 8px;
   }
 
   .summary-desktop-scroll::-webkit-scrollbar {
@@ -216,18 +225,39 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 
   .summary-desktop-footer {
     flex-shrink: 0;
-    margin-top: 10px;
-    padding-top: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid #e5e7eb;
     background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .summary-desktop-footer-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
   }
 
   .summary-desktop-total {
     padding: 0;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .summary-desktop-book-row {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+
+  .summary-desktop-book-row .final_booking-button {
+    min-width: 132px;
+    padding: 9px 22px !important;
   }
 
   .summary-desktop-warning {
@@ -240,9 +270,9 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 .summary-payment-icons {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 0;
   font-size: 21px;
 }
 
@@ -314,17 +344,20 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 }
 
 .summary-secure-payment {
-  margin-top: 2px;
+  margin-top: 0;
   color: #4b5563;
   font-size: 12px;
   font-weight: 600;
+  text-align: center;
 }
 
 .summary-payment-block {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
 }
 
 .summary-total-line {
@@ -3315,7 +3348,7 @@ textarea {
     font-weight: 500;
   }
   .summary-sticky-book {
-    background: #2d4263;
+    background: var(--fab-bright-green);
     color: #fff;
     border: none;
     border-radius: 14px;
@@ -3328,6 +3361,9 @@ textarea {
   .summary-sticky-book:disabled {
     background: #ddd;
     color: #888;
+  }
+  .summary-sticky-book:not(:disabled):hover {
+    background: var(--fab-bright-green-dark);
   }
   .summary-overlay {
     position: fixed;
@@ -3460,7 +3496,7 @@ textarea {
   }
   /* Make summary popup Book button a bit shorter on mobile */
   .summary-primary {
-    background: #00eb5b;
+    background: var(--fab-bright-green);
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -3476,7 +3512,7 @@ textarea {
     color: #888;
   }
   .summary-primary:not(:disabled):hover {
-    background: #00c24a;
+    background: var(--fab-bright-green-dark);
   }
 }
 

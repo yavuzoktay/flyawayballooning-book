@@ -2308,84 +2308,87 @@ const RightInfoCard = ({
             )}
             </div>
             <div className="summary-desktop-footer">
-            <div
-              className="bottom_main summary-desktop-total"
-              style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
-            >
-              <h3 className="summary-total-line">
-                Total:
-                <span className="total-price-animated">{`£${animatedTotal.toFixed(2)}`}</span>
-              </h3>
-              <div className="summary-payment-block">
-                {activitySelect === "Redeem Voucher" && voucherData && (
-                  <p
+              <div className="summary-desktop-footer-top">
+                <div
+                  className="bottom_main summary-desktop-total"
+                  style={{
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 2,
+                  }}
+                >
+                  {activitySelect === "Redeem Voucher" && voucherData && (
+                    <p
+                      style={{
+                        textDecoration: "line-through",
+                        color: "#999",
+                        fontSize: "0.9rem",
+                        margin: "0 0 2px 0",
+                      }}
+                    >
+                      £
+                      {parseFloat(
+                        voucherData.paid_amount ||
+                          voucherData.detail?.paid ||
+                          voucherData.final_amount ||
+                          100,
+                      ).toFixed(2)}
+                    </p>
+                  )}
+                  <h3 className="summary-total-line">
+                    Total:
+                    <span className="total-price-animated">{`£${animatedTotal.toFixed(2)}`}</span>
+                  </h3>
+                </div>
+                <div className="summary-desktop-book-row">
+                  <button
+                    className={`booking_btn final_booking-button${isBookDisabled ? " disabled" : ""}`}
+                    disabled={isBookDisabled}
                     style={{
-                      textDecoration: "line-through",
-                      color: "#999",
-                      fontSize: "0.9rem",
-                      margin: "0 0 4px 0",
+                      color: "#fff",
+                      fontWeight: 500,
+                      borderRadius: "8px",
+                      padding: "7px 20px",
+                      cursor: isBookDisabled ? "not-allowed" : "pointer",
+                      opacity: 1,
+                      border: "none",
                     }}
+                    onClick={() => {
+                      if (isBookDisabled) return;
+                      setShowWarning(false);
+                      triggerBookAction();
+                    }}
+                    type="button"
                   >
-                    £
-                    {parseFloat(
-                      voucherData.paid_amount ||
-                        voucherData.detail?.paid ||
-                        voucherData.final_amount ||
-                        100,
-                    ).toFixed(2)}
-                  </p>
-                )}
+                    Book
+                  </button>
+                </div>
+              </div>
+              <div className="summary-payment-block">
                 <div
                   className="summary-payment-icons"
                   aria-label="Supported payment methods"
                 >
                   <SiVisa className="payment-icon payment-icon--visa" />
-                  <span className="payment-icon payment-icon--mastercard-mark" aria-hidden="true">
+                  <span
+                    className="payment-icon payment-icon--mastercard-mark"
+                    aria-hidden="true"
+                  >
                     <span className="payment-mastercard-circle payment-mastercard-circle--left" />
                     <span className="payment-mastercard-circle payment-mastercard-circle--right" />
                   </span>
                   <SiAmericanexpress className="payment-icon payment-icon--amex" />
                   <SiApplepay className="payment-icon payment-icon--applepay" />
-                  <span className="payment-icon payment-icon--googlepay-mark" aria-hidden="true">
+                  <span
+                    className="payment-icon payment-icon--googlepay-mark"
+                    aria-hidden="true"
+                  >
                     <FcGoogle className="payment-google-g" />
                   </span>
                 </div>
                 <span className="summary-secure-payment">Secure Payment</span>
               </div>
             </div>
-            {!isBookDisabled && (
-              <div
-                className="summary-desktop-book-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginTop: "0px",
-                  marginBottom: "0px",
-                }}
-              >
-                <button
-                  className="booking_btn final_booking-button"
-                  style={{
-                    color: "#fff",
-                    fontWeight: 500,
-                    borderRadius: "8px",
-                    padding: "7px 20px",
-                    cursor: "pointer",
-                    opacity: 1,
-                    border: "none",
-                  }}
-                  onClick={() => {
-                    setShowWarning(false);
-                    triggerBookAction();
-                  }}
-                  type="button"
-                >
-                  Book
-                </button>
-              </div>
-            )}
             {showWarning && (
               <div
                 className="validation-shake summary-desktop-warning"
@@ -2474,7 +2477,6 @@ const RightInfoCard = ({
                   "Please fill in all required steps before booking."}
               </div>
             )}
-            </div>
           </div>
         </div>
       </div>
@@ -2527,7 +2529,6 @@ const RightInfoCard = ({
                 if (!isBookDisabled) triggerBookAction();
               }}
               onMouseEnter={() => {}}
-              style={{ background: "#00eb5b", color: "#fff", border: "none" }}
             >
               Book
             </button>

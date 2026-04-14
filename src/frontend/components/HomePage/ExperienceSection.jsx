@@ -915,7 +915,11 @@ const ExperienceSection = ({
                   padding: "0 8px",
                   overflowX: "auto",
                   WebkitOverflowScrolling: "touch",
-                  scrollSnapType: "x mandatory",
+                  scrollSnapType: "x proximity",
+                  scrollPadding: "0 8px",
+                  touchAction: "auto",
+                  overscrollBehaviorX: "contain",
+                  overscrollBehaviorY: "auto",
                 }}
               >
                 {filteredExperiences && filteredExperiences.length > 0 ? (
