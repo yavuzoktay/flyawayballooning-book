@@ -53,6 +53,7 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     // Touch/swipe handling state for month navigation
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
+    const [monthSlideClass, setMonthSlideClass] = useState('');
     
     useEffect(() => {
         if (chooseLocation) {
@@ -320,11 +321,15 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
     
 
     const handlePrevMonth = () => {
+        setMonthSlideClass('month-slide-right');
         setCurrentDate(subMonths(currentDate, 1));
+        setTimeout(() => setMonthSlideClass(''), 260);
     };
 
     const handleNextMonth = () => {
+        setMonthSlideClass('month-slide-left');
         setCurrentDate(addMonths(currentDate, 1));
+        setTimeout(() => setMonthSlideClass(''), 260);
     };
 
     // Minimum swipe distance (in px)
@@ -1584,32 +1589,22 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         <div style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            alignItems: 'stretch',
+                            justifyContent: 'flex-start',
                             padding: isMobile ? '40px 20px' : '60px 20px',
-                            minHeight: '200px'
+                            minHeight: '200px',
+                            gap: 10
                         }}>
-                            <div style={{
-                                width: isMobile ? '40px' : '50px',
-                                height: isMobile ? '40px' : '50px',
-                                border: '4px solid #f3f3f3',
-                                borderTop: '4px solid #22c55e',
-                                borderRadius: '50%',
-                                animation: 'spin 1s linear infinite',
-                                marginBottom: '16px'
-                            }}></div>
-                            <div style={{
-                                fontSize: isMobile ? 14 : 16,
-                                color: '#666',
-                                fontWeight: 500,
-                                textAlign: 'center'
-                            }}>
-                                Loading availability...
+                            <div className="availability-skeleton-bar shimmer" />
+                            <div className="availability-skeleton-grid">
+                                {[...Array(21)].map((_, idx) => (
+                                    <div key={`skeleton-${idx}`} className="availability-skeleton-day shimmer" />
+                                ))}
                             </div>
                         </div>
                     ) : (
                         <div 
-                            className="days-grid" 
+                            className={`days-grid ${monthSlideClass}`} 
                             style={{ 
                                 display: 'grid', 
                                 gridTemplateColumns: 'repeat(7, 1fr)', 

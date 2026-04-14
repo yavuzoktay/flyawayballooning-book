@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, className, onBeforeClose, isDisabled = false }) => {
     const isOpen = activeAccordion === id;
@@ -28,6 +28,24 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
 
     // Check if this is the Passenger Information section - needs overflow control
     const isPassengerInfoSection = id === "passenger-info";
+    const panelRef = useRef(null);
+    const [panelMaxHeight, setPanelMaxHeight] = useState(isOpen ? '9999px' : '0px');
+
+    useEffect(() => {
+        if (!panelRef.current) return;
+        if (isOpen) {
+            const nextHeight = `${panelRef.current.scrollHeight + 24}px`;
+            setPanelMaxHeight(nextHeight);
+            const syncHeight = () => {
+                if (panelRef.current) {
+                    setPanelMaxHeight(`${panelRef.current.scrollHeight + 24}px`);
+                }
+            };
+            window.addEventListener('resize', syncHeight);
+            return () => window.removeEventListener('resize', syncHeight);
+        }
+        setPanelMaxHeight('0px');
+    }, [isOpen, children]);
 
     return (
         <div 
@@ -57,14 +75,17 @@ const Accordion = ({ title, children, id, activeAccordion, setActiveAccordion, c
                 <span className="accordion-icon">{isOpen ? "-" : "+"}</span>
             </button>
             <div 
+                ref={panelRef}
                 id={id ? `${id}-panel` : undefined}
                 data-accordion-panel-id={id || undefined}
                 className={`panel ${isActivitySection ? "activity-panel" : ""}`}
                 style={{ 
-                    display: isOpen ? "block" : "none",
+                    display: 'block',
                     overflow: isPassengerInfoSection ? "hidden" : "visible", // Passenger Info: contain overflow, others: visible
-                    height: "auto", // Ensure auto height
-                    transition: "height 0.3s ease", // Smooth transition for height changes
+                    maxHeight: panelMaxHeight,
+                    opacity: isOpen ? 1 : 0,
+                    transform: isOpen ? 'translateY(0)' : 'translateY(-6px)',
+                    transition: "max-height 0.35s ease, opacity 0.2s ease, transform 0.25s ease",
                     // Ensure panel content is always clickable when open, even if accordion is disabled
                     pointerEvents: isOpen ? 'auto' : 'none'
                 }}

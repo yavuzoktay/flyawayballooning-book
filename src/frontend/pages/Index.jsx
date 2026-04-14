@@ -5680,8 +5680,8 @@ const Index = () => {
                     }}>
                         <button
                             onClick={handleNextClick}
+                            className="floating-next-btn"
                             style={{
-                                background: 'rgb(0, 235, 91)',
                                 color: '#FFF',
                                 padding: '10px 14px',
                                 borderRadius: '12px',
@@ -5695,14 +5695,6 @@ const Index = () => {
                                 border: 'none',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.background = 'rgb(0, 200, 75)';
-                                e.target.style.transform = 'scale(1.05)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.background = 'rgb(0, 235, 91)';
-                                e.target.style.transform = 'scale(1)';
                             }}
                         >Next</button>
                     </div>

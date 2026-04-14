@@ -169,6 +169,31 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
         // For other activity types, include all components
         totalPrice = parseFloat(flightTypePrice) + parseFloat(voucherTypePrice) + parseFloat(addOnPrice) + weatherRefundPrice;
     }
+    const [animatedTotal, setAnimatedTotal] = React.useState(0);
+    React.useEffect(() => {
+        const target = Number(totalPrice) || 0;
+        const start = Number(animatedTotal) || 0;
+        if (Math.abs(target - start) < 0.01) {
+            setAnimatedTotal(target);
+            return;
+        }
+        const duration = 420;
+        const startedAt = performance.now();
+        let rafId = null;
+        const tick = (now) => {
+            const progress = Math.min((now - startedAt) / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setAnimatedTotal(start + (target - start) * eased);
+            if (progress < 1) {
+                rafId = requestAnimationFrame(tick);
+            }
+        };
+        rafId = requestAnimationFrame(tick);
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+        };
+    }, [totalPrice]);
 
     // Helper to check if an object is non-empty
     const isNonEmptyObject = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
@@ -1281,10 +1306,10 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         £{(parseFloat(voucherData.paid_amount || voucherData.detail?.paid || voucherData.final_amount || 100)).toFixed(2)}
                                     </p>
                                 )}
-                                <p style={{ fontWeight: 500, fontSize: '1.2rem', margin: 0 }}>
+                                <p className="total-price-animated" style={{ fontWeight: 500, fontSize: '1.2rem', margin: 0 }}>
                                     {activitySelect === 'Redeem Voucher' ? 
-                                        `£${totalPrice.toFixed(2)}` : 
-                                        (totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : "")
+                                        `£${animatedTotal.toFixed(2)}` : 
+                                        (totalPrice > 0 ? `£${animatedTotal.toFixed(2)}` : "")
                                     }
                                 </p>
                                 <div className="summary-payment-icons" aria-label="Supported payment methods">
@@ -1321,7 +1346,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                             </div>
                         )}
                         {showWarning && (
-                            <div style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
+                            <div className="validation-shake" style={{ color: 'red', marginTop: 10, fontSize: '14px', textAlign: 'center' }}>
                                 {activitySelect === 'Book Flight' && (
                                     <>
                                 Please complete all required fields:<br/>
