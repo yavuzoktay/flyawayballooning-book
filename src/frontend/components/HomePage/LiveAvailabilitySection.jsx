@@ -2852,7 +2852,7 @@ const LiveAvailabilitySection = ({
                                 left: "50%",
                                 transform: "translate(-50%, -50%)",
                                 pointerEvents: "none",
-                                fontWeight: 800,
+                                fontWeight: 600,
                                 fontSize: isMobile ? 16 : 16,
                                 letterSpacing: isMobile ? 0.2 : 0.5,
                                 color: "#ffffff",
