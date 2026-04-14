@@ -177,8 +177,8 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
   .summary-desktop-card {
     position: sticky;
     top: 96px;
-    height: min(760px, calc(100vh - 120px));
-    max-height: calc(100vh - 120px);
+    height: min(744px, calc(100vh - 132px));
+    max-height: calc(100vh - 132px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -216,8 +216,8 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 
   .summary-desktop-footer {
     flex-shrink: 0;
-    margin-top: 14px;
-    padding-top: 14px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px solid #e5e7eb;
     background: #fff;
   }
@@ -241,9 +241,9 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 22px;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 21px;
 }
 
 .payment-icon {
@@ -314,7 +314,7 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 }
 
 .summary-secure-payment {
-  margin-top: 4px;
+  margin-top: 2px;
   color: #4b5563;
   font-size: 12px;
   font-weight: 600;
@@ -324,12 +324,14 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
 }
 
 .summary-total-line {
   display: inline-flex;
   align-items: baseline;
   gap: 10px;
+  margin: 0;
 }
 
 .summary-total-line .total-price-animated {
@@ -1034,7 +1036,6 @@ textarea {
 .summary-sticky-book,
 .voucher-type-select-button,
 .booking-shared-action-button,
-.voucher-stepper-button,
 .redeem-button {
   border-color: var(--fab-bright-green) !important;
   color: #ffffff !important;
@@ -1047,9 +1048,7 @@ textarea {
 .summary-sticky-book:hover,
 .voucher-type-select-button:hover,
 .booking-shared-action-button:hover,
-.voucher-stepper-button:hover,
 .redeem-button:hover {
-  background: var(--fab-bright-green-dark) !important;
   border-color: var(--fab-bright-green-dark) !important;
 }
 
@@ -1104,8 +1103,21 @@ textarea {
 }
 
 .voucher-stepper-button {
+  background: transparent !important;
+  border: 3px solid var(--fab-bright-green) !important;
   border-radius: 999px !important;
+  color: var(--fab-bright-green) !important;
   box-shadow: none !important;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.voucher-stepper-button:hover {
+  background: transparent !important;
+  border-color: var(--fab-bright-green-dark) !important;
+  color: var(--fab-bright-green-dark) !important;
 }
 
 .voucher-type-card .voucher-type-card-tag {

@@ -2474,7 +2474,7 @@ const VoucherType = ({
                       cursor: "pointer",
                       fontSize: isMobile ? 26 : 24,
                       fontWeight: 500,
-                      color: "rgb(0, 235, 91) !important",
+                      color: "rgb(0, 235, 91)",
                       lineHeight: 1,
                       boxShadow: "none",
                     }}
@@ -2525,7 +2525,7 @@ const VoucherType = ({
                       cursor: "pointer",
                       fontSize: isMobile ? 26 : 24,
                       fontWeight: 500,
-                      color: "rgb(0, 235, 91) !important",
+                      color: "rgb(0, 235, 91)",
                       lineHeight: 1,
                       boxShadow: "none",
                     }}

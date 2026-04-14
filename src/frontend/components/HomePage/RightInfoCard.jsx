@@ -66,6 +66,8 @@ const RightInfoCard = ({
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [successModalOpen, setSuccessModalOpen] = React.useState(false);
   const [successModalData, setSuccessModalData] = React.useState(null);
+  const summaryScrollRef = React.useRef(null);
+  const hasAutoScrolledSummaryRef = React.useRef(false);
   React.useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
     onResize();
@@ -1330,15 +1332,78 @@ const RightInfoCard = ({
       : []),
   ];
 
+  const normalizedSummarySectionId =
+    activeAccordion === "preference" ? "select-preferences" : activeAccordion;
+  const summaryAutoScrollTargetId =
+    (normalizedSummarySectionId &&
+      mobileSections.some((section) => section.id === normalizedSummarySectionId)
+      ? normalizedSummarySectionId
+      : null) ||
+    mobileSections.find((section) => !section.completed)?.id ||
+    mobileSections[mobileSections.length - 1]?.id ||
+    null;
+  const summaryAutoScrollSnapshot = mobileSections
+    .map(
+      (section) =>
+        `${section.id}:${section.completed ? 1 : 0}:${section.value || ""}`,
+    )
+    .join("|");
+
+  React.useEffect(() => {
+    if (isMobile || !summaryAutoScrollTargetId) return undefined;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const container = summaryScrollRef.current;
+      if (!container) return;
+
+      const getSummarySectionElement = (sectionId) =>
+        sectionId
+          ? container.querySelector(`[data-summary-section="${sectionId}"]`)
+          : null;
+
+      const target =
+        getSummarySectionElement(summaryAutoScrollTargetId) ||
+        getSummarySectionElement(
+          mobileSections.find(
+            (section) =>
+              !section.completed && getSummarySectionElement(section.id),
+          )?.id,
+        ) ||
+        getSummarySectionElement(
+          [...mobileSections]
+            .reverse()
+            .find((section) => getSummarySectionElement(section.id))?.id,
+        );
+
+      if (!target) return;
+
+      const prefersReducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false;
+
+      container.scrollTo({
+        top: Math.max(target.offsetTop - 16, 0),
+        behavior:
+          hasAutoScrolledSummaryRef.current && !prefersReducedMotion
+            ? "smooth"
+            : "auto",
+      });
+
+      hasAutoScrolledSummaryRef.current = true;
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isMobile, summaryAutoScrollTargetId, summaryAutoScrollSnapshot]);
+
   return (
     <>
       {/* Desktop/Tablet full card */}
       <div style={{ display: isMobile ? "none" : "block" }}>
         <div className="book_active summary-desktop-card">
           <div className="book_data_active summary-desktop-inner">
-            <div className="summary-desktop-scroll">
+            <div className="summary-desktop-scroll" ref={summaryScrollRef}>
             {/* En üstte Flight Type/What would you like to do? */}
-            <div className="book_data_active">
+            <div className="book_data_active" data-summary-section="activity">
               <div
                 className={`row-1 ${(() => {
                   // For Redeem Voucher, only show green tick if voucher is valid
@@ -1378,6 +1443,7 @@ const RightInfoCard = ({
               <>
                 <div
                   className="book_data_active"
+                  data-summary-section="location"
                   onClick={getSectionClickHandler("location")}
                   style={getSectionRowStyle("location")}
                 >
@@ -1395,6 +1461,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="experience"
                   onClick={getSectionClickHandler("experience")}
                   style={getSectionRowStyle("experience")}
                 >
@@ -1416,6 +1483,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="voucher-type"
                   onClick={getSectionClickHandler("voucher-type")}
                   style={getSectionRowStyle("voucher-type")}
                 >
@@ -1493,6 +1561,7 @@ const RightInfoCard = ({
                   )}
                 <div
                   className="book_data_active"
+                  data-summary-section="live-availability"
                   onClick={() => setActiveAccordion("live-availability")}
                 >
                   {" "}
@@ -1515,6 +1584,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="passenger-info"
                   onClick={() => setActiveAccordion("passenger-info")}
                 >
                   {" "}
@@ -1556,6 +1626,7 @@ const RightInfoCard = ({
                 {shouldShowAdditionalInfoSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="additional-info"
                     onClick={() => setActiveAccordion("additional-info")}
                   >
                     {" "}
@@ -1584,6 +1655,7 @@ const RightInfoCard = ({
                   activitySelect !== "Redeem Voucher" && (
                     <div
                       className="book_data_active"
+                      data-summary-section="select-preferences"
                       onClick={() => setActiveAccordion("select-preferences")}
                     >
                       {" "}
@@ -1623,6 +1695,7 @@ const RightInfoCard = ({
                 {shouldShowAddOnSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="add-on"
                     onClick={() => setActiveAccordion("add-on")}
                   >
                     {" "}
@@ -1666,6 +1739,7 @@ const RightInfoCard = ({
               <>
                 <div
                   className="book_data_active"
+                  data-summary-section="location"
                   onClick={() => setActiveAccordion("location")}
                 >
                   {" "}
@@ -1682,6 +1756,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="live-availability"
                   onClick={() => setActiveAccordion("live-availability")}
                 >
                   {" "}
@@ -1704,6 +1779,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="passenger-info"
                   onClick={() => setActiveAccordion("passenger-info")}
                 >
                   {" "}
@@ -1745,6 +1821,7 @@ const RightInfoCard = ({
                 {shouldShowAdditionalInfoSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="additional-info"
                     onClick={() => setActiveAccordion("additional-info")}
                   >
                     {" "}
@@ -1772,6 +1849,7 @@ const RightInfoCard = ({
                 {shouldShowAddOnSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="add-on"
                     onClick={() => setActiveAccordion("add-on")}
                   >
                     {" "}
@@ -1815,6 +1893,7 @@ const RightInfoCard = ({
               <>
                 <div
                   className="book_data_active"
+                  data-summary-section="experience"
                   onClick={() => setActiveAccordion("experience")}
                 >
                   {" "}
@@ -1835,6 +1914,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="voucher-type"
                   onClick={() => setActiveAccordion("voucher-type")}
                 >
                   {" "}
@@ -1912,6 +1992,7 @@ const RightInfoCard = ({
                 {/* Swap order for Buy Gift: Purchaser Information above Recipient Details */}
                 <div
                   className="book_data_active"
+                  data-summary-section="passenger-info"
                   onClick={() => setActiveAccordion("passenger-info")}
                 >
                   {" "}
@@ -1952,6 +2033,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="recipient-details"
                   onClick={() => setActiveAccordion("recipient-details")}
                 >
                   {" "}
@@ -1971,6 +2053,7 @@ const RightInfoCard = ({
                 {shouldShowAddOnSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="add-on"
                     onClick={() => setActiveAccordion("add-on")}
                   >
                     {" "}
@@ -2014,6 +2097,7 @@ const RightInfoCard = ({
               <>
                 <div
                   className="book_data_active"
+                  data-summary-section="experience"
                   onClick={() => setActiveAccordion("experience")}
                 >
                   {" "}
@@ -2034,6 +2118,7 @@ const RightInfoCard = ({
                 </div>
                 <div
                   className="book_data_active"
+                  data-summary-section="voucher-type"
                   onClick={() => setActiveAccordion("voucher-type")}
                 >
                   {" "}
@@ -2110,6 +2195,7 @@ const RightInfoCard = ({
                   )}
                 <div
                   className="book_data_active"
+                  data-summary-section="passenger-info"
                   onClick={() => setActiveAccordion("passenger-info")}
                 >
                   {" "}
@@ -2151,6 +2237,7 @@ const RightInfoCard = ({
                 {shouldShowAdditionalInfoSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="additional-info"
                     onClick={() => setActiveAccordion("additional-info")}
                   >
                     {" "}
@@ -2179,6 +2266,7 @@ const RightInfoCard = ({
                 {shouldShowAddOnSummary && (
                   <div
                     className="book_data_active"
+                    data-summary-section="add-on"
                     onClick={() => setActiveAccordion("add-on")}
                   >
                     {" "}
@@ -2222,7 +2310,7 @@ const RightInfoCard = ({
             <div className="summary-desktop-footer">
             <div
               className="bottom_main summary-desktop-total"
-              style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}
+              style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
             >
               <h3 className="summary-total-line">
                 Total:
@@ -2272,7 +2360,7 @@ const RightInfoCard = ({
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "center",
-                  gap: "10px",
+                  gap: "8px",
                   marginTop: "0px",
                   marginBottom: "0px",
                 }}
@@ -2283,7 +2371,7 @@ const RightInfoCard = ({
                     color: "#fff",
                     fontWeight: 500,
                     borderRadius: "8px",
-                    padding: "8px 22px",
+                    padding: "7px 20px",
                     cursor: "pointer",
                     opacity: 1,
                     border: "none",
