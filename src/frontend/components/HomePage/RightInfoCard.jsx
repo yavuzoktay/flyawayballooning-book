@@ -2397,7 +2397,7 @@ const RightInfoCard = ({
         <>
           <div className="summary-sticky" onClick={() => setIsDrawerOpen(true)}>
             <div className="summary-sticky-left">
-              <strong>Summary</strong>
+              <strong className="summary-sticky-label">Summary</strong>
               <div
                 style={{
                   marginLeft: 8,
@@ -2455,12 +2455,15 @@ const RightInfoCard = ({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="summary-drawer-header">
-                  <span>Booking Summary</span>
+                  <span className="summary-drawer-heading">Booking Summary</span>
                   <button
+                    type="button"
                     className="drawer-close"
+                    aria-label="Close booking summary"
                     onClick={() => setIsDrawerOpen(false)}
                   >
-                    ✕
+                    <span className="drawer-close-line drawer-close-line--first" />
+                    <span className="drawer-close-line drawer-close-line--second" />
                   </button>
                 </div>
                 <div className="summary-drawer-body">

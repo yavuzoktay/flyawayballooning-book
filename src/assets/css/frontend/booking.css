@@ -3082,7 +3082,10 @@ textarea {
   .summary-sticky-left {
     display: flex;
     align-items: center;
-    font-weight: 600;
+    font-weight: 500;
+  }
+  .summary-sticky-label {
+    font-weight: 500;
   }
   .summary-sticky-book {
     background: #2d4263;
@@ -3090,7 +3093,7 @@ textarea {
     border: none;
     border-radius: 14px;
     padding: 12px 10px; /* bigger button */
-    font-weight: 600;
+    font-weight: 500;
     font-size: 15px; /* larger text */
     text-align: center;
     flex: 0 0 42%; /* shorter button next to summary on mobile */
@@ -3139,14 +3142,46 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .summary-drawer-heading {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #111827;
   }
   .drawer-close {
-    background: none;
-    border: none;
-    font-size: 20px;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #94a3b8 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
+  }
+  .drawer-close:hover {
+    background: rgba(148, 163, 184, 0.12) !important;
+    color: #64748b !important;
+  }
+  .drawer-close-line {
+    position: absolute;
+    width: 16px;
+    height: 1.75px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+  .drawer-close-line--first {
+    transform: rotate(45deg);
+  }
+  .drawer-close-line--second {
+    transform: rotate(-45deg);
   }
   .summary-drawer-body {
     max-height: 60vh;
@@ -3172,12 +3207,13 @@ textarea {
     background: #cbd5e1;
   }
   .summary-row-title {
-    font-weight: 600;
+    font-weight: 500;
     color: #111827;
   }
   .summary-row-sub {
     color: #6b7280;
     font-size: 12px;
+    font-weight: 400;
     margin-top: 2px;
   }
   .summary-chevron {
@@ -3192,7 +3228,7 @@ textarea {
     padding-top: 12px;
   }
   .summary-total {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 18px;
   }
   /* Make summary popup Book button a bit shorter on mobile */
@@ -3202,7 +3238,7 @@ textarea {
     border: none;
     border-radius: 12px;
     padding: 12px 24px;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 15px;
     width: 80%;
     max-width: 300px;
