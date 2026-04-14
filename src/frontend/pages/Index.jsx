@@ -8644,12 +8644,12 @@ const Index = () => {
         ref={faqToggleRef}
         style={{
           position: "fixed",
-          top: isMobile ? "auto" : "44%",
+          top: isMobile ? "auto" : "50%",
           bottom: isMobile ? "210px" : "auto",
           right: isFrequentQuestionsOpen
             ? isMobile
               ? "calc(92vw + env(safe-area-inset-right, 0px))"
-              : "320px"
+              : "352px"
             : isMobile
               ? "calc(4px + env(safe-area-inset-right, 0px))"
               : 0,
