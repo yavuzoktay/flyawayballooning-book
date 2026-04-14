@@ -89,18 +89,23 @@ html {
   }
 }
 
-button,
+button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button),
 .booking_btn,
 .book_select_btn a,
 .summary-primary,
 .summary-sticky-book {
   background: var(--fab-bright-green) !important;
+  font-family: "Gilroy", sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  padding: 10px 18px !important;
   border-radius: 10px !important;
   color: #fff !important;
   border: none !important;
 }
 
-button:hover,
+button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.voucher-stepper-button):hover,
 .booking_btn:hover,
 .book_select_btn a:hover,
 .summary-primary:hover,
