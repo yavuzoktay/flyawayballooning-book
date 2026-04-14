@@ -191,6 +191,32 @@ button:hover,
   color: #eb001b;
 }
 
+.payment-icon--mastercard-mark {
+  position: relative;
+  width: 30px;
+  height: 20px;
+  display: inline-block;
+}
+
+.payment-mastercard-circle {
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.payment-mastercard-circle--left {
+  left: 0;
+  background: #eb001b;
+}
+
+.payment-mastercard-circle--right {
+  right: 0;
+  background: #f79e1b;
+  opacity: 0.92;
+}
+
 .payment-icon--amex {
   color: #2e77bb;
 }
@@ -201,6 +227,23 @@ button:hover,
 
 .payment-icon--googlepay {
   color: #4285f4;
+}
+
+.payment-icon--googlepay-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.payment-google-g {
+  font-size: 20px;
+}
+
+.payment-google-pay-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4285f4;
+  line-height: 1;
 }
 
 .summary-secure-payment {

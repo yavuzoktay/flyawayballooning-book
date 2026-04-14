@@ -13,11 +13,10 @@ import {
 } from "@mui/material";
 import {
   SiVisa,
-  SiMastercard,
   SiAmericanexpress,
   SiApplepay,
-  SiGooglepay,
 } from "react-icons/si";
+import { FcGoogle } from "react-icons/fc";
 
 import config from "../../../config";
 import { getGoogleAdsIdsForCheckout } from "../../../utils/googleAdsTracking";
@@ -2250,10 +2249,16 @@ const RightInfoCard = ({
                   aria-label="Supported payment methods"
                 >
                   <SiVisa className="payment-icon payment-icon--visa" />
-                  <SiMastercard className="payment-icon payment-icon--mastercard" />
+                  <span className="payment-icon payment-icon--mastercard-mark" aria-hidden="true">
+                    <span className="payment-mastercard-circle payment-mastercard-circle--left" />
+                    <span className="payment-mastercard-circle payment-mastercard-circle--right" />
+                  </span>
                   <SiAmericanexpress className="payment-icon payment-icon--amex" />
                   <SiApplepay className="payment-icon payment-icon--applepay" />
-                  <SiGooglepay className="payment-icon payment-icon--googlepay" />
+                  <span className="payment-icon payment-icon--googlepay-mark" aria-hidden="true">
+                    <FcGoogle className="payment-google-g" />
+                    <span className="payment-google-pay-text">Pay</span>
+                  </span>
                 </div>
                 <span className="summary-secure-payment">Secure Payment</span>
               </div>
