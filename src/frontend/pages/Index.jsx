@@ -20,6 +20,7 @@ import ProgressBar from "../components/Common/ProgressBar";
 import axios from "axios";
 import "../components/HomePage/RedeemVoucher.css";
 import { BsInfoCircle } from "react-icons/bs";
+import { FaGoogle, FaTripadvisor, FaStar } from "react-icons/fa";
 import { useLocation, useParams } from 'react-router-dom';
 import CustomerPortalHeader from "../components/CustomerPortal/CustomerPortalHeader";
 
@@ -35,6 +36,8 @@ const EMPTY_ARRAY = [];
 const MANUAL_BOOKING_ACCESS_STORAGE_PREFIX = 'fab-manual-booking-access';
 const FAQ_LINK = 'https://flyawayballooning.com/pages/faq';
 const WHATSAPP_LINK = 'https://api.whatsapp.com/message/CQZBMWVAP2LWM1';
+const GOOGLE_REVIEW_LINK = 'https://maps.app.goo.gl/dbMMtqRJifkEWkRS8?g_st=ipc';
+const TRIPADVISOR_REVIEW_LINK = 'https://www.tripadvisor.in/Attraction_Review-g190730-d21508626-Reviews-Fly_Away_Ballooning-Taunton_Somerset_England.html';
 const SIDE_FAQ_ITEMS = [
     {
         id: 'faq-wear',
@@ -257,6 +260,7 @@ const Index = () => {
     const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
     const [voucherData, setVoucherData] = useState(null); // Store validated voucher data
     const [selectedTime, setSelectedTime] = useState(null);
+    const [isReviewsOpen, setIsReviewsOpen] = useState(false);
     const [isFrequentQuestionsOpen, setIsFrequentQuestionsOpen] = useState(false);
     const [activeFrequentQuestion, setActiveFrequentQuestion] = useState(null);
 
@@ -7188,6 +7192,89 @@ const Index = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <div
+                style={{
+                    position: 'fixed',
+                    top: isMobile ? '50%' : '38%',
+                    left: isReviewsOpen ? '320px' : 0,
+                    transform: 'translateY(-50%)',
+                    zIndex: 1200,
+                    transition: 'left 0.28s ease'
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={() => setIsReviewsOpen(prev => !prev)}
+                    style={{
+                        writingMode: 'vertical-rl',
+                        transform: 'rotate(180deg)',
+                        background: '#03a9f4',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '0 12px 12px 0',
+                        padding: '14px 10px',
+                        fontFamily: 'Gilroy, sans-serif',
+                        fontWeight: 600,
+                        letterSpacing: '0.3px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.18)'
+                    }}
+                    aria-label="Toggle reviews panel"
+                >
+                    Reviews
+                </button>
+            </div>
+
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: isReviewsOpen ? 0 : '-340px',
+                    width: '340px',
+                    maxWidth: '92vw',
+                    height: '100vh',
+                    background: '#f3f3f9',
+                    borderRight: '1px solid #dbe3ef',
+                    boxShadow: '6px 0 20px rgba(0,0,0,0.12)',
+                    zIndex: 1199,
+                    transition: 'left 0.28s ease',
+                    overflowY: 'auto',
+                    padding: '24px 16px'
+                }}
+            >
+                <div style={{ marginBottom: 14 }}>
+                    <h3 style={{ margin: 0 }}>Reviews</h3>
+                </div>
+                <a
+                    href={GOOGLE_REVIEW_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="reviews-proof-link"
+                >
+                    <div className="reviews-proof-brand">
+                        <FaGoogle />
+                        <span>5</span>
+                    </div>
+                    <div className="reviews-proof-stars">
+                        {[...Array(5)].map((_, index) => <FaStar key={`google-${index}`} />)}
+                    </div>
+                </a>
+                <a
+                    href={TRIPADVISOR_REVIEW_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="reviews-proof-link"
+                >
+                    <div className="reviews-proof-brand">
+                        <FaTripadvisor />
+                        <span>5</span>
+                    </div>
+                    <div className="reviews-proof-stars">
+                        {[...Array(5)].map((_, index) => <FaStar key={`trip-${index}`} />)}
+                    </div>
+                </a>
+            </div>
 
             <div
                 style={{
