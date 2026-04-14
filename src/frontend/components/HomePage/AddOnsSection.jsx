@@ -460,7 +460,7 @@ const AddOnsSection = ({
                             style={{
                               margin: 0,
                               whiteSpace: "nowrap",
-                              fontWeight: 800,
+                              fontWeight: 500,
                               color: "#059669",
                               fontSize: "16px",
                               flexShrink: 0,

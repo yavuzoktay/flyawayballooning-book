@@ -2062,7 +2062,7 @@ const LiveAvailabilitySection = ({
                   backgroundColor: "#10b981",
                   color: "#fff",
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 500,
                   lineHeight: 1,
                 }}
               >
@@ -2835,7 +2835,7 @@ const LiveAvailabilitySection = ({
                                 left: "50%",
                                 transform: "translate(-50%, -50%)",
                                 pointerEvents: "none",
-                                fontWeight: 800,
+                                fontWeight: 500,
                                 fontSize: isMobile ? 16 : 16,
                                 letterSpacing: isMobile ? 0.2 : 0.5,
                                 color: "#ffffff",
@@ -2869,7 +2869,7 @@ const LiveAvailabilitySection = ({
                                 left: "50%",
                                 transform: "translate(-50%, -50%)",
                                 pointerEvents: "none",
-                                fontWeight: 800,
+                                fontWeight: 500,
                                 fontSize: isMobile ? 16 : 16,
                                 letterSpacing: isMobile ? 0.2 : 0.5,
                                 color: "#ffffff",
@@ -2991,7 +2991,7 @@ const LiveAvailabilitySection = ({
                       backgroundColor: "#10b981",
                       color: "#fff",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 500,
                       lineHeight: 1,
                     }}
                   >
