@@ -403,6 +403,79 @@ const ChooseActivityCard = ({
                           }}
                         >
                           {item.displayLabel || item.label}
+                          <BsInfoCircle
+                            data-tooltip-id={`activity-tooltip-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
+                            data-tooltip-place="top"
+                            data-tooltip-offset="10"
+                            data-tooltip-variant="dark"
+                            data-tooltip-float="true"
+                            style={{
+                              color: "#3b82f6",
+                              cursor: "pointer",
+                              width: 14,
+                              height: 14,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isMobile) {
+                                setActiveMobileTooltip((prev) =>
+                                  prev === item.label ? null : item.label,
+                                );
+                              }
+                            }}
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              if (isMobile) {
+                                setActiveMobileTooltip((prev) =>
+                                  prev === item.label ? null : item.label,
+                                );
+                              }
+                            }}
+                          />
+                          {!isMobile && (
+                            <ReactTooltip
+                              id={`activity-tooltip-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
+                              place="top"
+                              positionStrategy="fixed"
+                              offset={12}
+                              content={getTooltipContent(item.label)}
+                              style={{
+                                maxWidth: "260px",
+                                fontSize: "13px",
+                                textAlign: "center",
+                                backgroundColor: "#1f2937",
+                                color: "#ffffff",
+                                borderRadius: "8px",
+                                padding: "8px 12px",
+                                zIndex: 100000,
+                              }}
+                            />
+                          )}
+                          {isMobile && activeMobileTooltip === item.label && (
+                            <div
+                              className="mobile-activity-tooltip"
+                              onClick={(e) => e.stopPropagation()}
+                              onTouchStart={(e) => e.stopPropagation()}
+                              style={{
+                                position: "absolute",
+                                top: "20px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                backgroundColor: "rgba(31,41,55,0.95)",
+                                color: "#ffffff",
+                                borderRadius: "12px",
+                                padding: "10px 14px",
+                                fontSize: "13px",
+                                lineHeight: 1.4,
+                                textAlign: "center",
+                                width: "min(240px, 85vw)",
+                                boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+                                zIndex: 100001,
+                              }}
+                            >
+                              <span>{getTooltipContent(item.label)}</span>
+                            </div>
+                          )}
                         </h3>
                         {item.subText && <p>{item.subText}</p>}
                         {localVoucherCode && (

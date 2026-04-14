@@ -2257,7 +2257,6 @@ const RightInfoCard = ({
                   <SiApplepay className="payment-icon payment-icon--applepay" />
                   <span className="payment-icon payment-icon--googlepay-mark" aria-hidden="true">
                     <FcGoogle className="payment-google-g" />
-                    <span className="payment-google-pay-text">Pay</span>
                   </span>
                 </div>
                 <span className="summary-secure-payment">Secure Payment</span>
