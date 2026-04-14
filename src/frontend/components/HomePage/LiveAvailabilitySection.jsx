@@ -1264,21 +1264,18 @@ const LiveAvailabilitySection = ({ isGiftVoucher, isFlightVoucher, selectedDate,
                         {soldOut && !isPastDate && !isMobile && (
                             <div
                                 className="day-status sold-out-status"
-                                style={{ 
-                                fontSize: 11, 
-                                marginTop: 4, 
-                                color: '#fff', 
-                                fontWeight: 600,
-                                lineHeight: 1,
-                                textAlign: 'center',
-                                width: '100%',
-                                maxWidth: '100%',
-                                whiteSpace: 'nowrap',
-                                overflowWrap: 'anywhere',
-                                wordBreak: 'break-word'
-                            }}>
-                                Not Available
-                            </div>
+                                style={{
+                                    fontSize: 11,
+                                    marginTop: 4,
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    lineHeight: 1,
+                                    textAlign: 'center',
+                                    width: '100%',
+                                    maxWidth: '100%',
+                                    minHeight: '14px'
+                                }}
+                            />
                         )}
                         {/* Remove "Not Available" text to clean up layout */}
                         {/* {!isAvailable && !isPastDate && !soldOut && (

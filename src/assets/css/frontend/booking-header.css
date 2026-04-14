@@ -124,7 +124,7 @@
 
 /* Timer color changes based on time left */
 .timer-value.normal {
-  color: #4CAF50;
+  color: #00eb5b;
 }
 
 .timer-value.critical {

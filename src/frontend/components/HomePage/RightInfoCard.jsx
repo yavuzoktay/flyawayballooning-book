@@ -2,6 +2,7 @@ import axios from "axios";
 import React from "react";
 import { loadStripe } from '@stripe/stripe-js';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Divider, Button } from "@mui/material";
+import { FaCcVisa, FaCcMastercard, FaCcAmex, FaApplePay, FaGooglePay } from "react-icons/fa";
 
 import config from '../../../config';
 import { getGoogleAdsIdsForCheckout } from '../../../utils/googleAdsTracking';
@@ -1286,6 +1287,14 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                         (totalPrice > 0 ? `£${totalPrice.toFixed(2)}` : "")
                                     }
                                 </p>
+                                <div className="summary-payment-icons" aria-label="Supported payment methods">
+                                    <FaCcVisa />
+                                    <FaCcMastercard />
+                                    <FaCcAmex />
+                                    <FaApplePay />
+                                    <FaGooglePay />
+                                </div>
+                                <span className="summary-secure-payment">Secure Payment</span>
                             </div>
                         </div>
                         {!isBookDisabled && (
@@ -1293,7 +1302,6 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                 <button
                                     className="booking_btn final_booking-button"
                                     style={{
-                                        background: '#00eb5b',
                                         color: '#fff',
                                         fontWeight: 500,
                                         borderRadius: '8px',
@@ -1399,7 +1407,7 @@ const RightInfoCard = ({ activitySelect, chooseLocation, chooseFlightType, choos
                                     buttonText: isBookDisabled ? 'DISABLED' : 'ENABLED'
                                 });
                             }}
-                            style={{ background: '#00eb5b', color: '#fff', border: 'none' }}
+                            style={{ background: '#03a9f4', color: '#fff', border: 'none' }}
                         >
                             Book
                         </button>

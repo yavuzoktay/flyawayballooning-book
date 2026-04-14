@@ -2,6 +2,106 @@ body {
     background: #F3F3F9;
 }
 
+:root {
+    --fab-blue: #03a9f4;
+    --fab-blue-dark: #0287c6;
+    --fab-bright-green: #00eb5b;
+}
+
+* {
+    font-family: 'Gilroy', sans-serif;
+}
+
+button,
+.booking_btn,
+.book_select_btn a,
+.summary-primary,
+.summary-sticky-book {
+    background: var(--fab-blue) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+button:hover,
+.booking_btn:hover,
+.book_select_btn a:hover,
+.summary-primary:hover,
+.summary-sticky-book:hover {
+    background: var(--fab-blue-dark) !important;
+}
+
+.accordion,
+.book_selevt_btn button,
+.book_select_btn a,
+.booking_btn,
+.summary-primary,
+.summary-sticky-book,
+.select-btn,
+.confirm-btn {
+    background: var(--fab-blue) !important;
+}
+
+.active-card-val .active-book-card,
+.active-card-val .active-book-card:before,
+.active-card-val .active-book-card:after,
+.row-1 input[type="checkbox"]:checked,
+.final-prefer-check input:checked,
+.Recipient_check input[type="checkbox"]:checked,
+.book_data input:checked,
+.passenger_weather-refund input[type="checkbox"]:checked,
+.add-on-input.active-add-on,
+.active-loc-radio,
+.tick-circle {
+    background-color: var(--fab-bright-green) !important;
+    border-color: var(--fab-bright-green) !important;
+}
+
+.presger_rate span,
+.toggle-price-pill {
+    background: var(--fab-bright-green) !important;
+}
+
+.book_data_label:hover,
+.active_book_data_label,
+.location_data:hover,
+.active-loc,
+.loc_data.active-add-on-wrap,
+.add-on-card .loc_data:hover {
+    border-color: var(--fab-blue) !important;
+}
+
+.info-icon-container svg,
+.react-tooltip,
+.hover-text,
+.private-flight-tooltip .info-icon-container:hover .hover-text {
+    border-left-color: var(--fab-blue) !important;
+}
+
+@media (min-width: 769px) {
+    .book_active {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+}
+
+.summary-payment-icons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 6px;
+    color: #1f2937;
+    font-size: 18px;
+}
+
+.summary-secure-payment {
+    margin-top: 4px;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 /* Desktop-only: Activity chooser tooltips should overlay cards and not be constrained */
 @media (min-width: 769px) {
     /* Ensure activity section containers don't clip the tooltip */

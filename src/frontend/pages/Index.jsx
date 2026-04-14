@@ -35,6 +35,48 @@ const EMPTY_ARRAY = [];
 const MANUAL_BOOKING_ACCESS_STORAGE_PREFIX = 'fab-manual-booking-access';
 const FAQ_LINK = 'https://flyawayballooning.com/pages/faq';
 const WHATSAPP_LINK = 'https://api.whatsapp.com/message/CQZBMWVAP2LWM1';
+const SIDE_FAQ_ITEMS = [
+    {
+        id: 'faq-wear',
+        title: 'What should I wear & bring?',
+        content: 'Wear closed-toe footwear, weather-appropriate layers and avoid loose scarves during flight. Bags are not allowed in the basket and should stay in the ground crew vehicle.'
+    },
+    {
+        id: 'faq-age',
+        title: 'Is there an age limit?',
+        content: 'There is no maximum age limit, but children under 7 years old cannot fly due to safety regulations.'
+    },
+    {
+        id: 'faq-weight',
+        title: 'Is there a weight limit?',
+        content: 'Shared flights have a passenger weight guideline of 18 stone (115 kg). A supplement may apply where a second seat is required for safe weight-to-volume operation.'
+    },
+    {
+        id: 'faq-weather-cancel',
+        title: 'What happens if my flight is cancelled?',
+        content: 'You will receive SMS/email updates and can rebook from your customer portal. Weather-refund options apply only when selected at checkout and subject to terms.'
+    },
+    {
+        id: 'faq-flight-times',
+        title: 'What times do we fly?',
+        content: 'Flights run at sunrise or sunset windows. Exact meeting time changes seasonally and is shown in the live booking calendar.'
+    },
+    {
+        id: 'faq-redeem',
+        title: 'How do I redeem a gift voucher?',
+        content: 'Choose "Redeem Voucher" in booking, enter your voucher reference, then select location/date/time and complete passenger details.'
+    },
+    {
+        id: 'faq-validity',
+        title: 'How long is my voucher valid for?',
+        content: 'Any Day Shared vouchers are valid for 24 months. Other vouchers are typically valid for 18 months, with extension rules based on genuine weather attempts.'
+    },
+    {
+        id: 'faq-refund',
+        title: 'Can I get a refund?',
+        content: 'Refunds are available only for bookings that include the refundable option and only under weather-cancellation conditions, according to terms.'
+    }
+];
 
 const buildManualBookingAccessStorageKey = (pathname = '/', token = '') => {
     const normalizedPath = String(pathname || '/').replace(/\/+$/, '') || '/';
@@ -215,6 +257,8 @@ const Index = () => {
     const [voucherStatus, setVoucherStatus] = useState(null); // "valid", "invalid", or null
     const [voucherData, setVoucherData] = useState(null); // Store validated voucher data
     const [selectedTime, setSelectedTime] = useState(null);
+    const [isFrequentQuestionsOpen, setIsFrequentQuestionsOpen] = useState(false);
+    const [activeFrequentQuestion, setActiveFrequentQuestion] = useState(null);
 
     // Ref to always have the latest activeAccordion value (avoids stale closures in timers)
     const activeAccordionRef = React.useRef(null);
@@ -7144,6 +7188,77 @@ const Index = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <div
+                style={{
+                    position: 'fixed',
+                    top: isMobile ? '52%' : '44%',
+                    right: isFrequentQuestionsOpen ? '320px' : 0,
+                    transform: 'translateY(-50%)',
+                    zIndex: 1200,
+                    transition: 'right 0.28s ease'
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={() => setIsFrequentQuestionsOpen(prev => !prev)}
+                    style={{
+                        writingMode: 'vertical-rl',
+                        transform: 'rotate(180deg)',
+                        background: '#03a9f4',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '12px 0 0 12px',
+                        padding: '14px 10px',
+                        fontFamily: 'Gilroy, sans-serif',
+                        fontWeight: 600,
+                        letterSpacing: '0.3px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.18)'
+                    }}
+                    aria-label="Toggle frequent questions panel"
+                >
+                    Frequent Questions
+                </button>
+            </div>
+
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    right: isFrequentQuestionsOpen ? 0 : '-340px',
+                    width: '340px',
+                    maxWidth: '92vw',
+                    height: '100vh',
+                    background: '#f3f3f9',
+                    borderLeft: '1px solid #dbe3ef',
+                    boxShadow: '-6px 0 20px rgba(0,0,0,0.12)',
+                    zIndex: 1199,
+                    transition: 'right 0.28s ease',
+                    overflowY: 'auto',
+                    padding: '24px 16px'
+                }}
+            >
+                <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>Frequent Questions</h3>
+                    <a href={FAQ_LINK} target="_blank" rel="noopener noreferrer" style={{ color: '#03a9f4', fontWeight: 600, textDecoration: 'none' }}>
+                        Full FAQ
+                    </a>
+                </div>
+                {SIDE_FAQ_ITEMS.map((item) => (
+                    <Accordion
+                        key={item.id}
+                        id={item.id}
+                        title={item.title}
+                        activeAccordion={activeFrequentQuestion}
+                        setActiveAccordion={setActiveFrequentQuestion}
+                    >
+                        <div style={{ background: '#fff', borderRadius: 14, padding: 14 }}>
+                            <p style={{ margin: 0, fontWeight: 500, lineHeight: 1.55 }}>{item.content}</p>
+                        </div>
+                    </Accordion>
+                ))}
+            </div>
         </>
     )
 }
