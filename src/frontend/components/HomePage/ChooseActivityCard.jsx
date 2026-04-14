@@ -255,8 +255,8 @@ const ChooseActivityCard = ({
 
   const activeCheckStyle = {
     ...checkStyle,
-    backgroundColor: "#03a9f4",
-    border: "2px solid #03a9f4", // Keep activity selection aligned with the site's blue selection color
+    backgroundColor: "#00eb5b",
+    border: "2px solid #00eb5b",
   };
 
   const checkIconStyle = {
@@ -398,7 +398,7 @@ const ChooseActivityCard = ({
                             gap: "6px",
                             margin: 0,
                             lineHeight: 1.2,
-                            fontWeight: 600,
+                            fontWeight: 500,
                             color: "#374151",
                           }}
                         >
@@ -524,7 +524,7 @@ const ChooseActivityCard = ({
                       gap: "6px",
                       margin: 0,
                       lineHeight: 1.2,
-                      fontWeight: 600,
+                      fontWeight: 500,
                       color: "#374151",
                     }}
                   >
@@ -644,7 +644,7 @@ const ChooseActivityCard = ({
                     transform: none !important;
                     box-shadow:
                         0 2px 10px rgba(15, 23, 42, 0.08),
-                        inset 0 0 0 1px rgba(148, 163, 184, 0.38) !important;
+                        inset 0 0 0 1px rgba(0, 235, 91, 0.28) !important;
                     background-clip: padding-box !important;
                 }
                 .choose-activity-card-label:hover,
@@ -652,8 +652,8 @@ const ChooseActivityCard = ({
                     border: none !important;
                     transform: none !important; /* avoid left-border clipping caused by scale */
                     box-shadow:
-                        0 8px 22px rgba(3, 169, 244, 0.12),
-                        inset 0 0 0 2px #03a9f4 !important;
+                        0 8px 22px rgba(0, 235, 91, 0.14),
+                        inset 0 0 0 2px #00eb5b !important;
                 }
                 .choose-activity-card .card-front .choose-activity-card-label,
                 .choose-activity-card .card-back .voucher-card-container {
