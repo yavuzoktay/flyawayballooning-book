@@ -165,8 +165,8 @@ button:hover,
 
 @media (min-width: 769px) {
   .book_active {
-    background: transparent !important;
-    box-shadow: none !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
   }
 }
 
