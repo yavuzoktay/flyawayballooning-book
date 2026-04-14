@@ -810,10 +810,20 @@ const ChooseActivityCard = ({
                     .choose-activity-card--redeem .card-back {
                         display: none !important;
                     }
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-flip-container {
+                        perspective: none !important;
+                    }
+                    .choose-activity-card--redeem.choose-activity-card--redeem-open .card-flipper {
+                        transform: none !important;
+                    }
                     .choose-activity-card--redeem.choose-activity-card--redeem-open .card-back {
                         display: block !important;
                         position: relative !important;
                         overflow: visible !important;
+                        transform: none !important;
+                        backface-visibility: visible !important;
+                        -webkit-backface-visibility: visible !important;
+                        z-index: 3 !important;
                     }
                     .choose-activity-card--redeem.choose-activity-card--redeem-open .card-front {
                         display: none !important;
