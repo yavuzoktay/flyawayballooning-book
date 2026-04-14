@@ -6939,6 +6939,7 @@ const Index = () => {
                     {/* Down arrow button below the activity cards */}
                     <div style={{ display: "flex", justifyContent: "center" }}>
                       <button
+                        className="activity-scroll-down-btn"
                         type="button"
                         aria-label="Scroll down"
                         onClick={(e) => {

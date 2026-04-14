@@ -108,6 +108,16 @@ button:hover,
   background: var(--fab-bright-green-dark) !important;
 }
 
+/* Keep activity section down-arrow as icon-only control */
+.activity-scroll-down-btn,
+.activity-scroll-down-btn:hover,
+.activity-scroll-down-btn:focus,
+.activity-scroll-down-btn:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .book_selevt_btn button,
 .book_select_btn a,
 .booking_btn,
