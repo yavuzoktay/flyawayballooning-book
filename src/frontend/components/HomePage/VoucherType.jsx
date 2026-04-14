@@ -2035,7 +2035,7 @@ const VoucherType = ({
             className="voucher-type-card-title"
             style={{
               fontSize: 18,
-              fontWeight: 300,
+              fontWeight: 500,
               margin: 0,
               marginBottom: 6,
               color: "#4a4a4a",
