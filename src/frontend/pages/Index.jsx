@@ -6447,14 +6447,11 @@ const Index = () => {
               }}
             >
               <button
+                className="booking-shared-action-button"
                 onClick={() => setPassengerTermsModalOpen(false)}
                 style={{
-                  background: "#00eb5b",
-                  color: "#fff",
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  border: "none",
+                  minHeight: 44,
+                  minWidth: 180,
                 }}
               >
                 Agree and Proceed
@@ -8605,7 +8602,7 @@ const Index = () => {
           style={{
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
-            background: "#03a9f4",
+            background: "#00eb5b",
             color: "#fff",
             border: "none",
             borderRadius: "0 12px 12px 0",
@@ -8692,7 +8689,7 @@ const Index = () => {
           style={{
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
-            background: "#03a9f4",
+            background: "#00eb5b",
             color: "#fff",
             border: "none",
             borderRadius: "12px 0 0 12px",

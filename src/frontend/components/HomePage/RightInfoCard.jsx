@@ -2440,7 +2440,7 @@ const RightInfoCard = ({
                 if (!isBookDisabled) triggerBookAction();
               }}
               onMouseEnter={() => {}}
-              style={{ background: "#03a9f4", color: "#fff", border: "none" }}
+              style={{ background: "#00eb5b", color: "#fff", border: "none" }}
             >
               Book
             </button>

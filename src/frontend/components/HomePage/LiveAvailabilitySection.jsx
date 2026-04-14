@@ -2530,37 +2530,23 @@ const LiveAvailabilitySection = ({
         actionButtons={
           <>
             <button
+              className="booking-shared-action-button"
               type="submit"
               disabled={!isFormValid}
               onClick={() => {
                 if (isFormValid) handleRequestSubmit();
               }}
               style={{
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "6px",
-                background: isFormValid ? "rgb(0, 235, 91)" : "#ccc",
-                color: "#fff",
-                cursor: isFormValid ? "pointer" : "not-allowed",
-                fontSize: "14px",
-                fontWeight: "500",
                 minWidth: "80px",
               }}
             >
               Submit
             </button>
             <button
+              className="booking-shared-action-button"
               type="button"
               onClick={() => setRequestModalOpen(false)}
               style={{
-                padding: "10px 20px",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-                background: "#fff",
-                color: "#333",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500",
                 minWidth: "80px",
               }}
             >
@@ -2952,18 +2938,11 @@ const LiveAvailabilitySection = ({
                   }}
                 >
                   <button
+                    className="booking-shared-action-button"
                     style={{
-                      border: "1px solid #d1d5db",
-                      background: "#fff",
-                      color: "#374151",
-                      padding: "8px 14px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontSize: isMobile ? 14 : 14,
-                      fontWeight: 500,
-                      transition: "all 0.2s ease",
+                      flex: 1,
                       boxSizing: "border-box",
-                      minHeight: isMobile ? "36px" : "auto",
+                      minHeight: isMobile ? "44px" : "46px",
                     }}
                     onClick={() => {
                       setTimeSelectionModalOpen(false);
@@ -2973,19 +2952,11 @@ const LiveAvailabilitySection = ({
                     Choose Another Date
                   </button>
                   <button
+                    className="booking-shared-action-button"
                     style={{
-                      background: "#00eb5b",
-                      color: "#fff",
-                      padding: "8px 14px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      border: "none",
-                      fontSize: isMobile ? 14 : 14,
-                      fontWeight: 500,
-                      opacity: tempSelectedTime ? 1 : 0.5,
-                      transition: "all 0.2s ease",
+                      flex: 1,
                       boxSizing: "border-box",
-                      minHeight: isMobile ? "36px" : "auto",
+                      minHeight: isMobile ? "44px" : "46px",
                     }}
                     onClick={() => {
                       if (tempSelectedTime) {

@@ -1922,6 +1922,7 @@ const VoucherType = ({
 
     return (
       <div
+        className="voucher-type-card"
         style={{
           background: "#fff",
           borderRadius: 16,
@@ -1994,6 +1995,7 @@ const VoucherType = ({
 
           {voucher.imageTextTag && (
             <div
+              className="voucher-type-card-tag"
               style={{
                 position: "absolute",
                 left: "50%",
@@ -2030,6 +2032,7 @@ const VoucherType = ({
           }}
         >
           <h3
+            className="voucher-type-card-title"
             style={{
               fontSize: 18,
               fontWeight: 300,
@@ -2055,6 +2058,7 @@ const VoucherType = ({
                 }}
               >
                 <span
+                  className="voucher-type-card-meta"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -2065,6 +2069,7 @@ const VoucherType = ({
                   <span>3-4 Hours</span>
                 </span>
                 <span
+                  className="voucher-type-card-meta"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -2076,6 +2081,7 @@ const VoucherType = ({
                 </span>
               </div>
               <div
+                className="voucher-type-card-copy"
                 style={{
                   fontSize: isMobile ? 14 : 13,
                   color: "#666",
@@ -2087,6 +2093,7 @@ const VoucherType = ({
                 {voucher.description}
               </div>
               <div
+                className="voucher-type-card-strong"
                 style={{
                   fontSize: isMobile ? 14 : 13,
                   color: "#666",
@@ -2097,6 +2104,7 @@ const VoucherType = ({
                 {voucher.availability}
               </div>
               <div
+                className="voucher-type-card-strong"
                 style={{
                   fontSize: isMobile ? 14 : 13,
                   color: "#666",
@@ -2107,6 +2115,7 @@ const VoucherType = ({
                 {voucher.flightTime}
               </div>
               <div
+                className="voucher-type-card-strong"
                 style={{
                   fontSize: isMobile ? 14 : 13,
                   color: "#666",
@@ -2133,6 +2142,7 @@ const VoucherType = ({
                 const isRefundable = sharedEnabled || privateEnabled;
                 return (
                   <div
+                    className="voucher-type-card-refund-row"
                     style={{
                       fontSize: isMobile ? 12 : 13,
                       color: "#666",
@@ -2403,6 +2413,7 @@ const VoucherType = ({
               }}
             >
               <label
+                className="voucher-type-card-passenger-label"
                 style={{
                   fontSize: isMobile ? 16 : 14,
                   color: "#4A4A4A",
@@ -2418,6 +2429,7 @@ const VoucherType = ({
               typeof voucher.title === "string" &&
               voucher.title.toLowerCase().includes("proposal") ? (
                 <span
+                  className="voucher-type-card-passenger-count"
                   style={{
                     fontSize: isMobile ? 16 : 14,
                     color: "#4A4A4A",
@@ -2439,6 +2451,7 @@ const VoucherType = ({
                   }}
                 >
                   <button
+                    className="voucher-stepper-button"
                     type="button"
                     onClick={() =>
                       handleQuantityChange(
@@ -2472,6 +2485,7 @@ const VoucherType = ({
                     −
                   </button>
                   <span
+                    className="voucher-type-card-passenger-count"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -2487,6 +2501,7 @@ const VoucherType = ({
                     {quantities[voucher.title] || 2}
                   </span>
                   <button
+                    className="voucher-stepper-button"
                     type="button"
                     onClick={() =>
                       handleQuantityChange(
@@ -2524,6 +2539,7 @@ const VoucherType = ({
             </div>
           </div>
           <div
+            className="voucher-type-card-total"
             style={{
               fontWeight: 600,
               fontSize: 15,
@@ -2723,7 +2739,10 @@ const VoucherType = ({
                               overflow: "visible",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: 14 }}>
+                            <span
+                              className="voucher-type-card-toggle-label"
+                              style={{ fontWeight: 600, fontSize: 14 }}
+                            >
                               Weather Refundable
                             </span>
                             <BsInfoCircle
@@ -2821,7 +2840,10 @@ const VoucherType = ({
                               overflow: "visible",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: 14 }}>
+                            <span
+                              className="voucher-type-card-toggle-label"
+                              style={{ fontWeight: 600, fontSize: 14 }}
+                            >
                               Weather Refundable
                             </span>
                             <BsInfoCircle
@@ -2930,7 +2952,10 @@ const VoucherType = ({
                               overflow: "visible",
                             }}
                           >
-                            <span style={{ fontWeight: 600, fontSize: 14 }}>
+                            <span
+                              className="voucher-type-card-toggle-label"
+                              style={{ fontWeight: 600, fontSize: 14 }}
+                            >
                               ☘️ Season Saver
                             </span>
                             <BsInfoCircle
@@ -2995,27 +3020,15 @@ const VoucherType = ({
             );
           })()}
           <button
+            className={`voucher-type-select-button${isSelected ? " voucher-type-select-button--selected" : ""}`}
             style={{
               width: "100%",
-              background: isSelected ? "#00c24a" : "#00eb5b",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "10px 0",
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: "pointer",
               marginTop:
                 activitySelect === "Flight Voucher" ||
                 activitySelect === "Buy Gift"
                   ? 8
                   : "auto",
-              transition: "background 0.2s",
             }}
-            onMouseEnter={(e) => (e.target.style.background = "#00c24a")}
-            onMouseLeave={(e) =>
-              (e.target.style.background = isSelected ? "#00c24a" : "#00eb5b")
-            }
             onClick={() => onSelect(voucher)}
           >
             {isSelected ? "Selected" : "Select"}
@@ -3732,24 +3745,21 @@ const VoucherType = ({
               }}
             >
               <button
+                className="booking-shared-action-button"
                 onClick={() => {
                   userDismissedTermsRef.current = true;
                   setShowTerms(false);
                 }}
                 style={{
-                  border: "1px solid #d1d5db",
-                  background: "#fff",
-                  color: "#374151",
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
+                  flex: 1,
+                  maxWidth: 220,
+                  minHeight: 44,
                 }}
               >
                 Choose Different Voucher
               </button>
               <button
+                className="booking-shared-action-button"
                 onClick={() => {
                   setSelectedVoucherType(selectedVoucher);
                   userDismissedTermsRef.current = true;
@@ -3779,14 +3789,9 @@ const VoucherType = ({
                   }, 300); // Longer delay to ensure state is fully updated
                 }}
                 style={{
-                  background: "#00eb5b",
-                  color: "#fff",
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  border: "none",
-                  fontSize: "14px",
-                  fontWeight: "500",
+                  flex: 1,
+                  maxWidth: 220,
+                  minHeight: 44,
                 }}
                 disabled={termsLoading}
               >

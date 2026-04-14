@@ -24,7 +24,8 @@
 }
 
 /* Front and back sides positioning */
-.card-front, .card-back {
+.card-front,
+.card-back {
   width: 100%;
   height: 220px !important; /* Fixed height - same as container */
   min-height: 220px !important;
@@ -252,14 +253,16 @@
   font-family: inherit;
   margin-bottom: 25px;
   background: #fafdff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   outline: none;
   box-sizing: border-box;
 }
 
 .voucher-input-field:focus {
   border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(33,150,243,0.15);
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.15);
   background: #fff;
 }
 
@@ -274,7 +277,7 @@
 
 /* Butonlar için stil */
 .redeem-button {
-  background-color: #2196f3;
+  background-color: #00eb5b;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -283,13 +286,13 @@
   font-weight: 500;
   cursor: pointer;
   min-width: 60px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .redeem-button:hover {
-  background-color: #1976d2;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  background-color: #00c24a;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .back-button {
@@ -409,17 +412,25 @@
     border-style: solid;
     border-color: transparent transparent #333 transparent;
 } 
-*/ 
+*/
 
 /* Prevent horizontal scroll on mobile */
 @media (max-width: 768px) {
-  html, body {
+  html,
+  body {
     overflow-x: hidden !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
-  #root, .main-content, .main_booking, .booking_data, .tab_box, .accordion-section, .panel, .accordion {
+  #root,
+  .main-content,
+  .main_booking,
+  .booking_data,
+  .tab_box,
+  .accordion-section,
+  .panel,
+  .accordion {
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -442,7 +453,7 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-} 
+}
 
 /* Mobile-only: switch flip to show/hide so the card grows in flow */
 @media (max-width: 768px) {
@@ -479,9 +490,15 @@
   }
 
   /* Show only one face at a time to avoid overlap */
-  .card-back { display: none !important; }
-  .card-flip-container.flipped .card-back { display: block !important; }
-  .card-flip-container.flipped .card-front { display: none !important; }
+  .card-back {
+    display: none !important;
+  }
+  .card-flip-container.flipped .card-back {
+    display: block !important;
+  }
+  .card-flip-container.flipped .card-front {
+    display: none !important;
+  }
 
   /* Ensure the front face (unclicked state) matches sibling card height */
   .card-front .book_data_label {
@@ -520,7 +537,10 @@
   }
 
   /* Prevent status messages from expanding card */
-  .activity-panel .book_data:nth-child(3) .voucher-card-container > div:last-child {
+  .activity-panel
+    .book_data:nth-child(3)
+    .voucher-card-container
+    > div:last-child {
     max-height: 40px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -564,24 +584,24 @@
     hyphens: auto !important;
     position: absolute !important;
   }
-  
+
   /* Center tooltip relative to the card title area */
   .book_data_label h3 {
     position: relative !important;
   }
-  
+
   .book_data_label .info-icon-container:hover .hover-text {
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
     top: calc(100% + 8px) !important;
   }
-  
+
   /* Position tooltip directly under the title text */
   .book_data_label .info-icon-container {
     position: relative !important;
   }
-  
+
   .book_data_label .info-icon-container:hover .hover-text {
     position: absolute !important;
     left: 50% !important;
