@@ -979,7 +979,10 @@ textarea {
   font-weight: 600 !important;
 }
 
-.voucher-type-card .voucher-type-card-title,
+.voucher-type-card .voucher-type-card-title {
+  font-weight: 500 !important;
+}
+
 .voucher-type-card .voucher-type-card-copy,
 .voucher-type-card .voucher-type-card-meta,
 .voucher-type-card .voucher-type-card-passenger-label {

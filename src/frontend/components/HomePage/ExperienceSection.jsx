@@ -986,7 +986,7 @@ const ExperienceSection = ({
                         <h2
                           style={{
                             fontSize: 18,
-                            fontWeight: 300,
+                            fontWeight: 500,
                             margin: 0,
                             marginBottom: 4,
                             color: "#4a4a4a",
@@ -1208,7 +1208,7 @@ const ExperienceSection = ({
                     <h2
                       style={{
                         fontSize: 18,
-                        fontWeight: 300,
+                        fontWeight: 500,
                         margin: 0,
                         marginBottom: 6,
                         color: "#4a4a4a",

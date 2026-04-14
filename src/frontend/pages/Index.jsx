@@ -307,6 +307,10 @@ const Index = () => {
   const [isFrequentQuestionsOpen, setIsFrequentQuestionsOpen] = useState(false);
   const [activeFrequentQuestion, setActiveFrequentQuestion] = useState(null);
   const [sideFaqItems, setSideFaqItems] = useState(SIDE_FAQ_ITEMS);
+  const reviewsToggleRef = useRef(null);
+  const reviewsPanelRef = useRef(null);
+  const faqToggleRef = useRef(null);
+  const faqPanelRef = useRef(null);
 
   // Ref to always have the latest activeAccordion value (avoids stale closures in timers)
   const activeAccordionRef = React.useRef(null);
@@ -641,6 +645,41 @@ const Index = () => {
     };
     fetchBookingFaqItems();
   }, []);
+
+  useEffect(() => {
+    const handleOutsidePanelClick = (event) => {
+      const target = event.target;
+      if (!target) return;
+
+      if (isReviewsOpen) {
+        const clickedInsideReviewsPanel = reviewsPanelRef.current?.contains(target);
+        const clickedReviewsToggle = reviewsToggleRef.current?.contains(target);
+        if (!clickedInsideReviewsPanel && !clickedReviewsToggle) {
+          setIsReviewsOpen(false);
+        }
+      }
+
+      if (isFrequentQuestionsOpen) {
+        const clickedInsideFaqPanel = faqPanelRef.current?.contains(target);
+        const clickedFaqToggle = faqToggleRef.current?.contains(target);
+        if (!clickedInsideFaqPanel && !clickedFaqToggle) {
+          setIsFrequentQuestionsOpen(false);
+        }
+      }
+    };
+
+    if (isReviewsOpen || isFrequentQuestionsOpen) {
+      document.addEventListener("mousedown", handleOutsidePanelClick);
+      document.addEventListener("touchstart", handleOutsidePanelClick, {
+        passive: true,
+      });
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsidePanelClick);
+      document.removeEventListener("touchstart", handleOutsidePanelClick);
+    };
+  }, [isReviewsOpen, isFrequentQuestionsOpen]);
   const shopifyVoucherForcedRef = useRef(false);
   const shopifyPrefillInProgress = useRef(false);
   const activityDeepLinkHandledRef = useRef(false);
@@ -8612,11 +8651,12 @@ const Index = () => {
       </Dialog>
 
       <div
+        ref={reviewsToggleRef}
         style={{
           position: "fixed",
           top: isMobile ? "auto" : "38%",
           bottom: isMobile ? "210px" : "auto",
-          left: isReviewsOpen ? (isMobile ? "88vw" : "320px") : 0,
+          left: isReviewsOpen ? (isMobile ? "92vw" : "320px") : 0,
           transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "left 0.28s ease",
@@ -8647,12 +8687,13 @@ const Index = () => {
       </div>
 
       <div
+        ref={reviewsPanelRef}
         style={{
           position: "fixed",
           top: 0,
-          left: isReviewsOpen ? 0 : "-340px",
-          width: "340px",
-          maxWidth: "92vw",
+          left: isReviewsOpen ? 0 : isMobile ? "-92vw" : "-340px",
+          width: isMobile ? "92vw" : "340px",
+          maxWidth: isMobile ? "92vw" : "92vw",
           height: "100vh",
           background: "#f3f3f9",
           borderRight: "1px solid #dbe3ef",
@@ -8660,7 +8701,7 @@ const Index = () => {
           zIndex: 1199,
           transition: "left 0.28s ease",
           overflowY: "auto",
-          padding: "24px 16px",
+          padding: isMobile ? "20px 14px" : "24px 16px",
         }}
       >
         <div style={{ marginBottom: 14 }}>
@@ -8701,11 +8742,12 @@ const Index = () => {
       </div>
 
       <div
+        ref={faqToggleRef}
         style={{
           position: "fixed",
           top: isMobile ? "auto" : "44%",
           bottom: isMobile ? "210px" : "auto",
-          right: isFrequentQuestionsOpen ? (isMobile ? "88vw" : "320px") : 0,
+          right: isFrequentQuestionsOpen ? (isMobile ? "92vw" : "320px") : 0,
           transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "right 0.28s ease",
@@ -8736,12 +8778,13 @@ const Index = () => {
       </div>
 
       <div
+        ref={faqPanelRef}
         style={{
           position: "fixed",
           top: 0,
-          right: isFrequentQuestionsOpen ? 0 : "-340px",
-          width: "340px",
-          maxWidth: "92vw",
+          right: isFrequentQuestionsOpen ? 0 : isMobile ? "-92vw" : "-340px",
+          width: isMobile ? "92vw" : "340px",
+          maxWidth: isMobile ? "92vw" : "92vw",
           height: "100vh",
           background: "#f3f3f9",
           borderLeft: "1px solid #dbe3ef",
@@ -8749,7 +8792,7 @@ const Index = () => {
           zIndex: 1199,
           transition: "right 0.28s ease",
           overflowY: "auto",
-          padding: "24px 16px",
+          padding: isMobile ? "20px 14px" : "24px 16px",
         }}
       >
         <div
