@@ -8656,7 +8656,13 @@ const Index = () => {
           position: "fixed",
           top: isMobile ? "auto" : "38%",
           bottom: isMobile ? "210px" : "auto",
-          left: isReviewsOpen ? (isMobile ? "92vw" : "320px") : 0,
+          left: isReviewsOpen
+            ? isMobile
+              ? "calc(92vw + env(safe-area-inset-left, 0px))"
+              : "320px"
+            : isMobile
+              ? "calc(4px + env(safe-area-inset-left, 0px))"
+              : 0,
           transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "left 0.28s ease",
@@ -8747,7 +8753,13 @@ const Index = () => {
           position: "fixed",
           top: isMobile ? "auto" : "44%",
           bottom: isMobile ? "210px" : "auto",
-          right: isFrequentQuestionsOpen ? (isMobile ? "92vw" : "320px") : 0,
+          right: isFrequentQuestionsOpen
+            ? isMobile
+              ? "calc(92vw + env(safe-area-inset-right, 0px))"
+              : "320px"
+            : isMobile
+              ? "calc(4px + env(safe-area-inset-right, 0px))"
+              : 0,
           transform: isMobile ? "none" : "translateY(-50%)",
           zIndex: 1200,
           transition: "right 0.28s ease",
