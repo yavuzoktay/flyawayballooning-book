@@ -255,8 +255,8 @@ const ChooseActivityCard = ({
 
   const activeCheckStyle = {
     ...checkStyle,
-    backgroundColor: "#74da78",
-    border: "2px solid #74da78", // Use border instead of borderColor to avoid conflict
+    backgroundColor: "#03a9f4",
+    border: "2px solid #03a9f4", // Keep activity selection aligned with the site's blue selection color
   };
 
   const checkIconStyle = {
@@ -398,6 +398,8 @@ const ChooseActivityCard = ({
                             gap: "6px",
                             margin: 0,
                             lineHeight: 1.2,
+                            fontWeight: 600,
+                            color: "#374151",
                           }}
                         >
                           {item.displayLabel || item.label}
@@ -522,6 +524,8 @@ const ChooseActivityCard = ({
                       gap: "6px",
                       margin: 0,
                       lineHeight: 1.2,
+                      fontWeight: 600,
+                      color: "#374151",
                     }}
                   >
                     {item.displayLabel || item.label}

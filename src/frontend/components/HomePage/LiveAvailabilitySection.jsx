@@ -2693,8 +2693,8 @@ const LiveAvailabilitySection = ({
                         }}
                       >
                         <button
+                          className={`availability-slot-button${tempSelectedTime === slot.time ? " availability-slot-button--selected" : ""}${!isSelectable ? " availability-slot-button--disabled" : ""}`}
                           style={{
-                            background: isSelectable ? "#00eb5b" : "#ccc",
                             color: "#fff",
                             border:
                               tempSelectedTime === slot.time

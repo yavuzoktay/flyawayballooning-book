@@ -901,6 +901,23 @@ textarea {
   border-color: var(--fab-bright-green-dark) !important;
 }
 
+.availability-slot-button {
+  background: var(--fab-blue) !important;
+}
+
+.availability-slot-button:hover:not(:disabled) {
+  background: var(--fab-blue-dark) !important;
+}
+
+.availability-slot-button--selected {
+  background: var(--fab-blue) !important;
+}
+
+.availability-slot-button--disabled,
+.availability-slot-button:disabled {
+  background: #cccccc !important;
+}
+
 .voucher-type-select-button:disabled,
 .booking-shared-action-button:disabled {
   opacity: 0.5;
