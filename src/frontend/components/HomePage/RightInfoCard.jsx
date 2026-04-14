@@ -1334,8 +1334,9 @@ const RightInfoCard = ({
     <>
       {/* Desktop/Tablet full card */}
       <div style={{ display: isMobile ? "none" : "block" }}>
-        <div className="book_active">
-          <div className="book_data_active">
+        <div className="book_active summary-desktop-card">
+          <div className="book_data_active summary-desktop-inner">
+            <div className="summary-desktop-scroll">
             {/* En üstte Flight Type/What would you like to do? */}
             <div className="book_data_active">
               <div
@@ -2217,8 +2218,10 @@ const RightInfoCard = ({
                 )}
               </>
             )}
+            </div>
+            <div className="summary-desktop-footer">
             <div
-              className="bottom_main"
+              className="bottom_main summary-desktop-total"
               style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}
             >
               <h3 className="summary-total-line">
@@ -2264,6 +2267,7 @@ const RightInfoCard = ({
             </div>
             {!isBookDisabled && (
               <div
+                className="summary-desktop-book-row"
                 style={{
                   display: "flex",
                   justifyContent: "flex-end",
@@ -2296,7 +2300,7 @@ const RightInfoCard = ({
             )}
             {showWarning && (
               <div
-                className="validation-shake"
+                className="validation-shake summary-desktop-warning"
                 style={{
                   color: "red",
                   marginTop: 10,
@@ -2382,6 +2386,7 @@ const RightInfoCard = ({
                   "Please fill in all required steps before booking."}
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
