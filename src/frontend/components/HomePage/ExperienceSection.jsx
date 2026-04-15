@@ -80,6 +80,7 @@ const ExperienceSection = ({
     useState(false);
   const [canScrollExperiencesRight, setCanScrollExperiencesRight] =
     useState(true);
+  const experienceContainerRef = useRef(null);
 
   // Terms & Conditions states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -136,33 +137,59 @@ const ExperienceSection = ({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  const getExperienceItemWidth = (container) => {
+    if (!container) return 0;
+    const firstChild = container.children && container.children[0];
+    const rectWidth = firstChild
+      ? firstChild.getBoundingClientRect().width
+      : container.clientWidth;
+    const style = window.getComputedStyle(container);
+    const gap = parseFloat(style.columnGap || style.gap || "0") || 0;
+    return rectWidth + gap;
+  };
+
+  const getExperienceScrollLeftForIndex = (container, index) => {
+    if (!container) return 0;
+    const itemWidth = getExperienceItemWidth(container);
+    const maxScrollLeft = Math.max(
+      container.scrollWidth - container.clientWidth,
+      0,
+    );
+    if (!itemWidth) return 0;
+    return Math.min(Math.max(index, 0) * itemWidth, maxScrollLeft);
+  };
+
   // Sync arrows/dots while swiping experiences on mobile
   useEffect(() => {
     if (!isMobile) return;
-    const container = document.querySelector(".experience-cards-container");
+    const container = experienceContainerRef.current;
     if (!container) return;
 
     let animationFrameId = null;
 
-    const getItemWidth = () => {
-      const firstChild = container.children && container.children[0];
-      if (firstChild) {
-        const styles = window.getComputedStyle(container);
-        const gap = parseInt(styles.columnGap || styles.gap || "12", 10) || 12;
-        return firstChild.getBoundingClientRect().width + gap;
-      }
-      return container.clientWidth;
-    };
-
     const computeAndSet = () => {
-      const { scrollLeft } = container;
       const itemCount = container.children.length;
-      const itemWidth = getItemWidth();
-      const index = Math.round(scrollLeft / itemWidth);
-      const clamped = Math.max(0, Math.min(index, itemCount - 1));
-      setCurrentExperienceIndex(clamped);
-      setCanScrollExperiencesLeft(clamped > 0);
-      setCanScrollExperiencesRight(clamped < itemCount - 1);
+      if (itemCount === 0) return;
+      const itemWidth = getExperienceItemWidth(container);
+      const maxScrollLeft = Math.max(
+        container.scrollWidth - container.clientWidth,
+        0,
+      );
+      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
+      const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
+      const nextIndex =
+        maxScrollLeft > 0 &&
+        maxScrollLeft - container.scrollLeft <= edgeThreshold
+          ? itemCount - 1
+          : Math.round(rawIndex);
+      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
+      setCurrentExperienceIndex((prev) => (prev === clamped ? prev : clamped));
+      setCanScrollExperiencesLeft((prev) =>
+        prev === (clamped > 0) ? prev : clamped > 0,
+      );
+      setCanScrollExperiencesRight((prev) =>
+        prev === (clamped < itemCount - 1) ? prev : clamped < itemCount - 1,
+      );
     };
 
     const handleScroll = () => {
@@ -814,17 +841,13 @@ const ExperienceSection = ({
                   border: "none",
                 }}
                 onClick={() => {
-                  const container = document.querySelector(
-                    ".experience-cards-container",
-                  );
+                  const container = experienceContainerRef.current;
                   if (!container) return;
-                  const firstChild = container.children[0];
-                  const gap = 12;
-                  const itemWidth = firstChild
-                    ? firstChild.getBoundingClientRect().width + gap
-                    : container.clientWidth;
                   container.scrollTo({
-                    left: Math.max(0, container.scrollLeft - itemWidth),
+                    left: Math.max(
+                      0,
+                      container.scrollLeft - getExperienceItemWidth(container),
+                    ),
                     behavior: "smooth",
                   });
                 }}
@@ -866,17 +889,11 @@ const ExperienceSection = ({
                   border: "none",
                 }}
                 onClick={() => {
-                  const container = document.querySelector(
-                    ".experience-cards-container",
-                  );
+                  const container = experienceContainerRef.current;
                   if (!container) return;
-                  const firstChild = container.children[0];
-                  const gap = 12;
-                  const itemWidth = firstChild
-                    ? firstChild.getBoundingClientRect().width + gap
-                    : container.clientWidth;
                   container.scrollTo({
-                    left: container.scrollLeft + itemWidth,
+                    left:
+                      container.scrollLeft + getExperienceItemWidth(container),
                     behavior: "smooth",
                   });
                 }}
@@ -907,6 +924,7 @@ const ExperienceSection = ({
               }}
             >
               <div
+                ref={experienceContainerRef}
                 className="experience-cards-container"
                 style={{
                   display: "flex",
@@ -914,12 +932,15 @@ const ExperienceSection = ({
                   width: "max-content",
                   padding: "0 8px",
                   overflowX: "auto",
+                  overflowY: "visible",
                   WebkitOverflowScrolling: "touch",
-                  scrollSnapType: "x proximity",
+                  scrollSnapType: "x mandatory",
                   scrollPadding: "0 8px",
-                  touchAction: "auto",
+                  touchAction: "pan-x pinch-zoom",
                   overscrollBehaviorX: "contain",
                   overscrollBehaviorY: "auto",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
                 }}
               >
                 {filteredExperiences && filteredExperiences.length > 0 ? (
@@ -940,6 +961,7 @@ const ExperienceSection = ({
                         flexDirection: "column",
                         overflow: "hidden",
                         scrollSnapAlign: "start",
+                        scrollSnapStop: "always",
                       }}
                     >
                       {experience.img ? (
@@ -1118,17 +1140,10 @@ const ExperienceSection = ({
                         i === currentExperienceIndex ? "#03a9f4" : "#ddd",
                     }}
                     onClick={() => {
-                      const container = document.querySelector(
-                        ".experience-cards-container",
-                      );
+                      const container = experienceContainerRef.current;
                       if (!container) return;
-                      const firstChild = container.children[0];
-                      const gap = 12;
-                      const itemWidth = firstChild
-                        ? firstChild.getBoundingClientRect().width + gap
-                        : container.clientWidth;
                       container.scrollTo({
-                        left: i * itemWidth,
+                        left: getExperienceScrollLeftForIndex(container, i),
                         behavior: "smooth",
                       });
                       setCurrentExperienceIndex(i);

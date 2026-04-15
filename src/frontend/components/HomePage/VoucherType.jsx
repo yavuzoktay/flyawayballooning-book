@@ -1974,7 +1974,7 @@ const VoucherType = ({
             : "none",
             border: isSelected ? "2px solid #03a9f4" : "none",
             scrollSnapAlign: isMobile ? "start" : "none",
-            scrollSnapStop: "normal",
+            scrollSnapStop: isMobile ? "always" : "normal",
             position: "relative",
             transform: isMobile ? "translateZ(0)" : undefined,
           }}
@@ -3841,7 +3841,7 @@ const VoucherType = ({
           <p
             style={{
               fontSize: isMobile ? "14px" : "15px",
-              fontWeight: "400",
+              fontWeight: "500",
               color: "rgb(102, 102, 102)",
               marginBottom: "10px",
               margin: "0 0 10px 0",
@@ -4041,10 +4041,10 @@ const VoucherType = ({
                           paddingLeft: isMobile ? 16 : 0,
                           paddingRight: isMobile ? 16 : 0,
                           scrollBehavior: "auto",
-                          scrollSnapType: "x proximity",
+                          scrollSnapType: "x mandatory",
                           scrollPadding: isMobile ? "0 16px" : "0 8px",
                           WebkitOverflowScrolling: "touch",
-                          touchAction: "auto",
+                          touchAction: "pan-x pinch-zoom",
                           overscrollBehaviorX: "contain",
                           overscrollBehaviorY: "auto",
                           position: "relative",
@@ -4063,6 +4063,7 @@ const VoucherType = ({
                               maxWidth: isMobile ? "calc(100% - 12px)" : "none",
                               flexShrink: 0,
                               scrollSnapAlign: "start",
+                              scrollSnapStop: "always",
                               display: "flex",
                               height: "100%",
                             }}
@@ -4237,10 +4238,10 @@ const VoucherType = ({
                         overflowX: isMobile ? "auto" : "visible",
                         paddingBottom: isMobile ? "10px" : "0",
                         scrollBehavior: "auto",
-                        scrollSnapType: isMobile ? "x proximity" : "none",
+                        scrollSnapType: isMobile ? "x mandatory" : "none",
                         scrollPadding: isMobile ? "0 6px" : "0",
                         WebkitOverflowScrolling: isMobile ? "touch" : undefined,
-                        touchAction: isMobile ? "auto" : undefined,
+                        touchAction: isMobile ? "pan-x pinch-zoom" : undefined,
                         overscrollBehaviorX: isMobile ? "contain" : "auto",
                         overscrollBehaviorY: "auto",
                       }}
@@ -4256,6 +4257,8 @@ const VoucherType = ({
                             display: "flex",
                             height: "100%",
                             flexShrink: 0,
+                            scrollSnapAlign: isMobile ? "start" : undefined,
+                            scrollSnapStop: isMobile ? "always" : undefined,
                           }}
                         >
                           {renderVoucherCard({
@@ -4424,10 +4427,10 @@ const VoucherType = ({
                         paddingLeft: isMobile ? 8 : 0,
                         paddingRight: isMobile ? 8 : 0,
                         scrollBehavior: "auto",
-                        scrollSnapType: isMobile ? "x proximity" : "none",
+                        scrollSnapType: isMobile ? "x mandatory" : "none",
                         scrollPadding: isMobile ? "0 8px" : "0",
                         WebkitOverflowScrolling: isMobile ? "touch" : undefined,
-                        touchAction: isMobile ? "auto" : undefined,
+                        touchAction: isMobile ? "pan-x pinch-zoom" : undefined,
                         overscrollBehaviorX: isMobile ? "contain" : "auto",
                         overscrollBehaviorY: "auto",
                         boxSizing: "border-box",
@@ -4447,6 +4450,7 @@ const VoucherType = ({
                             height: "100%",
                             flexShrink: 0,
                             scrollSnapAlign: isMobile ? "start" : undefined,
+                            scrollSnapStop: isMobile ? "always" : undefined,
                           }}
                         >
                           {renderVoucherCard({
