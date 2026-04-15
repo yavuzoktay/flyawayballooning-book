@@ -8662,17 +8662,24 @@ const Index = () => {
           type="button"
           onClick={() => setIsFrequentQuestionsOpen((prev) => !prev)}
           style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
             background: "#00eb5b",
             color: "#fff",
             border: "none",
             borderRadius: isMobile ? "10px 0 0 10px" : "12px 0 0 12px",
-            padding: isMobile ? "10px 8px" : "14px 10px",
+            padding: isMobile ? "12px 9px" : "14px 10px",
+            minHeight: isMobile ? "150px" : "auto",
+            minWidth: isMobile ? "50px" : "auto",
             fontFamily: "Gilroy, sans-serif",
             fontWeight: 600,
             fontSize: isMobile ? "12px" : "14px",
             letterSpacing: isMobile ? "0.1px" : "0.3px",
+            lineHeight: isMobile ? 1.05 : 1.15,
+            textAlign: "center",
             cursor: "pointer",
             boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
           }}
@@ -8708,13 +8715,12 @@ const Index = () => {
       >
         <div
           style={{
-            marginBottom: 14,
+            marginBottom: 12,
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
           }}
         >
-          <h3 style={{ margin: 0 }}>Frequent Questions & Reviews</h3>
           <a
             href={FAQ_LINK}
             target="_blank"
@@ -8783,7 +8789,15 @@ const Index = () => {
             setActiveAccordion={setActiveFrequentQuestion}
           >
             <div style={{ background: "#fff", borderRadius: 14, padding: 14 }}>
-              <p style={{ margin: 0, fontWeight: 500, lineHeight: 1.55 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontWeight: 500,
+                  lineHeight: 1.55,
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "anywhere",
+                }}
+              >
                 {item.content}
               </p>
             </div>
