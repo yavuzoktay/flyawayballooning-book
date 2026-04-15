@@ -8648,7 +8648,7 @@ const Index = () => {
           bottom: isMobile ? "210px" : "auto",
           right: isFrequentQuestionsOpen
             ? isMobile
-              ? "calc(92vw + env(safe-area-inset-right, 0px))"
+              ? "calc(88vw + env(safe-area-inset-right, 0px))"
               : "352px"
             : isMobile
               ? "calc(4px + env(safe-area-inset-right, 0px))"
@@ -8671,13 +8671,13 @@ const Index = () => {
             color: "#fff",
             border: "none",
             borderRadius: isMobile ? "10px 0 0 10px" : "12px 0 0 12px",
-            padding: isMobile ? "12px 9px" : "14px 10px",
-            minHeight: isMobile ? "150px" : "auto",
-            minWidth: isMobile ? "50px" : "auto",
+            padding: isMobile ? "10px 7px" : "14px 10px",
+            minHeight: isMobile ? "142px" : "auto",
+            minWidth: isMobile ? "42px" : "auto",
             fontFamily: "Gilroy, sans-serif",
             fontWeight: 600,
-            fontSize: isMobile ? "12px" : "14px",
-            letterSpacing: isMobile ? "0.1px" : "0.3px",
+            fontSize: isMobile ? "11px" : "14px",
+            letterSpacing: isMobile ? "0.05px" : "0.3px",
             lineHeight: isMobile ? 1.05 : 1.15,
             textAlign: "center",
             cursor: "pointer",
@@ -8694,9 +8694,9 @@ const Index = () => {
         style={{
           position: "fixed",
           top: 0,
-          right: isFrequentQuestionsOpen ? 0 : isMobile ? "-92vw" : "-340px",
-          width: isMobile ? "92vw" : "340px",
-          maxWidth: isMobile ? "92vw" : "92vw",
+          right: isFrequentQuestionsOpen ? 0 : isMobile ? "-88vw" : "-340px",
+          width: isMobile ? "88vw" : "340px",
+          maxWidth: isMobile ? "88vw" : "92vw",
           height: "100vh",
           background: "#f3f3f9",
           borderLeft: "1px solid #dbe3ef",
