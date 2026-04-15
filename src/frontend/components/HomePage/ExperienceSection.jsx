@@ -81,6 +81,7 @@ const ExperienceSection = ({
   const [canScrollExperiencesRight, setCanScrollExperiencesRight] =
     useState(true);
   const experienceContainerRef = useRef(null);
+  const experienceScrollSyncTimeoutRef = useRef(null);
 
   // Terms & Conditions states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -159,59 +160,71 @@ const ExperienceSection = ({
     return Math.min(Math.max(index, 0) * itemWidth, maxScrollLeft);
   }, [getExperienceItemWidth]);
 
+  const syncExperienceScrollState = useCallback((container) => {
+    if (!container || container.children.length === 0) return;
+
+    const itemCount = container.children.length;
+    const itemWidth = getExperienceItemWidth(container);
+    const maxScrollLeft = Math.max(
+      container.scrollWidth - container.clientWidth,
+      0,
+    );
+    const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
+    const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
+    const nextIndex =
+      maxScrollLeft > 0 && maxScrollLeft - container.scrollLeft <= edgeThreshold
+        ? itemCount - 1
+        : Math.round(rawIndex);
+    const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
+
+    setCurrentExperienceIndex((prev) => (prev === clamped ? prev : clamped));
+    setCanScrollExperiencesLeft((prev) =>
+      prev === (clamped > 0) ? prev : clamped > 0,
+    );
+    setCanScrollExperiencesRight((prev) =>
+      prev === (clamped < itemCount - 1) ? prev : clamped < itemCount - 1,
+    );
+  }, [getExperienceItemWidth]);
+
   // Sync arrows/dots while swiping experiences on mobile
   useEffect(() => {
     if (!isMobile) return;
     const container = experienceContainerRef.current;
     if (!container) return;
 
-    let animationFrameId = null;
-
-    const computeAndSet = () => {
-      const itemCount = container.children.length;
-      if (itemCount === 0) return;
-      const itemWidth = getExperienceItemWidth(container);
-      const maxScrollLeft = Math.max(
-        container.scrollWidth - container.clientWidth,
-        0,
-      );
-      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
-      const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
-      const nextIndex =
-        maxScrollLeft > 0 &&
-        maxScrollLeft - container.scrollLeft <= edgeThreshold
-          ? itemCount - 1
-          : Math.round(rawIndex);
-      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
-      setCurrentExperienceIndex((prev) => (prev === clamped ? prev : clamped));
-      setCanScrollExperiencesLeft((prev) =>
-        prev === (clamped > 0) ? prev : clamped > 0,
-      );
-      setCanScrollExperiencesRight((prev) =>
-        prev === (clamped < itemCount - 1) ? prev : clamped < itemCount - 1,
-      );
+    const clearPendingSync = () => {
+      if (experienceScrollSyncTimeoutRef.current !== null) {
+        window.clearTimeout(experienceScrollSyncTimeoutRef.current);
+        experienceScrollSyncTimeoutRef.current = null;
+      }
     };
 
-    const handleScroll = () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(computeAndSet);
+    const syncImmediately = () => {
+      clearPendingSync();
+      syncExperienceScrollState(container);
     };
 
-    // initial
-    computeAndSet();
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
+    const scheduleSync = () => {
+      clearPendingSync();
+      experienceScrollSyncTimeoutRef.current = window.setTimeout(() => {
+        experienceScrollSyncTimeoutRef.current = null;
+        syncExperienceScrollState(container);
+      }, 90);
+    };
+
+    syncImmediately();
+    container.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", syncImmediately);
 
     return () => {
-      container.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      clearPendingSync();
+      container.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", syncImmediately);
     };
   }, [
     isMobile,
     experiences.length,
-    getExperienceItemWidth,
-    getExperienceScrollLeftForIndex,
+    syncExperienceScrollState,
   ]);
 
   const isBristol = useMemo(
@@ -967,7 +980,7 @@ const ExperienceSection = ({
                         flexDirection: "column",
                         overflow: "hidden",
                         scrollSnapAlign: "start",
-                        scrollSnapStop: "always",
+                        scrollSnapStop: "normal",
                       }}
                     >
                       {experience.img ? (
