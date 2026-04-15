@@ -131,6 +131,7 @@ const ExperienceSection = ({
   // Notification state for experience selection
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  const mobileExperienceCardWidth = "calc(100% - 44px)";
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768);
     onResize();
@@ -969,9 +970,9 @@ const ExperienceSection = ({
                         background: "#fff",
                         borderRadius: 12,
                         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        width: "calc(100% - 12px)",
-                        minWidth: "calc(100% - 12px)",
-                        maxWidth: "calc(100% - 12px)",
+                        width: mobileExperienceCardWidth,
+                        minWidth: mobileExperienceCardWidth,
+                        maxWidth: mobileExperienceCardWidth,
                         // Reduce overall card height on mobile
                         minHeight: 380,
                         flexShrink: 0,
