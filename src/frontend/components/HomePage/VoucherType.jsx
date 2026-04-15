@@ -724,6 +724,7 @@ const VoucherType = ({
   const [canScrollVouchersRight, setCanScrollVouchersRight] = useState(true);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const voucherContainerRef = useRef(null);
+  const voucherSnapTimeoutRef = useRef(null);
   const voucherHydrationStateRef = useRef({
     allVoucherTypesCount: 0,
     allVoucherTypesLoading: true,
@@ -739,7 +740,7 @@ const VoucherType = ({
   );
 
   // Helper: compute one slide width (+ gap) reliably on mobile
-  const getMobileItemWidth = (container) => {
+  const getMobileItemWidth = useCallback((container) => {
     if (!container) return 0;
     const firstChild = container.children && container.children[0];
     const rectWidth = firstChild
@@ -748,9 +749,9 @@ const VoucherType = ({
     const style = window.getComputedStyle(container);
     const gap = parseFloat(style.columnGap || style.gap || "0") || 0;
     return rectWidth + gap;
-  };
+  }, []);
 
-  const getMobileScrollLeftForIndex = (container, index) => {
+  const getMobileScrollLeftForIndex = useCallback((container, index) => {
     if (!container) return 0;
     const itemWidth = getMobileItemWidth(container);
     const maxScrollLeft = Math.max(
@@ -759,7 +760,7 @@ const VoucherType = ({
     );
     if (!itemWidth) return 0;
     return Math.min(Math.max(index, 0) * itemWidth, maxScrollLeft);
-  };
+  }, [getMobileItemWidth]);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 576);
@@ -802,11 +803,47 @@ const VoucherType = ({
     };
 
     let frameId = null;
+    const clearSnapTimeout = () => {
+      if (voucherSnapTimeoutRef.current) {
+        clearTimeout(voucherSnapTimeoutRef.current);
+        voucherSnapTimeoutRef.current = null;
+      }
+    };
+
+    const snapToNearestCard = () => {
+      const container =
+        voucherContainerRef.current ||
+        document.querySelector(".voucher-cards-container");
+      if (!container || container.children.length === 0) return;
+
+      const itemCount = container.children.length;
+      const itemWidth = getMobileItemWidth(container);
+      const maxScrollLeft = Math.max(
+        container.scrollWidth - container.clientWidth,
+        0,
+      );
+      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
+      const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
+      const nextIndex =
+        maxScrollLeft > 0 &&
+        maxScrollLeft - container.scrollLeft <= edgeThreshold
+          ? itemCount - 1
+          : Math.round(rawIndex);
+      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
+      const targetLeft = getMobileScrollLeftForIndex(container, clamped);
+
+      if (Math.abs(container.scrollLeft - targetLeft) > 2) {
+        container.scrollTo({ left: targetLeft, behavior: "smooth" });
+      }
+    };
+
     const requestSync = () => {
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
       }
       frameId = requestAnimationFrame(sync);
+      clearSnapTimeout();
+      voucherSnapTimeoutRef.current = setTimeout(snapToNearestCard, 90);
     };
 
     requestSync();
@@ -820,6 +857,7 @@ const VoucherType = ({
         if (frameId !== null) {
           cancelAnimationFrame(frameId);
         }
+        clearSnapTimeout();
         container.removeEventListener("scroll", requestSync);
         window.removeEventListener("resize", requestSync);
       };
@@ -828,6 +866,7 @@ const VoucherType = ({
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
       }
+      clearSnapTimeout();
     };
   }, [
     isMobile,
@@ -835,6 +874,8 @@ const VoucherType = ({
     allVoucherTypesState.length,
     privateCharterVoucherTypes.length,
     chooseFlightType?.type,
+    getMobileItemWidth,
+    getMobileScrollLeftForIndex,
   ]);
 
   // Reset animation flag after animation completes
@@ -4035,7 +4076,7 @@ const VoucherType = ({
                           alignItems: "stretch",
                           width: "100%",
                           overflowX: "auto",
-                          overflowY: "visible",
+                          overflowY: "hidden",
                           paddingBottom:
                             activeVouchers.length > 1 ? "24px" : "10px",
                           paddingLeft: isMobile ? 16 : 0,
@@ -4236,6 +4277,7 @@ const VoucherType = ({
                         alignItems: "stretch",
                         width: "100%",
                         overflowX: isMobile ? "auto" : "visible",
+                        overflowY: isMobile ? "hidden" : "visible",
                         paddingBottom: isMobile ? "10px" : "0",
                         scrollBehavior: "auto",
                         scrollSnapType: isMobile ? "x mandatory" : "none",
@@ -4418,6 +4460,7 @@ const VoucherType = ({
                         alignItems: "stretch",
                         width: "100%",
                         overflowX: isMobile ? "auto" : "visible",
+                        overflowY: isMobile ? "hidden" : "visible",
                         paddingBottom:
                           isMobile && filteredVouchers.length > 1
                             ? "24px"

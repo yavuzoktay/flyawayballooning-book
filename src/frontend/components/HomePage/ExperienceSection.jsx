@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Accordion from "../Common/Accordion";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -81,6 +81,7 @@ const ExperienceSection = ({
   const [canScrollExperiencesRight, setCanScrollExperiencesRight] =
     useState(true);
   const experienceContainerRef = useRef(null);
+  const experienceSnapTimeoutRef = useRef(null);
 
   // Terms & Conditions states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -137,7 +138,7 @@ const ExperienceSection = ({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const getExperienceItemWidth = (container) => {
+  const getExperienceItemWidth = useCallback((container) => {
     if (!container) return 0;
     const firstChild = container.children && container.children[0];
     const rectWidth = firstChild
@@ -146,9 +147,9 @@ const ExperienceSection = ({
     const style = window.getComputedStyle(container);
     const gap = parseFloat(style.columnGap || style.gap || "0") || 0;
     return rectWidth + gap;
-  };
+  }, []);
 
-  const getExperienceScrollLeftForIndex = (container, index) => {
+  const getExperienceScrollLeftForIndex = useCallback((container, index) => {
     if (!container) return 0;
     const itemWidth = getExperienceItemWidth(container);
     const maxScrollLeft = Math.max(
@@ -157,7 +158,7 @@ const ExperienceSection = ({
     );
     if (!itemWidth) return 0;
     return Math.min(Math.max(index, 0) * itemWidth, maxScrollLeft);
-  };
+  }, [getExperienceItemWidth]);
 
   // Sync arrows/dots while swiping experiences on mobile
   useEffect(() => {
@@ -166,6 +167,12 @@ const ExperienceSection = ({
     if (!container) return;
 
     let animationFrameId = null;
+    const clearSnapTimeout = () => {
+      if (experienceSnapTimeoutRef.current) {
+        clearTimeout(experienceSnapTimeoutRef.current);
+        experienceSnapTimeoutRef.current = null;
+      }
+    };
 
     const computeAndSet = () => {
       const itemCount = container.children.length;
@@ -192,9 +199,40 @@ const ExperienceSection = ({
       );
     };
 
+    const snapToNearestCard = () => {
+      const activeContainer = experienceContainerRef.current;
+      if (!activeContainer || activeContainer.children.length === 0) return;
+
+      const itemCount = activeContainer.children.length;
+      const itemWidth = getExperienceItemWidth(activeContainer);
+      const maxScrollLeft = Math.max(
+        activeContainer.scrollWidth - activeContainer.clientWidth,
+        0,
+      );
+      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
+      const rawIndex =
+        itemWidth > 0 ? activeContainer.scrollLeft / itemWidth : 0;
+      const nextIndex =
+        maxScrollLeft > 0 &&
+        maxScrollLeft - activeContainer.scrollLeft <= edgeThreshold
+          ? itemCount - 1
+          : Math.round(rawIndex);
+      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
+      const targetLeft = getExperienceScrollLeftForIndex(
+        activeContainer,
+        clamped,
+      );
+
+      if (Math.abs(activeContainer.scrollLeft - targetLeft) > 2) {
+        activeContainer.scrollTo({ left: targetLeft, behavior: "smooth" });
+      }
+    };
+
     const handleScroll = () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       animationFrameId = requestAnimationFrame(computeAndSet);
+      clearSnapTimeout();
+      experienceSnapTimeoutRef.current = setTimeout(snapToNearestCard, 90);
     };
 
     // initial
@@ -206,8 +244,14 @@ const ExperienceSection = ({
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      clearSnapTimeout();
     };
-  }, [isMobile, experiences.length]);
+  }, [
+    isMobile,
+    experiences.length,
+    getExperienceItemWidth,
+    getExperienceScrollLeftForIndex,
+  ]);
 
   const isBristol = useMemo(
     () => chooseLocation === "Bristol",
@@ -742,7 +786,7 @@ const ExperienceSection = ({
       <style>
         {`
                     .experience-scroll-outer {
-                        overflow-x: auto;
+                        overflow-x: hidden;
                         width: 100%;
                         max-width: 100%;
                         scrollbar-width: thin;
@@ -929,10 +973,10 @@ const ExperienceSection = ({
                 style={{
                   display: "flex",
                   gap: "12px",
-                  width: "max-content",
+                  width: "100%",
                   padding: "0 8px",
                   overflowX: "auto",
-                  overflowY: "visible",
+                  overflowY: "hidden",
                   WebkitOverflowScrolling: "touch",
                   scrollSnapType: "x mandatory",
                   scrollPadding: "0 8px",
@@ -951,8 +995,9 @@ const ExperienceSection = ({
                         background: "#fff",
                         borderRadius: 12,
                         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        width: "260px",
-                        minWidth: "260px",
+                        width: "calc(100% - 12px)",
+                        minWidth: "calc(100% - 12px)",
+                        maxWidth: "calc(100% - 12px)",
                         // Reduce overall card height on mobile
                         minHeight: 380,
                         flexShrink: 0,
