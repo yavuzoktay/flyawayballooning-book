@@ -3099,7 +3099,7 @@ const LiveAvailabilitySection = ({
                     color: white !important;
                 }
                 .day.sold-out { 
-                    background: #bbb !important; 
+                    background: #ddd !important; 
                     color: #fff !important; 
                     cursor: not-allowed !important; 
                 }
