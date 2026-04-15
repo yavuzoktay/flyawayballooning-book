@@ -954,7 +954,7 @@ const ExperienceSection = ({
                   WebkitOverflowScrolling: "touch",
                   scrollSnapType: "x mandatory",
                   scrollPadding: "0 8px",
-                  touchAction: "pan-x pinch-zoom",
+                  touchAction: "manipulation",
                   overscrollBehaviorX: "contain",
                   overscrollBehaviorY: "auto",
                   scrollbarWidth: "none",
