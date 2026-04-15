@@ -724,7 +724,6 @@ const VoucherType = ({
   const [canScrollVouchersRight, setCanScrollVouchersRight] = useState(true);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const voucherContainerRef = useRef(null);
-  const voucherSnapTimeoutRef = useRef(null);
   const voucherHydrationStateRef = useRef({
     allVoucherTypesCount: 0,
     allVoucherTypesLoading: true,
@@ -803,47 +802,12 @@ const VoucherType = ({
     };
 
     let frameId = null;
-    const clearSnapTimeout = () => {
-      if (voucherSnapTimeoutRef.current) {
-        clearTimeout(voucherSnapTimeoutRef.current);
-        voucherSnapTimeoutRef.current = null;
-      }
-    };
-
-    const snapToNearestCard = () => {
-      const container =
-        voucherContainerRef.current ||
-        document.querySelector(".voucher-cards-container");
-      if (!container || container.children.length === 0) return;
-
-      const itemCount = container.children.length;
-      const itemWidth = getMobileItemWidth(container);
-      const maxScrollLeft = Math.max(
-        container.scrollWidth - container.clientWidth,
-        0,
-      );
-      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
-      const rawIndex = itemWidth > 0 ? container.scrollLeft / itemWidth : 0;
-      const nextIndex =
-        maxScrollLeft > 0 &&
-        maxScrollLeft - container.scrollLeft <= edgeThreshold
-          ? itemCount - 1
-          : Math.round(rawIndex);
-      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
-      const targetLeft = getMobileScrollLeftForIndex(container, clamped);
-
-      if (Math.abs(container.scrollLeft - targetLeft) > 2) {
-        container.scrollTo({ left: targetLeft, behavior: "smooth" });
-      }
-    };
 
     const requestSync = () => {
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
       }
       frameId = requestAnimationFrame(sync);
-      clearSnapTimeout();
-      voucherSnapTimeoutRef.current = setTimeout(snapToNearestCard, 90);
     };
 
     requestSync();
@@ -857,7 +821,6 @@ const VoucherType = ({
         if (frameId !== null) {
           cancelAnimationFrame(frameId);
         }
-        clearSnapTimeout();
         container.removeEventListener("scroll", requestSync);
         window.removeEventListener("resize", requestSync);
       };
@@ -866,7 +829,6 @@ const VoucherType = ({
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
       }
-      clearSnapTimeout();
     };
   }, [
     isMobile,

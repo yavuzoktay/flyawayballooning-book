@@ -81,7 +81,6 @@ const ExperienceSection = ({
   const [canScrollExperiencesRight, setCanScrollExperiencesRight] =
     useState(true);
   const experienceContainerRef = useRef(null);
-  const experienceSnapTimeoutRef = useRef(null);
 
   // Terms & Conditions states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -167,12 +166,6 @@ const ExperienceSection = ({
     if (!container) return;
 
     let animationFrameId = null;
-    const clearSnapTimeout = () => {
-      if (experienceSnapTimeoutRef.current) {
-        clearTimeout(experienceSnapTimeoutRef.current);
-        experienceSnapTimeoutRef.current = null;
-      }
-    };
 
     const computeAndSet = () => {
       const itemCount = container.children.length;
@@ -199,40 +192,9 @@ const ExperienceSection = ({
       );
     };
 
-    const snapToNearestCard = () => {
-      const activeContainer = experienceContainerRef.current;
-      if (!activeContainer || activeContainer.children.length === 0) return;
-
-      const itemCount = activeContainer.children.length;
-      const itemWidth = getExperienceItemWidth(activeContainer);
-      const maxScrollLeft = Math.max(
-        activeContainer.scrollWidth - activeContainer.clientWidth,
-        0,
-      );
-      const edgeThreshold = itemWidth > 0 ? itemWidth * 0.35 : 0;
-      const rawIndex =
-        itemWidth > 0 ? activeContainer.scrollLeft / itemWidth : 0;
-      const nextIndex =
-        maxScrollLeft > 0 &&
-        maxScrollLeft - activeContainer.scrollLeft <= edgeThreshold
-          ? itemCount - 1
-          : Math.round(rawIndex);
-      const clamped = Math.max(0, Math.min(nextIndex, itemCount - 1));
-      const targetLeft = getExperienceScrollLeftForIndex(
-        activeContainer,
-        clamped,
-      );
-
-      if (Math.abs(activeContainer.scrollLeft - targetLeft) > 2) {
-        activeContainer.scrollTo({ left: targetLeft, behavior: "smooth" });
-      }
-    };
-
     const handleScroll = () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       animationFrameId = requestAnimationFrame(computeAndSet);
-      clearSnapTimeout();
-      experienceSnapTimeoutRef.current = setTimeout(snapToNearestCard, 90);
     };
 
     // initial
@@ -244,7 +206,6 @@ const ExperienceSection = ({
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      clearSnapTimeout();
     };
   }, [
     isMobile,
