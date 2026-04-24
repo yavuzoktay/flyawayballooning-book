@@ -4,7 +4,9 @@
  * Implements micro-conversions and purchase tracking per the Full-Funnel Conversion Tracking Brief.
  * All events are deduplicated (fired once per session step) and passed to Google Ads via gtag.
  * 
- * Primary conversions (GA_Purchase_Completed) are handled server-side via Stripe webhook.
+ * Primary conversions (GA_Purchase_Completed) are handled client-side on the
+ * Stripe success return. Server-side API uploads are optional and disabled
+ * unless explicitly enabled on the backend.
  * Micro-conversions are client-side only - for funnel visibility and smart bidding signals.
  */
 
@@ -122,11 +124,30 @@ function fireGtagEvent(eventName, params = {}) {
   if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
   try {
     window.gtag('event', eventName, {
+      send_to: GA4_MEASUREMENT_ID,
+      transport_type: 'beacon',
       ...params,
       event_category: 'conversion'
     });
   } catch (e) {
     console.warn('[GA] Failed to fire gtag event:', e);
+  }
+}
+
+/**
+ * Fire a standard GA4 ecommerce event to keep GA4-imported Google Ads
+ * conversion actions active.
+ */
+function fireGa4StandardEvent(eventName, params = {}) {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+  try {
+    window.gtag('event', eventName, {
+      send_to: GA4_MEASUREMENT_ID,
+      transport_type: 'beacon',
+      ...params
+    });
+  } catch (e) {
+    console.warn(`[GA] Failed to fire GA4 ${eventName} event:`, e);
   }
 }
 
@@ -208,9 +229,28 @@ export function trackDateSelected(date, location, experienceType) {
  */
 export function trackCheckoutStarted(flowType = 'passenger') {
   const key = `GA_Checkout_Started_${flowType}`;
-  if (wasEventTracked(key)) return;
-  fireGtagEvent('GA_Checkout_Started', { flow_type: flowType });
-  markEventTracked(key);
+  const customCheckoutTracked = wasEventTracked(key);
+  if (!customCheckoutTracked) {
+    fireGtagEvent('GA_Checkout_Started', { flow_type: flowType });
+  }
+
+  // Keep imported Google Ads conversion actions fed by standard GA4 events.
+  // Some legacy actions in the account still listen for "checkout".
+  const ga4CheckoutKey = 'GA4_begin_checkout';
+  if (!wasEventTracked(ga4CheckoutKey)) {
+    const checkoutParams = {
+      currency: 'GBP',
+      flow_type: flowType,
+      items: [{ item_id: 'booking', item_name: 'Fly Away Ballooning booking', quantity: 1 }]
+    };
+    fireGa4StandardEvent('begin_checkout', checkoutParams);
+    fireGa4StandardEvent('checkout', checkoutParams);
+    markEventTracked(ga4CheckoutKey);
+  }
+
+  if (!customCheckoutTracked) {
+    markEventTracked(key);
+  }
 }
 
 /**
@@ -251,7 +291,7 @@ function setEnhancedConversionUserData(userData) {
 
 /**
  * GA_Purchase_Completed - Client-side (success page)
- * Primary conversion - also sent server-side via Stripe webhook
+ * Primary conversion - server-side API upload stays optional behind a backend flag.
  * Fires gtag('event', 'conversion', { send_to: '...' }) so Tag Assistant can detect it
  * Sends user_data for Enhanced Conversions (in-page code) when available
  * @param {Object} params
@@ -292,6 +332,7 @@ export function trackPurchaseCompleted(params) {
       const productName = product_type || (funnel === 'booking' ? 'Book Flight' : funnel === 'gift' ? 'Gift Voucher' : 'Flight Voucher');
       window.gtag('event', 'purchase', {
         send_to: GA4_MEASUREMENT_ID,
+        transport_type: 'beacon',
         transaction_id: transaction_id || `T_${Date.now()}`,
         value: purchaseValue,
         currency: (currency || 'GBP').toUpperCase(),
