@@ -57,6 +57,7 @@ const RightInfoCard = ({
   hiddenSectionIds = [],
   hiddenSummarySectionIds = [],
   showLockedWeatherRefundableLabel = false,
+  hideWeatherRefundablePresentation = false,
 }) => {
   const summaryLocationLabel = displayLocationLabel || chooseLocation || "";
   // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
@@ -1089,6 +1090,22 @@ const RightInfoCard = ({
   const shouldShowAdditionalInfoSummary = !hideAdditionalInfoSection;
   const isSummarySectionHidden = (sectionId) =>
     hiddenSummarySectionIds.includes(sectionId);
+  const shouldShowWeatherRefundableSummary =
+    !hideWeatherRefundablePresentation &&
+    !isSummarySectionHidden("weather-refundable");
+  const visibleLockedWeatherRefundableLabel =
+    showLockedWeatherRefundableLabel && !hideWeatherRefundablePresentation;
+  const getVisibleVoucherTypePrice = () => {
+    if (!selectedVoucherType) return 0;
+    const baseDisplayPrice =
+      chooseFlightType?.type === "Private Charter"
+        ? (selectedVoucherType.totalPrice ?? selectedVoucherType.price ?? 0)
+        : voucherTypePrice;
+    return (
+      Number(baseDisplayPrice) +
+      (hideWeatherRefundablePresentation ? Number(weatherRefundPrice) || 0 : 0)
+    );
+  };
   const isSectionInteractive = (sectionId) =>
     !hiddenSectionIds.includes(sectionId);
   const getSectionClickHandler = (sectionId) =>
@@ -1137,7 +1154,7 @@ const RightInfoCard = ({
             id: "voucher-type",
             title: "Voucher Type",
             value: selectedVoucherType
-              ? `${seasonSaver ? "☘️ " : ""}${selectedVoucherType.title} (${selectedVoucherType.quantity})${showLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
+              ? `${seasonSaver ? "☘️ " : ""}${selectedVoucherType.title} (${selectedVoucherType.quantity})${visibleLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
               : "",
             completed: !!selectedVoucherType,
           },
@@ -1511,7 +1528,7 @@ const RightInfoCard = ({
                         <h3>Voucher Type</h3>
                         <p>
                           {selectedVoucherType
-                            ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? "s" : ""})${showLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
+                            ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? "s" : ""})${visibleLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
                             : ""}
                         </p>
                       </div>
@@ -1519,12 +1536,7 @@ const RightInfoCard = ({
                         <p>
                           {selectedVoucherType
                             ? "£" +
-                              (chooseFlightType?.type === "Private Charter"
-                                ? (selectedVoucherType.totalPrice ??
-                                  selectedVoucherType.price ??
-                                  0)
-                                : voucherTypePrice
-                              ).toFixed(2)
+                              getVisibleVoucherTypePrice().toFixed(2)
                             : ""}
                         </p>
                       </div>
@@ -1532,7 +1544,7 @@ const RightInfoCard = ({
                   </div>
                 </div>
                 {/* Private Charter Weather Refundable Display */}
-                {!isSummarySectionHidden("weather-refundable") &&
+                {shouldShowWeatherRefundableSummary &&
                   chooseFlightType?.type === "Private Charter" &&
                   privateCharterWeatherRefund && (
                     <div className="book_data_active">
@@ -1544,7 +1556,7 @@ const RightInfoCard = ({
                           <div className="active-book-left">
                             <h3>Weather Refundable</h3>
                             <p>
-                              {showLockedWeatherRefundableLabel
+                              {visibleLockedWeatherRefundableLabel
                                 ? "Locked for this booking"
                                 : "One-time charge for entire booking"}
                             </p>
@@ -1558,7 +1570,7 @@ const RightInfoCard = ({
                       </div>
                     </div>
                   )}
-                {!isSummarySectionHidden("weather-refundable") &&
+                {shouldShowWeatherRefundableSummary &&
                   chooseFlightType?.type === "Shared Flight" &&
                   weatherRefundPrice > 0 && (
                     <div className="book_data_active">
@@ -1955,12 +1967,7 @@ const RightInfoCard = ({
                         <p>
                           {selectedVoucherType
                             ? "£" +
-                              (chooseFlightType?.type === "Private Charter"
-                                ? (selectedVoucherType.totalPrice ??
-                                  selectedVoucherType.price ??
-                                  0)
-                                : voucherTypePrice
-                              ).toFixed(2)
+                              getVisibleVoucherTypePrice().toFixed(2)
                             : ""}
                         </p>
                       </div>
@@ -1968,7 +1975,8 @@ const RightInfoCard = ({
                   </div>
                 </div>
                 {/* Private Charter Weather Refundable Display */}
-                {chooseFlightType?.type === "Private Charter" &&
+                {shouldShowWeatherRefundableSummary &&
+                  chooseFlightType?.type === "Private Charter" &&
                   privateCharterWeatherRefund && (
                     <div className="book_data_active">
                       {" "}
@@ -1989,7 +1997,8 @@ const RightInfoCard = ({
                       </div>
                     </div>
                   )}
-                {chooseFlightType?.type === "Shared Flight" &&
+                {shouldShowWeatherRefundableSummary &&
+                  chooseFlightType?.type === "Shared Flight" &&
                   weatherRefundPrice > 0 && (
                     <div className="book_data_active">
                       {" "}
@@ -2159,12 +2168,7 @@ const RightInfoCard = ({
                         <p>
                           {selectedVoucherType
                             ? "£" +
-                              (chooseFlightType?.type === "Private Charter"
-                                ? (selectedVoucherType.totalPrice ??
-                                  selectedVoucherType.price ??
-                                  0)
-                                : voucherTypePrice
-                              ).toFixed(2)
+                              getVisibleVoucherTypePrice().toFixed(2)
                             : ""}
                         </p>
                       </div>
@@ -2172,7 +2176,8 @@ const RightInfoCard = ({
                   </div>
                 </div>
                 {/* Private Charter Weather Refundable Display */}
-                {chooseFlightType?.type === "Private Charter" &&
+                {shouldShowWeatherRefundableSummary &&
+                  chooseFlightType?.type === "Private Charter" &&
                   privateCharterWeatherRefund && (
                     <div className="book_data_active">
                       {" "}
@@ -2193,7 +2198,8 @@ const RightInfoCard = ({
                       </div>
                     </div>
                   )}
-                {chooseFlightType?.type === "Shared Flight" &&
+                {shouldShowWeatherRefundableSummary &&
+                  chooseFlightType?.type === "Shared Flight" &&
                   weatherRefundPrice > 0 && (
                     <div className="book_data_active">
                       {" "}

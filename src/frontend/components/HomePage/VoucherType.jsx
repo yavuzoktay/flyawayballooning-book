@@ -361,6 +361,7 @@ const VoucherType = ({
   lockVoucherSelection = false,
   autoOpenTermsOnPrefill = false,
   requireTermsConfirmationBeforeVoucherSelection = false,
+  hideWeatherRefundablePresentation = false,
 }) => {
   const API_BASE_URL = config.API_BASE_URL;
   const [quantities, setQuantities] = useState({});
@@ -1920,6 +1921,25 @@ const VoucherType = ({
         );
       }
     }
+    const hiddenPrivateWeatherRefundAmount =
+      hideWeatherRefundablePresentation &&
+      chooseFlightType?.type === "Private Charter" &&
+      (forceWeatherRefundable ||
+        !!privateWeatherRefundByVoucher?.[voucher.title])
+        ? privateCharterDisplayTotal * 0.1
+        : 0;
+    const hiddenPrivateOriginalWeatherRefundAmount =
+      hideWeatherRefundablePresentation &&
+      chooseFlightType?.type === "Private Charter" &&
+      (forceWeatherRefundable ||
+        !!privateWeatherRefundByVoucher?.[voucher.title])
+        ? privateCharterOriginalTotal * 0.1
+        : 0;
+    const privateCharterVisibleDisplayTotal =
+      privateCharterDisplayTotal + hiddenPrivateWeatherRefundAmount;
+    const privateCharterVisibleOriginalTotal =
+      privateCharterOriginalTotal + hiddenPrivateOriginalWeatherRefundAmount;
+
     const sharedPricingState =
       chooseFlightType?.type === "Shared Flight"
         ? resolveVoucherPricing({
@@ -2175,7 +2195,9 @@ const VoucherType = ({
                   isPrivate &&
                   (forceWeatherRefundable ||
                     !!privateWeatherRefundByVoucher?.[voucher.title]);
-                const isRefundable = sharedEnabled || privateEnabled;
+                const isRefundable =
+                  !hideWeatherRefundablePresentation &&
+                  (sharedEnabled || privateEnabled);
                 return (
                   <div
                     className="voucher-type-card-refund-row"
@@ -2343,7 +2365,8 @@ const VoucherType = ({
                   const anyDayMsg2 =
                     "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
                   const isSharedRefundable =
-                    forceWeatherRefundable || !!localSharedWeatherRefund;
+                    !hideWeatherRefundablePresentation &&
+                    (forceWeatherRefundable || !!localSharedWeatherRefund);
 
                   return (
                     <div
@@ -2366,8 +2389,9 @@ const VoucherType = ({
                   const privateMsg2 =
                     "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
                   const isPrivateRefundable =
-                    forceWeatherRefundable ||
-                    !!privateWeatherRefundByVoucher?.[voucher.title];
+                    !hideWeatherRefundablePresentation &&
+                    (forceWeatherRefundable ||
+                      !!privateWeatherRefundByVoucher?.[voucher.title]);
 
                   return (
                     <div
@@ -2614,17 +2638,17 @@ const VoucherType = ({
                   return (
                     <>
                       <span style={strikePriceStyle}>
-                        £{formatVoucherAmount(privateCharterOriginalTotal)}{" "}
+                        £{formatVoucherAmount(privateCharterVisibleOriginalTotal)}{" "}
                         total
                       </span>
                       <span>
-                        £{formatVoucherAmount(privateCharterDisplayTotal || 0)}{" "}
+                        £{formatVoucherAmount(privateCharterVisibleDisplayTotal || 0)}{" "}
                         total
                       </span>
                     </>
                   );
                 }
-                return `£${formatVoucherAmount(privateCharterDisplayTotal || 0)} total`;
+                return `£${formatVoucherAmount(privateCharterVisibleDisplayTotal || 0)} total`;
               } else if (voucher.priceUnit === "total") {
                 const currentTotalPrice = voucher.basePrice || voucher.price;
                 const originalTotalPrice =
@@ -2730,7 +2754,8 @@ const VoucherType = ({
 
             // Always render a container div to maintain consistent card height across all vouchers
             const shouldShowWeatherContainer =
-              showWeatherRefundableShared || showWeatherRefundablePrivate;
+              !hideWeatherRefundablePresentation &&
+              (showWeatherRefundableShared || showWeatherRefundablePrivate);
             const shouldShowToggleContainer =
               shouldShowWeatherContainer || showSeasonSaver;
             const isSharedFlight = chooseFlightType?.type === "Shared Flight";
@@ -2753,7 +2778,8 @@ const VoucherType = ({
                   position: "relative",
                 }}
               >
-                {showWeatherRefundableShared &&
+                {!hideWeatherRefundablePresentation &&
+                  showWeatherRefundableShared &&
                   (() => {
                     const enabled =
                       forceWeatherRefundable || localSharedWeatherRefund;
@@ -2853,7 +2879,8 @@ const VoucherType = ({
                       </>
                     );
                   })()}
-                {showWeatherRefundablePrivate &&
+                {!hideWeatherRefundablePresentation &&
+                  showWeatherRefundablePrivate &&
                   (() => {
                     const enabled =
                       forceWeatherRefundable ||
@@ -4702,6 +4729,8 @@ const areEqual = (prevProps, nextProps) => {
     prevProps.selectedActivity !== nextProps.selectedActivity ||
     prevProps.disableTermsPopup !== nextProps.disableTermsPopup ||
     prevProps.lockVoucherSelection !== nextProps.lockVoucherSelection ||
+    prevProps.hideWeatherRefundablePresentation !==
+      nextProps.hideWeatherRefundablePresentation ||
     prevProps.autoOpenTermsOnPrefill !== nextProps.autoOpenTermsOnPrefill ||
     prevProps.requireTermsConfirmationBeforeVoucherSelection !==
       nextProps.requireTermsConfirmationBeforeVoucherSelection

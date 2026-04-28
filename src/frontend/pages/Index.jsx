@@ -303,6 +303,7 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
     autoAdvanceVoucherSelection: false,
     hideAddOns: true,
     hideAdditionalInfo: false,
+    hideWeatherRefundablePresentation: true,
     hiddenVoucherTitles: ["Proposal Flight"],
     hiddenSectionIds: ["activity", "location", "experience"],
     hiddenSummarySectionIds: [
@@ -611,6 +612,9 @@ const Index = () => {
     !!manualBookingRouteProfile?.compactVoucherCards;
   const shouldAutoAdvanceVoucherSelection =
     !!manualBookingRouteProfile?.autoAdvanceVoucherSelection;
+  const shouldHideWeatherRefundablePresentation =
+    !!manualBookingRouteProfile?.hideWeatherRefundablePresentation ||
+    manualBookingParams.get("hideWeatherRefundablePresentation") === "true";
   const shouldPrefillVoucherSelection =
     manualBookingRouteProfile?.prefillVoucherSelection !== false;
   const manualBookingInitialAccordionSection =
@@ -7488,6 +7492,9 @@ const Index = () => {
                               forceWeatherRefundable={
                                 !!dedicatedBookingDefaults?.weatherRefundable
                               }
+                              hideWeatherRefundablePresentation={
+                                shouldHideWeatherRefundablePresentation
+                              }
                               compactVoucherCardMode={
                                 shouldUseCompactVoucherCards
                               }
@@ -8178,9 +8185,13 @@ const Index = () => {
                                 hiddenSummarySectionIds={
                                   manualBookingRouteProfile?.hiddenSummarySectionIds
                                 }
+                                hideWeatherRefundablePresentation={
+                                  shouldHideWeatherRefundablePresentation
+                                }
                                 showLockedWeatherRefundableLabel={
                                   !!manualBookingRouteProfile?.lockVoucherSelection &&
-                                  !!dedicatedBookingDefaults?.weatherRefundable
+                                  !!dedicatedBookingDefaults?.weatherRefundable &&
+                                  !shouldHideWeatherRefundablePresentation
                                 }
                             />
                         </div>
