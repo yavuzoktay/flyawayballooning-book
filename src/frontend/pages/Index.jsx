@@ -360,7 +360,9 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
     useHotelNameAsLocationLabel: true,
     disableTermsPopup: false,
     lockVoucherSelection: true,
-    autoOpenTermsOnPrefill: true,
+    prefillVoucherSelection: false,
+    autoOpenTermsOnPrefill: false,
+    initialAccordionSection: "voucher-type",
   },
 };
 
@@ -608,6 +610,10 @@ const Index = () => {
     !!manualBookingRouteProfile?.compactVoucherCards;
   const shouldAutoAdvanceVoucherSelection =
     !!manualBookingRouteProfile?.autoAdvanceVoucherSelection;
+  const shouldPrefillVoucherSelection =
+    manualBookingRouteProfile?.prefillVoucherSelection !== false;
+  const manualBookingInitialAccordionSection =
+    manualBookingRouteProfile?.initialAccordionSection || null;
   const hiddenVoucherTitlesForDedicatedFlow =
     manualBookingRouteProfile?.hiddenVoucherTitles || [];
     const shouldHideAddOns = !!manualBookingRouteProfile?.hideAddOns;
@@ -721,6 +727,10 @@ const Index = () => {
     }, [dedicatedBookingDefaults]);
 
     const buildDefaultSelectedVoucherType = useCallback(() => {
+        if (!shouldPrefillVoucherSelection) {
+            return null;
+        }
+
         if (!dedicatedBookingDefaults?.voucherTitle) {
             return null;
         }
@@ -733,7 +743,7 @@ const Index = () => {
             price: 0,
       totalPrice: 0,
         };
-    }, [dedicatedBookingDefaults]);
+    }, [dedicatedBookingDefaults, shouldPrefillVoucherSelection]);
 
   const [manualBookingContact, setManualBookingContact] = useState(() =>
     buildDefaultManualBookingContact(),
@@ -5267,7 +5277,11 @@ const Index = () => {
                 // İlk accordion'ı (activity'den sonraki) otomatik aç
                 // BUT: Skip 'experience' section if we're in Shopify flow (startAt=voucher-type)
                 if (sequence.length > 1) {
-                    let firstSectionAfterActivity = sequence[1]; // activity'den sonraki ilk section
+                    let firstSectionAfterActivity =
+                      manualBookingInitialAccordionSection &&
+                      sequence.includes(manualBookingInitialAccordionSection)
+                        ? manualBookingInitialAccordionSection
+                        : sequence[1]; // activity'den sonraki ilk section
                     
                     // If first section is 'experience' and we're in Shopify flow, skip to next section
           if (
@@ -5292,7 +5306,12 @@ const Index = () => {
                 }
             }, 300); // State reset'in tamamlanması için biraz daha uzun delay
         }
-    }, [activitySelect, shopifyStartAtVoucher, location.search]);
+    }, [
+      activitySelect,
+      shopifyStartAtVoucher,
+      location.search,
+      manualBookingInitialAccordionSection,
+    ]);
 
     // Yeni: Dinamik sıralama değiştiğinde accordion akışını kontrol et
     React.useEffect(() => {
