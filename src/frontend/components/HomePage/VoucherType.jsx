@@ -6,6 +6,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
+import { createPortal } from "react-dom";
 import Accordion from "../Common/Accordion";
 import axios from "axios";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -161,6 +162,9 @@ const scrollbarStyles = `
         }
     }
 `;
+
+const renderModalPortal = (modal) =>
+  typeof document !== "undefined" ? createPortal(modal, document.body) : modal;
 
 const SHARED_VOUCHER_PRICE_FIELDS = {
   "weekday morning": {
@@ -3704,28 +3708,35 @@ const VoucherType = ({
       )}
 
       <style>{scrollbarStyles}</style>
-      {!disableTermsPopup && showTerms && selectedVoucher && (
+      {!disableTermsPopup &&
+        showTerms &&
+        selectedVoucher &&
+        renderModalPortal(
         <div
           className="modal-overlay"
           style={{
             position: "fixed",
             inset: 0,
             background: "rgba(0,0,0,0.45)",
-            zIndex: 2000,
+            zIndex: 2147483000,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            pointerEvents: "auto",
           }}
         >
           <div
             className="modal-content"
             style={{
+              position: "relative",
+              zIndex: 2147483001,
               background: "#ffffff",
               borderRadius: 12,
               maxWidth: 720,
               width: "92%",
               padding: "20px 24px",
               boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+              pointerEvents: "auto",
             }}
           >
             <div
@@ -3831,8 +3842,8 @@ const VoucherType = ({
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+        )}
 
       <Accordion
         title={
@@ -4558,22 +4569,26 @@ const VoucherType = ({
       </Accordion>
 
       {/* Capacity Warning Modal */}
-      {showCapacityWarning && (
+      {showCapacityWarning &&
+        renderModalPortal(
         <div
           className="modal-overlay"
           style={{
             position: "fixed",
             inset: 0,
             background: "rgba(0,0,0,0.45)",
-            zIndex: 2000,
+            zIndex: 2147483000,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            pointerEvents: "auto",
           }}
         >
           <div
             className="modal-content"
             style={{
+              position: "relative",
+              zIndex: 2147483001,
               background: "#ffffff",
               borderRadius: 12,
               maxWidth: 420,
@@ -4581,6 +4596,7 @@ const VoucherType = ({
               padding: "20px 24px",
               boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
               textAlign: "center",
+              pointerEvents: "auto",
             }}
           >
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
@@ -4634,8 +4650,8 @@ const VoucherType = ({
               OK
             </button>
           </div>
-        </div>
-      )}
+        </div>,
+        )}
 
       {/* Terms & Conditions Modal removed */}
     </>
