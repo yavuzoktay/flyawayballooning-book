@@ -2,9 +2,9 @@
 .card-flip-container {
   perspective: 1000px;
   width: 100%;
-  height: 220px !important; /* Fixed height */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height */
+  min-height: 140px !important;
+  max-height: 140px !important;
   position: relative;
   margin: 0;
 }
@@ -12,9 +12,9 @@
 .card-flipper {
   position: relative;
   width: 100%;
-  height: 220px !important; /* Fixed height */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height */
+  min-height: 140px !important;
+  max-height: 140px !important;
   transition: transform 0.6s;
   transform-style: preserve-3d;
 }
@@ -27,9 +27,9 @@
 .card-front,
 .card-back {
   width: 100%;
-  height: 220px !important; /* Fixed height - same as container */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height - same as container */
+  min-height: 140px !important;
+  max-height: 140px !important;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden; /* Safari */
   position: absolute;
@@ -37,7 +37,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -83,8 +83,8 @@
 /* CSS for individual card layout in ChooseActivityCard - Make cards exactly the same size */
 .activity-panel .book_data {
   width: calc(50% - 20px);
-  height: 200px !important;
-  min-height: 200px !important;
+  height: 140px !important;
+  min-height: 140px !important;
   margin-bottom: 20px;
   display: flex;
 }
@@ -101,8 +101,8 @@
 /* Make all book_data elements the exact same height */
 .tab_box .book_data {
   width: calc(50% - 20px);
-  height: 220px !important; /* Increased fixed height */
-  min-height: 220px !important;
+  height: 140px !important; /* Increased fixed height */
+  min-height: 140px !important;
   margin-bottom: 20px;
   display: flex;
   flex: 1 1 calc(50% - 20px);
@@ -110,7 +110,7 @@
 }
 
 .tab_box .book_data:nth-child(3) {
-  height: 220px !important; /* Force Redeem Voucher to be same height */
+  height: 140px !important; /* Force Redeem Voucher to be same height */
 }
 
 /* Make sure all components inside book_data are full height */
@@ -126,9 +126,9 @@
 .activity-panel .book_data:nth-child(3) .card-flipper,
 .activity-panel .book_data:nth-child(3) .card-front,
 .activity-panel .book_data:nth-child(3) .card-back {
-  height: 220px !important;
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important;
+  min-height: 140px !important;
+  max-height: 140px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
@@ -190,11 +190,11 @@
   padding: 20px !important;
   width: 100%;
   height: 100% !important;
-  min-height: 220px; /* Match card height */
-  max-height: 220px; /* Prevent height change */
+  min-height: 140px; /* Match card height */
+  max-height: 140px; /* Prevent height change */
   box-sizing: border-box !important;
   border: 2px solid #03a9f4;
-  border-radius: 20px;
+  border-radius: 16px;
   background-color: transparent;
   overflow-y: auto; /* Allow scrolling if content is too long */
   overflow-x: hidden;
@@ -308,25 +308,25 @@
 
 /* Special styling for Redeem Voucher card to match others */
 .activity-panel .book_data:nth-child(3) {
-  height: 220px !important; /* Fixed height to prevent layout shift */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height to prevent layout shift */
+  min-height: 140px !important;
+  max-height: 140px !important;
   position: relative; /* Ensure positioning context */
 }
 
 .activity-panel .book_data:nth-child(3) .card-front,
 .activity-panel .book_data:nth-child(3) .card-flipper,
 .activity-panel .book_data:nth-child(3) .card-flip-container {
-  height: 220px !important; /* Fixed height - same as parent */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height - same as parent */
+  min-height: 140px !important;
+  max-height: 140px !important;
   position: relative; /* Maintain positioning */
 }
 
 .activity-panel .book_data:nth-child(3) .card-back {
-  height: 220px !important; /* Fixed height - same as front */
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: 140px !important; /* Fixed height - same as front */
+  min-height: 140px !important;
+  max-height: 140px !important;
 }
 
 /* Mobile responsiveness */
@@ -481,7 +481,7 @@
     max-height: none !important;
     transform: none !important;
     overflow: visible !important;
-    border-radius: 20px !important; /* Match parent card border-radius */
+    border-radius: 16px !important; /* Match parent card border-radius */
   }
 
   /* Disable the rotate on mobile */
@@ -517,7 +517,7 @@
     max-height: none !important;
     padding: 10px !important;
     overflow: visible !important;
-    border-radius: 20px !important; /* Match card-back border-radius */
+    border-radius: 16px !important; /* Match card-back border-radius */
     box-sizing: border-box !important; /* Include border in height calculation */
     margin: 0 !important;
     width: 100% !important;

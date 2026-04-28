@@ -26,13 +26,39 @@ const ManualBookingContactStep = ({
     onChange,
     isMobile = false,
     title = "Hotel / Staff Details",
-    description = "Complete these required details before continuing with the booking flow."
+    description = "Complete these required details before continuing with the booking flow.",
+    fields = [
+        {
+            name: "accommodationName",
+            label: "Hotel / Accommodation Name",
+            type: "text",
+            placeholder: "Enter hotel or accommodation name",
+            required: true
+        },
+        {
+            name: "email",
+            label: "Email Address",
+            type: "email",
+            placeholder: "Enter contact email",
+            required: true
+        },
+        {
+            name: "staffName",
+            label: "Staff Name",
+            type: "text",
+            placeholder: "Enter staff member name",
+            required: true
+        }
+    ]
 }) => {
-    const accommodationName = details?.accommodationName || "";
-    const email = details?.email || "";
-    const staffName = details?.staffName || "";
-    const emailValid = emailPattern.test(email.trim());
-    const isComplete = accommodationName.trim() && staffName.trim() && emailValid;
+    const visibleFields = Array.isArray(fields) && fields.length > 0 ? fields : [];
+    const isComplete = visibleFields.every((field) => {
+        const value = (details?.[field.name] || "").trim();
+        if (!field.required && !value) return true;
+        if (!value) return false;
+        if (field.type === "email") return emailPattern.test(value);
+        return true;
+    });
 
     const handleFieldChange = (field) => (event) => {
         if (!onChange) return;
@@ -93,50 +119,41 @@ const ManualBookingContactStep = ({
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+                    gridTemplateColumns: isMobile
+                        ? "1fr"
+                        : `repeat(${Math.min(visibleFields.length || 1, 3)}, minmax(0, 1fr))`,
                     gap: "14px"
                 }}
             >
-                <label style={labelStyle}>
-                    Hotel / Accommodation Name *
-                    <input
-                        type="text"
-                        value={accommodationName}
-                        onChange={handleFieldChange("accommodationName")}
-                        placeholder="Enter hotel or accommodation name"
-                        style={fieldStyle}
-                    />
-                </label>
+                {visibleFields.map((field) => {
+                    const value = details?.[field.name] || "";
+                    const emailInvalid =
+                        field.type === "email" &&
+                        value &&
+                        !emailPattern.test(value.trim());
 
-                <label style={labelStyle}>
-                    Email Address *
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={handleFieldChange("email")}
-                        placeholder="Enter contact email"
-                        style={{
-                            ...fieldStyle,
-                            borderColor: email && !emailValid ? "#fda4af" : fieldStyle.border
-                        }}
-                    />
-                    {email && !emailValid && (
-                        <span style={{ color: "#be123c", fontSize: "12px", fontWeight: 500 }}>
-                            Enter a valid email address.
-                        </span>
-                    )}
-                </label>
-
-                <label style={labelStyle}>
-                    Staff Name *
-                    <input
-                        type="text"
-                        value={staffName}
-                        onChange={handleFieldChange("staffName")}
-                        placeholder="Enter staff member name"
-                        style={fieldStyle}
-                    />
-                </label>
+                    return (
+                        <label key={field.name} style={labelStyle}>
+                            {field.label}
+                            {field.required ? " *" : ""}
+                            <input
+                                type={field.type || "text"}
+                                value={value}
+                                onChange={handleFieldChange(field.name)}
+                                placeholder={field.placeholder || ""}
+                                style={{
+                                    ...fieldStyle,
+                                    borderColor: emailInvalid ? "#fda4af" : fieldStyle.border
+                                }}
+                            />
+                            {emailInvalid && (
+                                <span style={{ color: "#be123c", fontSize: "12px", fontWeight: 500 }}>
+                                    Enter a valid email address.
+                                </span>
+                            )}
+                        </label>
+                    );
+                })}
             </div>
         </section>
     );

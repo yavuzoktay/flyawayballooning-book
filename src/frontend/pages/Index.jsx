@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import LOGO from "../../assets/images/FAB_Logo_DarkBlue.png";
 
 import {
@@ -52,6 +52,35 @@ const API_BASE_URL = config.API_BASE_URL;
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const manualBookingEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_ARRAY = [];
+const DEFAULT_MANUAL_BOOKING_CONTACT_FIELDS = [
+  {
+    name: "accommodationName",
+    label: "Hotel / Accommodation Name",
+    type: "text",
+    placeholder: "Enter hotel or accommodation name",
+    required: true,
+  },
+  {
+    name: "email",
+    label: "Email Address",
+    type: "email",
+    placeholder: "Enter contact email",
+    required: true,
+  },
+  {
+    name: "staffName",
+    label: "Staff Name",
+    type: "text",
+    placeholder: "Enter staff member name",
+    required: true,
+  },
+];
+
+const toSnakeCase = (value = "") =>
+  String(value)
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[\s-]+/g, "_")
+    .toLowerCase();
 const MANUAL_BOOKING_ACCESS_STORAGE_PREFIX = "fab-manual-booking-access";
 const FAQ_LINK = "https://flyawayballooning.com/pages/faq";
 const WHATSAPP_LINK = "https://api.whatsapp.com/message/CQZBMWVAP2LWM1";
@@ -263,6 +292,65 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
       passengerCountryCode: "+44",
       passengerPhone: "1963577777",
     },
+  },
+  "/kaleidoscope": {
+    label: "Kaleidoscope Balloon Booking",
+    showGuide: false,
+    showBanner: true,
+    hideManualPaymentNotice: true,
+    requiresToken: false,
+    compactVoucherCards: false,
+    autoAdvanceVoucherSelection: false,
+    hideAddOns: true,
+    hideAdditionalInfo: false,
+    hiddenVoucherTitles: ["Proposal Flight"],
+    hiddenSectionIds: ["activity", "location", "experience"],
+    autoSelectActivity: "Book Flight",
+    contactTitle: "Your Hotel Stay",
+    contactDescription: null,
+    contactIncompleteMessage:
+      "Complete the hotel stay details to unlock this booking flow.",
+    contactFields: [
+      {
+        name: "accommodationName",
+        label: "Hotel Name",
+        type: "text",
+        placeholder: "Enter hotel name",
+        required: true,
+      },
+      {
+        name: "hotelBookingId",
+        label: "Hotel Booking ID",
+        type: "text",
+        placeholder: "Enter hotel booking ID",
+        required: true,
+      },
+      {
+        name: "bookingName",
+        label: "Booking Name",
+        type: "text",
+        placeholder: "Enter booking name",
+        required: true,
+      },
+    ],
+    contactDefaults: {
+      accommodationName: "",
+      hotelBookingId: "",
+      bookingName: "",
+    },
+    bookingDefaults: {
+      location: "Bath",
+      experience: "Private Charter",
+      voucherTitle: "Private Charter",
+      passengers: 2,
+      privateCharterPassengerOptions: [2, 3, 4, 8],
+      weatherRefundable: true,
+    },
+    additionalInfoLocation: "Bath",
+    useHotelNameAsLocationLabel: true,
+    disableTermsPopup: false,
+    lockVoucherSelection: true,
+    autoOpenTermsOnPrefill: true,
   },
 };
 
@@ -491,8 +579,11 @@ const Index = () => {
     manualBookingParams.get("manualBookingToken") ||
     manualBookingParams.get("t") ||
     "";
+  const dedicatedRouteRequiresToken =
+    manualBookingRouteProfile?.requiresToken !== false;
   const requiresManualBookingToken =
-    manualBookingRequested || isDedicatedManualBookingFlow;
+    manualBookingRequested ||
+    (isDedicatedManualBookingFlow && dedicatedRouteRequiresToken);
   const isManualBookingFlow =
     requiresManualBookingToken && !!manualBookingToken;
   const hasInvalidManualBookingLink =
@@ -513,20 +604,38 @@ const Index = () => {
   const shouldHideAdditionalInfoSection =
     !!manualBookingRouteProfile?.hideAdditionalInfo;
     const isDedicatedSelectionHidden = hiddenDedicatedSectionIds.length > 0;
+  const shouldHideActivityStep = hiddenDedicatedSectionIds.includes("activity");
   const shouldHideLocationStep = hiddenDedicatedSectionIds.includes("location");
   const shouldHideExperienceStep =
     hiddenDedicatedSectionIds.includes("experience");
   const shouldHideVoucherTypeStep =
     hiddenDedicatedSectionIds.includes("voucher-type");
+  const manualBookingContactFields =
+    manualBookingRouteProfile?.contactFields ||
+    DEFAULT_MANUAL_BOOKING_CONTACT_FIELDS;
+  const manualBookingIncompleteMessage =
+    manualBookingRouteProfile?.contactIncompleteMessage ||
+    "Complete the hotel, email and staff details to unlock this booking flow.";
 
   const buildDefaultManualBookingContact = useCallback(
-    () => ({
-      accommodationName:
-        manualBookingRouteProfile?.contactDefaults?.accommodationName || "",
-      email: manualBookingRouteProfile?.contactDefaults?.email || "",
-      staffName: manualBookingRouteProfile?.contactDefaults?.staffName || "",
-    }),
-    [manualBookingRouteProfile],
+    () => {
+      const defaults = {
+        accommodationName: "",
+        email: "",
+        staffName: "",
+        ...(manualBookingRouteProfile?.contactDefaults || {}),
+      };
+
+      manualBookingContactFields.forEach((field) => {
+        if (!field?.name) return;
+        if (defaults[field.name] === undefined || defaults[field.name] === null) {
+          defaults[field.name] = "";
+        }
+      });
+
+      return defaults;
+    },
+    [manualBookingRouteProfile, manualBookingContactFields],
   );
 
   const [manualBookingAccessToken, setManualBookingAccessToken] = useState(
@@ -680,23 +789,35 @@ const Index = () => {
         if (!isDedicatedManualBookingFlow) return true;
       if (!details || typeof details !== "object") return false;
 
-      const accommodationName = (details.accommodationName || "").trim();
-      const email = (details.email || "").trim();
-      const staffName = (details.staffName || "").trim();
-
-      return (
-        !!accommodationName &&
-        !!staffName &&
-        manualBookingEmailPattern.test(email)
-      );
+      return manualBookingContactFields.every((field) => {
+        if (!field?.name) return true;
+        const value = (details[field.name] || "").trim();
+        if (!field.required && !value) return true;
+        if (!value) return false;
+        if (field.type === "email") {
+          return manualBookingEmailPattern.test(value);
+        }
+        return true;
+      });
     },
-    [isDedicatedManualBookingFlow],
+    [isDedicatedManualBookingFlow, manualBookingContactFields],
   );
 
   const manualBookingContactComplete =
     isManualBookingContactValid(manualBookingContact);
   const isDedicatedFlowLocked =
     isDedicatedManualBookingFlow && !manualBookingContactComplete;
+  const manualBookingLocationDisplayLabel = useMemo(() => {
+    if (!manualBookingRouteProfile?.useHotelNameAsLocationLabel) {
+      return chooseLocation || "";
+    }
+
+    return (manualBookingContact?.accommodationName || "").trim() || chooseLocation || "";
+  }, [
+    chooseLocation,
+    manualBookingContact?.accommodationName,
+    manualBookingRouteProfile,
+  ]);
 
   const buildSubmissionAdditionalInfo = useCallback(
     (info) => {
@@ -707,17 +828,48 @@ const Index = () => {
             return normalizedInfo;
         }
 
-        normalizedInfo.manual_booking_profile = {
-        accommodation_name: (
-          manualBookingContact.accommodationName || ""
-        ).trim(),
-        contact_email: (manualBookingContact.email || "").trim(),
-        staff_name: (manualBookingContact.staffName || "").trim(),
-        };
+      const manualBookingProfile = {
+        profile_label: manualBookingRouteProfile?.label || "",
+        profile_path: normalizedPath,
+        backend_location: dedicatedBookingDefaults?.location || chooseLocation || "",
+        location_display_name: manualBookingLocationDisplayLabel || "",
+        use_location_display:
+          !!manualBookingRouteProfile?.useHotelNameAsLocationLabel,
+      };
+
+      manualBookingContactFields.forEach((field) => {
+        if (!field?.name) return;
+        const value = (manualBookingContact[field.name] || "").trim();
+        manualBookingProfile[toSnakeCase(field.name)] = value;
+      });
+
+      manualBookingProfile.accommodation_name =
+        manualBookingProfile.accommodation_name ||
+        (manualBookingContact.accommodationName || "").trim();
+      manualBookingProfile.contact_email =
+        manualBookingProfile.contact_email ||
+        (manualBookingContact.email || "").trim();
+      manualBookingProfile.staff_name =
+        manualBookingProfile.staff_name ||
+        (manualBookingContact.staffName || "").trim();
+      manualBookingProfile.hotel_name =
+        manualBookingProfile.hotel_name ||
+        (manualBookingContact.accommodationName || "").trim();
+
+      normalizedInfo.manual_booking_profile = manualBookingProfile;
 
         return normalizedInfo;
     },
-    [isDedicatedManualBookingFlow, manualBookingContact],
+    [
+      chooseLocation,
+      dedicatedBookingDefaults,
+      isDedicatedManualBookingFlow,
+      manualBookingContact,
+      manualBookingContactFields,
+      manualBookingLocationDisplayLabel,
+      manualBookingRouteProfile,
+      normalizedPath,
+    ],
   );
 
     useEffect(() => {
@@ -728,22 +880,27 @@ const Index = () => {
         const defaultContact = buildDefaultManualBookingContact();
         setManualBookingContact((prev) => {
       const current = prev && typeof prev === "object" ? prev : {};
-            const next = {
-        accommodationName:
-          current.accommodationName || defaultContact.accommodationName,
-                email: current.email || defaultContact.email,
-        staffName: current.staffName || defaultContact.staffName,
-            };
+      const next = { ...current };
+      const keys = new Set([
+        ...Object.keys(defaultContact),
+        ...Object.keys(current),
+      ]);
+      let changed = false;
 
-            if (
-                next.accommodationName === current.accommodationName &&
-                next.email === current.email &&
-                next.staffName === current.staffName
-            ) {
-                return prev;
-            }
+      keys.forEach((key) => {
+        const currentValue = current[key];
+        const defaultValue = defaultContact[key] || "";
+        const nextValue = currentValue || defaultValue;
+        if (nextValue !== currentValue) {
+          next[key] = nextValue;
+          changed = true;
+        } else if (!(key in next)) {
+          next[key] = "";
+          changed = true;
+        }
+      });
 
-            return next;
+      return changed ? next : prev;
         });
     }, [buildDefaultManualBookingContact, isDedicatedManualBookingFlow]);
 
@@ -852,6 +1009,15 @@ const Index = () => {
     manualBookingAccessStorageKey,
     manualBookingToken,
   ]);
+
+  useEffect(() => {
+    const autoSelectActivity = manualBookingRouteProfile?.autoSelectActivity;
+    if (!autoSelectActivity || activitySelect === autoSelectActivity) {
+      return;
+    }
+
+    setActivitySelect(autoSelectActivity);
+  }, [activitySelect, manualBookingRouteProfile]);
 
     useEffect(() => {
         if (!dedicatedBookingDefaults) {
@@ -3696,9 +3862,7 @@ const Index = () => {
         }
 
         if (isDedicatedManualBookingFlow && !manualBookingContactComplete) {
-      alert(
-        "Please complete the hotel, email and staff details before continuing.",
-      );
+      alert(manualBookingIncompleteMessage);
             return;
         }
 
@@ -6736,6 +6900,114 @@ const Index = () => {
                     </Container>
                 </div>
             </div>
+
+            {/* ── Hero Section ── */}
+            {!isDedicatedManualBookingFlow && !isCustomerPortal && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: isMobile ? "160px" : "220px",
+                  background: "linear-gradient(135deg, #1b1e2f 0%, #2d3561 50%, #1b1e2f 100%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  overflow: "hidden",
+                  marginBottom: 0,
+                }}
+              >
+                {/* Subtle balloon pattern overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "radial-gradient(ellipse at 30% 50%, rgba(3,169,244,0.12) 0%, transparent 60%), radial-gradient(ellipse at 70% 40%, rgba(52,199,89,0.08) 0%, transparent 50%)",
+                    zIndex: 1,
+                  }}
+                />
+                <div style={{ position: "relative", zIndex: 2, padding: "0 20px" }}>
+                  <h1
+                    style={{
+                      fontFamily: "'Gilroy', sans-serif",
+                      fontSize: isMobile ? "22px" : "32px",
+                      fontWeight: 700,
+                      color: "#ffffff",
+                      margin: "0 0 8px 0",
+                      lineHeight: 1.2,
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Soar Above the English Countryside
+                  </h1>
+                  <p
+                    style={{
+                      fontFamily: "'Gilroy', sans-serif",
+                      fontSize: isMobile ? "13px" : "15px",
+                      fontWeight: 400,
+                      color: "rgba(255,255,255,0.75)",
+                      margin: 0,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Hot air balloon rides over Bath, Somerset, Devon & Bristol
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ── Trust Bar ── */}
+            {!isDedicatedManualBookingFlow && !isCustomerPortal && (
+              <div
+                style={{
+                  width: "100%",
+                  background: "#f1f5f9",
+                  borderBottom: "1px solid #e2e8f0",
+                  padding: isMobile ? "12px 16px" : "14px 24px",
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: "900px",
+                    margin: "0 auto",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: isMobile ? "16px" : "40px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {[
+                    { icon: "⏳", label: "50+ Years" },
+                    { icon: "⭐", label: "5-Star Rated" },
+                    { icon: "📍", label: "4 Locations" },
+                    { icon: "🔄", label: "Free Rescheduling" },
+                  ].map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: isMobile ? "12px" : "13px",
+                        fontWeight: 600,
+                        color: "#334155",
+                        fontFamily: "'Gilroy', sans-serif",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <span style={{ fontSize: isMobile ? "14px" : "16px" }}>{item.icon}</span>
+                      {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Container>
                 <div className="main-content">
             <div className="header-top"></div>
@@ -6870,7 +7142,8 @@ const Index = () => {
                                     </details>
                                 </div>
                 ) : manualBookingRouteProfile?.label ===
-                  "The Newt Balloon Booking" ? null : (
+                    "The Newt Balloon Booking" ||
+                  manualBookingRouteProfile?.hideManualPaymentNotice ? null : (
                   <div style={{ fontSize: "14px", lineHeight: 1.5 }}>
                     This booking will be created without Stripe payment. The
                     reservation or voucher will be saved as unpaid so payment
@@ -6932,50 +7205,232 @@ const Index = () => {
                         description={
                           manualBookingRouteProfile?.contactDescription
                         }
+                                            fields={manualBookingContactFields}
                       />
                     )}
-                    <h3
-                      style={{
-                        fontSize: isMobile ? "20px" : "20px",
-                        textAlign: "center",
-                        marginBottom: isMobile ? "10px" : "20px",
-                        marginTop: isMobile ? "5px" : "0",
-                      }}
-                    >
-                      What would you like to do?
-                    </h3>
-                                    {/* lightweight keyframes for bounce */}
-                                    <style>{`
-                                        @keyframes fabBounce {
-                                            0%, 100% { transform: translateY(0); opacity: 0.9; }
-                                            50% { transform: translateY(4px); opacity: 1; }
-                                        }
-                                    `}</style>
-                    <div
-                      id="scroll-target-booking"
-                      style={{ scrollMarginTop: isMobile ? "90px" : "140px" }}
-                    />
-                    <div
-                      style={{
-                                        opacity: isDedicatedFlowLocked ? 0.55 : 1,
-                        pointerEvents: isDedicatedFlowLocked ? "none" : "auto",
-                        transition: "opacity 0.2s ease",
-                      }}
-                    >
-                                        <ChooseActivityCard 
-                                            activitySelect={activitySelect} 
-                                            setActivitySelect={setActivitySelect} 
-                                            onVoucherSubmit={handleVoucherSubmit}
-                                            voucherStatus={voucherStatus}
-                                            voucherCode={voucherCode}
-                                            voucherData={voucherData}
-                                            onValidate={validateVoucherCode}
-                                            onSectionCompletion={handleSectionCompletion}
-                        allowedActivities={
-                          isDedicatedManualBookingFlow ? ["Book Flight"] : null
-                        }
-                                        />
-                                    </div>
+                    {!shouldHideActivityStep && (
+                      <>
+                        <h3
+                          style={{
+                            fontSize: isMobile ? "20px" : "20px",
+                            textAlign: "center",
+                            marginBottom: isMobile ? "10px" : "20px",
+                            marginTop: isMobile ? "5px" : "0",
+                          }}
+                        >
+                          What would you like to do?
+                        </h3>
+                        <div
+                          id="scroll-target-booking"
+                          style={{
+                            scrollMarginTop: isMobile ? "90px" : "140px",
+                          }}
+                        />
+                        <div
+                          style={{
+                            opacity: isDedicatedFlowLocked ? 0.55 : 1,
+                            pointerEvents: isDedicatedFlowLocked
+                              ? "none"
+                              : "auto",
+                            transition: "opacity 0.2s ease",
+                          }}
+                        >
+                          <ChooseActivityCard
+                            activitySelect={activitySelect}
+                            setActivitySelect={setActivitySelect}
+                            onVoucherSubmit={handleVoucherSubmit}
+                            voucherStatus={voucherStatus}
+                            voucherCode={voucherCode}
+                            voucherData={voucherData}
+                            onValidate={validateVoucherCode}
+                            onSectionCompletion={handleSectionCompletion}
+                            allowedActivities={
+                              isDedicatedManualBookingFlow
+                                ? ["Book Flight"]
+                                : null
+                            }
+                          />
+                        </div>
+                        <style>{`
+                          @keyframes fabBounce {
+                            0%, 100% { transform: translateY(0); opacity: 0.9; }
+                            50% { transform: translateY(4px); opacity: 1; }
+                          }
+                        `}</style>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <button
+                            className="activity-scroll-down-btn"
+                            type="button"
+                            aria-label="Scroll down"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const anchor =
+                                document.getElementById(
+                                  "scroll-target-booking",
+                                );
+                              if (
+                                anchor &&
+                                typeof anchor.scrollIntoView === "function"
+                              ) {
+                                anchor.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "start",
+                                  inline: "nearest",
+                                });
+                                return;
+                              }
+                              const getScrollableParent = (node) => {
+                                let cur = node;
+                                while (cur && cur !== document.body) {
+                                  const style = window.getComputedStyle(cur);
+                                  const oy = style.overflowY;
+                                  if (
+                                    (oy === "auto" || oy === "scroll") &&
+                                    cur.scrollHeight > cur.clientHeight
+                                  ) {
+                                    return cur;
+                                  }
+                                  cur = cur.parentElement;
+                                }
+                                return window;
+                              };
+                              const scroller = getScrollableParent(
+                                e.currentTarget,
+                              );
+                              const step = Math.round(
+                                scroller === window
+                                  ? window.innerHeight
+                                  : scroller.clientHeight,
+                              );
+                              try {
+                                if (scroller === window) {
+                                  window.scrollBy({
+                                    top: step,
+                                    left: 0,
+                                    behavior: "smooth",
+                                  });
+                                } else {
+                                  scroller.scrollBy({
+                                    top: step,
+                                    left: 0,
+                                    behavior: "smooth",
+                                  });
+                                }
+                              } catch (err) {
+                                if (scroller === window) {
+                                  window.scrollTo(0, window.scrollY + step);
+                                } else {
+                                  scroller.scrollTop =
+                                    (scroller.scrollTop || 0) + step;
+                                }
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const anchor =
+                                  document.getElementById(
+                                    "scroll-target-booking",
+                                  );
+                                if (
+                                  anchor &&
+                                  typeof anchor.scrollIntoView === "function"
+                                ) {
+                                  anchor.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                    inline: "nearest",
+                                  });
+                                  return;
+                                }
+                                const getScrollableParent = (node) => {
+                                  let cur = node;
+                                  while (cur && cur !== document.body) {
+                                    const style = window.getComputedStyle(cur);
+                                    const oy = style.overflowY;
+                                    if (
+                                      (oy === "auto" || oy === "scroll") &&
+                                      cur.scrollHeight > cur.clientHeight
+                                    ) {
+                                      return cur;
+                                    }
+                                    cur = cur.parentElement;
+                                  }
+                                  return window;
+                                };
+                                const scroller = getScrollableParent(
+                                  e.currentTarget,
+                                );
+                                const step = Math.round(
+                                  scroller === window
+                                    ? window.innerHeight
+                                    : scroller.clientHeight,
+                                );
+                                try {
+                                  if (scroller === window) {
+                                    window.scrollBy({
+                                      top: step,
+                                      left: 0,
+                                      behavior: "smooth",
+                                    });
+                                  } else {
+                                    scroller.scrollBy({
+                                      top: step,
+                                      left: 0,
+                                      behavior: "smooth",
+                                    });
+                                  }
+                                } catch (err) {
+                                  if (scroller === window) {
+                                    window.scrollTo(0, window.scrollY + step);
+                                  } else {
+                                    scroller.scrollTop =
+                                      (scroller.scrollTop || 0) + step;
+                                  }
+                                }
+                              }
+                            }}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              background: "transparent",
+                              border: "none",
+                              padding: isMobile ? 2 : 4,
+                              lineHeight: 0,
+                              position: "relative",
+                              zIndex: 1000,
+                              pointerEvents: "auto",
+                            }}
+                          >
+                            <svg
+                              width={isMobile ? 32 : 40}
+                              height={isMobile ? 32 : 40}
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              style={{
+                                animation: "fabBounce 1.8s infinite",
+                                transformOrigin: "50% 50%",
+                              }}
+                            >
+                              <path
+                                d="M12 16.5l-6-6 1.41-1.41L12 13.67l4.59-4.58L18 10.5l-6 6z"
+                                fill="#4B5563"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </>
+                    )}
                                     {isDedicatedFlowLocked && (
                       <p
                         style={{
@@ -6985,174 +7440,9 @@ const Index = () => {
                           fontSize: "14px",
                         }}
                       >
-                        Complete the hotel, email and staff details to unlock
-                        this booking flow.
+                        {manualBookingIncompleteMessage}
                                         </p>
                                     )}
-                                    {/* Down arrow button below the activity cards */}
-                    <div style={{ display: "flex", justifyContent: "center" }}>
-                                        <button 
-                        className="activity-scroll-down-btn"
-                                            type="button"
-                                            aria-label="Scroll down"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                          const anchor = document.getElementById(
-                            "scroll-target-booking",
-                          );
-                          if (
-                            anchor &&
-                            typeof anchor.scrollIntoView === "function"
-                          ) {
-                            anchor.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                              inline: "nearest",
-                            });
-                                                    return;
-                                                }
-                                                const getScrollableParent = (node) => {
-                                                    let cur = node;
-                                                    while (cur && cur !== document.body) {
-                                                        const style = window.getComputedStyle(cur);
-                                                        const oy = style.overflowY;
-                              if (
-                                (oy === "auto" || oy === "scroll") &&
-                                cur.scrollHeight > cur.clientHeight
-                              ) {
-                                                            return cur;
-                                                        }
-                                                        cur = cur.parentElement;
-                                                    }
-                                                    return window;
-                                                };
-                                                const scroller = getScrollableParent(e.currentTarget);
-                          const step = Math.round(
-                            scroller === window
-                              ? window.innerHeight
-                              : scroller.clientHeight,
-                          );
-                          try {
-                            if (scroller === window) {
-                              window.scrollBy({
-                                top: step,
-                                left: 0,
-                                behavior: "smooth",
-                              });
-                            } else {
-                              scroller.scrollBy({
-                                top: step,
-                                left: 0,
-                                behavior: "smooth",
-                              });
-                            }
-                          } catch (err) {
-                            if (scroller === window) {
-                              window.scrollTo(0, window.scrollY + step);
-                            } else {
-                              scroller.scrollTop =
-                                (scroller.scrollTop || 0) + step;
-                            }
-                                                }
-                                            }}
-                                            onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                            const anchor = document.getElementById(
-                              "scroll-target-booking",
-                            );
-                            if (
-                              anchor &&
-                              typeof anchor.scrollIntoView === "function"
-                            ) {
-                              anchor.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start",
-                                inline: "nearest",
-                              });
-                                                        return;
-                                                    }
-                                                    const getScrollableParent = (node) => {
-                                                        let cur = node;
-                                                        while (cur && cur !== document.body) {
-                                                            const style = window.getComputedStyle(cur);
-                                                            const oy = style.overflowY;
-                                if (
-                                  (oy === "auto" || oy === "scroll") &&
-                                  cur.scrollHeight > cur.clientHeight
-                                ) {
-                                                                return cur;
-                                                            }
-                                                            cur = cur.parentElement;
-                                                        }
-                                                        return window;
-                                                    };
-                            const scroller = getScrollableParent(
-                              e.currentTarget,
-                            );
-                            const step = Math.round(
-                              scroller === window
-                                ? window.innerHeight
-                                : scroller.clientHeight,
-                            );
-                            try {
-                              if (scroller === window) {
-                                window.scrollBy({
-                                  top: step,
-                                  left: 0,
-                                  behavior: "smooth",
-                                });
-                              } else {
-                                scroller.scrollBy({
-                                  top: step,
-                                  left: 0,
-                                  behavior: "smooth",
-                                });
-                              }
-                            } catch (err) {
-                              if (scroller === window) {
-                                window.scrollTo(0, window.scrollY + step);
-                              } else {
-                                scroller.scrollTop =
-                                  (scroller.scrollTop || 0) + step;
-                              }
-                            }
-                          }
-                        }}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          background: "transparent",
-                          border: "none",
-                          padding: isMobile ? 2 : 4,
-                          lineHeight: 0,
-                          position: "relative",
-                          zIndex: 1000,
-                          pointerEvents: "auto",
-                        }}
-                      >
-                        <svg
-                          width={isMobile ? 32 : 40}
-                          height={isMobile ? 32 : 40}
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          style={{
-                            animation: "fabBounce 1.8s infinite",
-                            transformOrigin: "50% 50%",
-                          }}
-                        >
-                          <path
-                            d="M12 16.5l-6-6 1.41-1.41L12 13.67l4.59-4.58L18 10.5l-6 6z"
-                            fill="#4B5563"
-                          />
-                                            </svg>
-                                        </button>
-                                    </div>
                                 </div>
                                 {/* Diğer section'lar - deaktif görünecek şekilde stil */}
                   <div
@@ -7283,7 +7573,16 @@ const Index = () => {
                                   ? "live-availability"
                                   : null
                               }
-                                                        disableTermsPopup={isDedicatedManualBookingFlow}
+                              disableTermsPopup={
+                                manualBookingRouteProfile?.disableTermsPopup ??
+                                isDedicatedManualBookingFlow
+                              }
+                              lockVoucherSelection={
+                                !!manualBookingRouteProfile?.lockVoucherSelection
+                              }
+                              autoOpenTermsOnPrefill={
+                                !!manualBookingRouteProfile?.autoOpenTermsOnPrefill
+                              }
                                                     />
                                                 </div>
                                             )}
@@ -7299,6 +7598,9 @@ const Index = () => {
                                                 selectedActivity={selectedActivity} 
                                                 availableSeats={availableSeats} 
                                                 chooseLocation={chooseLocation}
+                                                displayLocationLabel={
+                                                  manualBookingLocationDisplayLabel
+                                                }
                                                 selectedTime={selectedTime}
                                                 setSelectedTime={setSelectedTime}
                                                 availabilities={availabilities}
@@ -7366,6 +7668,9 @@ const Index = () => {
                               handleSetActiveAccordionWithValidation
                             }
                                                     flightType={chooseFlightType.type}
+                                                    location={
+                                                      manualBookingRouteProfile?.additionalInfoLocation
+                                                    }
                                                     onSectionCompletion={handleSectionCompletion}
                             isDisabled={
                               !getAccordionState("additional-info").isEnabled
@@ -7902,6 +8207,9 @@ const Index = () => {
                             <RightInfoCard
                                 activitySelect={activitySelect}
                                 chooseLocation={chooseLocation}
+                                displayLocationLabel={
+                                  manualBookingLocationDisplayLabel
+                                }
                                 chooseFlightType={chooseFlightType}
                                 chooseAddOn={chooseAddOn}
                                 passengerData={passengerData}
@@ -7928,6 +8236,10 @@ const Index = () => {
                                 hideAddOnsSection={shouldHideAddOns}
                                 hideAdditionalInfoSection={shouldHideAdditionalInfoSection}
                                 hiddenSectionIds={hiddenDedicatedSectionIds}
+                                showLockedWeatherRefundableLabel={
+                                  !!manualBookingRouteProfile?.lockVoucherSelection &&
+                                  !!dedicatedBookingDefaults?.weatherRefundable
+                                }
                             />
                         </div>
                     </div>

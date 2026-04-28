@@ -1,12 +1,55 @@
 body {
-  background: #f3f3f9;
+  background: var(--fab-bg-page);
 }
 
 :root {
+  /* ── Primary ── */
   --fab-blue: #03a9f4;
-  --fab-blue-dark: #0287c6;
-  --fab-bright-green: #00eb5b;
-  --fab-bright-green-dark: #00c24a;
+  --fab-blue-dark: #0288d1;
+  --fab-blue-light: #e0f7fa;
+  --fab-navy: #1b1e2f;
+
+  /* ── Success / Selected ── */
+  --fab-green: #34c759;
+  --fab-green-dark: #2e7d32;
+  --fab-green-light: #dcfce7;
+
+  /* ── Error ── */
+  --fab-red: #dc2626;
+  --fab-red-light: #fee2e2;
+
+  /* ── Warning ── */
+  --fab-amber: #d97706;
+  --fab-amber-light: #fef3c7;
+
+  /* ── Grays (5 only) ── */
+  --fab-gray-900: #171717;
+  --fab-gray-600: #525252;
+  --fab-gray-500: #737373;
+  --fab-gray-300: #d4d4d4;
+  --fab-gray-100: #f5f5f5;
+
+  /* ── Backgrounds ── */
+  --fab-bg-page: #f8fafc;
+  --fab-bg-card: #ffffff;
+  --fab-bg-sidebar: #f1f5f9;
+
+  /* ── Spacing ── */
+  --fab-space-xs: 4px;
+  --fab-space-sm: 8px;
+  --fab-space-md: 16px;
+  --fab-space-lg: 24px;
+  --fab-space-xl: 32px;
+
+  /* ── Radius ── */
+  --fab-radius-sm: 4px;
+  --fab-radius-md: 8px;
+  --fab-radius-lg: 16px;
+  --fab-radius-full: 999px;
+
+  /* ── Legacy aliases (backward compat) ── */
+  --fab-bright-green: #34c759;
+  --fab-bright-green-dark: #2e7d32;
 }
 
 * {
@@ -571,24 +614,27 @@ button:not(.accordion):not(.activity-scroll-down-btn):not(.drawer-close):not(.vo
 }
 
 h2 {
-  font-family: "Gilroy";
-  font-size: 32px;
-  font-weight: 500;
+  font-family: "Gilroy", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fab-navy);
 }
 
 h3 {
-  font-size: 21px;
-  font-family: "Gilroy";
-  letter-spacing: 0.6px;
-  font-weight: 400;
+  font-size: 18px;
+  font-family: "Gilroy", sans-serif;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+  color: var(--fab-gray-900);
 }
 
 p,
 label {
-  font-size: 15px;
-  font-family: "Gilroy";
-  color: #000000c4;
+  font-size: 14px;
+  font-family: "Gilroy", sans-serif;
+  color: var(--fab-gray-600);
   font-weight: 400;
+  line-height: 1.5;
 }
 
 .header-top,
@@ -639,15 +685,14 @@ label {
 }
 
 .book_data_label {
-  background: #ffffff;
-  padding: 30px 15px;
-  /* margin-bottom: 16px; */
+  background: var(--fab-bg-card);
+  padding: 20px 15px;
   height: 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 30px;
+  border-radius: var(--fab-radius-lg);
   position: relative;
   text-align: center;
   cursor: pointer;
@@ -668,7 +713,7 @@ label {
 .book_data_label:hover,
 .active_book_data_label,
 .location_data:hover {
-  border-color: #03a9f4;
+  border-color: var(--fab-blue);
   transform: scale(1.02);
   box-shadow: 0 8px 22px rgba(3, 169, 244, 0.14);
   transition:
@@ -685,12 +730,12 @@ label {
   }
   .book_data_label.active-card-val,
   .location_data.active-card-val {
-    border-color: #03a9f4 !important;
+    border-color: var(--fab-blue) !important;
   }
 }
 
 .location_data:hover {
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
 }
 
 .book_data h3 {
@@ -706,7 +751,7 @@ label {
 }
 
 .loc_data img {
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -716,7 +761,7 @@ label {
 .location_data {
   overflow: hidden;
   transition: 0.3s all ease-in-out 0s;
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
 }
 
 .location_data:hover img {
@@ -725,8 +770,8 @@ label {
 }
 
 .active-loc {
-  border-color: #03a9f4;
-  border-radius: 20px;
+  border-color: var(--fab-blue);
+  border-radius: var(--fab-radius-lg);
   overflow: hidden;
 }
 
@@ -767,19 +812,18 @@ label {
   background-color: var(--fab-blue) !important;
   color: #ffffff;
   cursor: pointer;
-  padding: 20px;
+  padding: 16px 20px;
   width: 100%;
   border: none;
   text-align: center;
   outline: none;
-  font-size: 15px;
-  transition: 0.4s;
+  transition: 0.3s ease;
   margin-bottom: 10px;
   position: relative;
-  font-family: "Gilroy";
-  font-size: 20px;
-  border-radius: 20px;
-  font-weight: 400;
+  font-family: "Gilroy", sans-serif;
+  font-size: 16px;
+  border-radius: var(--fab-radius-lg);
+  font-weight: 500;
 }
 
 .accordion:hover {
@@ -791,8 +835,9 @@ label {
 
 .active {
   background-color: #fff !important;
-  color: black !important;
-  font-weight: 500;
+  color: var(--fab-navy) !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .accordion.active:hover {
@@ -848,9 +893,9 @@ label {
 }
 
 .book_active {
-  border-radius: 40px;
-  background: #fff;
-  padding: 30px;
+  border-radius: var(--fab-radius-lg);
+  background: var(--fab-bg-card);
+  padding: 24px;
 }
 
 .active-book-cont p,
@@ -882,8 +927,8 @@ label {
 }
 
 .active-card-val .active-book-card {
-  background: #00eb5b;
-  border-color: #00eb5b;
+  background: var(--fab-green);
+  border-color: var(--fab-green);
 }
 
 .active-card-val .active-book-card:after {
@@ -1051,12 +1096,12 @@ textarea {
 }
 
 .book_selevt_btn button {
-  background: #03a9f4;
+  background: var(--fab-blue);
 }
 
 .booking_btn,
 .book_select_btn a {
-  background: #03a9f4;
+  background: var(--fab-blue);
   padding: 8px 20px;
   color: #fff;
   font-family: "Gilroy";
@@ -1314,7 +1359,7 @@ textarea {
   width: 48%;
   padding: 15px;
   border: 1.5px solid #00000080;
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
   flex: 0 0 48%;
   box-sizing: border-box;
 }
@@ -1618,8 +1663,8 @@ textarea {
 
 .row-1 input[type="checkbox"]:checked,
 .final-prefer-check input:checked {
-  background-color: #00eb5b;
-  border-color: #00eb5b;
+  background-color: var(--fab-green);
+  border-color: var(--fab-green);
   /* Checked state ka color */
 }
 
@@ -1659,7 +1704,7 @@ textarea {
 }
 
 .Recipient_check input[type="checkbox"]:checked {
-  background-color: #00eb5b;
+  background-color: var(--fab-green);
   /* Checked state ka color */
 }
 
@@ -1709,7 +1754,7 @@ textarea {
 }
 
 .book_data input:checked {
-  background-color: #00eb5b;
+  background-color: var(--fab-green);
   /* Checked state ka color */
 }
 
@@ -1927,7 +1972,7 @@ textarea {
 .add-on-card .loc_data {
   align-items: center;
   border: 2px solid transparent;
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
   box-sizing: border-box;
   display: flex;
   gap: 20px;
@@ -1991,7 +2036,7 @@ textarea {
 
 .loc_data.active-add-on-wrap,
 .add-on-card .loc_data:hover {
-  border-color: #03a9f4;
+  border-color: var(--fab-blue);
 }
 /* End Add On */
 
@@ -2271,7 +2316,7 @@ textarea {
   z-index: 1000;
   transform: translate(0, 0);
   padding: 30px;
-  border-radius: 20px;
+  border-radius: var(--fab-radius-lg);
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -3388,7 +3433,7 @@ textarea {
     animation: summarySlideUp 0.18s ease-out;
   }
   .summary-row.completed .summary-dot {
-    background: #00eb5b;
+    background: var(--fab-green);
   }
   /* Use a unique animation name to avoid collisions with other components */
   @keyframes summarySlideUp {
@@ -3551,7 +3596,7 @@ textarea {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #00eb5b;
+  background: var(--fab-green);
   display: inline-block;
   position: relative;
 }

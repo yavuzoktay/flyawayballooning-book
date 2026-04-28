@@ -354,6 +354,8 @@ const VoucherType = ({
   compactVoucherCardMode = false,
   autoAdvanceToSectionId = null,
   disableTermsPopup = false,
+  lockVoucherSelection = false,
+  autoOpenTermsOnPrefill = false,
 }) => {
   const API_BASE_URL = config.API_BASE_URL;
   const [quantities, setQuantities] = useState({});
@@ -390,12 +392,12 @@ const VoucherType = ({
     const isShopifySource = params.get("source") === "shopify";
     const startAtVoucher =
       params.get("startAt") === "voucher-type" || !!params.get("voucherTitle");
-    if (isShopifySource && startAtVoucher) {
+    if ((isShopifySource && startAtVoucher) || autoOpenTermsOnPrefill) {
       hasOpenedTermsFromDeepLink.current = false;
       autoOpenedTermsRef.current = false;
       userDismissedTermsRef.current = false;
     }
-  }, [location.search]);
+  }, [autoOpenTermsOnPrefill, location.search]);
   const [activityData, setActivityData] = useState(null);
   const [activityDataLoading, setActivityDataLoading] = useState(false);
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
@@ -1710,12 +1712,12 @@ const VoucherType = ({
       const startAtVoucher =
         urlParams.get("startAt") === "voucher-type" ||
         !!urlParams.get("voucherTitle");
-      if (
+      const shouldAutoOpenTerms =
         !disableTermsPopup &&
-        isShopifySource &&
-        startAtVoucher &&
-        !hasOpenedTermsFromDeepLink.current
-      ) {
+        !hasOpenedTermsFromDeepLink.current &&
+        ((isShopifySource && startAtVoucher) || autoOpenTermsOnPrefill);
+
+      if (shouldAutoOpenTerms) {
         hasOpenedTermsFromDeepLink.current = true;
         if (typeof setActiveAccordion === "function") {
           setActiveAccordion("voucher-type");
@@ -1729,7 +1731,12 @@ const VoucherType = ({
       console.error("VoucherType: Error applying deep-link voucher prefill", e);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voucherTypes, selectedVoucherType?.title, location.search]);
+  }, [
+    voucherTypes,
+    selectedVoucherType?.title,
+    location.search,
+    autoOpenTermsOnPrefill,
+  ]);
 
   // Safety net: if deep-link auto-open was triggered but modal got unmounted (e.g., accordion toggle), reopen it once.
   useEffect(() => {
@@ -1738,15 +1745,15 @@ const VoucherType = ({
     const startAtVoucher =
       urlParams.get("startAt") === "voucher-type" ||
       !!urlParams.get("voucherTitle");
-    if (
+    const shouldReopenAutoTerms =
       !disableTermsPopup &&
-      isShopifySource &&
-      startAtVoucher &&
       autoOpenedTermsRef.current &&
       !userDismissedTermsRef.current &&
       selectedVoucher &&
-      !showTerms
-    ) {
+      !showTerms &&
+      ((isShopifySource && startAtVoucher) || autoOpenTermsOnPrefill);
+
+    if (shouldReopenAutoTerms) {
       if (typeof setActiveAccordion === "function") {
         setActiveAccordion("voucher-type");
       }
@@ -1758,6 +1765,7 @@ const VoucherType = ({
     setActiveAccordion,
     location.search,
     disableTermsPopup,
+    autoOpenTermsOnPrefill,
   ]);
 
   // Remove the duplicate privateCharterVoucherTypesMemo since it's now integrated into voucherTypes
@@ -3041,6 +3049,7 @@ const VoucherType = ({
           })()}
           <button
             className={`voucher-type-select-button${isSelected ? " voucher-type-select-button--selected" : ""}`}
+            disabled={lockVoucherSelection && isSelected}
             style={{
               width: "100%",
               marginTop:
@@ -3048,10 +3057,19 @@ const VoucherType = ({
                 activitySelect === "Buy Gift"
                   ? 8
                   : "auto",
+              cursor: lockVoucherSelection && isSelected ? "not-allowed" : "pointer",
+              opacity: lockVoucherSelection && isSelected ? 0.82 : 1,
             }}
-            onClick={() => onSelect(voucher)}
+            onClick={() => {
+              if (lockVoucherSelection && isSelected) return;
+              onSelect(voucher);
+            }}
           >
-            {isSelected ? "Selected" : "Select"}
+            {lockVoucherSelection && isSelected
+              ? "Selected & Locked"
+              : isSelected
+                ? "Selected"
+                : "Select"}
           </button>
         </div>
       </div>
@@ -3756,20 +3774,22 @@ const VoucherType = ({
                 marginTop: 16,
               }}
             >
-              <button
-                className="booking-shared-action-button"
-                onClick={() => {
-                  userDismissedTermsRef.current = true;
-                  setShowTerms(false);
-                }}
-                style={{
-                  flex: 1,
-                  maxWidth: 220,
-                  minHeight: 44,
-                }}
-              >
-                Choose Different Voucher
-              </button>
+              {!lockVoucherSelection && (
+                <button
+                  className="booking-shared-action-button"
+                  onClick={() => {
+                    userDismissedTermsRef.current = true;
+                    setShowTerms(false);
+                  }}
+                  style={{
+                    flex: 1,
+                    maxWidth: 220,
+                    minHeight: 44,
+                  }}
+                >
+                  Choose Different Voucher
+                </button>
+              )}
               <button
                 className="booking-shared-action-button"
                 onClick={() => {
@@ -4639,7 +4659,10 @@ const areEqual = (prevProps, nextProps) => {
     prevProps.selectedVoucherType !== nextProps.selectedVoucherType ||
     prevProps.activitySelect !== nextProps.activitySelect ||
     prevProps.chooseLocation !== nextProps.chooseLocation ||
-    prevProps.selectedActivity !== nextProps.selectedActivity
+    prevProps.selectedActivity !== nextProps.selectedActivity ||
+    prevProps.disableTermsPopup !== nextProps.disableTermsPopup ||
+    prevProps.lockVoucherSelection !== nextProps.lockVoucherSelection ||
+    prevProps.autoOpenTermsOnPrefill !== nextProps.autoOpenTermsOnPrefill
   ) {
     return false;
   }

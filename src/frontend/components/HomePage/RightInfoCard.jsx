@@ -28,6 +28,7 @@ const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
 const RightInfoCard = ({
   activitySelect,
   chooseLocation,
+  displayLocationLabel,
   chooseFlightType,
   chooseAddOn,
   passengerData,
@@ -54,7 +55,9 @@ const RightInfoCard = ({
   hideAddOnsSection = false,
   hideAdditionalInfoSection = false,
   hiddenSectionIds = [],
+  showLockedWeatherRefundableLabel = false,
 }) => {
+  const summaryLocationLabel = displayLocationLabel || chooseLocation || "";
   // IMMEDIATE DEBUG LOG TO TEST IF COMPONENT RENDERS
 
   // Force immediate debug for Buy Gift
@@ -1117,7 +1120,7 @@ const RightInfoCard = ({
           {
             id: "location",
             title: "Location",
-            value: chooseLocation || "",
+            value: summaryLocationLabel,
             completed: !!chooseLocation,
           },
           {
@@ -1130,7 +1133,7 @@ const RightInfoCard = ({
             id: "voucher-type",
             title: "Voucher Type",
             value: selectedVoucherType
-              ? `${seasonSaver ? "☘️ " : ""}${selectedVoucherType.title} (${selectedVoucherType.quantity})`
+              ? `${seasonSaver ? "☘️ " : ""}${selectedVoucherType.title} (${selectedVoucherType.quantity})${showLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
               : "",
             completed: !!selectedVoucherType,
           },
@@ -1186,7 +1189,7 @@ const RightInfoCard = ({
           {
             id: "location",
             title: "Location",
-            value: chooseLocation || "",
+            value: summaryLocationLabel,
             completed: !!chooseLocation,
           },
           {
@@ -1455,7 +1458,7 @@ const RightInfoCard = ({
                     <span className="active-book-card"></span>
                     <div className="active-book-cont">
                       <h3>Location</h3>
-                      <p>{chooseLocation ? chooseLocation : ""}</p>
+                      <p>{summaryLocationLabel}</p>
                     </div>
                   </div>
                 </div>
@@ -1498,7 +1501,7 @@ const RightInfoCard = ({
                         <h3>Voucher Type</h3>
                         <p>
                           {selectedVoucherType
-                            ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? "s" : ""})`
+                            ? `${selectedVoucherType.title} (${selectedVoucherType.quantity} passenger${selectedVoucherType.quantity > 1 ? "s" : ""})${showLockedWeatherRefundableLabel ? " - Weather Refundable locked" : ""}`
                             : ""}
                         </p>
                       </div>
@@ -1529,7 +1532,11 @@ const RightInfoCard = ({
                         <div className="active-book-cont final-active-book-cont">
                           <div className="active-book-left">
                             <h3>Weather Refundable</h3>
-                            <p>One-time charge for entire booking</p>
+                            <p>
+                              {showLockedWeatherRefundableLabel
+                                ? "Locked for this booking"
+                                : "One-time charge for entire booking"}
+                            </p>
                           </div>
                           <div className="active-book-right">
                             <p>
@@ -1750,7 +1757,7 @@ const RightInfoCard = ({
                     <span className="active-book-card"></span>
                     <div className="book-cont">
                       <h3>Location</h3>
-                      <p>{chooseLocation ? chooseLocation : ""}</p>
+                      <p>{summaryLocationLabel}</p>
                     </div>
                   </div>
                 </div>

@@ -37,6 +37,7 @@ const LiveAvailabilitySection = ({
   selectedActivity,
   availableSeats,
   chooseLocation,
+  displayLocationLabel,
   selectedTime,
   setSelectedTime,
   availabilities,
@@ -50,6 +51,7 @@ const LiveAvailabilitySection = ({
   isDisabled = false,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const viewingLocationLabel = displayLocationLabel || chooseLocation;
 
   // Track if this is the first render (to skip initial notification)
   const isFirstRenderRef = React.useRef(true);
@@ -1929,7 +1931,7 @@ const LiveAvailabilitySection = ({
             {isLocationAndExperienceSelected ? (
               <>
                 <div style={{ fontSize: isMobile ? 14 : 16 }}>
-                  Currently viewing: <b>{chooseLocation}</b>,{" "}
+                  Currently viewing: <b>{viewingLocationLabel}</b>,{" "}
                   <b>{chooseFlightType.type}</b>
                 </div>
                 {selectedDate && selectedTime && (

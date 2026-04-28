@@ -5,13 +5,18 @@
     <link rel="icon" href="%PUBLIC_URL%/app-icon.png" />
     <base href="/" />
     <!-- Prevent iOS Safari auto-zoom on inputs by setting a higher base font-size on mobile only -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <link rel="canonical" href="https://flyawayballooning-book.com/" />
     <meta
       name="description"
-      content="Book hot air balloon flights and gift vouchers - Shared Flight and Private Charter. Fly Away Ballooning booking."
+      content="Book hot air balloon rides over Bath, Somerset, Devon and Bristol. Shared flights from GBP 180, private charters from GBP 900. Gift vouchers available. Over 50 years of ballooning experience. Fly Away Ballooning."
     />
+    <meta property="og:title" content="Book Hot Air Balloon Rides | Fly Away Ballooning" />
+    <meta property="og:description" content="Hot air balloon rides over Bath, Somerset, Devon and Bristol. Shared flights from GBP 180, private charters from GBP 900. Gift vouchers available." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://flyawayballooning-book.com/" />
+    <meta property="og:site_name" content="Fly Away Ballooning" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/app-icon.png" />
     <!-- Microsoft Clarity -->
     <script type="text/javascript">
@@ -59,7 +64,30 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>FAB Booking</title>
+    <title>Book Hot Air Balloon Rides | Fly Away Ballooning - Bath, Somerset, Devon &amp; Bristol</title>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TouristAttraction",
+  "name": "Fly Away Ballooning",
+  "description": "Hot air balloon rides over Bath, Somerset, Devon and Bristol. Family-run ballooning company with over 50 years of experience.",
+  "url": "https://flyawayballooning-book.com",
+  "telephone": "+441823778127",
+  "email": "info@flyawayballooning.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "Somerset",
+    "addressCountry": "GB"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5.0",
+    "reviewCount": "34",
+    "bestRating": "5"
+  },
+  "priceRange": "GBP 180 - GBP 2100"
+}
+</script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

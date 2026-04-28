@@ -25,6 +25,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/hotel-manual-booking" element={<Index />} />
             <Route path="/thenewt" element={<Index />} />
+            <Route path="/kaleidoscope" element={<Index />} />
             <Route path="/book" element={<BookNow />} />
             <Route path="/customerPortal/:token/index" element={<Index />} />
           </Routes>
