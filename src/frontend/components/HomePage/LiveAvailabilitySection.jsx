@@ -565,6 +565,19 @@ const LiveAvailabilitySection = ({
 
   const getRemainingSeats = (slot) => {
     if (!slot) return 0;
+
+    // Public booking flows must use the backend's public availability first.
+    // `calculated_available` / `actualAvailable` can represent raw internal
+    // capacity before admin-held spaces are deducted.
+    const publicAvailability =
+      slot.public_available ?? slot.publicAvailable ?? slot.available;
+    if (publicAvailability !== undefined && publicAvailability !== null) {
+      return Math.max(0, parseNumber(publicAvailability, 0));
+    }
+
+    if (typeof slot.available === "number") {
+      return Math.max(0, slot.available);
+    }
     if (
       slot.calculated_available !== undefined &&
       slot.calculated_available !== null
@@ -573,9 +586,6 @@ const LiveAvailabilitySection = ({
     }
     if (typeof slot.actualAvailable === "number") {
       return Math.max(0, slot.actualAvailable);
-    }
-    if (typeof slot.available === "number") {
-      return Math.max(0, slot.available);
     }
     if (
       typeof slot.shared_capacity === "number" &&
