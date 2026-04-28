@@ -362,6 +362,7 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
     lockVoucherSelection: true,
     prefillVoucherSelection: false,
     autoOpenTermsOnPrefill: false,
+    requireTermsConfirmationBeforeVoucherSelection: true,
     initialAccordionSection: "voucher-type",
   },
 };
@@ -7504,6 +7505,10 @@ const Index = () => {
                               }
                               autoOpenTermsOnPrefill={
                                 !!manualBookingRouteProfile?.autoOpenTermsOnPrefill
+                              }
+                              requireTermsConfirmationBeforeVoucherSelection={
+                                !!manualBookingRouteProfile
+                                  ?.requireTermsConfirmationBeforeVoucherSelection
                               }
                                                     />
                                                 </div>

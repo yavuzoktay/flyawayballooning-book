@@ -360,6 +360,7 @@ const VoucherType = ({
   disableTermsPopup = false,
   lockVoucherSelection = false,
   autoOpenTermsOnPrefill = false,
+  requireTermsConfirmationBeforeVoucherSelection = false,
 }) => {
   const API_BASE_URL = config.API_BASE_URL;
   const [quantities, setQuantities] = useState({});
@@ -424,6 +425,8 @@ const VoucherType = ({
     compactVoucherCardMode || (disableTermsPopup && forceWeatherRefundable);
   const resolvedAutoAdvanceToSectionId =
     autoAdvanceToSectionId || (disableTermsPopup ? "live-availability" : null);
+  const shouldDeferVoucherSelectionCommit =
+    requireTermsConfirmationBeforeVoucherSelection && !disableTermsPopup;
 
   const isVoucherTitleHidden = (title) =>
     hiddenVoucherTitleSet.has(normalizeVoucherPriceTitle(title));
@@ -568,6 +571,9 @@ const VoucherType = ({
       return;
     const rebuilt = buildVoucherWithQuantity(selectedVoucher);
     setSelectedVoucher(rebuilt);
+    if (shouldDeferVoucherSelectionCommit && !selectedVoucherType) {
+      return;
+    }
     setSelectedVoucherType(rebuilt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seasonSaver]);
@@ -3051,30 +3057,44 @@ const VoucherType = ({
               </div>
             );
           })()}
-          <button
-            className={`voucher-type-select-button${isSelected ? " voucher-type-select-button--selected" : ""}`}
-            disabled={lockVoucherSelection && isSelected}
-            style={{
-              width: "100%",
-              marginTop:
-                activitySelect === "Flight Voucher" ||
-                activitySelect === "Buy Gift"
-                  ? 8
-                  : "auto",
-              cursor: lockVoucherSelection && isSelected ? "not-allowed" : "pointer",
-              opacity: lockVoucherSelection && isSelected ? 0.82 : 1,
-            }}
-            onClick={() => {
-              if (lockVoucherSelection && isSelected) return;
-              onSelect(voucher);
-            }}
-          >
-            {lockVoucherSelection && isSelected
-              ? "Selected & Locked"
-              : isSelected
-                ? "Selected"
-                : "Select"}
-          </button>
+          {(() => {
+            const isCommittedSelection =
+              selectedVoucherType?.id === voucher.id ||
+              (selectedVoucherType?.title &&
+                normalizeVoucherPriceTitle(selectedVoucherType.title) ===
+                  normalizeVoucherPriceTitle(voucher.title));
+            const shouldDisableButton =
+              lockVoucherSelection &&
+              isSelected &&
+              (!shouldDeferVoucherSelectionCommit || isCommittedSelection);
+
+            return (
+              <button
+                className={`voucher-type-select-button${isSelected ? " voucher-type-select-button--selected" : ""}`}
+                disabled={shouldDisableButton}
+                style={{
+                  width: "100%",
+                  marginTop:
+                    activitySelect === "Flight Voucher" ||
+                    activitySelect === "Buy Gift"
+                      ? 8
+                      : "auto",
+                  cursor: shouldDisableButton ? "not-allowed" : "pointer",
+                  opacity: shouldDisableButton ? 0.82 : 1,
+                }}
+                onClick={() => {
+                  if (shouldDisableButton) return;
+                  onSelect(voucher);
+                }}
+              >
+                {lockVoucherSelection && isCommittedSelection
+                  ? "Selected & Locked"
+                  : isSelected
+                    ? "Selected"
+                    : "Select"}
+              </button>
+            );
+          })()}
         </div>
       </div>
     );
@@ -3317,6 +3337,9 @@ const VoucherType = ({
     }
 
     setSelectedVoucher(rebuilt);
+    if (shouldDeferVoucherSelectionCommit && !selectedVoucherType) {
+      return;
+    }
     setSelectedVoucherType(rebuilt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -3332,6 +3355,7 @@ const VoucherType = ({
     selectedVoucherType?.quantity,
     selectedVoucherType?.title,
     selectedVoucherType?.totalPrice,
+    shouldDeferVoucherSelectionCommit,
     voucherTypes,
   ]);
 
@@ -4678,7 +4702,9 @@ const areEqual = (prevProps, nextProps) => {
     prevProps.selectedActivity !== nextProps.selectedActivity ||
     prevProps.disableTermsPopup !== nextProps.disableTermsPopup ||
     prevProps.lockVoucherSelection !== nextProps.lockVoucherSelection ||
-    prevProps.autoOpenTermsOnPrefill !== nextProps.autoOpenTermsOnPrefill
+    prevProps.autoOpenTermsOnPrefill !== nextProps.autoOpenTermsOnPrefill ||
+    prevProps.requireTermsConfirmationBeforeVoucherSelection !==
+      nextProps.requireTermsConfirmationBeforeVoucherSelection
   ) {
     return false;
   }
