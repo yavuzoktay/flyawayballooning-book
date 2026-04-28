@@ -40,6 +40,7 @@ const AdditionalInfo = forwardRef(
       errors = {},
       isDisabled = false,
       onSectionCompletion,
+      questionTextAllowList = [],
     },
     ref,
   ) => {
@@ -98,6 +99,10 @@ const AdditionalInfo = forwardRef(
       if (isGiftVoucher) return "Buy Gift";
       return "Book Flight"; // Default
     };
+
+    const normalizedQuestionTextAllowList = Array.isArray(questionTextAllowList)
+      ? questionTextAllowList.map(normalizeQuestionText).filter(Boolean)
+      : [];
 
     // Filter questions by journey type, location, and experience type
     const getFilteredQuestions = () => {
@@ -262,6 +267,16 @@ const AdditionalInfo = forwardRef(
           }
 
           return finalMatch;
+        })
+        .filter((question) => {
+          if (normalizedQuestionTextAllowList.length === 0) {
+            return true;
+          }
+
+          const questionText = normalizeQuestionText(question.question_text);
+          return normalizedQuestionTextAllowList.some((allowedQuestionText) =>
+            questionText.includes(allowedQuestionText),
+          );
         })
         .sort((a, b) => a.sort_order - b.sort_order);
     };

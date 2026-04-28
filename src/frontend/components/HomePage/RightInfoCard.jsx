@@ -55,6 +55,7 @@ const RightInfoCard = ({
   hideAddOnsSection = false,
   hideAdditionalInfoSection = false,
   hiddenSectionIds = [],
+  hiddenSummarySectionIds = [],
   showLockedWeatherRefundableLabel = false,
 }) => {
   const summaryLocationLabel = displayLocationLabel || chooseLocation || "";
@@ -1086,6 +1087,8 @@ const RightInfoCard = ({
   const isBookFlight = activitySelect === "Book Flight";
   const shouldShowAddOnSummary = !hideAddOnsSection;
   const shouldShowAdditionalInfoSummary = !hideAdditionalInfoSection;
+  const isSummarySectionHidden = (sectionId) =>
+    hiddenSummarySectionIds.includes(sectionId);
   const isSectionInteractive = (sectionId) =>
     !hiddenSectionIds.includes(sectionId);
   const getSectionClickHandler = (sectionId) =>
@@ -1095,6 +1098,7 @@ const RightInfoCard = ({
 
   const getSectionRowStyle = (sectionId) => ({
     cursor: isSectionInteractive(sectionId) ? "pointer" : "default",
+    display: isSummarySectionHidden(sectionId) ? "none" : undefined,
   });
 
   // Update the sectionSpacing to a slightly larger value for more visual balance (e.g., 24px)
@@ -1333,7 +1337,7 @@ const RightInfoCard = ({
           },
         ]
       : []),
-  ];
+  ].filter((section) => !isSummarySectionHidden(section.id));
 
   const normalizedSummarySectionId =
     activeAccordion === "preference" ? "select-preferences" : activeAccordion;
@@ -1406,7 +1410,13 @@ const RightInfoCard = ({
           <div className="book_data_active summary-desktop-inner">
             <div className="summary-desktop-scroll" ref={summaryScrollRef}>
             {/* En üstte Flight Type/What would you like to do? */}
-            <div className="book_data_active" data-summary-section="activity">
+            <div
+              className="book_data_active"
+              data-summary-section="activity"
+              style={{
+                display: isSummarySectionHidden("activity") ? "none" : undefined,
+              }}
+            >
               <div
                 className={`row-1 ${(() => {
                   // For Redeem Voucher, only show green tick if voucher is valid
@@ -1522,7 +1532,8 @@ const RightInfoCard = ({
                   </div>
                 </div>
                 {/* Private Charter Weather Refundable Display */}
-                {chooseFlightType?.type === "Private Charter" &&
+                {!isSummarySectionHidden("weather-refundable") &&
+                  chooseFlightType?.type === "Private Charter" &&
                   privateCharterWeatherRefund && (
                     <div className="book_data_active">
                       {" "}
@@ -1547,7 +1558,8 @@ const RightInfoCard = ({
                       </div>
                     </div>
                   )}
-                {chooseFlightType?.type === "Shared Flight" &&
+                {!isSummarySectionHidden("weather-refundable") &&
+                  chooseFlightType?.type === "Shared Flight" &&
                   weatherRefundPrice > 0 && (
                     <div className="book_data_active">
                       {" "}

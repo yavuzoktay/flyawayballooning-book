@@ -305,6 +305,16 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
     hideAdditionalInfo: false,
     hiddenVoucherTitles: ["Proposal Flight"],
     hiddenSectionIds: ["activity", "location", "experience"],
+    hiddenSummarySectionIds: [
+      "activity",
+      "location",
+      "experience",
+      "weather-refundable",
+    ],
+    additionalInfoQuestionTextAllowList: [
+      "Which would you prefer",
+      "Which drink would you prefer",
+    ],
     autoSelectActivity: "Book Flight",
     contactTitle: "Your Hotel Stay",
     contactDescription: null,
@@ -7564,6 +7574,9 @@ const Index = () => {
                                                     location={
                                                       manualBookingRouteProfile?.additionalInfoLocation
                                                     }
+                                                    questionTextAllowList={
+                                                      manualBookingRouteProfile?.additionalInfoQuestionTextAllowList
+                                                    }
                                                     onSectionCompletion={handleSectionCompletion}
                             isDisabled={
                               !getAccordionState("additional-info").isEnabled
@@ -7693,6 +7706,9 @@ const Index = () => {
                               handleSetActiveAccordionWithValidation
                             }
                                                     flightType={chooseFlightType.type}
+                                                    questionTextAllowList={
+                                                      manualBookingRouteProfile?.additionalInfoQuestionTextAllowList
+                                                    }
                                                     onSectionCompletion={handleSectionCompletion}
                             isDisabled={
                               !getAccordionState("additional-info").isEnabled
@@ -7823,6 +7839,9 @@ const Index = () => {
                             }
                                                     flightType={chooseFlightType.type}
                                                     location={chooseLocation}
+                                                    questionTextAllowList={
+                                                      manualBookingRouteProfile?.additionalInfoQuestionTextAllowList
+                                                    }
                                                     onSectionCompletion={handleSectionCompletion}
                             isDisabled={
                               !getAccordionState("additional-info").isEnabled
@@ -8072,6 +8091,9 @@ const Index = () => {
                               }
                                                     flightType={chooseFlightType.type}
                                                     location={chooseLocation}
+                                                    questionTextAllowList={
+                                                      manualBookingRouteProfile?.additionalInfoQuestionTextAllowList
+                                                    }
                                                     onSectionCompletion={handleSectionCompletion}
                               isDisabled={
                                 !getAccordionState("additional-info").isEnabled
@@ -8129,6 +8151,9 @@ const Index = () => {
                                 hideAddOnsSection={shouldHideAddOns}
                                 hideAdditionalInfoSection={shouldHideAdditionalInfoSection}
                                 hiddenSectionIds={hiddenDedicatedSectionIds}
+                                hiddenSummarySectionIds={
+                                  manualBookingRouteProfile?.hiddenSummarySectionIds
+                                }
                                 showLockedWeatherRefundableLabel={
                                   !!manualBookingRouteProfile?.lockVoucherSelection &&
                                   !!dedicatedBookingDefaults?.weatherRefundable
