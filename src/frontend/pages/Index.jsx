@@ -325,8 +325,9 @@ const MANUAL_BOOKING_ROUTE_PROFILES = {
       {
         name: "accommodationName",
         label: "Hotel Name",
-        type: "text",
-        placeholder: "Enter hotel name",
+        type: "select",
+        placeholder: "Select hotel name",
+        options: ["Homewood", "Bishopstrow", "The Bird", "Dukes"],
         required: true,
       },
       {

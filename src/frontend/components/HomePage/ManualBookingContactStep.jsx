@@ -131,21 +131,57 @@ const ManualBookingContactStep = ({
                         field.type === "email" &&
                         value &&
                         !emailPattern.test(value.trim());
+                    const isSelectField = field.type === "select" || Array.isArray(field.options);
+                    const options = Array.isArray(field.options) ? field.options : [];
+                    const normalizedOptions = options.map((option) => {
+                        if (option && typeof option === "object") {
+                            return {
+                                value: option.value ?? option.label ?? "",
+                                label: option.label ?? option.value ?? ""
+                            };
+                        }
+
+                        return {
+                            value: option,
+                            label: option
+                        };
+                    });
 
                     return (
                         <label key={field.name} style={labelStyle}>
                             {field.label}
                             {field.required ? " *" : ""}
-                            <input
-                                type={field.type || "text"}
-                                value={value}
-                                onChange={handleFieldChange(field.name)}
-                                placeholder={field.placeholder || ""}
-                                style={{
-                                    ...fieldStyle,
-                                    borderColor: emailInvalid ? "#fda4af" : fieldStyle.border
-                                }}
-                            />
+                            {isSelectField ? (
+                                <select
+                                    value={value}
+                                    onChange={handleFieldChange(field.name)}
+                                    style={{
+                                        ...fieldStyle,
+                                        color: value ? "#111827" : "#8a94a6",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    <option value="" disabled>
+                                        {field.placeholder || "Please select"}
+                                    </option>
+                                    {normalizedOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type={field.type || "text"}
+                                    value={value}
+                                    onChange={handleFieldChange(field.name)}
+                                    placeholder={field.placeholder || ""}
+                                    style={{
+                                        ...fieldStyle,
+                                        borderColor: emailInvalid ? "#fda4af" : fieldStyle.border
+                                    }}
+                                />
+                            )}
                             {emailInvalid && (
                                 <span style={{ color: "#be123c", fontSize: "12px", fontWeight: 500 }}>
                                     Enter a valid email address.
