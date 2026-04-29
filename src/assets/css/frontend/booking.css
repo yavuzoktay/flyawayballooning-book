@@ -807,6 +807,11 @@ label {
   box-sizing: border-box;
 }
 
+.accordion-section[data-accordion-id="passenger-info"] > .accordion.active + .panel {
+  /* Keep the next accordion from sitting flush against the expanded passenger form. */
+  margin-bottom: 24px;
+}
+
 .acood_head h3 {
   margin-bottom: 20px;
 }
