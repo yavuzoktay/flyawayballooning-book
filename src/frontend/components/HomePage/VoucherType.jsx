@@ -2195,9 +2195,7 @@ const VoucherType = ({
                   isPrivate &&
                   (forceWeatherRefundable ||
                     !!privateWeatherRefundByVoucher?.[voucher.title]);
-                const isRefundable =
-                  !hideWeatherRefundablePresentation &&
-                  (sharedEnabled || privateEnabled);
+                const isRefundable = sharedEnabled || privateEnabled;
                 return (
                   <div
                     className="voucher-type-card-refund-row"
@@ -2365,8 +2363,7 @@ const VoucherType = ({
                   const anyDayMsg2 =
                     "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 24 months. Alternatively, you may request a refund within 6 months of purchase.";
                   const isSharedRefundable =
-                    !hideWeatherRefundablePresentation &&
-                    (forceWeatherRefundable || !!localSharedWeatherRefund);
+                    forceWeatherRefundable || !!localSharedWeatherRefund;
 
                   return (
                     <div
@@ -2389,9 +2386,8 @@ const VoucherType = ({
                   const privateMsg2 =
                     "✓ In the event of a flight cancellation, your voucher remains valid for rebooking within 18 months. Alternatively, you may request a refund within 6 months of purchase.";
                   const isPrivateRefundable =
-                    !hideWeatherRefundablePresentation &&
-                    (forceWeatherRefundable ||
-                      !!privateWeatherRefundByVoucher?.[voucher.title]);
+                    forceWeatherRefundable ||
+                    !!privateWeatherRefundByVoucher?.[voucher.title];
 
                   return (
                     <div
